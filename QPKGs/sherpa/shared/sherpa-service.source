@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+#* <?dont_edit?>
+#
+#* <?filename?>
+#
+#* <?copyright?>
+#
+#* Description:
+#*	 This is the service script for the sherpa mini-package-manager and is part of the `sherpa` QPKG.
+#
+#* <?project?>
+#
+#* <?tested?>
+#
+#* <?license?>
+
+Init()
+	{
+
+	local -r QPKG_PATH=$(/sbin/getcfg sherpa Install_Path -f /etc/config/qpkg.conf)
+		readonly REAL_LOG_PATHFILE=$QPKG_PATH/logs/session.archive.log
+		readonly REAL_LOADER_SCRIPT_PATHNAME=$QPKG_PATH/sherpa-loader.sh
+	readonly APPARENT_LOADER_SCRIPT_PATHNAME=/usr/sbin/sherpa
+	readonly GUI_LOG_PATHFILE=/home/httpd/sherpa.debug.log
+	readonly SERVICE_STATUS_PATHFILE=/var/run/sherpa.last.operation
+
+	[[ ! -d $(/usr/bin/dirname "$REAL_LOG_PATHFILE") ]] && mkdir -p "$(/usr/bin/dirname "$REAL_LOG_PATHFILE")"
+	[[ ! -e $REAL_LOG_PATHFILE ]] && /bin/touch "$REAL_LOG_PATHFILE"
+
+	}
+
+SetServiceOperationResult()
+	{
+
+	# input:
+	#	$1 = result of operation to recorded.
+
+	[[ -n $1 && -n $SERVICE_STATUS_PATHFILE ]] && echo "$1" > "$SERVICE_STATUS_PATHFILE"
+
+	}
+
+Init
+
+case $1 in
+	start)
+		[[ ! -L $APPARENT_LOADER_SCRIPT_PATHNAME ]] && /bin/ln -s "$REAL_LOADER_SCRIPT_PATHNAME" "$APPARENT_LOADER_SCRIPT_PATHNAME"
+		[[ ! -L $GUI_LOG_PATHFILE ]] && /bin/ln -s "$REAL_LOG_PATHFILE" "$GUI_LOG_PATHFILE"
+		echo 'symlinks created'
+		;;
+	stop)
+		[[ -L $APPARENT_LOADER_SCRIPT_PATHNAME ]] && rm -f "$APPARENT_LOADER_SCRIPT_PATHNAME"
+		[[ -L $GUI_LOG_PATHFILE ]] && rm -f "$GUI_LOG_PATHFILE"
+		echo 'symlinks removed'
+		;;
+	restart)
+		$0 stop
+		$0 start
+		;;
+	status)
+		if [[ -L $APPARENT_LOADER_SCRIPT_PATHNAME ]]; then
+			echo 'active'
+			exit 0
+		else
+			echo 'inactive'
+			exit 1
+		fi
+		;;
+	*)
+		echo -e "\n Usage: $0 {start|stop|restart|status}\n"
+esac
+
+SetServiceOperationResult ok
+exit

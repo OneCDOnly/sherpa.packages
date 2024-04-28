@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+#* <?dont_edit?>
+#
+#* <?filename?>
+#
+#* <?copyright?>
+#
+#* <?project?>
+#
+#* <?tested?>
+#
+#* <?license?>
+
+readonly USER_ARGS_RAW=$*
+readonly QPKG_NAME=ClamAV
+readonly SERVICE_SCRIPT_VERSION='<?build_date?>'
+readonly SERVICE_SCRIPT_TYPE=4
+
+InitService()
+	{
+
+	qpkg_backup_pathfile=undefined
+	install_pip_deps=true
+	qpkg_ini_file=undefined
+		qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
+			qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+
+	readonly TARGET_SERVICE_PATHFILE=/etc/init.d/antivirus.sh
+	readonly BACKUP_SERVICE_PATHFILE=$TARGET_SERVICE_PATHFILE.bak
+
+	}
+
+StartQPKGCustom()
+	{
+
+	IsError && return
+	MakePaths
+	WaitForGit || { SetError; return 1 ;}
+
+	if [[ ! -e $BACKUP_SERVICE_PATHFILE ]]; then
+		cp "$TARGET_SERVICE_PATHFILE" "$BACKUP_SERVICE_PATHFILE"
+
+		# mod base references
+		/bin/sed -i 's|/usr/local/bin/clamscan|/opt/sbin/clamscan|' "$TARGET_SERVICE_PATHFILE"
+		/bin/sed -i 's|/usr/local/bin/freshclam|/opt/sbin/freshclam|' "$TARGET_SERVICE_PATHFILE"
+
+		# disable dryrun. The new ClamAV engine (0.102.4) doesn't support the '--dryrun' or '--countfile=' options.
+		# match second occurrence only. First one is used by McAfee. Solution here: https://unix.stackexchange.com/a/403272
+		/bin/sed -i ':a;N;$!ba; s|/bin/sh -c "$AV_SCAN_PATH $DRY_RUN_OPTIONS --dryrun|#/bin/sh -c "$AV_SCAN_PATH $DRY_RUN_OPTIONS --dryrun|2' "$TARGET_SERVICE_PATHFILE"
+
+		# mod 'clamscan' runtime options
+		# match second occurrence only. First one is used by McAfee.
+		/bin/sed -i ':a;N;$!ba; s|OPTIONS="$OPTIONS --countfile=/tmp/antivirous.job.$job_id.scanning"|OPTIONS="$OPTIONS --database=$ANTIVIRUS_CLAMAV"|2' "$TARGET_SERVICE_PATHFILE"
+
+		# mod 'freshclam' runtime options
+		/bin/sed -i 's|$FRESHCLAM -u admin -l /tmp/.freshclam.log|$FRESHCLAM -u admin --config-file=$FRESHCLAM_CONFIG --datadir=$ANTIVIRUS_CLAMAV -l /tmp/.freshclam.log|' "$TARGET_SERVICE_PATHFILE"
+
+		eval "$TARGET_SERVICE_PATHFILE" restart &>/dev/null
+	fi
+
+	/bin/grep -q freshclam /etc/profile || echo "alias freshclam='/opt/sbin/freshclam -u admin --config-file=/etc/config/freshclam.conf --datadir=/share/$(/sbin/getcfg Public path -f /etc/config/smb.conf | cut -d '/' -f 3)/.antivirus/usr/share/clamav -l /tmp/.freshclam.log'" >> /etc/profile
+
+	DisplayCommitToLog 'start: OK'
+
+	return 0
+
+	}
+
+StopQPKGCustom()
+	{
+
+	IsError && return
+
+	if [[ -e $BACKUP_SERVICE_PATHFILE ]]; then
+		mv "$BACKUP_SERVICE_PATHFILE" "$TARGET_SERVICE_PATHFILE"
+
+		eval "$TARGET_SERVICE_PATHFILE" restart &>/dev/null
+	fi
+
+	/bin/sed -i '/freshclam/d' /etc/profile
+	DisplayCommitToLog 'stop: OK'
+
+	return 0
+
+	}
+
+StatusQPKGCustom()
+	{
+
+	IsNotError || return
+	IsPackageActive && exit 0 || exit 1
+
+	}
+
+library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
+[[ -z $library_path ]] && library_path=$0
+readonly SERVICE_LIBRARY_PATHFILE=$(/usr/bin/dirname "$library_path")/service.lib
+
+if [[ -e $SERVICE_LIBRARY_PATHFILE ]]; then
+	. $SERVICE_LIBRARY_PATHFILE
+else
+	printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
+	exit 1
+fi
+
+ProcessArgs
