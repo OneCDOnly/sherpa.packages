@@ -6,4 +6,4 @@ sherpa: a mini-package-manager for QNAP NAS
 > [!IMPORTANT]
 > This is the package repository for **sherpa**.
 
-<b>[Click here for the main repository](https://github.com/OneCDOnly/sherpa)</b>
+<b>[Click here for the management repository](https://github.com/OneCDOnly/sherpa)</b>
