@@ -8,6 +8,8 @@ this_path=$PWD
 . $HOME/scripts/nas/sherpa/support/vars.source || exit
 
 cd "$qpkgs_support_path" || exit
+./clean-source.sh
+[[ ${1:-} != nocheck ]] && { ./check-syntax.sh || exit ;}
 
 [[ -e $packages_file ]] && rm -f "$packages_file"
 
