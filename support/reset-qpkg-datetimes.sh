@@ -4,7 +4,7 @@
 # 	Must also update datetime of sherpa function library files.
 # 	Auto QPKG rebuilder should therefore ignore datetimes updated by git during 'git checkout'. However, all these files will need to be pushed again, as git will see them as modifid since last push.
 
-. vars.source || exit
+. $HOME/scripts/nas/sherpa/support/vars.source || exit
 
 latest_release=$(git describe --tags "$(git rev-list --tags --max-count=1)" | tr --delete v)
 latest_release_pathfile=$qpkgs_path/sherpa/build/sherpa_${latest_release}.qpkg

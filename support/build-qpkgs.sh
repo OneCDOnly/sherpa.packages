@@ -4,12 +4,12 @@
 # check './build' path and find most-recent .qpkg file to use as a datetime reference.
 # check last changed datetime of all QPKG files, and if any are newer than the reference file, update date tags and run a 'qbuild'.
 
-. vars.source || exit
+. $HOME/scripts/nas/sherpa/support/vars.source || exit
 
 rebuild_functions=false
 rebuilt_functions=false
-a=$support_path/$service_library_source_file
-b=$support_path/$service_library_file
+a=$qpkgs_support_path/$service_library_source_file
+b=$qpkgs_support_path/$service_library_file
 	c=$b
 
 if [[ -e $c ]]; then

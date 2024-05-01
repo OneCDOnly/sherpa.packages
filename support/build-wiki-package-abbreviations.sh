@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. vars.source || exit
+. $HOME/scripts/nas/sherpa/support/vars.source || exit
 
 objects_built=false
 
@@ -10,7 +10,7 @@ Objects:Load()
 	readonly OBJECTS_PATHFILE=$support_path/$objects_file
 
 	if [[ ! -e $OBJECTS_PATHFILE ]]; then
-		./build-objects.sh &>/dev/null
+		$support_path/build-objects.sh &>/dev/null
 		objects_built=true
 	fi
 
@@ -28,7 +28,7 @@ Objects:Load()
 Packages:Load()
 	{
 
-	readonly PACKAGES_PATHFILE=$support_path/$packages_source_file
+	readonly PACKAGES_PATHFILE=$qpkgs_support_path/$packages_source_file
 
 	if [[ ! -e $PACKAGES_PATHFILE ]]; then
 		echo 'package list missing'
@@ -80,7 +80,7 @@ echo -n "building wiki 'Package abbreviations' page ... "
 a=$wiki_path/Package-abbreviations.md
 
 Objects:Load
-Packages:Load 2>/dev/null	# packages source file throws b lot of syntax errors until it's processed - ignore these.
+Packages:Load 2>/dev/null	# packages source file throws a lot of syntax errors until it's processed - ignore these.
 
 	{
 

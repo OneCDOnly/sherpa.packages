@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+. vars.source || exit
+
+echo -en "ready to merge '$(ColourTextBrightRed "$unstable_branch")' branch into '$(ColourTextBrightGreen "$qpkgs_production_branch")' branch: proceed? "
+read -rn1 response
+echo
+
+case ${response:0:1} in
+	y|Y)
+		: # OK to continue
+		;;
+	*)
+		exit 0
+esac
+
+cd "$qpkgs_support_path" || exit
+
+./build-all.sh || exit
+
+cp -f "$qpkgs_path/sherpa/build/sherpa_${build_date}.qpkg" "$qpkgs_path/sherpa/build/sherpa.qpkg"
+
+./commit.sh '[update] archives [pre-merge]' || exit
+
+cd "$qpkgs_root_path" || exit
+
+git checkout "$qpkgs_production_branch" || exit
+git merge --no-ff -m "[merge] from \`$unstable_branch\` into \`$qpkgs_production_branch\`" "$unstable_branch" && git push || exit
+git checkout "$unstable_branch" || exit
+
+cd "$qpkgs_support_path" || exit
+
+./reset-qpkg-datetimes.sh || exit
+git diff			# run this now so don't need to wait during manual (user) check.

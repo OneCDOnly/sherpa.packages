@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-. vars.source || exit
+. $HOME/scripts/nas/sherpa/support/vars.source || exit
 
-source=$support_path/$packages_source_file
-target=$support_path/$packages_file
+source=$qpkgs_support_path/$packages_source_file
+target=$qpkgs_support_path/$packages_file
 
 buffer=$(<"$source")
 
@@ -127,7 +127,7 @@ ShowDone
 
 echo -n 'loading IPK essentials ... '
 
-a=$support_path/ipk-essential.txt
+a=$qpkgs_support_path/ipk-essential.txt
 
 if [[ -e $a ]]; then
 	essential_ipks=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$a")")")
@@ -139,7 +139,7 @@ ShowDone
 
 echo -n 'loading PIP essentials ... '
 
-a=$support_path/pip-essential.txt
+a=$qpkgs_support_path/pip-essential.txt
 
 if [[ -e $a ]]; then
 	essential_pips=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$a")")")
@@ -151,7 +151,7 @@ ShowDone
 
 echo -n 'loading PIP exclusions ... '
 
-a=$support_path/pip-exclusions.txt
+a=$qpkgs_support_path/pip-exclusions.txt
 
 if [[ -e $a ]]; then
 	exclusion_pips=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$a")")")
