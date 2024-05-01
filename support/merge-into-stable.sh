@@ -2,7 +2,7 @@
 
 . vars.source || exit
 
-echo -en "ready to merge '$(ColourTextBrightRed "$unstable_branch")' branch into '$(ColourTextBrightGreen "$qpkgs_production_branch")' branch: proceed? "
+echo -en "ready to merge '$(ColourTextBrightRed "$unstable_branch")' branch into '$(ColourTextBrightGreen "$stable_branch")' branch: proceed? "
 read -rn1 response
 echo
 
@@ -24,8 +24,8 @@ cp -f "$qpkgs_path/sherpa/build/sherpa_${build_date}.qpkg" "$qpkgs_path/sherpa/b
 
 cd "$qpkgs_root_path" || exit
 
-git checkout "$qpkgs_production_branch" || exit
-git merge --no-ff -m "[merge] from \`$unstable_branch\` into \`$qpkgs_production_branch\`" "$unstable_branch" && git push || exit
+git checkout "$stable_branch" || exit
+git merge --no-ff -m "[merge] from \`$unstable_branch\` into \`$stable_branch\`" "$unstable_branch" && git push || exit
 git checkout "$unstable_branch" || exit
 
 cd "$qpkgs_support_path" || exit
