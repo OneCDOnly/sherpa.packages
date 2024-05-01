@@ -11,7 +11,7 @@ for i in "${!a[@]}"; do
 	[[ -e ${a[i]} ]] && rm -f "${a[i]}"
 done
 
-$qpkg_support_path/build-qpkgs.sh sherpa || exit
-$qpkg_support_path/build-packages.sh || exit
-$qpkg_support_path/build-wiki-package-abbreviations.sh || exit
-$qpkg_support_path/build-archives.sh || exit
+./build-qpkgs.sh sherpa || exit
+./build-packages.sh || exit
+./build-wiki-package-abbreviations.sh || exit
+./build-archives.sh || exit
