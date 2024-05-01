@@ -2,7 +2,7 @@
 
 # compiler for sherpa QPKG archives.
 
-. vars.source || exit
+. $HOME/scripts/nas/sherpa/support/vars.source || exit
 
 echo -n 'building archives ... '
 
@@ -27,7 +27,7 @@ for i in "${!a[@]}"; do
 		continue
 	fi
 
-	tar --create --gzip --numeric-owner --file="${b[i]}" --directory="$support_path" "$(basename "${a[i]}")"
+	tar --create --gzip --numeric-owner --file="${b[i]}" --directory="$qpkgs_support_path" "$(basename "${a[i]}")"
 
 	if [[ ! -s ${b[i]} ]]; then
 		ColourTextBrightRed "'${b[i]}' was not written"; echo
