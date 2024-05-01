@@ -1,5 +1,7 @@
 # checksum_filename                  qpkg_filename                    package_name         version      arch   hash
-Bazarr_240501.qpkg.md5               Bazarr_240501.qpkg               Bazarr               240501       all    f8b2124b510fc757fe347d028b9c92c0
+Bazarr_240502_arm_64.qpkg.md5        Bazarr_240502_arm_64.qpkg        Bazarr               240502       a64    1d7e59c7e9db39f3dd943c520ab3e95a
+Bazarr_240502_x86_64.qpkg.md5        Bazarr_240502_x86_64.qpkg        Bazarr               240502       i64    99941e4d2d1b0b8fbd6a19eebbc01a90
+Bazarr_240502_x86.qpkg.md5           Bazarr_240502_x86.qpkg           Bazarr               240502       i86    7d7b1550d4b317055e345808b2ee238c
 ClamAV_240501.qpkg.md5               ClamAV_240501.qpkg               ClamAV               240501       all    0d8aa39a05c7492b1cc57047c5170c94
 Deluge-server_240420.qpkg.md5        Deluge-server_240420.qpkg        Deluge-server        240420       all    cdc0e76e06cc49c6a8bf0814cd05897d
 Deluge-web_240420.qpkg.md5           Deluge-web_240420.qpkg           Deluge-web           240420       all    989d74e9507071eb454e127da8bd1700
@@ -84,7 +86,7 @@ SABnzbd_240501_x86_64.qpkg.md5       SABnzbd_240501_x86_64.qpkg       SABnzbd   
 SABnzbd_240501_x86.qpkg.md5          SABnzbd_240501_x86.qpkg          SABnzbd              240501       i86    aa9ababe0dddb5b6131ebee7151fee16
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240501.qpkg.md5               sherpa_240501.qpkg               sherpa               240501       all    41d044414fef471d23cd5fa5a80573b0
+sherpa_240502.qpkg.md5               sherpa_240502.qpkg               sherpa               240502       all    66039e599106f36f7d88abf277059fed
 SortMyQPKGs_240427.qpkg.md5          SortMyQPKGs_240427.qpkg          SortMyQPKGs          240427       all    9392283f02079fa586f8d03d96f0be17
 Unrar_6.2.5_arm_64.qpkg.md5          Unrar_6.2.5_arm_64.qpkg          Unrar                6.2.5        a64    e2382b80908fc9549bbb00058968082a
 Unrar_6.2.5_arm-x41.qpkg.md5         Unrar_6.2.5_arm-x41.qpkg         Unrar                6.2.5        a41    ac1ff1149258db5e4c0b8165774eda37
