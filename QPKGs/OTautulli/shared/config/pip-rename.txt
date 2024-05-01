@@ -1,1 +1,1 @@
-../../../../../sherpa/support/pip-rename.txt
+../../../../support/pip-rename.txt

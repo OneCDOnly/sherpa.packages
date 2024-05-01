@@ -1,1 +1,1 @@
-../../../../../sherpa/support/pip-exclusions.txt
+../../../../support/pip-exclusions.txt
