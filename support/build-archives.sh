@@ -10,14 +10,10 @@ declare -a a
 declare -a b
 declare -i i=0
 
-# a+=("$support_path/$objects_file")
-# b+=("$root_path/$objects_archive_file")
-
 a+=("$qpkgs_support_path/$packages_file")
 b+=("$qpkgs_root_path/$packages_archive_file")
 
-# a+=("$support_path/$management_file")
-# b+=("$root_path/$management_archive_file")
+[[ ! -e $qpkgs_support_path/$packages_file ]] && $qpkgs_support_path/build-packages.sh
 
 for i in "${!a[@]}"; do
 	[[ -e ${b[i]} ]] && rm -f "${b[i]}"
