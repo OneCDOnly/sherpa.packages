@@ -1,5 +1,4 @@
 ca-certificates
-column
 coreutils-sleep
 coreutils-sort
 coreutils-stty
