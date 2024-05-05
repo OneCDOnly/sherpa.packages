@@ -21,7 +21,7 @@ InitService()
 
 	local_temp_path=$QPKG_PATH/tmp
 		daemon_pathfile=$venv_path/bin/unmanic
-			daemon_launch_cmd="export CACHE_DIR=$local_temp_path CONFIG_DIR=$QPKG_CONFIG_PATH; $venv_python_pathfile $daemon_pathfile"
+			daemon_launch_cmd="export HOME=$QPKG_CONFIG_PATH; $venv_python_pathfile $daemon_pathfile"
 	qpkg_ini_pathfile=$QPKG_CONFIG_PATH/.unmanic/config/settings.json
 		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 		get_ui_listening_address_cmd="echo '0.0.0.0'"
