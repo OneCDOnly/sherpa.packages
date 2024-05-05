@@ -25,7 +25,6 @@ readonly SERVICE_SCRIPT_VERSION='240506'
 readonly SERVICE_SCRIPT_TYPE=6
 InitService()
 {
-local_temp_path=$QPKG_PATH/tmp
 daemon_pathfile=$venv_path/bin/unmanic
 daemon_launch_cmd="export HOME_DIR=$QPKG_CONFIG_PATH;$venv_python_pathfile $daemon_pathfile"
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/.unmanic/config/settings.json
@@ -36,6 +35,7 @@ get_ui_port_secure_cmd="echo 0"
 get_ui_port_secure_enabled_test_cmd="false"
 qpkg_repo_path=undefined
 run_daemon_in_screen_session=true
+/bin/sed -i "s|<?installation_path?>|$QPKG_PATH|g" "$qpkg_ini_default_pathfile"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
