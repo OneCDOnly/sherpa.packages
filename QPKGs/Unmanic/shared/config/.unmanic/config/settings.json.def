@@ -1,0 +1,20 @@
+{
+    "always_keep_failed_tasks": true,
+    "auto_manage_completed_tasks": false,
+    "clear_pending_tasks_on_restart": true,
+    "concurrent_file_testers": 2,
+    "debugging": false,
+    "distributed_worker_count_target": 0,
+    "enable_library_scanner": false,
+    "first_run": false,
+    "follow_symlinks": true,
+    "installation_name": "",
+    "max_age_of_completed_tasks": 91,
+    "number_of_workers": null,
+    "release_notes_viewed": "0.2.7",
+    "remote_installations": [],
+    "run_full_scan_on_start": false,
+    "schedule_full_scan_minutes": 1440,
+    "ui_port": 8888,
+    "worker_event_schedules": null
+}

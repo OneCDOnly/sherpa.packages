@@ -86,8 +86,14 @@ SABnzbd_240501_x86_64.qpkg.md5       SABnzbd_240501_x86_64.qpkg       SABnzbd   
 SABnzbd_240501_x86.qpkg.md5          SABnzbd_240501_x86.qpkg          SABnzbd              240501       i86    aa9ababe0dddb5b6131ebee7151fee16
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240503.qpkg.md5               sherpa_240503.qpkg               sherpa               240503       all    15201a92cccea2b2942e62fdff02a416
+sherpa_240505.qpkg.md5               sherpa_240505.qpkg               sherpa               240505       all    e076851f98bad73d10325b1486c51669
 SortMyQPKGs_240427.qpkg.md5          SortMyQPKGs_240427.qpkg          SortMyQPKGs          240427       all    9392283f02079fa586f8d03d96f0be17
+Unmanic_today_arm_64.qpkg.md5        Unmanic_today_arm_64.qpkg        Unmanic              today        a64    629a20234d7ef39098aba2155620dc8c
+Unmanic_today_arm-x19.qpkg.md5       Unmanic_today_arm-x19.qpkg       Unmanic              today        a19    eee45516c7b6fc2f964022f321af238a
+Unmanic_today_arm-x31.qpkg.md5       Unmanic_today_arm-x31.qpkg       Unmanic              today        a31    f8daf9b2ab41f54b295f9cb16fbe9aed
+Unmanic_today_arm-x41.qpkg.md5       Unmanic_today_arm-x41.qpkg       Unmanic              today        a41    b5bbeabe3bea6fdb21e856dfbd84d0b1
+Unmanic_today_x86_64.qpkg.md5        Unmanic_today_x86_64.qpkg        Unmanic              today        i64    aaefc0cf2548ebe301ad6687af44dff5
+Unmanic_today_x86.qpkg.md5           Unmanic_today_x86.qpkg           Unmanic              today        i86    ce5c5a533b1c48f718826bd38b43d113
 Unrar_6.2.5_arm_64.qpkg.md5          Unrar_6.2.5_arm_64.qpkg          Unrar                6.2.5        a64    e2382b80908fc9549bbb00058968082a
 Unrar_6.2.5_arm-x41.qpkg.md5         Unrar_6.2.5_arm-x41.qpkg         Unrar                6.2.5        a41    ac1ff1149258db5e4c0b8165774eda37
 Unrar_6.2.5_x86_64.qpkg.md5          Unrar_6.2.5_x86_64.qpkg          Unrar                6.2.5        i64    f29dc4c271a0a1341d2dad78eb34d2ca
