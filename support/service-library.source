@@ -2611,10 +2611,10 @@ CalcMilliDifference()
 FormatAsThous()
 	{
 
-	# Format as thousands
+	# Format as thousands.
 
-	# A string-based thousands-group formatter totally unreliant on locale
-	# Why? Because builtin `printf` in 32b ARM QTS versions doesn't follow locale ¯\_(ツ)_/¯
+	# A string-based thousands-group formatter totally unreliant on locale.
+	# Why? Because builtin `printf` in 32b ARM QTS versions doesn't follow locale. ¯\_(ツ)_/¯
 
 	# $1 = Integer value.
 
@@ -2638,7 +2638,8 @@ FormatAsThous()
 		fi
 	done
 
-	echo "$foutput"
+	echo -n "$foutput"
+
 	return 0
 
 	}
@@ -2650,7 +2651,7 @@ FormatAsDuration()
 	#	$1 = Duration in milliseconds.
 
 	if [[ ${1:-0} -lt 10000 ]]; then
-		echo "$(FormatAsThous "${1:-0}")ms"
+		echo -n "$(FormatAsThous "${1:-0}")ms"
 	else
 		FormatSecsToHoursMinutesSecs "$(($1/1000))"
 	fi
