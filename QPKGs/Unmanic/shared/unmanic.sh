@@ -21,13 +21,13 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=Unmanic
-readonly SERVICE_SCRIPT_VERSION='240505'
+readonly SERVICE_SCRIPT_VERSION='240506'
 readonly SERVICE_SCRIPT_TYPE=6
 InitService()
 {
 local_temp_path=$QPKG_PATH/tmp
 daemon_pathfile=$venv_path/bin/unmanic
-daemon_launch_cmd="export CACHE_DIR=$local_temp_path CONFIG_DIR=$QPKG_CONFIG_PATH;$venv_python_pathfile $daemon_pathfile"
+daemon_launch_cmd="export HOME_DIR=$QPKG_CONFIG_PATH;$venv_python_pathfile $daemon_pathfile"
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/.unmanic/config/settings.json
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 get_ui_listening_address_cmd="echo '0.0.0.0'"
