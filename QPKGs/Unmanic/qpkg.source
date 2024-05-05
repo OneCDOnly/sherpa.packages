@@ -13,4 +13,5 @@ QPKG_LICENSE="GPLV3"
 # 1: support installation
 # 2: support migration
 # 3 (1+2): support both installation and migration
-QPKG_VOLUME_SELECT="3"
+QPKG_VOLUME_SELECT="1"
+# Use '1' for Unmanic as it has many paths in its config that would require updating if it was moved. Better to prohibit migration.
