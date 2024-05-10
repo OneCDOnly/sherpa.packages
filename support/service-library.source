@@ -667,7 +667,7 @@ RestoreConfig()
 ResetConfig()
 	{
 
-	DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $QPKG_PATH; rm -rf $QPKG_PATH/config/*; mv $QPKG_PATH/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only || SetError
+	DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $QPKG_PATH; rm -rf $QPKG_PATH/config/*; mkdir -p $(/usr/bin/dirname "$qpkg_ini_default_pathfile"); mv $QPKG_PATH/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only || SetError
 
 	return 0
 
