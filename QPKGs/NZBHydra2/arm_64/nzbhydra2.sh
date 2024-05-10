@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=NZBHydra2
-readonly SERVICE_SCRIPT_VERSION='240506'
+readonly SERVICE_SCRIPT_VERSION='240511'
 readonly SERVICE_SCRIPT_TYPE=8
 InitService()
 {
