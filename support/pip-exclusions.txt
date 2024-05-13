@@ -14,6 +14,8 @@ orjson
 packaging
 pillow
 psutil
+pyasn1
+pyasn1-modules
 pycryptodome
 pycurl
 pysnmp
@@ -22,6 +24,8 @@ pytz
 pyzmq
 regex
 requests
+rpds
+rpds-py
 setuptools
 six
 wifi
