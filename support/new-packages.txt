@@ -10,11 +10,11 @@
 
 * VueTorrent?
 	- https://github.com/VueTorrent/VueTorrent
-	- already available as a static QPKG here: https://github.com/Jay-Young/qpkg/tree/master/vuetorrent
+	- available as a static QPKG here: https://github.com/Jay-Young/qpkg/tree/master/vuetorrent
 
 * it-tools?
 	- https://github.com/CorentinTh/it-tools
-	- already available as a static QPKG here: https://github.com/Jay-Young/qpkg/tree/master/it-tools (runs in Apache).
+	- available as a static QPKG here: https://github.com/Jay-Young/qpkg/tree/master/it-tools (runs in Apache).
 
 * BlendFarm?
 	- https://github.com/LogicReinc/LogicReinc.BlendFarm
