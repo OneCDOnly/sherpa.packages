@@ -18,12 +18,10 @@ jaraco.collections
 jaraco.functools
 jinja2
 js2py
-markupsafe
 more_itertools
 pycurl
 pyjsparser
 pyload-ng
-pytz
 semver~=2.10
 setuptools
 werkzeug
