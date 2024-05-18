@@ -22,25 +22,14 @@ InitLibrary()
 
 	IsQNAP || exit
 
-	if [[ -z $LANG ]]; then
-		export LANG=en_US.UTF-8
-		export LC_ALL=en_US.UTF-8
-		export LC_CTYPE=en_US.UTF-8
-	fi
-
-	if [[ ${DEBUG_QPKG:-} = true ]]; then
-		debug=true
-	else
-		debug=false
-	fi
+	[[ ${DEBUG_QPKG:-} = true ]] && debug=true || debug=false
 
 	local re=''
 
 	for re in \\bd\\b \\bdebug\\b \\bdbug\\b \\bverbose\\b; do
-		if [[ $USER_ARGS_RAW =~ $re ]]; then
-			debug=true
-			break
-		fi
+		[[ $USER_ARGS_RAW =~ $re ]] || continue
+		debug=true
+		break
 	done
 
 	# KLUDGE: `/dev/fd` isn't always created by QTS.
