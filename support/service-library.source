@@ -117,7 +117,7 @@ InitLibrary()
 	EnsureConfigFileExists
 	GetAppVersion
 	DisableOpkgDaemonStart
-	IsSourcedOnline && IsAutoUpdateMissing && EnableAutoUpdate >/dev/null
+	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate >/dev/null
 
 	if [[ $run_daemon_in_screen_session = true && ! -e $SCREEN_CONF_PATHFILE ]]; then
 		echo -e "logfile ${SCREEN_LOG_PATHFILE}\nlogfile flush 1\nlog on" > "$SCREEN_CONF_PATHFILE"
@@ -207,10 +207,27 @@ ShowHelp()
 	IsSupportReset && DisplayAsHelp reset-config "delete the application configuration, databases and history. $(FormatAsPackageName $QPKG_NAME) will be stopped, then restarted."
 	IsSourcedOnline && DisplayAsHelp clean "delete the local copy of $(FormatAsPackageName $QPKG_NAME), and download it again from remote source. Configuration will be retained."
 	DisplayAsHelp log 'display the service-script log.'
-	IsSourcedOnline && DisplayAsHelp enable-auto-update "auto-update $(FormatAsPackageName $QPKG_NAME) before starting (default)."
-	IsSourcedOnline && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $QPKG_NAME) before starting."
+	IsSupportAutoUpdate && DisplayAsHelp enable-auto-update "auto-update $(FormatAsPackageName $QPKG_NAME) before starting (default)."
+	IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $QPKG_NAME) before starting."
 	DisplayAsHelp version 'display the package version numbers.'
 	Display
+	DisplayWait 'enabled:'
+
+	if IsQPKGEnabled; then
+		Display true
+	else
+		Display false
+	fi
+
+	if IsSupportAutoUpdate; then
+		DisplayWait 'auto-update:'
+
+		if IsAutoUpdate; then
+			Display true
+		else
+			Display false
+		fi
+	fi
 
 	}
 
@@ -231,19 +248,12 @@ StartQPKGLibrary()
 	IsError && return
 
 	if IsNotRestart && IsNotBackup && IsNotRestore && IsNotClean && IsNotReset; then
+		StateQPKG
 		IsDaemonActive && return
 	fi
 
 	if IsBackup || IsRestore || IsClean || IsReset; then
 		IsNotRestartPending && return
-	fi
-
-	DisplayWaitCommitToLog 'auto-update:'
-
-	if IsAutoUpdate; then
-		DisplayCommitToLog true
-	else
-		DisplayCommitToLog false
 	fi
 
 	CloneGitRepo || { SetError; return 1 ;}
@@ -413,6 +423,8 @@ StopQPKGLibrary()
 
 		return
 	fi
+
+	StateQPKG
 
 	if IsDaemonActive; then
 		if IsRestart || IsBackup || IsRestore || IsClean || IsReset; then
@@ -739,6 +751,29 @@ GetAppVersion()
 
 	}
 
+StateQPKG()
+	{
+
+	DisplayWaitCommitToLog 'enabled:'
+
+	if IsQPKGEnabled; then
+		DisplayCommitToLog true
+	else
+		DisplayCommitToLog false
+	fi
+
+	if IsSupportAutoUpdate; then
+		DisplayWaitCommitToLog 'auto-update:'
+
+		if IsAutoUpdate; then
+			DisplayCommitToLog true
+		else
+			DisplayCommitToLog false
+		fi
+	fi
+
+	}
+
 StatusQPKG()
 	{
 
@@ -755,13 +790,7 @@ StatusQPKGLibrary()
 
 	IsNotError || return
 
-	DisplayWaitCommitToLog 'auto-update:'
-
-	if IsAutoUpdate; then
-		DisplayCommitToLog true
-	else
-		DisplayCommitToLog false
-	fi
+	StateQPKG
 
 	if IsDaemonActive; then
 		if IsDaemon || IsSourcedOnline; then
@@ -1667,6 +1696,20 @@ IsNotOnlineArchive()
 	{
 
 	! IsOnlineArchive
+
+	}
+
+IsSupportAutoUpdate()
+	{
+
+	IsSourcedOnline
+
+	}
+
+IsNotSupportAutoUpdate()
+	{
+
+	! IsSupportAutoUpdate
 
 	}
 
@@ -2818,7 +2861,7 @@ ProcessArgs()
 			clean|--clean)
 				IsSU ||	exit
 
-				if IsSourcedOnline; then
+				if IsSupportAutoUpdate; then
 					SetServiceAction clean
 					StopQPKG
 					[[ $QPKG_NAME = nzbToMedia ]] && BackupConfig
@@ -2849,7 +2892,7 @@ ProcessArgs()
 			disable-auto-update|--disable-auto-update)
 				IsSU ||	exit
 
-				if IsSourcedOnline; then
+				if IsSupportAutoUpdate; then
 					SetServiceAction disable-auto-update
 					DisableAutoUpdate
 				else
@@ -2873,7 +2916,7 @@ ProcessArgs()
 			enable-auto-update|--enable-auto-update)
 				IsSU ||	exit
 
-				if IsSourcedOnline; then
+				if IsSupportAutoUpdate; then
 					SetServiceAction enable-auto-update
 					EnableAutoUpdate
 				else
