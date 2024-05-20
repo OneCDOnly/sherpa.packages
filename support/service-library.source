@@ -500,6 +500,7 @@ InstallAddons()
 	local module_exclusions=''
 	local re=''
 	local cmd=''
+	local a=''
 
 	[[ $allow_access_to_sys_packages != true ]] && allow_sys_packages=''
 	[[ $install_pip_deps = true ]] && no_pip_deps=''
@@ -547,19 +548,28 @@ InstallAddons()
 	if [[ -e $excluded_modules_pathfile ]]; then
 		module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$excluded_modules_pathfile")")")
 		module_exclusions=${module_exclusions%* }
-		re="/^${module_exclusions// /\|^}"
 
-		for target in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile; do
-			if [[ -e $target ]]; then
-				if [[ -e /opt/bin/sed ]]; then
-					cmd="/opt/bin/sed -i '${re}/Id' $target"		# Perform case-insensitive match only if GNU `sed` exists.
-				else
-					cmd="/bin/sed -i '${re}/d' $target"				# Eh, hope for the best.
+		if [[ -n $module_exclusions ]]; then
+			re="^${module_exclusions// /\$\|^}$"		# Match whole line.
+
+			for a in '=.*' '~' '<' '>' ' '; do			# Add regexes for multiple patterns.
+				re+="|^${module_exclusions// /$a\|^}"
+			done
+		fi
+
+		if [[ -n $re ]]; then
+			for target in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile; do
+				if [[ -e $target ]]; then
+					if [[ -e /opt/bin/sed ]]; then
+						cmd="/opt/bin/sed -i '/${re}/Id' $target"		# Perform case-insensitive matching only if GNU `sed` exists.
+					else
+						cmd="/bin/sed -i '/${re}/d' $target"			# Eh, hope for the best.
+					fi
+
+					DisplayRunAndLog "exclude problem PyPI modules from '$(/usr/bin/basename "$target")'" "$cmd" log:failure-only
 				fi
-
-				DisplayRunAndLog "exclude problem PyPI modules from '$(/usr/bin/basename "$target")'" "$cmd" log:failure-only
-			fi
-		done
+			done
+		fi
 	fi
 
 	# Install remaining PyPI modules.
