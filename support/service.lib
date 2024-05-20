@@ -22,7 +22,7 @@
 #*   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 #*	 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
-readonly SERVICE_LIB_VERSION='240520'
+readonly SERVICE_LIB_VERSION='240521'
 InitLibrary()
 {
 IsQNAP || exit
@@ -413,6 +413,7 @@ local no_pip_deps=' --no-deps'
 local module_exclusions=''
 local re=''
 local cmd=''
+local a=''
 [[ $allow_access_to_sys_packages != true ]] && allow_sys_packages=''
 [[ $install_pip_deps = true ]] && no_pip_deps=''
 if IsNotVirtualEnvironmentExist;then
@@ -443,17 +444,24 @@ fi
 if [[ -e $excluded_modules_pathfile ]];then
 module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$excluded_modules_pathfile")")")
 module_exclusions=${module_exclusions%* }
-re="/^${module_exclusions// /\|^}"
+if [[ -n $module_exclusions ]];then
+re="^${module_exclusions// /\$\|^}$"
+for a in '=.*' '~' '<' '>' ' ';do
+re+="|^${module_exclusions// /$a\|^}"
+done
+fi
+if [[ -n $re ]];then
 for target in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile;do
 if [[ -e $target ]];then
 if [[ -e /opt/bin/sed ]];then
-cmd="/opt/bin/sed -i '${re}/Id' $target"
+cmd="/opt/bin/sed -i '/${re}/Id' $target"
 else
-cmd="/bin/sed -i '${re}/d' $target"
+cmd="/bin/sed -i '/${re}/d' $target"
 fi
 DisplayRunAndLog "exclude problem PyPI modules from '$(/usr/bin/basename "$target")'" "$cmd" log:failure-only
 fi
 done
+fi
 fi
 for target in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile;do
 if [[ -e $target ]];then
