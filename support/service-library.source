@@ -550,11 +550,12 @@ InstallAddons()
 		module_exclusions=${module_exclusions%* }
 
 		if [[ -n $module_exclusions ]]; then
-			re="^${module_exclusions// /\$\|^}$"		# Match whole line.
+			re="^${module_exclusions// /\$\|^}$"			# Match whole line.
 
-			for a in '=.*' '~' '<' '>' '!' ' '; do		# Add regexes for multiple patterns.
-				re+="|^${module_exclusions// /$a\|^}"
-			done
+# Leave version and arch specifiers alone.
+# 			for a in '\=' '\~' '\<' '\>' '\!' '\[' ' '; do	# Add regexes for multiple patterns.
+# 				re+="|^${module_exclusions// /$a\|^}"
+# 			done
 		fi
 
 		if [[ -n $re ]]; then
