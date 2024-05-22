@@ -28,7 +28,6 @@ Mylar3_240523_arm-x31.qpkg.md5       Mylar3_240523_arm-x31.qpkg       Mylar3    
 Mylar3_240523_arm-x41.qpkg.md5       Mylar3_240523_arm-x41.qpkg       Mylar3               240523       a41    8e96fba6816eb539b7471501d2ae9383
 Mylar3_240523_x86_64.qpkg.md5        Mylar3_240523_x86_64.qpkg        Mylar3               240523       i64    2bcca7feca291376786abce3ccae4346
 Mylar3_240523_x86.qpkg.md5           Mylar3_240523_x86.qpkg           Mylar3               240523       i86    54f7c9825bf78d7c03ade5bdbed9c908
-NZBGet_240426.qpkg.md5               NZBGet_240426.qpkg               NZBGet               240426       all    ea1f0c48a0f37733e096c2834c8ad242
 nzbget_24.1_arm_64.qpkg.md5          nzbget_24.1_arm_64.qpkg          nzbget               24.1         a64    3e397eb61ef9355839a097e0078c07fe
 nzbget_24.1_arm-x19.qpkg.md5         nzbget_24.1_arm-x19.qpkg         nzbget               24.1         a19    42d3adefe73332261ce11b24ce54a5b5
 nzbget_24.1_arm-x31.qpkg.md5         nzbget_24.1_arm-x31.qpkg         nzbget               24.1         a31    9d15dacbb1c2039e65ef1cc53d2e961f
@@ -86,7 +85,7 @@ SABnzbd_240523_x86_64.qpkg.md5       SABnzbd_240523_x86_64.qpkg       SABnzbd   
 SABnzbd_240523_x86.qpkg.md5          SABnzbd_240523_x86.qpkg          SABnzbd              240523       i86    ba43aacad7e4c7d3d5aa6b2a47c2bd89
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240523.qpkg.md5               sherpa_240523.qpkg               sherpa               240523       all    20b2f050be4ea924a973af505273f0ba
+sherpa_240523.qpkg.md5               sherpa_240523.qpkg               sherpa               240523       all    7ed89f190764e93322a0dae5f9e31bc4
 SortMyQPKGs_240513.qpkg.md5          SortMyQPKGs_240513.qpkg          SortMyQPKGs          240513       all    dba9b7432b92d3ce19c34b64eaeba366
 Unmanic_240523.qpkg.md5              Unmanic_240523.qpkg              Unmanic              240523       all    2a9040509ec8aa2c9632a511a063a760
 Unrar_6.2.5_arm_64.qpkg.md5          Unrar_6.2.5_arm_64.qpkg          Unrar                6.2.5        a64    e2382b80908fc9549bbb00058968082a
