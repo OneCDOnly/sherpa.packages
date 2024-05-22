@@ -552,7 +552,7 @@ InstallAddons()
 		if [[ -n $module_exclusions ]]; then
 			re="^${module_exclusions// /\$\|^}$"		# Match whole line.
 
-			for a in '=.*' '~' '<' '>' ' '; do			# Add regexes for multiple patterns.
+			for a in '=.*' '~' '<' '>' '!' ' '; do		# Add regexes for multiple patterns.
 				re+="|^${module_exclusions// /$a\|^}"
 			done
 		fi
