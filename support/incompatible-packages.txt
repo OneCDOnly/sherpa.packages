@@ -1,0 +1,34 @@
+* Jackett
+	- failed, needs ICU
+
+* Prowlarr
+	- epic fail
+
+* Radarr
+	- epic fail
+
+* pigallery2
+	- https://github.com/bpatrik/pigallery2
+	- requires Node.js older than that available in Entware:
+	----------------------------------------------------------------------------
+	[/share/Public/pigallery2] # npm install --prefix ./npm-cache ./
+	npm WARN EBADENGINE Unsupported engine {
+	npm WARN EBADENGINE   package: 'pigallery2@1.9.0',
+	npm WARN EBADENGINE   required: { node: '>=12.0 <15.0' },
+	npm WARN EBADENGINE   current: { node: 'v18.18.2', npm: '9.8.1' }
+	npm WARN EBADENGINE }
+	npm WARN EBADENGINE Unsupported engine {
+	npm WARN EBADENGINE   package: 'pigallery2@1.9.0',
+	npm WARN EBADENGINE   required: { node: '>=12.0 <15.0' },
+	npm WARN EBADENGINE   current: { node: 'v18.18.2', npm: '9.8.1' }
+	npm WARN EBADENGINE }
+
+	added 1 package in 9s
+	npm notice
+	npm notice New major version of npm available! 9.8.1 -> 10.8.0
+	npm notice Changelog: https://github.com/npm/cli/releases/tag/v10.8.0
+	npm notice Run npm install -g npm@10.8.0 to update!
+	npm notice
+	----------------------------------------------------------------------------
+	- Try with NodeJS 14 QPKG from myQNAP.
+	- Nope, far too-many outdated packages.
