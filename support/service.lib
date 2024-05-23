@@ -78,12 +78,12 @@ local_temp_path=undefined
 orig_daemon_service_script=undefined
 pidfile_is_managed_by_app=false
 pip_cache_path=undefined
-pip_included_path=undefined
 qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
 qpkg_ini_file=config.ini
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 qpkg_repo_path=undefined
+qpkg_wheels_path=undefined
 recheck_daemon_pid_after_launch=false
 recheck_daemon_pid_after_kill=false
 remote_arch=undefined
@@ -127,6 +127,7 @@ interpreter=/opt/bin/python3
 pidfile_is_managed_by_app=true
 pip_cache_path=$QPKG_PATH/pip-cache
 qpkg_repo_path=$QPKG_PATH/repo-cache
+qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
 recheck_daemon_pid_after_launch=true
 source_git_branch=main
 source_git_branch_depth=shallow
@@ -153,7 +154,7 @@ source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
 daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 interpreter=/opt/bin/python3
 pip_cache_path=$QPKG_PATH/pip-cache
-pip_included_path=$QPKG_PATH/qpkg-wheels
+qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
 qpkg_ini_pathfile=undefined
 qpkg_repo_path=$QPKG_PATH/repo-cache
 run_daemon_in_screen_session=true
@@ -428,9 +429,10 @@ SetError
 return 1
 fi
 if [[ ! -e $pip_conf_pathfile ]];then
-DisplayRunAndLog "create global 'pip' config" "echo -e \"[global]\ncache-dir = $pip_cache_path\" > $pip_conf_pathfile" log:failure-only
-if [[ $pip_included_path != undefined ]];then
-DisplayRunAndLog "add QPKG wheels to search path" "echo \"find-links = $pip_included_path\" >> $pip_conf_pathfile" log:failure-only
+DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $pip_conf_pathfile" log:failure-only
+DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $pip_conf_pathfile" log:failure-only
+if [[ -d $qpkg_wheels_path ]];then
+DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' as 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $pip_conf_pathfile" log:failure-only
 fi
 fi
 IsNotAutoUpdate && [[ $new_env = false ]] && return 0
