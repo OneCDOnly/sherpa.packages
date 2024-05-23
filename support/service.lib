@@ -442,11 +442,11 @@ if [[ $? -gt 0 && $silence_pypi_errors = false ]];then
 CommitWarnToSysLog "'mr2' PyPI module installation failed."
 fi
 fi
-[[ -e $essential_modules_pathfile && -d $(/usr/bin/dirname "$default_essential_modules_pathfile") ]] && cp -f "$essential_modules_pathfile" "$default_essential_modules_pathfile"
+[[ ! -e $default_essential_modules_pathfile && -e $essential_modules_pathfile && -d $(/usr/bin/dirname "$default_essential_modules_pathfile") ]] && cp -f "$essential_modules_pathfile" "$default_essential_modules_pathfile"
 [[ -e $default_essential_modules_pathfile ]] && essential_modules_pathfile=$default_essential_modules_pathfile
-[[ -e $requirements_modules_pathfile && -d $(/usr/bin/dirname "$default_requirements_modules_pathfile") ]] && cp -f "$requirements_modules_pathfile" "$default_requirements_modules_pathfile"
+[[ ! -e $default_requirements_modules_pathfile && -e $requirements_modules_pathfile && -d $(/usr/bin/dirname "$default_requirements_modules_pathfile") ]] && cp -f "$requirements_modules_pathfile" "$default_requirements_modules_pathfile"
 [[ -e $default_requirements_modules_pathfile ]] && requirements_modules_pathfile=$default_requirements_modules_pathfile
-[[ -e $recommended_modules_pathfile && -d $(/usr/bin/dirname "$default_recommended_modules_pathfile") ]] && cp -f "$recommended_modules_pathfile" "$default_recommended_modules_pathfile"
+[[ ! -e $default_recommended_modules_pathfile && -e $recommended_modules_pathfile && -d $(/usr/bin/dirname "$default_recommended_modules_pathfile") ]] && cp -f "$recommended_modules_pathfile" "$default_recommended_modules_pathfile"
 [[ -e $default_recommended_modules_pathfile ]] && recommended_modules_pathfile=$default_recommended_modules_pathfile
 if [[ -e $excluded_modules_pathfile ]];then
 module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$excluded_modules_pathfile")")")
