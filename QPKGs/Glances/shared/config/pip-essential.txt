@@ -19,6 +19,7 @@ pydantic-core
 pygments
 python-dotenv
 python-multipart
+pyyaml
 rich
 shellingham
 sniffio
@@ -26,6 +27,5 @@ starlette
 typer
 ujson
 uvicorn
-uvloop
 watchfiles
 websockets
