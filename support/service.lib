@@ -153,7 +153,7 @@ source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
 daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 interpreter=/opt/bin/python3
 pip_cache_path=$QPKG_PATH/pip-cache
-pip_included_path=$QPKG_PATH/pip-included
+pip_included_path=$QPKG_PATH/qpkg-wheels
 qpkg_ini_pathfile=undefined
 qpkg_repo_path=$QPKG_PATH/repo-cache
 run_daemon_in_screen_session=true
@@ -430,7 +430,7 @@ fi
 if [[ ! -e $pip_conf_pathfile ]];then
 DisplayRunAndLog "create global 'pip' config" "echo -e \"[global]\ncache-dir = $pip_cache_path\" > $pip_conf_pathfile" log:failure-only
 if [[ $pip_included_path != undefined ]];then
-DisplayRunAndLog "add local 'pip' store" "echo \"find-links = $pip_included_path\" >> $pip_conf_pathfile" log:failure-only
+DisplayRunAndLog "add QPKG wheels to search path" "echo \"find-links = $pip_included_path\" >> $pip_conf_pathfile" log:failure-only
 fi
 fi
 IsNotAutoUpdate && [[ $new_env = false ]] && return 0
