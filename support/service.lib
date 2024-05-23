@@ -22,7 +22,7 @@
 #*   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 #*	 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
-readonly SERVICE_LIB_VERSION='240523'
+readonly SERVICE_LIB_VERSION='240524'
 InitLibrary()
 {
 IsQNAP || exit
@@ -78,6 +78,7 @@ local_temp_path=undefined
 orig_daemon_service_script=undefined
 pidfile_is_managed_by_app=false
 pip_cache_path=undefined
+pip_included_path=undefined
 qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
 qpkg_ini_file=config.ini
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
@@ -152,6 +153,7 @@ source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
 daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 interpreter=/opt/bin/python3
 pip_cache_path=$QPKG_PATH/pip-cache
+pip_included_path=$QPKG_PATH/pip-included
 qpkg_ini_pathfile=undefined
 qpkg_repo_path=$QPKG_PATH/repo-cache
 run_daemon_in_screen_session=true
@@ -427,6 +429,9 @@ return 1
 fi
 if [[ ! -e $pip_conf_pathfile ]];then
 DisplayRunAndLog "create global 'pip' config" "echo -e \"[global]\ncache-dir = $pip_cache_path\" > $pip_conf_pathfile" log:failure-only
+if [[ $pip_included_path != undefined ]];then
+DisplayRunAndLog "add local 'pip' store" "echo \"find-links = $pip_included_path\" >> $pip_conf_pathfile" log:failure-only
+fi
 fi
 IsNotAutoUpdate && [[ $new_env = false ]] && return 0
 if [[ $QPKG_NAME = OWatcher3 ]];then

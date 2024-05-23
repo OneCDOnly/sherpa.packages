@@ -83,6 +83,7 @@ InitLibrary()
 	orig_daemon_service_script=undefined		# Specific to Entware binaries only.
 	pidfile_is_managed_by_app=false
 	pip_cache_path=undefined
+	pip_included_path=undefined
 	qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
 	qpkg_ini_file=config.ini
 		qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
@@ -164,6 +165,7 @@ InitByServiceType()
 			daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 			interpreter=/opt/bin/python3
 			pip_cache_path=$QPKG_PATH/pip-cache
+			pip_included_path=$QPKG_PATH/pip-included
 			qpkg_ini_pathfile=undefined						# App config is unsupported.
 			qpkg_repo_path=$QPKG_PATH/repo-cache
 			run_daemon_in_screen_session=true
@@ -518,6 +520,10 @@ InstallAddons()
 
 	if [[ ! -e $pip_conf_pathfile ]]; then
 		DisplayRunAndLog "create global 'pip' config" "echo -e \"[global]\ncache-dir = $pip_cache_path\" > $pip_conf_pathfile" log:failure-only
+
+		if [[ $pip_included_path != undefined ]]; then
+			DisplayRunAndLog "add local 'pip' store" "echo \"find-links = $pip_included_path\" >> $pip_conf_pathfile" log:failure-only
+		fi
 	fi
 
 	IsNotAutoUpdate && [[ $new_env = false ]] && return 0
@@ -552,7 +558,7 @@ InstallAddons()
 		if [[ -n $module_exclusions ]]; then
 			re="^${module_exclusions// /\$\|^}$"			# Match whole line.
 
-# Leave version and arch specifiers alone.
+# Let's leave the version and arch specifiers alone.
 # 			for a in '\=' '\~' '\<' '\>' '\!' '\[' ' '; do	# Add regexes for multiple patterns.
 # 				re+="|^${module_exclusions// /$a\|^}"
 # 			done
