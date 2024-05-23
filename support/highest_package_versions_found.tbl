@@ -26,13 +26,7 @@ Kapowarr_240524_arm_64.qpkg.md5      Kapowarr_240524_arm_64.qpkg      Kapowarr  
 Kapowarr_240524_x86_64.qpkg.md5      Kapowarr_240524_x86_64.qpkg      Kapowarr             240524       i64    e510d2c188e6a7688200e63e9b505191
 Kapowarr_240524_x86.qpkg.md5         Kapowarr_240524_x86.qpkg         Kapowarr             240524       i86    d86ef1dccd279e9daa260f3ae0ba2b69
 LazyLibrarian_240524.qpkg.md5        LazyLibrarian_240524.qpkg        LazyLibrarian        240524       all    2d517f019be71ff7ddc00205ff6a44c1
-Mylar3_240524_arm_64.qpkg.md5        Mylar3_240524_arm_64.qpkg        Mylar3               240524       a64    862639fbca9c09a1cbd2cd27ddf2e727
-Mylar3_240524_arm-x19.qpkg.md5       Mylar3_240524_arm-x19.qpkg       Mylar3               240524       a19    929b810f71251b6813a1cdce276b0265
-Mylar3_240524_arm-x31.qpkg.md5       Mylar3_240524_arm-x31.qpkg       Mylar3               240524       a31    6f7700c8ff764ef749fe2aec8a086504
-Mylar3_240524_arm-x41.qpkg.md5       Mylar3_240524_arm-x41.qpkg       Mylar3               240524       a41    3c8bb5e4380f61211f42519ebb369e09
 Mylar3_240524.qpkg.md5               Mylar3_240524.qpkg               Mylar3               240524       all    e857b0e9b073e8486bbebf529cd9c9d7
-Mylar3_240524_x86_64.qpkg.md5        Mylar3_240524_x86_64.qpkg        Mylar3               240524       i64    df80dbb05c5c0385b45e7a5ead3d0e07
-Mylar3_240524_x86.qpkg.md5           Mylar3_240524_x86.qpkg           Mylar3               240524       i86    dd63d2615b951a603cbd0e05058c3112
 nzbget_24.1_arm_64.qpkg.md5          nzbget_24.1_arm_64.qpkg          nzbget               24.1         a64    3e397eb61ef9355839a097e0078c07fe
 nzbget_24.1_arm-x19.qpkg.md5         nzbget_24.1_arm-x19.qpkg         nzbget               24.1         a19    42d3adefe73332261ce11b24ce54a5b5
 nzbget_24.1_arm-x31.qpkg.md5         nzbget_24.1_arm-x31.qpkg         nzbget               24.1         a31    9d15dacbb1c2039e65ef1cc53d2e961f
@@ -90,7 +84,7 @@ SABnzbd_240524_x86_64.qpkg.md5       SABnzbd_240524_x86_64.qpkg       SABnzbd   
 SABnzbd_240524_x86.qpkg.md5          SABnzbd_240524_x86.qpkg          SABnzbd              240524       i86    ecba3c3b8dd5caebf5b1845d346f4562
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240524.qpkg.md5               sherpa_240524.qpkg               sherpa               240524       all    d6aabb97551772fa77483ad24261c679
+sherpa_240524.qpkg.md5               sherpa_240524.qpkg               sherpa               240524       all    026526930b606cb9635a72b202f987a2
 SortMyQPKGs_240513.qpkg.md5          SortMyQPKGs_240513.qpkg          SortMyQPKGs          240513       all    dba9b7432b92d3ce19c34b64eaeba366
 Unmanic_240524.qpkg.md5              Unmanic_240524.qpkg              Unmanic              240524       all    07c25bb9cd1a719e841f414562f3b53e
 Unrar_6.2.5_arm_64.qpkg.md5          Unrar_6.2.5_arm_64.qpkg          Unrar                6.2.5        a64    e2382b80908fc9549bbb00058968082a
