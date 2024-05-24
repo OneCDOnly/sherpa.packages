@@ -1,0 +1,1 @@
+* Stephane's Unrar QPKG isn't available for ARMv5 & ARMv7 models. Must use Entware 'unrar' instead.
