@@ -1,6 +1,17 @@
 Test date: 2024-03-16
 
-* install fails on armv5 (x19) & armv7l (x31 & x41):
-	"ERROR: Failed building wheel for brotli"
-	"Failed to build brotli"
-	"ERROR: Could not build wheels for brotli, which is required to install pyproject.toml-based projects"
+	* Install failed on armv5 (x19) & armv7l (x31 & x41):
+		-------------------------------------------------------------------------------------------------------------------------
+		"ERROR: Failed building wheel for brotli"
+		"Failed to build brotli"
+		"ERROR: Could not build wheels for brotli, which is required to install pyproject.toml-based projects"
+		-------------------------------------------------------------------------------------------------------------------------
+
+Test date: 2024-05-26
+
+	* Install failed on armv7l (x41):
+		-------------------------------------------------------------------------------------------------------------------------
+		"ERROR: Failed building wheel for brotli"
+		"Failed to build brotli"
+		"ERROR: Could not build wheels for brotli, which is required to install pyproject.toml-based projects"
+		-------------------------------------------------------------------------------------------------------------------------
