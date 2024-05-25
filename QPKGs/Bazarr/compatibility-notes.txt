@@ -1,6 +1,7 @@
-Test date: 2024-05-01
+Test date: 2024-05-26
 
 * Install fails on armv5 (x19) & armv7 (x31 & x41).
+	-------------------------------------------------------------------------------------------------------------------------
 	Collecting numpy>=1.12.0 (from -r /share/CACHEDEV1_DATA/.qpkg/Bazarr/config/requirements.txt (line 1))
 	Using cached numpy-1.26.4.tar.gz (15.8 MB)
 	Installing build dependencies: started
@@ -61,5 +62,4 @@ Test date: 2024-05-01
 	╰─> See above for output.
 
 	note: This error originates from a subprocess, and is likely not a problem with pip.
-
-Installing cmake didn't help. :(
+	-------------------------------------------------------------------------------------------------------------------------
