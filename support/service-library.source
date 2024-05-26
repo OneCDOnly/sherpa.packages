@@ -54,9 +54,9 @@ InitLibrary()
 	readonly OPKG_PATH=/opt/bin:/opt/sbin
 		export PATH=$OPKG_PATH:$(/bin/sed "s|$OPKG_PATH||" <<< "$PATH")
 	readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
+		readonly APP_VERSION_STORE_PATHFILE=$QPKG_PATH/version.stored
 		readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
-			readonly APP_VERSION_STORE_PATHFILE=$QPKG_CONFIG_PATH/version.stored
-			readonly SCREEN_CONF_PATHFILE=$QPKG_CONFIG_PATH/screen.conf
+		readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
 	readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
 	readonly SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
 	readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
@@ -484,15 +484,15 @@ InstallAddons()
 
 	IsUseVirtualPythonEnv || return 0
 
-	local default_essential_modules_pathfile=$QPKG_CONFIG_PATH/pip-essential.txt
-	local default_requirements_modules_pathfile=$QPKG_CONFIG_PATH/requirements.txt
-	local default_recommended_modules_pathfile=$QPKG_CONFIG_PATH/recommended.txt
+	local default_essential_modules_pathfile=$QPKG_PATH/pip-essential.txt
+	local default_requirements_modules_pathfile=$QPKG_PATH/pip-requirements.txt
+	local default_recommended_modules_pathfile=$QPKG_PATH/pip-recommended.txt
+	local excluded_modules_pathfile=$QPKG_PATH/pip-exclusions.txt
+	local rename_modules_pathfile=$QPKG_PATH/pip-rename.txt
 
 	local essential_modules_pathfile=$qpkg_repo_path/pip-essential.txt
 	local requirements_modules_pathfile=$qpkg_repo_path/requirements.txt
 	local recommended_modules_pathfile=$qpkg_repo_path/recommended.txt
-	local excluded_modules_pathfile=$QPKG_CONFIG_PATH/pip-exclusions.txt
-	local rename_modules_pathfile=$QPKG_CONFIG_PATH/pip-rename.txt
 
 	local pyproject_pathfile=$qpkg_repo_path/pyproject.toml
 	local pip_conf_pathfile=$venv_path/pip.conf
