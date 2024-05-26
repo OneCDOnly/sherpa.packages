@@ -1,0 +1,2 @@
+* ARMv5 & ARMv7 are incompatible with Glances v4.
+	- Glances v3 works fine.

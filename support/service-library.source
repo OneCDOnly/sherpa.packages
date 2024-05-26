@@ -54,9 +54,9 @@ InitLibrary()
 	readonly OPKG_PATH=/opt/bin:/opt/sbin
 		export PATH=$OPKG_PATH:$(/bin/sed "s|$OPKG_PATH||" <<< "$PATH")
 	readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
+		readonly APP_VERSION_STORE_PATHFILE=$QPKG_PATH/version.stored
 		readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
-			readonly APP_VERSION_STORE_PATHFILE=$QPKG_CONFIG_PATH/version.stored
-			readonly SCREEN_CONF_PATHFILE=$QPKG_CONFIG_PATH/screen.conf
+		readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
 	readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
 	readonly SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
 	readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
@@ -88,6 +88,7 @@ InitLibrary()
 		qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 			qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 	qpkg_repo_path=undefined
+	qpkg_wheels_path=undefined
 	recheck_daemon_pid_after_launch=false		# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 	recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 	remote_arch=undefined
@@ -138,6 +139,7 @@ InitByServiceType()
 			pidfile_is_managed_by_app=true
 			pip_cache_path=$QPKG_PATH/pip-cache
 			qpkg_repo_path=$QPKG_PATH/repo-cache
+			qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
 			recheck_daemon_pid_after_launch=true
 			source_git_branch=main
 			source_git_branch_depth=shallow
@@ -164,6 +166,7 @@ InitByServiceType()
 			daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 			interpreter=/opt/bin/python3
 			pip_cache_path=$QPKG_PATH/pip-cache
+			qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
 			qpkg_ini_pathfile=undefined						# App config is unsupported.
 			qpkg_repo_path=$QPKG_PATH/repo-cache
 			run_daemon_in_screen_session=true
@@ -481,15 +484,15 @@ InstallAddons()
 
 	IsUseVirtualPythonEnv || return 0
 
-	local default_essential_modules_pathfile=$QPKG_CONFIG_PATH/pip-essential.txt
-	local default_requirements_modules_pathfile=$QPKG_CONFIG_PATH/requirements.txt
-	local default_recommended_modules_pathfile=$QPKG_CONFIG_PATH/recommended.txt
+	local default_essential_modules_pathfile=$QPKG_PATH/pip-essential.txt
+	local default_requirements_modules_pathfile=$QPKG_PATH/pip-requirements.txt
+	local default_recommended_modules_pathfile=$QPKG_PATH/pip-recommended.txt
+	local excluded_modules_pathfile=$QPKG_PATH/pip-exclusions.txt
+	local rename_modules_pathfile=$QPKG_PATH/pip-rename.txt
 
 	local essential_modules_pathfile=$qpkg_repo_path/pip-essential.txt
 	local requirements_modules_pathfile=$qpkg_repo_path/requirements.txt
 	local recommended_modules_pathfile=$qpkg_repo_path/recommended.txt
-	local excluded_modules_pathfile=$QPKG_CONFIG_PATH/pip-exclusions.txt
-	local rename_modules_pathfile=$QPKG_CONFIG_PATH/pip-rename.txt
 
 	local pyproject_pathfile=$qpkg_repo_path/pyproject.toml
 	local pip_conf_pathfile=$venv_path/pip.conf
@@ -500,6 +503,7 @@ InstallAddons()
 	local module_exclusions=''
 	local re=''
 	local cmd=''
+	local a=''
 
 	[[ $allow_access_to_sys_packages != true ]] && allow_sys_packages=''
 	[[ $install_pip_deps = true ]] && no_pip_deps=''
@@ -516,7 +520,13 @@ InstallAddons()
 	fi
 
 	if [[ ! -e $pip_conf_pathfile ]]; then
-		DisplayRunAndLog "create global 'pip' config" "echo -e \"[global]\ncache-dir = $pip_cache_path\" > $pip_conf_pathfile" log:failure-only
+		DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $pip_conf_pathfile" log:failure-only
+
+		DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $pip_conf_pathfile" log:failure-only
+
+		if [[ -d $qpkg_wheels_path ]]; then
+			DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' as 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $pip_conf_pathfile" log:failure-only
+		fi
 	fi
 
 	IsNotAutoUpdate && [[ $new_env = false ]] && return 0
@@ -530,15 +540,16 @@ InstallAddons()
 		fi
 	fi
 
-	[[ -e $essential_modules_pathfile && -d $(/usr/bin/dirname "$default_essential_modules_pathfile") ]] && cp -f "$essential_modules_pathfile" "$default_essential_modules_pathfile"
+	# Edit developer-provided Python module requirements files out-of-repo.
+	# NOTE: Always prefer QPKG-supplied PyPI lists over repo-supplied versions.
+
+	[[ ! -e $default_essential_modules_pathfile && -e $essential_modules_pathfile && -d $(/usr/bin/dirname "$default_essential_modules_pathfile") ]] && cp -f "$essential_modules_pathfile" "$default_essential_modules_pathfile"
 	[[ -e $default_essential_modules_pathfile ]] && essential_modules_pathfile=$default_essential_modules_pathfile
 
-	# Edit developer-provided Python module requirements files out-of-repo.
-
-	[[ -e $requirements_modules_pathfile && -d $(/usr/bin/dirname "$default_requirements_modules_pathfile") ]] && cp -f "$requirements_modules_pathfile" "$default_requirements_modules_pathfile"
+	[[ ! -e $default_requirements_modules_pathfile && -e $requirements_modules_pathfile && -d $(/usr/bin/dirname "$default_requirements_modules_pathfile") ]] && cp -f "$requirements_modules_pathfile" "$default_requirements_modules_pathfile"
 	[[ -e $default_requirements_modules_pathfile ]] && requirements_modules_pathfile=$default_requirements_modules_pathfile
 
-	[[ -e $recommended_modules_pathfile && -d $(/usr/bin/dirname "$default_recommended_modules_pathfile") ]] && cp -f "$recommended_modules_pathfile" "$default_recommended_modules_pathfile"
+	[[ ! -e $default_recommended_modules_pathfile && -e $recommended_modules_pathfile && -d $(/usr/bin/dirname "$default_recommended_modules_pathfile") ]] && cp -f "$recommended_modules_pathfile" "$default_recommended_modules_pathfile"
 	[[ -e $default_recommended_modules_pathfile ]] && recommended_modules_pathfile=$default_recommended_modules_pathfile
 
 	# Must remove these modules from repo txt files, and use the ones installed via `opkg` instead (if-available).
@@ -547,19 +558,29 @@ InstallAddons()
 	if [[ -e $excluded_modules_pathfile ]]; then
 		module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$excluded_modules_pathfile")")")
 		module_exclusions=${module_exclusions%* }
-		re="/^${module_exclusions// /\|^}"
 
-		for target in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile; do
-			if [[ -e $target ]]; then
-				if [[ -e /opt/bin/sed ]]; then
-					cmd="/opt/bin/sed -i '${re}/Id' $target"		# Perform case-insensitive match only if GNU `sed` exists.
-				else
-					cmd="/bin/sed -i '${re}/d' $target"				# Eh, hope for the best.
+		if [[ -n $module_exclusions ]]; then
+			re="^${module_exclusions// /\$\|^}$"			# Match whole line.
+
+# Let's leave the version and arch specifiers alone.
+# 			for a in '\=' '\~' '\<' '\>' '\!' '\[' ' '; do	# Add regexes for multiple patterns.
+# 				re+="|^${module_exclusions// /$a\|^}"
+# 			done
+		fi
+
+		if [[ -n $re ]]; then
+			for target in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile; do
+				if [[ -e $target ]]; then
+					if [[ -e /opt/bin/sed ]]; then
+						cmd="/opt/bin/sed -i '/${re}/Id' $target"		# Perform case-insensitive matching only if GNU `sed` exists.
+					else
+						cmd="/bin/sed -i '/${re}/d' $target"			# Eh, hope for the best.
+					fi
+
+					DisplayRunAndLog "exclude problem PyPI modules from '$(/usr/bin/basename "$target")'" "$cmd" log:failure-only
 				fi
-
-				DisplayRunAndLog "exclude problem PyPI modules from '$(/usr/bin/basename "$target")'" "$cmd" log:failure-only
-			fi
-		done
+			done
+		fi
 	fi
 
 	# Install remaining PyPI modules.

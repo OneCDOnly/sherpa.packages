@@ -1,0 +1,1 @@
+* Developers do not distribute compatible binaries for ARMv5 and ARMv7.

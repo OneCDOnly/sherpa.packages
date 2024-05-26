@@ -1,65 +1,65 @@
-Test date: 2024-05-01
+Test date: 2024-05-25
 
-* Install fails on armv5 (x19) & armv7 (x31 & x41).
-	Collecting numpy>=1.12.0 (from -r /share/CACHEDEV1_DATA/.qpkg/Bazarr/config/requirements.txt (line 1))
-	Using cached numpy-1.26.4.tar.gz (15.8 MB)
-	Installing build dependencies: started
-	Installing build dependencies: finished with status 'done'
-	Getting requirements to build wheel: started
-	Getting requirements to build wheel: finished with status 'done'
-	Installing backend dependencies: started
-	Installing backend dependencies: finished with status 'error'
-	error: subprocess-exited-with-error
+	* Install failed on x19, x31 & x41:
+		-------------------------------------------------------------------------------------------------------------------------
+		Collecting numpy>=1.12.0 (from -r /share/CACHEDEV1_DATA/.qpkg/Bazarr/config/requirements.txt (line 1))
+		Using cached numpy-1.26.4.tar.gz (15.8 MB)
+		Installing build dependencies: started
+		Installing build dependencies: finished with status 'done'
+		Getting requirements to build wheel: started
+		Getting requirements to build wheel: finished with status 'done'
+		Installing backend dependencies: started
+		Installing backend dependencies: finished with status 'error'
+		error: subprocess-exited-with-error
 
-	× pip subprocess to install backend dependencies did not run successfully.
-	│ exit code: 1
-	╰─> [37 lines of output]
-		Collecting ninja>=1.8.2
-			Using cached ninja-1.11.1.1.tar.gz (132 kB)
-			Installing build dependencies: started
-			Installing build dependencies: finished with status 'done'
-			Getting requirements to build wheel: started
-			Getting requirements to build wheel: finished with status 'done'
-			Preparing metadata (pyproject.toml): started
-			Preparing metadata (pyproject.toml): finished with status 'done'
-		Building wheels for collected packages: ninja
-			Building wheel for ninja (pyproject.toml): started
-			Building wheel for ninja (pyproject.toml): finished with status 'error'
-			error: subprocess-exited-with-error
+		× pip subprocess to install backend dependencies did not run successfully.
+		│ exit code: 1
+		╰─> [37 lines of output]
+			Collecting ninja>=1.8.2
+				Using cached ninja-1.11.1.1.tar.gz (132 kB)
+				Installing build dependencies: started
+				Installing build dependencies: finished with status 'done'
+				Getting requirements to build wheel: started
+				Getting requirements to build wheel: finished with status 'done'
+				Preparing metadata (pyproject.toml): started
+				Preparing metadata (pyproject.toml): finished with status 'done'
+			Building wheels for collected packages: ninja
+				Building wheel for ninja (pyproject.toml): started
+				Building wheel for ninja (pyproject.toml): finished with status 'error'
+				error: subprocess-exited-with-error
 
-			× Building wheel for ninja (pyproject.toml) did not run successfully.
-			│ exit code: 1
-			╰─> [15 lines of output]
-				/share/CACHEDEV1_DATA/.qpkg/Entware/tmp/pip-build-env-igu7rhxf/overlay/lib/python3.11/site-packages/setuptools_scm/git.py:308: UserWarning: git archive did not support describe output
-				warnings.warn("git archive did not support describe output")
-				/share/CACHEDEV1_DATA/.qpkg/Entware/tmp/pip-build-env-igu7rhxf/overlay/lib/python3.11/site-packages/setuptools_scm/git.py:327: UserWarning: unprocessed git archival found (no export subst applied)
-				warnings.warn("unprocessed git archival found (no export subst applied)")
-				Traceback (most recent call last):
-				File "/share/CACHEDEV1_DATA/.qpkg/Entware/tmp/pip-build-env-igu7rhxf/overlay/lib/python3.11/site-packages/skbuild/setuptools_wrap.py", line 645, in setup
-					cmkr = cmaker.CMaker(cmake_executable)
-						^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-				File "/share/CACHEDEV1_DATA/.qpkg/Entware/tmp/pip-build-env-igu7rhxf/overlay/lib/python3.11/site-packages/skbuild/cmaker.py", line 148, in __init__
-					self.cmake_version = get_cmake_version(self.cmake_executable)
-										^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-				File "/share/CACHEDEV1_DATA/.qpkg/Entware/tmp/pip-build-env-igu7rhxf/overlay/lib/python3.11/site-packages/skbuild/cmaker.py", line 105, in get_cmake_version
-					raise SKBuildError(msg) from err
+				× Building wheel for ninja (pyproject.toml) did not run successfully.
+				│ exit code: 1
+				╰─> [15 lines of output]
+					/share/CACHEDEV1_DATA/.qpkg/Entware/tmp/pip-build-env-igu7rhxf/overlay/lib/python3.11/site-packages/setuptools_scm/git.py:308: UserWarning: git archive did not support describe output
+					warnings.warn("git archive did not support describe output")
+					/share/CACHEDEV1_DATA/.qpkg/Entware/tmp/pip-build-env-igu7rhxf/overlay/lib/python3.11/site-packages/setuptools_scm/git.py:327: UserWarning: unprocessed git archival found (no export subst applied)
+					warnings.warn("unprocessed git archival found (no export subst applied)")
+					Traceback (most recent call last):
+					File "/share/CACHEDEV1_DATA/.qpkg/Entware/tmp/pip-build-env-igu7rhxf/overlay/lib/python3.11/site-packages/skbuild/setuptools_wrap.py", line 645, in setup
+						cmkr = cmaker.CMaker(cmake_executable)
+							^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+					File "/share/CACHEDEV1_DATA/.qpkg/Entware/tmp/pip-build-env-igu7rhxf/overlay/lib/python3.11/site-packages/skbuild/cmaker.py", line 148, in __init__
+						self.cmake_version = get_cmake_version(self.cmake_executable)
+											^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+					File "/share/CACHEDEV1_DATA/.qpkg/Entware/tmp/pip-build-env-igu7rhxf/overlay/lib/python3.11/site-packages/skbuild/cmaker.py", line 105, in get_cmake_version
+						raise SKBuildError(msg) from err
 
-				Problem with the CMake installation, aborting build. CMake executable is cmake
-				[end of output]
+					Problem with the CMake installation, aborting build. CMake executable is cmake
+					[end of output]
 
-			note: This error originates from a subprocess, and is likely not a problem with pip.
-			ERROR: Failed building wheel for ninja
-		Failed to build ninja
-		ERROR: Could not build wheels for ninja, which is required to install pyproject.toml-based projects
-		[end of output]
+				note: This error originates from a subprocess, and is likely not a problem with pip.
+				ERROR: Failed building wheel for ninja
+			Failed to build ninja
+			ERROR: Could not build wheels for ninja, which is required to install pyproject.toml-based projects
+			[end of output]
 
-	note: This error originates from a subprocess, and is likely not a problem with pip.
-	error: subprocess-exited-with-error
+		note: This error originates from a subprocess, and is likely not a problem with pip.
+		error: subprocess-exited-with-error
 
-	× pip subprocess to install backend dependencies did not run successfully.
-	│ exit code: 1
-	╰─> See above for output.
+		× pip subprocess to install backend dependencies did not run successfully.
+		│ exit code: 1
+		╰─> See above for output.
 
-	note: This error originates from a subprocess, and is likely not a problem with pip.
-
-Installing cmake didn't help. :(
+		note: This error originates from a subprocess, and is likely not a problem with pip.
+		-------------------------------------------------------------------------------------------------------------------------
