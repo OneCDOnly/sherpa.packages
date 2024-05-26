@@ -22,7 +22,7 @@
 #*   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 #*	 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
-readonly SERVICE_LIB_VERSION='240524'
+readonly SERVICE_LIB_VERSION='240526'
 InitLibrary()
 {
 IsQNAP || exit
@@ -51,9 +51,9 @@ readonly NAS_FIRMWARE_VER=$(/sbin/getcfg System Version -f /etc/config/uLinux.co
 readonly OPKG_PATH=/opt/bin:/opt/sbin
 export PATH=$OPKG_PATH:$(/bin/sed "s|$OPKG_PATH||" <<< "$PATH")
 readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
+readonly APP_VERSION_STORE_PATHFILE=$QPKG_PATH/version.stored
 readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
-readonly APP_VERSION_STORE_PATHFILE=$QPKG_CONFIG_PATH/version.stored
-readonly SCREEN_CONF_PATHFILE=$QPKG_CONFIG_PATH/screen.conf
+readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
 readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
 readonly SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
 readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
@@ -399,14 +399,14 @@ return 0
 InstallAddons()
 {
 IsUseVirtualPythonEnv || return 0
-local default_essential_modules_pathfile=$QPKG_CONFIG_PATH/pip-essential.txt
-local default_requirements_modules_pathfile=$QPKG_CONFIG_PATH/requirements.txt
-local default_recommended_modules_pathfile=$QPKG_CONFIG_PATH/recommended.txt
+local default_essential_modules_pathfile=$QPKG_PATH/pip-essential.txt
+local default_requirements_modules_pathfile=$QPKG_PATH/pip-requirements.txt
+local default_recommended_modules_pathfile=$QPKG_PATH/pip-recommended.txt
+local excluded_modules_pathfile=$QPKG_PATH/pip-exclusions.txt
+local rename_modules_pathfile=$QPKG_PATH/pip-rename.txt
 local essential_modules_pathfile=$qpkg_repo_path/pip-essential.txt
 local requirements_modules_pathfile=$qpkg_repo_path/requirements.txt
 local recommended_modules_pathfile=$qpkg_repo_path/recommended.txt
-local excluded_modules_pathfile=$QPKG_CONFIG_PATH/pip-exclusions.txt
-local rename_modules_pathfile=$QPKG_CONFIG_PATH/pip-rename.txt
 local pyproject_pathfile=$qpkg_repo_path/pyproject.toml
 local pip_conf_pathfile=$venv_path/pip.conf
 local new_env=false
