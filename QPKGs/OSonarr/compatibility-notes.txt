@@ -1,6 +1,7 @@
 * arm distribution runtime fails on armv5tel (TS-220) with QTS 4.3.3, armv7 (TS-231P2) with QTS 5.1.4
 
 	armv5tel (TS-220) with QTS 4.3.3
+		-------------------------------------------------------------------------------------------------------------------------
 		# ./Sonarr
 		-sh: ./Sonarr: No such file or directory
 
@@ -40,8 +41,10 @@
 		# ll /lib/libc*
 		-rwxr-xr-x    1 admin    administ      1.2M Dec  4  2008 /lib/libc-2.5.so*
 		lrwxrwxrwx    1 admin    administ        11 Nov 24  2022 /lib/libc.so.6 -> libc-2.5.so*
+		-------------------------------------------------------------------------------------------------------------------------
 
 	armv7 (TS-231P2) with QTS 5.1.4
+		-------------------------------------------------------------------------------------------------------------------------
 		# ./Sonarr
 		./Sonarr: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.20' not found (required by ./Sonarr)
 		./Sonarr: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by ./Sonarr)
@@ -82,5 +85,6 @@
 		# ll /lib/libc*
 		-rwxr-xr-x    1 admin    administ    873.3k Mar 23  2015 /lib/libc-2.17.so*
 		lrwxrwxrwx    1 admin    administ        12 Jan 14  2024 /lib/libc.so.6 -> libc-2.17.so*
+		-------------------------------------------------------------------------------------------------------------------------
 
 	Appears 'glibc' version is too-old in these NAS models.
