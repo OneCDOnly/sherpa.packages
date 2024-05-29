@@ -61,6 +61,7 @@ InitLibrary()
 	readonly SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
 	readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
 	readonly SERVICE_STATUS_PATHFILE=/var/run/$QPKG_NAME.last.operation
+	export HOME=$QPKG_CONFIG_PATH
 
 	# default values
 	allow_access_to_sys_packages=true
@@ -583,7 +584,7 @@ InstallAddons()
 		fi
 	fi
 
-	# Install remaining PyPI modules.
+	# Install PyPI modules.
 
 	for target in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile; do
 		if [[ -e $target ]]; then
