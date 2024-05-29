@@ -22,7 +22,7 @@
 #*   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 #*	 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
-readonly SERVICE_LIB_VERSION='240526'
+readonly SERVICE_LIB_VERSION='240529'
 InitLibrary()
 {
 IsQNAP || exit
@@ -58,6 +58,7 @@ readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/confi
 readonly SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
 readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
 readonly SERVICE_STATUS_PATHFILE=/var/run/$QPKG_NAME.last.operation
+export HOME=$QPKG_CONFIG_PATH
 allow_access_to_sys_packages=true
 app_version_cmd=undefined
 app_version_pathfile=undefined
