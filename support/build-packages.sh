@@ -18,6 +18,7 @@ previous_package_name=''
 previous_version=''
 previous_arch=''
 match=false
+packages_epoch=$(date +%s)
 
 TranslateQPKGArch()
 	{

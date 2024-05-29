@@ -1,4 +1,4 @@
-PACKAGES_VER='<?build_date?>'
+PACKAGES_EPOCH='<?packages_epoch?>'
 #* <?dont_edit?>
 BASE_QPKG_CONFLICTS_WITH='TarMT'
 BASE_QPKG_WARNINGS='Qboost'
