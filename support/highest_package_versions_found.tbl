@@ -1,7 +1,8 @@
 # checksum_filename                  qpkg_filename                    package_name         version      arch   hash
-Bazarr_240529_arm_64.qpkg.md5        Bazarr_240529_arm_64.qpkg        Bazarr               240529       a64    a1192006e7c04dad21d59ad12df1c319
-Bazarr_240529_x86_64.qpkg.md5        Bazarr_240529_x86_64.qpkg        Bazarr               240529       i64    dac2b1805b66bdcd8434a6903e807f44
-Bazarr_240529_x86.qpkg.md5           Bazarr_240529_x86.qpkg           Bazarr               240529       i86    1499f47974c125aeee9c47f866fd4eaf
+Bazarr_240529_arm_64.qpkg.md5        Bazarr_240529_arm_64.qpkg        Bazarr               240529       a64    0631f84222dd55144112a65f0fc352fd
+Bazarr_240529_arm-x41.qpkg.md5       Bazarr_240529_arm-x41.qpkg       Bazarr               240529       a41    d788188b703dac903b2b8bdb094df06b
+Bazarr_240529_x86_64.qpkg.md5        Bazarr_240529_x86_64.qpkg        Bazarr               240529       i64    a8cd6c6375310ce37c9e347c18dbc026
+Bazarr_240529_x86.qpkg.md5           Bazarr_240529_x86.qpkg           Bazarr               240529       i86    8568d487f0cf58ab087762aaf975ba0f
 ClamAV_240529.qpkg.md5               ClamAV_240529.qpkg               ClamAV               240529       all    eec918e295893cce299188d73088aef1
 Deluge-server_240420.qpkg.md5        Deluge-server_240420.qpkg        Deluge-server        240420       all    cdc0e76e06cc49c6a8bf0814cd05897d
 Deluge-web_240420.qpkg.md5           Deluge-web_240420.qpkg           Deluge-web           240420       all    989d74e9507071eb454e127da8bd1700
@@ -61,8 +62,8 @@ OSickGear_240529_arm-x31.qpkg.md5    OSickGear_240529_arm-x31.qpkg    OSickGear 
 OSickGear_240529_arm-x41.qpkg.md5    OSickGear_240529_arm-x41.qpkg    OSickGear            240529       a41    d64be17de8b9dc71313ff9bfef398ff1
 OSickGear_240529_x86_64.qpkg.md5     OSickGear_240529_x86_64.qpkg     OSickGear            240529       i64    c77c7791176313f5f52a150a984f9fa5
 OSickGear_240529_x86.qpkg.md5        OSickGear_240529_x86.qpkg        OSickGear            240529       i86    d463027f1d65f927927302885bb8b67d
-OSonarr_240529_arm_64.qpkg.md5       OSonarr_240529_arm_64.qpkg       OSonarr              240529       a64    0588d558d30c714a4616ccbba2823eb3
-OSonarr_240529_x86_64.qpkg.md5       OSonarr_240529_x86_64.qpkg       OSonarr              240529       i64    de8872260befbb435b9d0bd79a083962
+OSonarr_240529_arm_64.qpkg.md5       OSonarr_240529_arm_64.qpkg       OSonarr              240529       a64    89391ce2bddb335d4b632ec2dd676ee4
+OSonarr_240529_x86_64.qpkg.md5       OSonarr_240529_x86_64.qpkg       OSonarr              240529       i64    7c764692586d1fc46402ef50e84ea6d8
 OTautulli_240529_arm_64.qpkg.md5     OTautulli_240529_arm_64.qpkg     OTautulli            240529       a64    c3bdd1bef8949c28112c83e769f0868a
 OTautulli_240529_arm-x19.qpkg.md5    OTautulli_240529_arm-x19.qpkg    OTautulli            240529       a19    03936846c8b6464a71781d4e8d35a3dc
 OTautulli_240529_arm-x31.qpkg.md5    OTautulli_240529_arm-x31.qpkg    OTautulli            240529       a31    421ff460ca418af6f264d99ecc5598de
@@ -84,15 +85,15 @@ pyLoad_240529_x86_64.qpkg.md5        pyLoad_240529_x86_64.qpkg        pyLoad    
 pyLoad_240529_x86.qpkg.md5           pyLoad_240529_x86.qpkg           pyLoad               240529       i86    08009083d54b2f1cee6084bade88e5c8
 QDK_2.3.13.zip.qpkg.md5              QDK_2.3.13.zip                   QDK                  2.3.13       all    0b003e703a29520e98a0aca41ed0e585
 RunLast_230224.qpkg.md5              RunLast_230224.qpkg              RunLast              230224       all    6cb5415fe56592ca1f4e8a4f2dcc5f17
-SABnzbd_240529_arm_64.qpkg.md5       SABnzbd_240529_arm_64.qpkg       SABnzbd              240529       a64    82454556711fdf4400bbef5895bd7c10
-SABnzbd_240529_arm-x19.qpkg.md5      SABnzbd_240529_arm-x19.qpkg      SABnzbd              240529       a19    c3420ab8c6bd8dd097b8cc06fb312d5a
-SABnzbd_240529_arm-x31.qpkg.md5      SABnzbd_240529_arm-x31.qpkg      SABnzbd              240529       a31    8145b361d4da90bba0989eb6393d0206
-SABnzbd_240529_arm-x41.qpkg.md5      SABnzbd_240529_arm-x41.qpkg      SABnzbd              240529       a41    05308956e0d140062ffed9c4d163f3fb
-SABnzbd_240529_x86_64.qpkg.md5       SABnzbd_240529_x86_64.qpkg       SABnzbd              240529       i64    cdccaa8ed8afa745a75009d063da405a
-SABnzbd_240529_x86.qpkg.md5          SABnzbd_240529_x86.qpkg          SABnzbd              240529       i86    af80213ed32d34f35fe55ef34b1f698a
+SABnzbd_240529_arm_64.qpkg.md5       SABnzbd_240529_arm_64.qpkg       SABnzbd              240529       a64    d158b770069eaa568b760dca189408e5
+SABnzbd_240529_arm-x19.qpkg.md5      SABnzbd_240529_arm-x19.qpkg      SABnzbd              240529       a19    d9f980e3161ad6e6a7a433a91aff2439
+SABnzbd_240529_arm-x31.qpkg.md5      SABnzbd_240529_arm-x31.qpkg      SABnzbd              240529       a31    a45ddd7a77730003bd9b358786d0dff5
+SABnzbd_240529_arm-x41.qpkg.md5      SABnzbd_240529_arm-x41.qpkg      SABnzbd              240529       a41    7edfc27866a547e0329b10c0c6a1e94a
+SABnzbd_240529_x86_64.qpkg.md5       SABnzbd_240529_x86_64.qpkg       SABnzbd              240529       i64    2a625e127f05f21da90456f70a4636bd
+SABnzbd_240529_x86.qpkg.md5          SABnzbd_240529_x86.qpkg          SABnzbd              240529       i86    b499297bb1dbdc81ff611baeb700de8e
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240529.qpkg.md5               sherpa_240529.qpkg               sherpa               240529       all    14acb89c1585dc6875dd9d7465e24990
+sherpa_240529.qpkg.md5               sherpa_240529.qpkg               sherpa               240529       all    0d54ace7112be4c074d3ffb54ac62a79
 SortMyQPKGs_240513.qpkg.md5          SortMyQPKGs_240513.qpkg          SortMyQPKGs          240513       all    dba9b7432b92d3ce19c34b64eaeba366
 Unmanic_240529_arm_64.qpkg.md5       Unmanic_240529_arm_64.qpkg       Unmanic              240529       a64    d266c491d3dc03f8f9ea1016987602c8
 Unmanic_240529_arm-x19.qpkg.md5      Unmanic_240529_arm-x19.qpkg      Unmanic              240529       a19    37f0a40873bdd95b6062e0fb506f782a
@@ -103,6 +104,7 @@ Unmanic_240529_x86.qpkg.md5          Unmanic_240529_x86.qpkg          Unmanic   
 Unrar_6.2.5_arm_64.qpkg.md5          Unrar_6.2.5_arm_64.qpkg          Unrar                6.2.5        a64    e2382b80908fc9549bbb00058968082a
 Unrar_6.2.5_arm-x41.qpkg.md5         Unrar_6.2.5_arm-x41.qpkg         Unrar                6.2.5        a41    ac1ff1149258db5e4c0b8165774eda37
 Unrar_6.2.5_x86_64.qpkg.md5          Unrar_6.2.5_x86_64.qpkg          Unrar                6.2.5        i64    f29dc4c271a0a1341d2dad78eb34d2ca
-WebSSH_240529_arm_64.qpkg.md5        WebSSH_240529_arm_64.qpkg        WebSSH               240529       a64    39c31588dced01f59f623499e7b638a0
-WebSSH_240529_x86_64.qpkg.md5        WebSSH_240529_x86_64.qpkg        WebSSH               240529       i64    1490867f934cebd92b6366da58359b5d
-WebSSH_240529_x86.qpkg.md5           WebSSH_240529_x86.qpkg           WebSSH               240529       i86    d4882965b8194912466840ddb3882c63
+WebSSH_240529_arm_64.qpkg.md5        WebSSH_240529_arm_64.qpkg        WebSSH               240529       a64    bf8c74a054c5506727ba47b4e6900f37
+WebSSH_240529_arm-x41.qpkg.md5       WebSSH_240529_arm-x41.qpkg       WebSSH               240529       a41    d6d021c7cf957feafd3219aabaa4a819
+WebSSH_240529_x86_64.qpkg.md5        WebSSH_240529_x86_64.qpkg        WebSSH               240529       i64    b6b5bc07f54321cf9ef51b8a672227b7
+WebSSH_240529_x86.qpkg.md5           WebSSH_240529_x86.qpkg           WebSSH               240529       i86    f1bf825e12ccfc28503b2a8ff453b57f
