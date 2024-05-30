@@ -1,8 +1,7 @@
 # checksum_filename                  qpkg_filename                    package_name         version      arch   hash
-Bazarr_240529_arm_64.qpkg.md5        Bazarr_240529_arm_64.qpkg        Bazarr               240529       a64    0631f84222dd55144112a65f0fc352fd
-Bazarr_240529_arm-x41.qpkg.md5       Bazarr_240529_arm-x41.qpkg       Bazarr               240529       a41    d788188b703dac903b2b8bdb094df06b
-Bazarr_240529_x86_64.qpkg.md5        Bazarr_240529_x86_64.qpkg        Bazarr               240529       i64    a8cd6c6375310ce37c9e347c18dbc026
-Bazarr_240529_x86.qpkg.md5           Bazarr_240529_x86.qpkg           Bazarr               240529       i86    8568d487f0cf58ab087762aaf975ba0f
+Bazarr_240531_arm_64.qpkg.md5        Bazarr_240531_arm_64.qpkg        Bazarr               240531       a64    648fbaf520660b099ba0e11153da333d
+Bazarr_240531_x86_64.qpkg.md5        Bazarr_240531_x86_64.qpkg        Bazarr               240531       i64    9b7f4616a7737b00aceb91a63310ccd1
+Bazarr_240531_x86.qpkg.md5           Bazarr_240531_x86.qpkg           Bazarr               240531       i86    3388906a410c6364e7223cc9ad027758
 ClamAV_240529.qpkg.md5               ClamAV_240529.qpkg               ClamAV               240529       all    eec918e295893cce299188d73088aef1
 Deluge-server_240420.qpkg.md5        Deluge-server_240420.qpkg        Deluge-server        240420       all    cdc0e76e06cc49c6a8bf0814cd05897d
 Deluge-web_240420.qpkg.md5           Deluge-web_240420.qpkg           Deluge-web           240420       all    989d74e9507071eb454e127da8bd1700
@@ -93,7 +92,7 @@ SABnzbd_240530_x86_64.qpkg.md5       SABnzbd_240530_x86_64.qpkg       SABnzbd   
 SABnzbd_240530_x86.qpkg.md5          SABnzbd_240530_x86.qpkg          SABnzbd              240530       i86    8831eea423d3153af00357270bc1e23d
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240530.qpkg.md5               sherpa_240530.qpkg               sherpa               240530       all    a78297560160074886192606e53cbab6
+sherpa_240531.qpkg.md5               sherpa_240531.qpkg               sherpa               240531       all    f67e1a8914652841d66cb24d79f4eb02
 SortMyQPKGs_240513.qpkg.md5          SortMyQPKGs_240513.qpkg          SortMyQPKGs          240513       all    dba9b7432b92d3ce19c34b64eaeba366
 Unmanic_240529_arm_64.qpkg.md5       Unmanic_240529_arm_64.qpkg       Unmanic              240529       a64    d266c491d3dc03f8f9ea1016987602c8
 Unmanic_240529_arm-x19.qpkg.md5      Unmanic_240529_arm-x19.qpkg      Unmanic              240529       a19    37f0a40873bdd95b6062e0fb506f782a
