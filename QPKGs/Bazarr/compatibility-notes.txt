@@ -1,3 +1,9 @@
+Test date: 2024-05-31
+
+	* Bazarr on Sarah launches, then exits without error.
+		- Try running with debug enabled.
+		- Nope, no messages to explain why this is happening. Application bug? Low resources?
+
 Test date: 2024-05-29
 
 	* Install failed on x19, x31 & x41:
