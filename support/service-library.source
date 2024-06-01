@@ -2898,9 +2898,6 @@ ProcessArgs()
 					ShowUnsupportedAction "$user_arg"
 				fi
 				;;
-			?(--)debug|?(--)help|?(--)verbose)
-				ShowHelp
-				;;
 			?(--)disable)
 				IsSU ||	exit
 
@@ -2948,6 +2945,9 @@ ProcessArgs()
 					SetServiceAction unsupported
 					ShowUnsupportedAction "$user_arg"
 				fi
+				;;
+			?(--)help)
+				ShowHelp
 				;;
 			?(-)l|?(--)log)
 				SetServiceAction log
