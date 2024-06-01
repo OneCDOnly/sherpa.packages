@@ -3006,7 +3006,7 @@ ProcessArgs()
 					StartQPKG
 				fi
 				;;
-			?(-)s?(tatus))
+			?(-)s|?(--)status)
 				SetServiceAction status
 				StatusQPKG
 				;;
@@ -3016,7 +3016,7 @@ ProcessArgs()
 				SetServiceAction stop
 				StopQPKG
 				;;
-			?(-)v?(ersion))
+			?(-)v|?(--)version)
 				SetServiceAction none
 				Display "package: '$QPKG_VERSION'"
 				Display "service: '$SERVICE_SCRIPT_VERSION'"
