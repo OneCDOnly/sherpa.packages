@@ -41,7 +41,7 @@ InitLibrary()
 	UnsetRestartPending
 
 	readonly DAEMON_CHECK_TIMEOUT_SECONDS=60
-	readonly DAEMON_STOP_TIMEOUT_SECONDS=120
+	readonly DAEMON_STOP_TIMEOUT_SECONDS=180
 	readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=60
 	readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)	# This value is for a single-core CPU and 1m load average of 1.0
 	readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)	# This value is for a single-core CPU and 1m load average of 1.0
