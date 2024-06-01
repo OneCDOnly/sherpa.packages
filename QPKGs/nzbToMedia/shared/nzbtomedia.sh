@@ -20,7 +20,7 @@ Init()
 
 	# service-script environment
 	readonly QPKG_NAME=nzbToMedia
-	readonly SCRIPT_VERSION=240205
+	readonly SCRIPT_VERSION=240602
 
 	# general environment
 	readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
@@ -71,26 +71,6 @@ Init()
 		default_download_share=unspecified
 	fi
 
-	if [[ -n $default_scripts_path ]]; then
-		scripts_path_source="$QPKG_NAME 'Scripts_Path'"
-		scripts_path=$default_scripts_path
-	elif IsQPKGInstalled SABnzbd; then
-		scripts_path_source="SABnzbd 'script_dir'"
-		scripts_path=$(/sbin/getcfg misc script_dir -d /share/Public/Downloads -f "$(/sbin/getcfg SABnzbd Install_Path -f /etc/config/qpkg.conf)"/config/config.ini)
-	elif IsQPKGInstalled NZBGet; then
-		scripts_path_source="NZBGet 'MainDir'"
-		scripts_path=$(/sbin/getcfg '' MainDir -d /share/Public/Downloads -f "$(/sbin/getcfg NZBGet Install_Path -f /etc/config/qpkg.conf)"/config/config.ini)
-	elif [[ $default_download_share != unspecified ]]; then
-		scripts_path_source="QTS 'Download' share"
-		scripts_path=$default_download_share
-	else
-		scripts_path_source='default'
-		scripts_path=/share/Public/Downloads
-	fi
-
-	[[ $scripts_path != "$QPKG_REPO_PATH" && $(/usr/bin/basename "$scripts_path") != "$QPKG_NAME" ]] && scripts_path+=/$QPKG_NAME
-
-
 	# specific to daemonised applications only
 	readonly DAEMON_PATHFILE=''
 	readonly DAEMON_LAUNCH_CMD=''
@@ -140,6 +120,24 @@ Init()
 	UnsetRestartPending
 	LoadAppVersion
 	DisableOpkgDaemonStart
+
+	if [[ -n $default_scripts_path ]]; then
+		scripts_path_source="$QPKG_NAME 'Scripts_Path'"
+		scripts_path=$default_scripts_path
+# 		CommitToLog "using $QPKG_NAME 'Scripts_Path': '$scripts_path'"
+	elif [[ $default_download_share != unspecified ]]; then
+		scripts_path_source="QTS 'Download' share"
+		scripts_path=$default_download_share
+# 		CommitToLog "using QTS Download share as scripts path: '$scripts_path'"
+	else
+		scripts_path_source='default'
+		scripts_path=/share/Public/Downloads
+# 		CommitToLog "using default scripts path: '$scripts_path'"
+	fi
+
+	[[ $scripts_path != "$QPKG_REPO_PATH" && $(/usr/bin/basename "$scripts_path") != "$QPKG_NAME" ]] && scripts_path+=/$QPKG_NAME
+
+# 	CommitToLog "scripts_path: [$scripts_path]"
 
 	IsSupportBackup && [[ -n ${BACKUP_PATH:-} && ! -d $BACKUP_PATH ]] && mkdir -p "$BACKUP_PATH"
 	[[ -n ${VENV_PATH:-} && ! -d $VENV_PATH ]] && mkdir -p "$VENV_PATH"

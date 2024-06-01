@@ -1,6 +1,6 @@
 Test date: 2024-05-31
 
-	* Bazarr on Sarah launches, then exits without error.
+	* Bazarr on x86 (Sarah) launches, then exits without error.
 		- Try running with debug enabled.
 		- Nope, no messages to explain why this is happening. Application bug? Low resources?
 
