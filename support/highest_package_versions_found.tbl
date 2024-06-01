@@ -89,7 +89,7 @@ SABnzbd_240602_x86_64.qpkg.md5       SABnzbd_240602_x86_64.qpkg       SABnzbd   
 SABnzbd_240602_x86.qpkg.md5          SABnzbd_240602_x86.qpkg          SABnzbd              240602       i86    a8f9ad8bc0715a10b1e89813ecea01c5
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240602.qpkg.md5               sherpa_240602.qpkg               sherpa               240602       all    87ff8b0aef349ef2310ec23013a8be95
+sherpa_240602.qpkg.md5               sherpa_240602.qpkg               sherpa               240602       all    c084480d90c2d30b1185c6f6c5416ae7
 SortMyQPKGs_240601.qpkg.md5          SortMyQPKGs_240601.qpkg          SortMyQPKGs          240601       all    e33aee086ad4e2171833c341cac92f6b
 Unmanic_240602_arm_64.qpkg.md5       Unmanic_240602_arm_64.qpkg       Unmanic              240602       a64    a37851e5723cce8b3073d7525abb4d03
 Unmanic_240602_arm-x19.qpkg.md5      Unmanic_240602_arm-x19.qpkg      Unmanic              240602       a19    8ec419d07531ad386bce2a09d2219c6c
@@ -97,9 +97,9 @@ Unmanic_240602_arm-x31.qpkg.md5      Unmanic_240602_arm-x31.qpkg      Unmanic   
 Unmanic_240602_arm-x41.qpkg.md5      Unmanic_240602_arm-x41.qpkg      Unmanic              240602       a41    f3356591e32c0a47934221c43937c40c
 Unmanic_240602_x86_64.qpkg.md5       Unmanic_240602_x86_64.qpkg       Unmanic              240602       i64    50b0e48a8a89a882c304f4ce54e86f99
 Unmanic_240602_x86.qpkg.md5          Unmanic_240602_x86.qpkg          Unmanic              240602       i86    b18219a047c2bdb4e2c0628fc6aff585
-Unrar_6.2.5_arm_64.qpkg.md5          Unrar_6.2.5_arm_64.qpkg          Unrar                6.2.5        a64    e2382b80908fc9549bbb00058968082a
-Unrar_6.2.5_arm-x41.qpkg.md5         Unrar_6.2.5_arm-x41.qpkg         Unrar                6.2.5        a41    ac1ff1149258db5e4c0b8165774eda37
-Unrar_6.2.5_x86_64.qpkg.md5          Unrar_6.2.5_x86_64.qpkg          Unrar                6.2.5        i64    f29dc4c271a0a1341d2dad78eb34d2ca
+Unrar_7.0.8_arm_64.qpkg.md5          Unrar_7.0.8_arm_64.qpkg          Unrar                7.0.8        a64    6f13faaa829aa55c9e08b005e4a3beaa
+Unrar_7.0.8_arm-x41.qpkg.md5         Unrar_7.0.8_arm-x41.qpkg         Unrar                7.0.8        a41    0d31704e9c094b63723cec45d2da723f
+Unrar_7.0.8_x86_64.qpkg.md5          Unrar_7.0.8_x86_64.qpkg          Unrar                7.0.8        i64    205ae961938432f74af2398577728034
 WebSSH_240602_arm_64.qpkg.md5        WebSSH_240602_arm_64.qpkg        WebSSH               240602       a64    6c737b1fd2b90d23a3351dd3e8b0c43c
 WebSSH_240602_arm-x41.qpkg.md5       WebSSH_240602_arm-x41.qpkg       WebSSH               240602       a41    44968fca9968eeada9385084cd2c86c1
 WebSSH_240602_x86_64.qpkg.md5        WebSSH_240602_x86_64.qpkg        WebSSH               240602       i64    ba4933a71194cd0ef20fe906d02a2c1d
