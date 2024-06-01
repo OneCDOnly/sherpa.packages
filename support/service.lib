@@ -22,7 +22,11 @@
 #*   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 #*	 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
-readonly SERVICE_LIB_VERSION='240529'
+set -o nounset -o pipefail
+shopt -s extglob
+[[ $- != *m* ]] || set +m
+ln -fns /proc/self/fd /dev/fd
+readonly SERVICE_LIB_VERSION='240602'
 InitLibrary()
 {
 IsQNAP || exit
@@ -33,11 +37,10 @@ for re in \\bd\\b \\bdebug\\b \\bdbug\\b \\bverbose\\b;do
 debug=true
 break
 done
-ln -fns /proc/self/fd /dev/fd
 UnsetError
 UnsetRestartPending
 readonly DAEMON_CHECK_TIMEOUT_SECONDS=60
-readonly DAEMON_STOP_TIMEOUT_SECONDS=120
+readonly DAEMON_STOP_TIMEOUT_SECONDS=180
 readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=60
 readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
 readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
@@ -79,6 +82,7 @@ local_temp_path=undefined
 orig_daemon_service_script=undefined
 pidfile_is_managed_by_app=false
 pip_cache_path=undefined
+pyver=''
 qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
 qpkg_ini_file=config.ini
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
@@ -190,14 +194,14 @@ DisplayAsHelp stop "deactivate $(FormatAsPackageName $QPKG_NAME) if active."
 DisplayAsHelp restart "stop, then start $(FormatAsPackageName $QPKG_NAME)."
 DisplayAsHelp enable "enable $(FormatAsPackageName $QPKG_NAME) so it can be started."
 DisplayAsHelp disable "disable $(FormatAsPackageName $QPKG_NAME) to prevent it starting."
-DisplayAsHelp status "check if $(FormatAsPackageName $QPKG_NAME) package is active. Returns \$? = 0 if active, 1 if not."
-IsSupportBackup && DisplayAsHelp backup "backup the current $(FormatAsPackageName $QPKG_NAME) configuration to persistent storage."
-IsSupportBackup && DisplayAsHelp restore "restore a previously saved configuration from persistent storage. $(FormatAsPackageName $QPKG_NAME) will be stopped, then restarted."
-IsSupportReset && DisplayAsHelp reset-config "delete the application configuration, databases and history. $(FormatAsPackageName $QPKG_NAME) will be stopped, then restarted."
-IsSourcedOnline && DisplayAsHelp clean "delete the local copy of $(FormatAsPackageName $QPKG_NAME), and download it again from remote source. Configuration will be retained."
+DisplayAsHelp status "check if $(FormatAsPackageName $QPKG_NAME) application is active. Returns \$? = 0 if active, 1 if not."
+IsSupportBackup && DisplayAsHelp backup "backup current $(FormatAsPackageName $QPKG_NAME) configuration to persistent storage."
+IsSupportBackup && DisplayAsHelp restore "restore a previously saved configuration from persistent storage."
+IsSupportReset && DisplayAsHelp reset-config "delete $(FormatAsPackageName $QPKG_NAME) configuration, databases and history."
+IsSourcedOnline && DisplayAsHelp clean "delete & redownload $(FormatAsPackageName $QPKG_NAME) from remote source. Configuration will be retained."
 DisplayAsHelp log 'display the service-script log.'
 IsSupportAutoUpdate && DisplayAsHelp enable-auto-update "auto-update $(FormatAsPackageName $QPKG_NAME) before starting (default)."
-IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $QPKG_NAME) before starting."
+IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $QPKG_NAME) before starting it."
 DisplayAsHelp version 'display the package version numbers.'
 Display
 DisplayWait 'enabled:'
@@ -750,12 +754,12 @@ fi
 WaitForDaemon()
 {
 local -i i=0
-if [[ -n $1 ]];then
+if [[ -n ${1:-} ]];then
 MAX_SECONDS=$1
 else
 MAX_SECONDS=$DAEMON_CHECK_TIMEOUT_SECONDS
 fi
-if [[ ! -e $1 ]];then
+if [[ ! -e ${1:-} ]];then
 DisplayWaitCommitToLog 'wait for daemon to appear:'
 DisplayWait "(no-more than $MAX_SECONDS second$(Pluralise "$MAX_SECONDS")):"
 local target_proc=''
@@ -1062,7 +1066,6 @@ echo "$venv_path/lib/python${pyver:0:1}.${pyver:1:2}/site-packages"
 }
 parse_yaml()
 {
-local prefix=$2
 local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
 /bin/sed -ne "s|^\($s\):|\1|" \
 -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
@@ -1073,7 +1076,7 @@ vname[indent] = $2;
 for (i in vname) {if (i > indent) {delete vname[i]}}
 if (length($3) > 0) {
 vn="";for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
-printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+printf("%s%s%s=\"%s\"\n", "'${2:-}'",vn, $2, $3);
 }
 }'
 }
@@ -1439,11 +1442,11 @@ _restart_pending_flag=false
 }
 IsRestartPending()
 {
-[[ $_restart_pending_flag = true ]]
+[[ ${_restart_pending_flag:=false} = true ]]
 }
 IsNotRestartPending()
 {
-[[ $_restart_pending_flag = false ]]
+[[ ${_restart_pending_flag:=false} = false ]]
 }
 SetError()
 {
@@ -1457,7 +1460,7 @@ _error_flag=false
 }
 IsError()
 {
-[[ $_error_flag = true ]]
+[[ ${_error_flag:=false} = true ]]
 }
 IsNotError()
 {
@@ -1819,7 +1822,7 @@ fi
 if IsNotError;then
 local user_arg=${USER_ARGS_RAW%% *}
 case $user_arg in
-b|-b|backup|--backup|backup-config|--backup-config)
+?(-)b|?(--)backup?(-config))
 IsSU ||	exit
 if IsSupportBackup;then
 SetServiceAction backup
@@ -1831,7 +1834,7 @@ SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
 fi
 ;;
-clean|--clean)
+?(--)clean|?(--)update|?(--)upgrade)
 IsSU ||	exit
 if IsSupportAutoUpdate;then
 SetServiceAction clean
@@ -1845,10 +1848,7 @@ SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
 fi
 ;;
-debug|help|verbose)
-ShowHelp
-;;
-disable)
+?(--)disable)
 IsSU ||	exit
 SetServiceAction disable
 /sbin/qpkg_service disable "$QPKG_NAME"
@@ -1859,7 +1859,7 @@ DisplayCommitToLog "$(FormatAsPackageName "$QPKG_NAME") disable failed."
 SetError
 fi
 ;;
-disable-auto-update|--disable-auto-update)
+?(--)disable-auto-update)
 IsSU ||	exit
 if IsSupportAutoUpdate;then
 SetServiceAction disable-auto-update
@@ -1869,7 +1869,7 @@ SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
 fi
 ;;
-enable)
+?(--)enable)
 IsSU ||	exit
 SetServiceAction enable
 /sbin/qpkg_service enable "$QPKG_NAME"
@@ -1880,7 +1880,7 @@ DisplayCommitToLog "$(FormatAsPackageName "$QPKG_NAME") enable failed."
 SetError
 fi
 ;;
-enable-auto-update|--enable-auto-update)
+?(--)enable-auto-update)
 IsSU ||	exit
 if IsSupportAutoUpdate;then
 SetServiceAction enable-auto-update
@@ -1890,14 +1890,17 @@ SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
 fi
 ;;
-l|-l|log|--log)
+?(--)help)
+ShowHelp
+;;
+?(-)l|?(--)log)
 SetServiceAction log
 ViewLog
 ;;
 remove)
 SetServiceAction uninstall
 ;;
-reset-config|--reset-config)
+?(--)reset-config)
 IsSU ||	exit
 if IsSupportReset;then
 SetServiceAction reset
@@ -1909,7 +1912,7 @@ SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
 fi
 ;;
-r|-r|restart|--restart)
+?(-)r|?(--)restart)
 IsSU ||	exit
 SetServiceAction restart
 if IsNotQPKGEnabled;then
@@ -1919,7 +1922,7 @@ else
 StopQPKG && StartQPKG
 fi
 ;;
-restore|--restore|restore-config|--restore-config)
+?(--)restore?(-config))
 IsSU ||	exit
 if IsSupportBackup;then
 SetServiceAction restore
@@ -1931,7 +1934,7 @@ SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
 fi
 ;;
-start|--start)
+?(--)start)
 IsSU ||	exit
 SetServiceAction start
 if IsNotQPKGEnabled;then
@@ -1941,16 +1944,16 @@ else
 StartQPKG
 fi
 ;;
-s|-s|status|--status)
+?(-)s|?(--)status)
 SetServiceAction status
 StatusQPKG
 ;;
-stop|--stop)
+?(--)stop)
 IsSU ||	exit
 SetServiceAction stop
 StopQPKG
 ;;
-v|-v|version|--version)
+?(-)v|?(--)version)
 SetServiceAction none
 Display "package: '$QPKG_VERSION'"
 Display "service: '$SERVICE_SCRIPT_VERSION'"
