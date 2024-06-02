@@ -1,6 +1,6 @@
 # checksum_filename                  qpkg_filename                    package_name         version      arch   hash
-Bazarr_240602_arm_64.qpkg.md5        Bazarr_240602_arm_64.qpkg        Bazarr               240602       a64    1aa6fd4cd92f8ab8c654902c9ac4e39d
-Bazarr_240602_x86_64.qpkg.md5        Bazarr_240602_x86_64.qpkg        Bazarr               240602       i64    58ef8c12315853b180f285ada4f244a9
+Bazarr_240603_arm_64.qpkg.md5        Bazarr_240603_arm_64.qpkg        Bazarr               240603       a64    00344e8a4c88f2f5e46156a1db95c61d
+Bazarr_240603_x86_64.qpkg.md5        Bazarr_240603_x86_64.qpkg        Bazarr               240603       i64    60bf3dd40c4dc9457746d7049a161383
 ClamAV_240602.qpkg.md5               ClamAV_240602.qpkg               ClamAV               240602       all    0b6a6a422a24f7b90b08f8fc44ea0c91
 duf_240414_arm_64.qpkg.md5           duf_240414_arm_64.qpkg           duf                  240414       a64    094f8dd8f783ed329fe11e8084d543ba
 duf_240414_arm-x31.qpkg.md5          duf_240414_arm-x31.qpkg          duf                  240414       a31    fee8c354656f5550870a83bdb1f499b1
@@ -81,15 +81,15 @@ pyLoad_240602_x86_64.qpkg.md5        pyLoad_240602_x86_64.qpkg        pyLoad    
 pyLoad_240602_x86.qpkg.md5           pyLoad_240602_x86.qpkg           pyLoad               240602       i86    86ea29611240ca6b9c11e6d74d06312b
 QDK_2.3.13.zip.qpkg.md5              QDK_2.3.13.zip                   QDK                  2.3.13       all    0b003e703a29520e98a0aca41ed0e585
 RunLast_230224.qpkg.md5              RunLast_230224.qpkg              RunLast              230224       all    6cb5415fe56592ca1f4e8a4f2dcc5f17
-SABnzbd_240602_arm_64.qpkg.md5       SABnzbd_240602_arm_64.qpkg       SABnzbd              240602       a64    34a3fad442eba4dc105aea7f4174a2c3
-SABnzbd_240602_arm-x19.qpkg.md5      SABnzbd_240602_arm-x19.qpkg      SABnzbd              240602       a19    f616d50d9b34918e54b83ece32c133b1
-SABnzbd_240602_arm-x31.qpkg.md5      SABnzbd_240602_arm-x31.qpkg      SABnzbd              240602       a31    db3493ce207ad6b89a2cf03efed2939d
-SABnzbd_240602_arm-x41.qpkg.md5      SABnzbd_240602_arm-x41.qpkg      SABnzbd              240602       a41    38356bd97e48706e1ed452c301c77e52
-SABnzbd_240602_x86_64.qpkg.md5       SABnzbd_240602_x86_64.qpkg       SABnzbd              240602       i64    58749f278fdbf0af9fb83b7d0dc86dd2
-SABnzbd_240602_x86.qpkg.md5          SABnzbd_240602_x86.qpkg          SABnzbd              240602       i86    a8f9ad8bc0715a10b1e89813ecea01c5
+SABnzbd_240603_arm_64.qpkg.md5       SABnzbd_240603_arm_64.qpkg       SABnzbd              240603       a64    e5e95def8f5cb16140df917c8cc829d5
+SABnzbd_240603_arm-x19.qpkg.md5      SABnzbd_240603_arm-x19.qpkg      SABnzbd              240603       a19    6a9ea19efe7b82dd54214b5842032d87
+SABnzbd_240603_arm-x31.qpkg.md5      SABnzbd_240603_arm-x31.qpkg      SABnzbd              240603       a31    c12fd95681084a896b2ffe93fe35e5ca
+SABnzbd_240603_arm-x41.qpkg.md5      SABnzbd_240603_arm-x41.qpkg      SABnzbd              240603       a41    1127f0b19019d2010977dc08836ab71e
+SABnzbd_240603_x86_64.qpkg.md5       SABnzbd_240603_x86_64.qpkg       SABnzbd              240603       i64    dd5a121d28d8874dc6c61deeb88013e2
+SABnzbd_240603_x86.qpkg.md5          SABnzbd_240603_x86.qpkg          SABnzbd              240603       i86    b58c98d1799bc6295d7c30252740f6db
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240602.qpkg.md5               sherpa_240602.qpkg               sherpa               240602       all    c084480d90c2d30b1185c6f6c5416ae7
+sherpa_240603.qpkg.md5               sherpa_240603.qpkg               sherpa               240603       all    09f670cb0051c9dd8879455c81ab68dd
 SortMyQPKGs_240601.qpkg.md5          SortMyQPKGs_240601.qpkg          SortMyQPKGs          240601       all    e33aee086ad4e2171833c341cac92f6b
 Unmanic_240602_arm_64.qpkg.md5       Unmanic_240602_arm_64.qpkg       Unmanic              240602       a64    a37851e5723cce8b3073d7525abb4d03
 Unmanic_240602_arm-x19.qpkg.md5      Unmanic_240602_arm-x19.qpkg      Unmanic              240602       a19    8ec419d07531ad386bce2a09d2219c6c
