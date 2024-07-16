@@ -52,12 +52,12 @@ OMedusa_240602_x86.qpkg.md5          OMedusa_240602_x86.qpkg          OMedusa   
 OqBittorrent_240602.qpkg.md5         OqBittorrent_240602.qpkg         OqBittorrent         240602       all    9198daaa2f2684ec1ab1abbe7718a195
 OReadarr_240602_arm_64.qpkg.md5      OReadarr_240602_arm_64.qpkg      OReadarr             240602       a64    98958dbed4f81446be8b48725384755a
 OReadarr_240602_x86_64.qpkg.md5      OReadarr_240602_x86_64.qpkg      OReadarr             240602       i64    7aaed9521df616ea15f25d58fcf904cc
-OSickGear_240602_arm_64.qpkg.md5     OSickGear_240602_arm_64.qpkg     OSickGear            240602       a64    797b201edc3128bd6a0647401850df98
-OSickGear_240602_arm-x19.qpkg.md5    OSickGear_240602_arm-x19.qpkg    OSickGear            240602       a19    ee82f623e3b1ea49cdd4eab9ca79fad6
-OSickGear_240602_arm-x31.qpkg.md5    OSickGear_240602_arm-x31.qpkg    OSickGear            240602       a31    91fc85c5b5a1e853b335d11eb87063aa
-OSickGear_240602_arm-x41.qpkg.md5    OSickGear_240602_arm-x41.qpkg    OSickGear            240602       a41    e0feb3eeb282cccd76b8f496b552488a
-OSickGear_240602_x86_64.qpkg.md5     OSickGear_240602_x86_64.qpkg     OSickGear            240602       i64    31b8cdb993d4a742ea4cac756a6c4424
-OSickGear_240602_x86.qpkg.md5        OSickGear_240602_x86.qpkg        OSickGear            240602       i86    af172eccf8b1b724c4b654ad2c950091
+OSickGear_240717_arm_64.qpkg.md5     OSickGear_240717_arm_64.qpkg     OSickGear            240717       a64    1c134a80fb815f838cc2b22d79ab4888
+OSickGear_240717_arm-x19.qpkg.md5    OSickGear_240717_arm-x19.qpkg    OSickGear            240717       a19    5b60e34e135dba8ac47af997704bf2c0
+OSickGear_240717_arm-x31.qpkg.md5    OSickGear_240717_arm-x31.qpkg    OSickGear            240717       a31    ff0d9392d4394d5a8442ef766294ce87
+OSickGear_240717_arm-x41.qpkg.md5    OSickGear_240717_arm-x41.qpkg    OSickGear            240717       a41    84844030e68732d93e273d13bb7a43cc
+OSickGear_240717_x86_64.qpkg.md5     OSickGear_240717_x86_64.qpkg     OSickGear            240717       i64    416f24588a4f439d7fab156fb900fd36
+OSickGear_240717_x86.qpkg.md5        OSickGear_240717_x86.qpkg        OSickGear            240717       i86    26d6e5dc6a87c8ed23d7a9c1c81bb528
 OSonarr_240602_arm_64.qpkg.md5       OSonarr_240602_arm_64.qpkg       OSonarr              240602       a64    faf630769e8cf9f68a5ed7563f8845fc
 OSonarr_240602_x86_64.qpkg.md5       OSonarr_240602_x86_64.qpkg       OSonarr              240602       i64    bf8e1c6f795bdd53a0775a52e38a12d3
 OTautulli_240602_arm_64.qpkg.md5     OTautulli_240602_arm_64.qpkg     OTautulli            240602       a64    0eb0d56bea2817d664825b3e2a240104
@@ -89,7 +89,7 @@ SABnzbd_240717_x86_64.qpkg.md5       SABnzbd_240717_x86_64.qpkg       SABnzbd   
 SABnzbd_240717_x86.qpkg.md5          SABnzbd_240717_x86.qpkg          SABnzbd              240717       i86    184c7ee323fc54bb11312e57ae75788e
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240717.qpkg.md5               sherpa_240717.qpkg               sherpa               240717       all    7567400bdff1968227ad3c7a2963f0df
+sherpa_240717.qpkg.md5               sherpa_240717.qpkg               sherpa               240717       all    98c9dc312d3f0a0b9a534592dd62f5d8
 SortMyQPKGs_240601.qpkg.md5          SortMyQPKGs_240601.qpkg          SortMyQPKGs          240601       all    e33aee086ad4e2171833c341cac92f6b
 Unmanic_240602_arm_64.qpkg.md5       Unmanic_240602_arm_64.qpkg       Unmanic              240602       a64    a37851e5723cce8b3073d7525abb4d03
 Unmanic_240602_arm-x19.qpkg.md5      Unmanic_240602_arm-x19.qpkg      Unmanic              240602       a19    8ec419d07531ad386bce2a09d2219c6c
