@@ -30,7 +30,7 @@ InitService()
 		qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 			qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 	remote_url='https://readarr.servarr.com/v1/update/develop/updatefile?os=linux&runtime=netcore&'
-		remote_url+='arch=amd64'
+		remote_url+='arch=x64'
 	run_daemon_in_screen_session=true
 
 	}

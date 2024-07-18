@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OReadarr
-readonly SERVICE_SCRIPT_VERSION='240602'
+readonly SERVICE_SCRIPT_VERSION='240718'
 readonly SERVICE_SCRIPT_TYPE=5
 InitService()
 {
@@ -36,7 +36,7 @@ qpkg_ini_file=config.xml
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 remote_url='https://readarr.servarr.com/v1/update/develop/updatefile?os=linux&runtime=netcore&'
-remote_url+='arch=amd64'
+remote_url+='arch=x64'
 run_daemon_in_screen_session=true
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
