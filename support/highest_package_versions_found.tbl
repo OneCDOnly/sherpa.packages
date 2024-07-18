@@ -36,8 +36,8 @@ nzbToMedia_240205.qpkg.md5           nzbToMedia_240205.qpkg           nzbToMedia
 OFlexGet_240503_arm_64.qpkg.md5      OFlexGet_240503_arm_64.qpkg      OFlexGet             240503       a64    d49d76a84a55df24ceeeb4bfa7d155a3
 OFlexGet_240503_x86_64.qpkg.md5      OFlexGet_240503_x86_64.qpkg      OFlexGet             240503       i64    aaf8fd19a48a95e491e6b8cde821f4c1
 OFlexGet_240503_x86.qpkg.md5         OFlexGet_240503_x86.qpkg         OFlexGet             240503       i86    17b32ed92a96b9ef69c4bfd6e4734396
-OLidarr_240602_arm_64.qpkg.md5       OLidarr_240602_arm_64.qpkg       OLidarr              240602       a64    cad124f9d5a9006981891f25e7e1b507
-OLidarr_240602_x86_64.qpkg.md5       OLidarr_240602_x86_64.qpkg       OLidarr              240602       i64    bbb1d572f27e3b97a5a66b2c1bd542d7
+OLidarr_240718_arm_64.qpkg.md5       OLidarr_240718_arm_64.qpkg       OLidarr              240718       a64    c4d4e12b8c5dc3f080a7e7d7a3d80701
+OLidarr_240718_x86_64.qpkg.md5       OLidarr_240718_x86_64.qpkg       OLidarr              240718       i64    1625a995b063c891c48201404846ec5c
 OliveTin_240602_arm_64.qpkg.md5      OliveTin_240602_arm_64.qpkg      OliveTin             240602       a64    954ff26a5bb015ce766ff31c883e0e56
 OliveTin_240602_arm-x19.qpkg.md5     OliveTin_240602_arm-x19.qpkg     OliveTin             240602       a19    8ac94fd30003c06ee2936b3c3cb4f39a
 OliveTin_240602_arm-x31.qpkg.md5     OliveTin_240602_arm-x31.qpkg     OliveTin             240602       a31    aadf7001df6cfefabb0f677b9a379921
@@ -50,8 +50,8 @@ OMedusa_240602_arm-x41.qpkg.md5      OMedusa_240602_arm-x41.qpkg      OMedusa   
 OMedusa_240602_x86_64.qpkg.md5       OMedusa_240602_x86_64.qpkg       OMedusa              240602       i64    3eb774f35161c38d87fa53b865beea1f
 OMedusa_240602_x86.qpkg.md5          OMedusa_240602_x86.qpkg          OMedusa              240602       i86    85988027604be8ffa95626e64033f6a1
 OqBittorrent_240602.qpkg.md5         OqBittorrent_240602.qpkg         OqBittorrent         240602       all    9198daaa2f2684ec1ab1abbe7718a195
-OReadarr_240602_arm_64.qpkg.md5      OReadarr_240602_arm_64.qpkg      OReadarr             240602       a64    98958dbed4f81446be8b48725384755a
-OReadarr_240602_x86_64.qpkg.md5      OReadarr_240602_x86_64.qpkg      OReadarr             240602       i64    7aaed9521df616ea15f25d58fcf904cc
+OReadarr_240718_arm_64.qpkg.md5      OReadarr_240718_arm_64.qpkg      OReadarr             240718       a64    80447ce95ad1568d95def6c83044cdb3
+OReadarr_240718_x86_64.qpkg.md5      OReadarr_240718_x86_64.qpkg      OReadarr             240718       i64    32c6f3e391b1c968fffdc6a56418a341
 OSickGear_240717_arm_64.qpkg.md5     OSickGear_240717_arm_64.qpkg     OSickGear            240717       a64    1c134a80fb815f838cc2b22d79ab4888
 OSickGear_240717_arm-x19.qpkg.md5    OSickGear_240717_arm-x19.qpkg    OSickGear            240717       a19    5b60e34e135dba8ac47af997704bf2c0
 OSickGear_240717_arm-x31.qpkg.md5    OSickGear_240717_arm-x31.qpkg    OSickGear            240717       a31    ff0d9392d4394d5a8442ef766294ce87
@@ -89,7 +89,7 @@ SABnzbd_240717_x86_64.qpkg.md5       SABnzbd_240717_x86_64.qpkg       SABnzbd   
 SABnzbd_240717_x86.qpkg.md5          SABnzbd_240717_x86.qpkg          SABnzbd              240717       i86    184c7ee323fc54bb11312e57ae75788e
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240717.qpkg.md5               sherpa_240717.qpkg               sherpa               240717       all    98c9dc312d3f0a0b9a534592dd62f5d8
+sherpa_240718.qpkg.md5               sherpa_240718.qpkg               sherpa               240718       all    b5f8c92df294b7354267d3e151d6a9fd
 SortMyQPKGs_240601.qpkg.md5          SortMyQPKGs_240601.qpkg          SortMyQPKGs          240601       all    e33aee086ad4e2171833c341cac92f6b
 Unmanic_240602_arm_64.qpkg.md5       Unmanic_240602_arm_64.qpkg       Unmanic              240602       a64    a37851e5723cce8b3073d7525abb4d03
 Unmanic_240602_arm-x19.qpkg.md5      Unmanic_240602_arm-x19.qpkg      Unmanic              240602       a19    8ec419d07531ad386bce2a09d2219c6c
