@@ -14,19 +14,137 @@
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OSickGear
 readonly SERVICE_SCRIPT_VERSION='<?build_date?>'
-readonly SERVICE_SCRIPT_TYPE=1
 
 InitService()
 	{
 
-	daemon_pathfile=$qpkg_repo_path/sickgear.py
+	# This is a type 1 service script.
+
+	# NOTE: default session values are set in service function library: uncomment to update, or copy to change.
+
+	# >>> Paths <<<
+
+		# local_temp_path=undefined
+
+		# pip_cache_path=undefined
+		pip_cache_path=$QPKG_PATH/pip-cache
+
+		# qpkg_repo_path=undefined
+		qpkg_repo_path=$QPKG_PATH/repo-cache
+
+		# qpkg_wheels_path=undefined
+		qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
+
+		# venv_path=undefined
+		venv_path=$QPKG_PATH/venv
+
+	# >>> Filenames <<<
+
+		# qpkg_ini_file=config.ini
+
+	# >>> Pathfilenames <<<
+
+		# app_version_pathfile=undefined
+
+		# daemon_pathfile=undefined
+		daemon_pathfile=$qpkg_repo_path/sickgear.py
+
+		# daemon_pid_pathfile=undefined
+		daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+
+		# launcher_pathfile=undefined					# On-demand executables only.
+
+		# qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
+
+		# qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
+
+		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+
+		# source_archive_pathfile=undefined
+
+		# userlink_pathfile=undefined					# On-demand executables only.
+
+		# venv_pip_pathfile=undefined
+		venv_pip_pathfile=$venv_path/bin/pip
+
+		# venv_python_pathfile=undefined
+		venv_python_pathfile=$venv_path/bin/python3
+
+	# >>> Switches <<<
+
+		# allow_access_to_sys_packages=true
+
+		# install_pip_deps=false
+		install_pip_deps=true
+
+		# pidfile_is_managed_by_app=false
+		pidfile_is_managed_by_app=true
+
+		# recheck_daemon_pid_after_launch=false			# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		recheck_daemon_pid_after_launch=true
+
+		# recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+
+		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+
+		# run_daemon_in_screen_session=false
+
+		# silence_pypi_errors=true						# If true, PyPI package processing errors won't be shown in system log.
+
+	# >>> Values <<<
+
+		# daemon_port=0
+
+		# interpreter=undefined
+		interpreter=/opt/bin/python3
+
+		# nice_daemon_to=0								# If non-zero, daemon proc is niced to this value on-launch.
+
+		# orig_daemon_service_script=undefined			# Specific to Entware binaries only.
+
+		# remote_arch=undefined
+
+		# source_arch=undefined
+
+		# source_git_branch=undefined
+		source_git_branch=main
+
+		# source_git_branch_depth=undefined				# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+		source_git_branch_depth=single-branch
+
+		# ui_listening_address=undefined
+
+		# ui_port=0
+
+		# ui_port_secure=0
+
+	# >>> URLs <<<
+
+		# remote_url=undefined
+
+		# source_git_url=undefined
+		source_git_url=https://github.com/SickGear/SickGear.git
+
+	# >>> CMDs <<<
+
+		# get_app_version_cmd=undefined
+
+		# get_daemon_port_cmd=undefined
+
+		# get_ui_listening_address_cmd=undefined
+		get_ui_listening_address_cmd="/sbin/getcfg General web_host -d undefined -f $qpkg_ini_pathfile"
+
+		# get_ui_port_cmd=undefined
+		get_ui_port_cmd="/sbin/getcfg General web_port -d 0 -f $qpkg_ini_pathfile"
+
+		# get_ui_port_secure_cmd=undefined
+		get_ui_port_secure_cmd="/sbin/getcfg General web_port -d 0 -f $qpkg_ini_pathfile"
+
+		# get_ui_port_secure_enabled_test_cmd=undefined
+		get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg General enable_https -d 0 -f '$qpkg_ini_pathfile') = 1 ]]'
+
+		# daemon_launch_cmd=undefined
 		daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_ini_pathfile") --pidfile $daemon_pid_pathfile"
-	get_ui_listening_address_cmd="/sbin/getcfg General web_host -d undefined -f $qpkg_ini_pathfile"
-	get_ui_port_cmd="/sbin/getcfg General web_port -d 0 -f $qpkg_ini_pathfile"
-	get_ui_port_secure_cmd="/sbin/getcfg General web_port -d 0 -f $qpkg_ini_pathfile"
-	get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg General enable_https -d 0 -f '$qpkg_ini_pathfile') = 1 ]]'
-	source_git_branch_depth=single-branch
-	source_git_url=https://github.com/SickGear/SickGear.git
 
 	if [[ -e $qpkg_ini_default_pathfile ]]; then
 		/sbin/setcfg General log_dir "$QPKG_CONFIG_PATH"/logs -f "$qpkg_ini_default_pathfile"

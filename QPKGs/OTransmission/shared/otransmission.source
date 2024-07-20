@@ -14,21 +14,128 @@
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OTransmission
 readonly SERVICE_SCRIPT_VERSION='<?build_date?>'
-readonly SERVICE_SCRIPT_TYPE=3
 
 InitService()
 	{
 
-	get_ui_port_secure_cmd='echo 0'				# Transmission v3 doesn't appear to contain any SSL UI ability. Need to check this on v4.
-	get_ui_port_secure_enabled_test_cmd='false'
-	orig_daemon_service_script=/opt/etc/init.d/S88transmission
-	qpkg_ini_file=settings.json
+	# This is a type 3 service script.
+
+	# NOTE: default session values are set in service function library: uncomment to update, or copy to change.
+
+	# >>> Paths <<<
+
+		# local_temp_path=undefined
+
+		# pip_cache_path=undefined
+
+		# qpkg_repo_path=undefined
+
+		# qpkg_wheels_path=undefined
+
+		# venv_path=undefined
+
+	# >>> Filenames <<<
+
+		# qpkg_ini_file=config.ini
+		qpkg_ini_file=settings.json
+
+	# >>> Pathfilenames <<<
+
+		# app_version_pathfile=undefined
+
+		# daemon_pathfile=undefined
+		daemon_pathfile=/opt/bin/transmission-daemon
+
+		# daemon_pid_pathfile=undefined
+		daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+
+		# launcher_pathfile=undefined					# On-demand executables only.
+
+		# qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
+
+		# qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 		qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
-			daemon_pathfile=/opt/bin/transmission-daemon
-				daemon_launch_cmd="$daemon_pathfile --config-dir $(/usr/bin/dirname "$qpkg_ini_pathfile") --pid-file $daemon_pid_pathfile"
-			get_ui_listening_address_cmd="/opt/bin/jq -r '.\"rpc-bind-address\"' < $qpkg_ini_pathfile"
-			get_ui_port_cmd="/opt/bin/jq -r '.\"rpc-port\"' < "$qpkg_ini_pathfile""
-			qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+
+		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+
+		# source_archive_pathfile=undefined
+
+		# userlink_pathfile=undefined					# On-demand executables only.
+
+		# venv_pip_pathfile=undefined
+
+		# venv_python_pathfile=undefined
+
+	# >>> Switches <<<
+
+		# allow_access_to_sys_packages=true
+
+		# install_pip_deps=false
+
+		# pidfile_is_managed_by_app=false
+
+		# recheck_daemon_pid_after_launch=false			# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+
+		# recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+
+		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+
+		# run_daemon_in_screen_session=false
+
+		# silence_pypi_errors=true						# If true, PyPI package processing errors won't be shown in system log.
+
+	# >>> Values <<<
+
+		# daemon_port=0
+
+		# interpreter=undefined
+
+		# nice_daemon_to=0								# If non-zero, daemon proc is niced to this value on-launch.
+
+		# orig_daemon_service_script=undefined			# Specific to Entware binaries only.
+		orig_daemon_service_script=/opt/etc/init.d/S88transmission
+
+		# remote_arch=undefined
+
+		# source_arch=undefined
+
+		# source_git_branch=undefined
+
+		# source_git_branch_depth=undefined				# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		# ui_listening_address=undefined
+
+		# ui_port=0
+
+		# ui_port_secure=0
+
+	# >>> URLs <<<
+
+		# remote_url=undefined
+
+		# source_git_url=undefined
+
+	# >>> CMDs <<<
+
+		# get_app_version_cmd=undefined
+
+		# get_daemon_port_cmd=undefined
+
+		# get_ui_listening_address_cmd=undefined
+		get_ui_listening_address_cmd="/opt/bin/jq -r '.\"rpc-bind-address\"' < $qpkg_ini_pathfile"
+
+		# get_ui_port_cmd=undefined
+		get_ui_port_cmd="/opt/bin/jq -r '.\"rpc-port\"' < "$qpkg_ini_pathfile""
+
+		# get_ui_port_secure_cmd=undefined
+		get_ui_port_secure_cmd='echo 0'				# Transmission v3 doesn't appear to contain any SSL UI ability. Need to check this on v4.
+
+		# get_ui_port_secure_enabled_test_cmd=undefined
+		get_ui_port_secure_enabled_test_cmd='false'
+
+		# daemon_launch_cmd=undefined
+		daemon_launch_cmd="$daemon_pathfile --config-dir $(/usr/bin/dirname "$qpkg_ini_pathfile") --pid-file $daemon_pid_pathfile"
 
 	}
 

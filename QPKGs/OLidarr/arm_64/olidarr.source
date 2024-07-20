@@ -14,24 +14,135 @@
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OLidarr
 readonly SERVICE_SCRIPT_VERSION='<?build_date?>'
-readonly SERVICE_SCRIPT_TYPE=5
 
 InitService()
 	{
 
-	local_temp_path=$QPKG_PATH/tmp
+	# This is a type 5 service script.
+
+	# NOTE: default session values are set in service function library: uncomment to update, or copy to change.
+
+	# >>> Paths <<<
+
+		# local_temp_path=undefined
+		local_temp_path=$QPKG_PATH/tmp
+
+		# pip_cache_path=undefined
+
+		# qpkg_repo_path=undefined
+		qpkg_repo_path=$QPKG_PATH/repo-cache
+
+		# qpkg_wheels_path=undefined
+
+		# venv_path=undefined
+
+	# >>> Filenames <<<
+
+		# qpkg_ini_file=config.ini
+		qpkg_ini_file=config.xml
+
+	# >>> Pathfilenames <<<
+
+		# app_version_pathfile=undefined
+
+		# daemon_pathfile=undefined
 		daemon_pathfile=$qpkg_repo_path/Lidarr/Lidarr
-			daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$local_temp_path; $daemon_pathfile --nobrowser --data=$QPKG_CONFIG_PATH"
-	get_ui_listening_address_cmd='echo 0.0.0.0'
-	get_ui_port_cmd='grep "<Port>" $qpkg_ini_pathfile | sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
-	get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_ini_pathfile | sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'
-	get_ui_port_secure_enabled_test_cmd='[[ $(grep "<EnableSsl>" $qpkg_ini_pathfile | sed "s/.*<EnableSsl>\(.*\)<\/EnableSsl>.*/\1/") = True ]]'
-	qpkg_ini_file=config.xml
+
+		# daemon_pid_pathfile=undefined
+		daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+
+		# launcher_pathfile=undefined					# On-demand executables only.
+
+		# qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
+
+		# qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 		qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
-			qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-	remote_url='https://lidarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&'
+
+		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+
+		# source_archive_pathfile=undefined
+		source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
+
+		# userlink_pathfile=undefined					# On-demand executables only.
+
+		# venv_pip_pathfile=undefined
+
+		# venv_python_pathfile=undefined
+
+	# >>> Switches <<<
+
+		# allow_access_to_sys_packages=true
+		allow_access_to_sys_packages=false
+
+		# install_pip_deps=false
+
+		# pidfile_is_managed_by_app=false
+
+		# recheck_daemon_pid_after_launch=false			# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+
+		# recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+
+		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+
+		# run_daemon_in_screen_session=false
+		run_daemon_in_screen_session=true
+
+		# silence_pypi_errors=true						# If true, PyPI package processing errors won't be shown in system log.
+
+	# >>> Values <<<
+
+		# daemon_port=0
+
+		# interpreter=undefined
+
+		# nice_daemon_to=0								# If non-zero, daemon proc is niced to this value on-launch.
+
+		# orig_daemon_service_script=undefined			# Specific to Entware binaries only.
+
+		# remote_arch=undefined
+
+		# source_arch=undefined
+
+		# source_git_branch=undefined
+
+		# source_git_branch_depth=undefined				# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		# ui_listening_address=undefined
+		ui_listening_address=0.0.0.0
+
+		# ui_port=0
+
+		# ui_port_secure=0
+
+	# >>> URLs <<<
+
+		# remote_url=undefined
+		remote_url='https://lidarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&'
 		remote_url+='arch=arm64'
-	run_daemon_in_screen_session=true
+
+		# source_git_url=undefined
+
+	# >>> CMDs <<<
+
+		# get_app_version_cmd=undefined
+
+		# get_daemon_port_cmd=undefined
+
+		# get_ui_listening_address_cmd=undefined
+		get_ui_listening_address_cmd="echo $ui_listening_address"
+
+		# get_ui_port_cmd=undefined
+		get_ui_port_cmd='grep "<Port>" $qpkg_ini_pathfile | sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
+
+		# get_ui_port_secure_cmd=undefined
+		get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_ini_pathfile | sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'
+
+		# get_ui_port_secure_enabled_test_cmd=undefined
+		get_ui_port_secure_enabled_test_cmd='[[ $(grep "<EnableSsl>" $qpkg_ini_pathfile | sed "s/.*<EnableSsl>\(.*\)<\/EnableSsl>.*/\1/") = True ]]'
+
+		# daemon_launch_cmd=undefined
+		daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$local_temp_path; $daemon_pathfile --nobrowser --data=$QPKG_CONFIG_PATH"
 
 	}
 
