@@ -21,15 +21,14 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=ClamAV
-readonly SERVICE_SCRIPT_VERSION='240602'
-readonly SERVICE_SCRIPT_TYPE=4
+readonly SERVICE_SCRIPT_VERSION='240721'
 InitService()
 {
-qpkg_backup_pathfile=undefined
-install_pip_deps=true
 qpkg_ini_file=undefined
-qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
-qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+qpkg_backup_pathfile=undefined
+qpkg_ini_pathfile=undefined
+qpkg_ini_default_pathfile=undefined
+install_pip_deps=true
 readonly TARGET_SERVICE_PATHFILE=/etc/init.d/antivirus.sh
 readonly BACKUP_SERVICE_PATHFILE=$TARGET_SERVICE_PATHFILE.bak
 }

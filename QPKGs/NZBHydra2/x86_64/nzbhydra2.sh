@@ -21,32 +21,32 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=NZBHydra2
-readonly SERVICE_SCRIPT_VERSION='240602'
-readonly SERVICE_SCRIPT_TYPE=8
+readonly SERVICE_SCRIPT_VERSION='240721'
 InitService()
 {
-interpreter=/opt/bin/python3
-nice_daemon_to=15
+local_temp_path=$QPKG_PATH/tmp
 pip_cache_path=$QPKG_PATH/pip-cache
 qpkg_repo_path=$QPKG_PATH/repo-cache
 venv_path=$QPKG_PATH/venv
-venv_pip_pathfile=$venv_path/bin/pip
-venv_python_pathfile=$venv_path/bin/python3
 qpkg_ini_file=nzbhydra.yml
+daemon_pathfile=$qpkg_repo_path/nzbhydra2wrapperPy3.py
+daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+venv_pip_pathfile=$venv_path/bin/pip
+venv_python_pathfile=$venv_path/bin/python3
+pidfile_is_managed_by_app=true
+recheck_daemon_pid_after_launch=true
+resolve_remote_url=true
+interpreter=/opt/bin/python3
+nice_daemon_to=15
+remote_arch=amd64-linux
+remote_url='https://api.github.com/repos/theotherp/nzbhydra2/releases/latest'
 get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_host= | cut -d\" -f2'
 get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_port= | cut -d\" -f2'
 get_ui_port_secure_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_port= | cut -d\" -f2'
 get_ui_port_secure_enabled_test_cmd='[[ $(parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_ssl= | cut -d\" -f2) = true ]]'
-local_temp_path=$QPKG_PATH/tmp
-pidfile_is_managed_by_app=true
-recheck_daemon_pid_after_launch=true
-daemon_pathfile=$qpkg_repo_path/nzbhydra2wrapperPy3.py
 daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$local_temp_path;$venv_python_pathfile $daemon_pathfile --nobrowser --daemon --datafolder $QPKG_CONFIG_PATH --pidfile $daemon_pid_pathfile"
-remote_arch=amd64-linux
-remote_url='https://api.github.com/repos/theotherp/nzbhydra2/releases/latest'
-resolve_remote_url=true
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
