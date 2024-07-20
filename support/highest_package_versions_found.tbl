@@ -67,7 +67,7 @@ OTautulli_240721_arm-x41.qpkg.md5    OTautulli_240721_arm-x41.qpkg    OTautulli 
 OTautulli_240721_x86_64.qpkg.md5     OTautulli_240721_x86_64.qpkg     OTautulli            240721       i64    32a64ea366885738978eae3aa74d8c0c
 OTautulli_240721_x86.qpkg.md5        OTautulli_240721_x86.qpkg        OTautulli            240721       i86    373480b6d4e96d7c14d334616f2cb2e6
 OTransmission_240721.qpkg.md5        OTransmission_240721.qpkg        OTransmission        240721       all    a821d415201a5976c21285e476be5551
-OWatcher3_240721.qpkg.md5            OWatcher3_240721.qpkg            OWatcher3            240721       all    0fe1dc12bce1fd4146d35a1da0ed003d
+OWatcher3_240721.qpkg.md5            OWatcher3_240721.qpkg            OWatcher3            240721       all    2023d5719d21b3ff36d016488c190635
 OWhisparr_240721_arm_64.qpkg.md5     OWhisparr_240721_arm_64.qpkg     OWhisparr            240721       a64    cbf1270cb0f1901224b70b9b498fd564
 OWhisparr_240721_x86_64.qpkg.md5     OWhisparr_240721_x86_64.qpkg     OWhisparr            240721       i64    e7d8e59ec9357068395c757f29559be9
 Par2_0.8.1.1_arm-x19.qpkg.md5        Par2_0.8.1.1_arm-x19.qpkg        Par2                 0.8.1.1      a19    d312d8bd2dee43e62a720f0d209905f8
@@ -89,7 +89,7 @@ SABnzbd_240721_x86_64.qpkg.md5       SABnzbd_240721_x86_64.qpkg       SABnzbd   
 SABnzbd_240721_x86.qpkg.md5          SABnzbd_240721_x86.qpkg          SABnzbd              240721       i86    c6f3173494d43abf532157ae70d47050
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240721.qpkg.md5               sherpa_240721.qpkg               sherpa               240721       all    175cbe1f5b8c2411e013d72ac5ca433b
+sherpa_240721.qpkg.md5               sherpa_240721.qpkg               sherpa               240721       all    04c72a993e61cafaf003b77e348b3a67
 SortMyQPKGs_240601.qpkg.md5          SortMyQPKGs_240601.qpkg          SortMyQPKGs          240601       all    e33aee086ad4e2171833c341cac92f6b
 Unmanic_240721_arm_64.qpkg.md5       Unmanic_240721_arm_64.qpkg       Unmanic              240721       a64    2c5a2e62e36c6eb6767d34f7b73a9883
 Unmanic_240721_arm-x19.qpkg.md5      Unmanic_240721_arm-x19.qpkg      Unmanic              240721       a19    ce904fc54885121821e73e39315cbe67
