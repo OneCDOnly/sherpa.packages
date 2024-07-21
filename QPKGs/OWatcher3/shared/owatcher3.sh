@@ -28,7 +28,6 @@ pip_cache_path=$QPKG_PATH/pip-cache
 qpkg_repo_path=$QPKG_PATH/repo-cache
 qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
 venv_path=$QPKG_PATH/venv
-app_version_pathfile=$qpkg_repo_path/sabnzbd/version.py
 daemon_pathfile=$qpkg_repo_path/watcher.py
 daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 venv_pip_pathfile=$venv_path/bin/pip
