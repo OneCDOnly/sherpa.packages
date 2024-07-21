@@ -21,13 +21,14 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=Mylar3
-readonly SERVICE_SCRIPT_VERSION='240721'
+readonly SERVICE_SCRIPT_VERSION='240722'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache
 qpkg_repo_path=$QPKG_PATH/repo-cache
 qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
 venv_path=$QPKG_PATH/venv
+can_restart_to_update=true
 daemon_pathfile=$qpkg_repo_path/Mylar.py
 daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 venv_pip_pathfile=$venv_path/bin/pip

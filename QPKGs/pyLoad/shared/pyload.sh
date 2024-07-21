@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=pyLoad
-readonly SERVICE_SCRIPT_VERSION='240721'
+readonly SERVICE_SCRIPT_VERSION='240722'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache
@@ -34,6 +34,7 @@ qpkg_ini_pathfile=$QPKG_CONFIG_PATH/settings/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
+can_restart_to_update=true
 interpreter=/opt/bin/python3
 get_ui_listening_address_cmd="GetPyloadConfig $qpkg_ini_pathfile webui host"
 get_ui_port_cmd="GetPyloadConfig $qpkg_ini_pathfile webui port"

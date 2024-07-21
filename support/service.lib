@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240721'
+readonly SERVICE_LIB_VERSION='240722'
 InitLibrary()
 {
 IsQNAP || exit
@@ -80,6 +80,7 @@ userlink_pathfile=undefined
 venv_pip_pathfile=undefined
 venv_python_pathfile=undefined
 allow_access_to_sys_packages=true
+can_restart_to_update=false
 install_pip_deps=false
 pidfile_is_managed_by_app=false
 recheck_daemon_pid_after_launch=false
@@ -1103,7 +1104,7 @@ IsNotOnlineArchive()
 }
 IsSupportAutoUpdate()
 {
-IsSourcedOnline
+[[ $can_restart_to_update = true ]]
 }
 IsNotSupportAutoUpdate()
 {
@@ -1684,7 +1685,7 @@ IsAutoUpdateMissing()
 }
 IsAutoUpdate()
 {
-[[ $(Lowercase "$(/sbin/getcfg $QPKG_NAME Auto_Update -f /etc/config/qpkg.conf)") = true ]]
+IsSupportAutoUpdate && [[ $(Lowercase "$(/sbin/getcfg $QPKG_NAME Auto_Update -f /etc/config/qpkg.conf)") = true ]]
 }
 IsNotAutoUpdate()
 {
@@ -1723,7 +1724,7 @@ return 0
 }
 ShowUnsupportedAction()
 {
-ShowAsError "specified action '$1' is unsupported by this service script."
+ShowAsError "specified action '$1' is unsupported by this service-script."
 SetError
 CommitToLog "specified action '$1' is unsupported."
 Display
@@ -1776,7 +1777,7 @@ fi
 ;;
 ?(--)clean|?(--)update|?(--)upgrade)
 IsSU ||	exit
-if IsSupportAutoUpdate;then
+if IsSourcedOnline;then
 SetServiceAction clean
 StopQPKG
 [[ $QPKG_NAME = nzbToMedia ]] && BackupConfig

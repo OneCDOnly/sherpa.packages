@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=Bazarr
-readonly SERVICE_SCRIPT_VERSION='240721'
+readonly SERVICE_SCRIPT_VERSION='240722'
 InitService()
 {
 local_temp_path=$QPKG_PATH/tmp
@@ -35,6 +35,7 @@ qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
+can_restart_to_update=true
 recheck_daemon_pid_after_kill=true
 resolve_remote_url=true
 run_daemon_in_screen_session=true
