@@ -41,13 +41,9 @@ done
 
 ShowDone
 
-echo -n 'run garbage collection ... '
-
 this_path=$PWD
 cd "$qpkgs_root_path" || exit
 git gc --aggressive || exit
 cd "$this_path" || exit
-
-ShowDone
 
 exit 0
