@@ -1,6 +1,8 @@
+* Test date: 2024-07-22 on x86-64 (siena)
+
 (venv) [/share/Public] # flexget -c /share/CACHEDEV1_DATA/.qpkg/OFlexGet/config/config.yml daemon start
-2024-05-14 01:57:33 INFO     scheduler                     No schedules defined in config. Defaulting to run all tasks on a 1 hour interval.
-2024-05-14 01:57:33 INFO     scheduler                     Starting scheduler
+2024-07-22 07:11:15 INFO     scheduler                     No schedules defined in config. Defaulting to run all tasks on a 1 hour interval.
+2024-07-22 07:11:15 INFO     scheduler                     Starting scheduler
 Traceback (most recent call last):
   File "/share/CACHEDEV1_DATA/.qpkg/OFlexGet/venv/bin/flexget", line 8, in <module>
     sys.exit(main())

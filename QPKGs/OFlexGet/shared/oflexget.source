@@ -116,7 +116,7 @@ InitService()
 		ui_listening_address=0.0.0.0
 
 		# ui_port=0
-		ui_port=5050
+		ui_port=5060
 
 		# ui_port_secure=0
 

@@ -5,7 +5,7 @@
 #* Contact:
 #*   one.cd.only@gmail.com
 #* Description:
-#*	 This is the service script for the sherpa mini-package-manager and is part of the `sherpa` QPKG.
+#*	 This is the service-script for the sherpa mini-package-manager and is part of the `sherpa` QPKG.
 #* Project:
 #*	 https://git.io/sherpa
 #* Forum:
