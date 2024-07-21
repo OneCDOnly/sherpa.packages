@@ -18,7 +18,7 @@ readonly SERVICE_SCRIPT_VERSION='<?build_date?>'
 InitService()
 	{
 
-	# This is a type 6 service script.
+	# This is a type 6 service-script.
 
 	# NOTE: default session values are set in service function library: uncomment to update, or copy to change.
 
