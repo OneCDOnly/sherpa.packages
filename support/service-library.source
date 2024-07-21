@@ -111,6 +111,8 @@ InitLibrary()
 
 		allow_access_to_sys_packages=true
 
+		can_restart_to_update=false					# If true, application files can be updated by restarting service-script.
+
 		install_pip_deps=false
 
 		pidfile_is_managed_by_app=false
@@ -172,7 +174,7 @@ InitLibrary()
 		daemon_launch_cmd=undefined
 
 # --- start template ---
-	# This is a type n service script.
+	# This is a type n service-script.
 
 	# NOTE: default session values are set in service function library: uncomment to update, or copy to change.
 
@@ -219,6 +221,8 @@ InitLibrary()
 	# >>> Switches <<<
 
 		# allow_access_to_sys_packages=true
+
+		# can_restart_to_update=false					# If true, application can be updated by restarting service-script.
 
 		# install_pip_deps=false
 
@@ -1831,7 +1835,7 @@ IsNotOnlineArchive()
 IsSupportAutoUpdate()
 	{
 
-	IsSourcedOnline
+	[[ $can_restart_to_update = true ]]
 
 	}
 
@@ -2845,7 +2849,7 @@ IsAutoUpdateMissing()
 IsAutoUpdate()
 	{
 
-	[[ $(Lowercase "$(/sbin/getcfg $QPKG_NAME Auto_Update -f /etc/config/qpkg.conf)") = true ]]
+	IsSupportAutoUpdate && [[ $(Lowercase "$(/sbin/getcfg $QPKG_NAME Auto_Update -f /etc/config/qpkg.conf)") = true ]]
 
 	}
 
@@ -2910,7 +2914,7 @@ IsSU()
 ShowUnsupportedAction()
 	{
 
-	ShowAsError "specified action '$1' is unsupported by this service script."
+	ShowAsError "specified action '$1' is unsupported by this service-script."
 	SetError
 	CommitToLog "specified action '$1' is unsupported."
 	Display
@@ -2990,7 +2994,7 @@ ProcessArgs()
 			?(--)clean|?(--)update|?(--)upgrade)
 				IsSU ||	exit
 
-				if IsSupportAutoUpdate; then
+				if IsSourcedOnline; then
 					SetServiceAction clean
 					StopQPKG
 					[[ $QPKG_NAME = nzbToMedia ]] && BackupConfig

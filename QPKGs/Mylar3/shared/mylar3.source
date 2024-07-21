@@ -46,6 +46,9 @@ InitService()
 
 		# app_version_pathfile=undefined
 
+		# can_restart_to_update=false					# If true, application can be updated by restarting service-script.
+		can_restart_to_update=true
+
 		# daemon_pathfile=undefined
 		daemon_pathfile=$qpkg_repo_path/Mylar.py
 
