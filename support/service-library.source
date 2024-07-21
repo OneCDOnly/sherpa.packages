@@ -849,13 +849,13 @@ LoadPorts()
 	[[ $get_ui_listening_address_cmd != undefined ]] && ui_listening_address=$(eval "$get_ui_listening_address_cmd")
 
 	# Validate port numbers.
-	ui_port=${ui_port//[!0-9]/}					# Strip everything not a numeral.
+	ui_port=${ui_port//[!0-9]/}					# Strip all non-numerals.
 	[[ -z $ui_port || $ui_port -lt 0 || $ui_port -gt 65535 ]] && ui_port=0
 
-	ui_port_secure=${ui_port_secure//[!0-9]/}	# Strip everything not a numeral.
+	ui_port_secure=${ui_port_secure//[!0-9]/}	# Strip all non-numerals
 	[[ -z $ui_port_secure || $ui_port_secure -lt 0 || $ui_port_secure -gt 65535 ]] && ui_port_secure=0
 
-	daemon_port=${daemon_port//[!0-9]/}			# Strip everything not a numeral.
+	daemon_port=${daemon_port//[!0-9]/}			# Strip all non-numerals.
 	[[ -z $daemon_port || $daemon_port -lt 0 || $daemon_port -gt 65535 ]] && daemon_port=0
 
 	[[ -z $ui_listening_address ]] && ui_listening_address=undefined
@@ -2016,7 +2016,7 @@ IsPortAvailable()
 	#   $? = 0 : available
 	#   $? = 1 : already used
 
-	local port=${1//[!0-9]/}						# Strip everything not a numeral.
+	local port=${1//[!0-9]/}			# Strip all non-numerals.
 	[[ -n $port && $port -gt 0 ]] || return 0
 
 	/usr/sbin/lsof -i :"$port" -sTCP:LISTEN >/dev/null 2>&1 && return 1
@@ -2049,7 +2049,7 @@ IsPortResponds()
 	#   $? = 0 : response received
 	#   $? = 1 : not OK
 
-	local port=${1//[!0-9]/}		# Strip everything not a numeral.
+	local port=${1//[!0-9]/}			# Strip all non-numerals.
 
 	if [[ -z $port ]]; then
 		Display 'empty port: not testing for response'
@@ -2075,16 +2075,16 @@ IsPortResponds()
 		/sbin/curl --silent --fail --max-time 1 http://localhost:"$port" &>/dev/null
 
 		case $? in
-			0|22|52)	# accept these exitcodes as evidence of valid responses
+			0|22|52)	# Accept these exitcodes as evidence of valid responses.
 				Display OK
 				CommitToLog "responded in $acc second$(Pluralise "$acc")"
 				return 0
 				;;
-			28)			# timed-out
+			28)			# Timed-out.
 				: 			# do nothing
 				;;
-			7)			# this code is returned immediately
-				/bin/sleep 1		# ... so let's wait here a bit
+			7)			# This code is returned immediately,
+				/bin/sleep 1		# ... so let's wait here a bit.
 				;;
 			*)
 				: 			# do nothing
@@ -2114,7 +2114,7 @@ IsPortSecureResponds()
 	#   $? = 0 : response received
 	#   $? = 1 : not OK or secure port unspecified
 
-	local port=${1//[!0-9]/}		# Strip everything not a numeral.
+	local port=${1//[!0-9]/}			# Strip all non-numerals.
 
 	if [[ -z $port ]]; then
 		Display 'empty port: not testing for response'
@@ -2141,7 +2141,7 @@ IsPortSecureResponds()
 		/sbin/curl --silent --insecure --fail --max-time 1 https://localhost:"$port" &>/dev/null
 
 		case $? in
-			0|22|52)	# accept these exitcodes as evidence of valid responses
+			0|22|52)	# Accept these exitcodes as evidence of valid responses.
 				Display OK
 				CommitToLog "port responded after $acc second$(Pluralise "$acc")"
 				return 0
@@ -2150,11 +2150,11 @@ IsPortSecureResponds()
 				DisplayCommitToLog 'TLS inactive'
 				break
 				;;
-			28)			# timed-out
+			28)			# Timed-out.
 				: 			# do nothing
 				;;
-			7)			# this code is returned immediately
-				/bin/sleep 1		# ... so let's wait here a bit
+			7)			# This code is returned immediately,
+				/bin/sleep 1		# ... so let's wait here a bit.
 				;;
 			*)
 				: 			# do nothing
@@ -2781,7 +2781,7 @@ FormatAsThous()
 
 	local rightside_group=''
 	local foutput=''
-	local remainder=$(/bin/sed 's/[^0-9]*//g' <<< "${1:-}")	# Strip everything not a numeral.
+	local remainder=$(/bin/sed 's/[^0-9]*//g' <<< "${1:-}")	# Strip all non-numerals.
 
 	while [[ ${#remainder} -gt 0 ]]; do
 		rightside_group=${remainder:${#remainder}<3?0:-3}	# A nifty trick found here: https://stackoverflow.com/a/19858692
