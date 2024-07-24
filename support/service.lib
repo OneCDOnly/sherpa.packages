@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240602'
+readonly SERVICE_LIB_VERSION='240722'
 InitLibrary()
 {
 IsQNAP || exit
@@ -62,57 +62,57 @@ readonly SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
 readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
 readonly SERVICE_STATUS_PATHFILE=/var/run/$QPKG_NAME.last.operation
 export HOME=$QPKG_CONFIG_PATH
-allow_access_to_sys_packages=true
-app_version_cmd=undefined
+local_temp_path=undefined
+pip_cache_path=undefined
+qpkg_repo_path=undefined
+qpkg_wheels_path=undefined
+venv_path=undefined
+qpkg_ini_file=config.ini
 app_version_pathfile=undefined
-OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
-daemon_launch_cmd=undefined
 daemon_pathfile=undefined
 daemon_pid_pathfile=undefined
+launcher_pathfile=undefined
+qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
+qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
+qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+source_archive_pathfile=undefined
+userlink_pathfile=undefined
+venv_pip_pathfile=undefined
+venv_python_pathfile=undefined
+allow_access_to_sys_packages=true
+can_restart_to_update=false
+install_pip_deps=false
+pidfile_is_managed_by_app=false
+recheck_daemon_pid_after_launch=false
+recheck_daemon_pid_after_kill=false
+resolve_remote_url=false
+run_daemon_in_screen_session=false
+silence_pypi_errors=true
 daemon_port=0
+interpreter=undefined
+nice_daemon_to=0
+orig_daemon_service_script=undefined
+remote_arch=undefined
+source_arch=undefined
+source_git_branch=undefined
+source_git_branch_depth=undefined
+ui_listening_address=undefined
+ui_port=0
+ui_port_secure=0
+remote_url=undefined
+source_git_url=undefined
+get_app_version_cmd=undefined
 get_daemon_port_cmd=undefined
 get_ui_listening_address_cmd=undefined
 get_ui_port_cmd=undefined
 get_ui_port_secure_cmd=undefined
 get_ui_port_secure_enabled_test_cmd=undefined
-install_pip_deps=false
-interpreter=undefined
-launcher_pathfile=undefined
-local_temp_path=undefined
-orig_daemon_service_script=undefined
-pidfile_is_managed_by_app=false
-pip_cache_path=undefined
+daemon_launch_cmd=undefined
+InitService
+OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
 pyver=''
-qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
-qpkg_ini_file=config.ini
-qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
-qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-qpkg_repo_path=undefined
-qpkg_wheels_path=undefined
-recheck_daemon_pid_after_launch=false
-recheck_daemon_pid_after_kill=false
-remote_arch=undefined
-remote_url=undefined
-nice_daemon_to=0
-resolve_remote_url=false
-run_daemon_in_screen_session=false
 service_operation=unspecified
 service_result=undefined
-silence_pypi_errors=true
-source_arch=undefined
-source_archive_pathfile=undefined
-source_git_branch=undefined
-source_git_branch_depth=undefined
-source_git_url=undefined
-ui_listening_address=undefined
-ui_port=0
-ui_port_secure=0
-userlink_pathfile=undefined
-venv_path=undefined
-venv_pip_pathfile=undefined
-venv_python_pathfile=undefined
-InitByServiceType
-InitService
 MakePaths
 EnsureConfigFileExists
 GetAppVersion
@@ -121,65 +121,6 @@ IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate >/dev/null
 if [[ $run_daemon_in_screen_session = true && ! -e $SCREEN_CONF_PATHFILE ]];then
 echo -e "logfile ${SCREEN_LOG_PATHFILE}\nlogfile flush 1\nlog on" > "$SCREEN_CONF_PATHFILE"
 fi
-}
-InitByServiceType()
-{
-case $SERVICE_SCRIPT_TYPE in
-1)
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
-install_pip_deps=true
-interpreter=/opt/bin/python3
-pidfile_is_managed_by_app=true
-pip_cache_path=$QPKG_PATH/pip-cache
-qpkg_repo_path=$QPKG_PATH/repo-cache
-qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
-recheck_daemon_pid_after_launch=true
-source_git_branch=main
-source_git_branch_depth=shallow
-venv_path=$QPKG_PATH/venv
-venv_pip_pathfile=$venv_path/bin/pip
-venv_python_pathfile=$venv_path/bin/python3
-;;
-2)
-:
-;;
-3)
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
-;;
-4)
-:
-;;
-5)
-allow_access_to_sys_packages=false
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
-qpkg_repo_path=$QPKG_PATH/repo-cache
-source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
-;;
-6)
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
-interpreter=/opt/bin/python3
-pip_cache_path=$QPKG_PATH/pip-cache
-qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
-qpkg_ini_pathfile=undefined
-qpkg_repo_path=$QPKG_PATH/repo-cache
-run_daemon_in_screen_session=true
-venv_path=$QPKG_PATH/venv
-venv_pip_pathfile=$venv_path/bin/pip
-venv_python_pathfile=$venv_path/bin/python3
-;;
-7)
-interpreter=/opt/bin/python3
-pip_cache_path=$QPKG_PATH/pip-cache
-venv_path=$QPKG_PATH/venv
-venv_pip_pathfile=$venv_path/bin/pip
-venv_python_pathfile=$venv_path/bin/python3
-;;
-8)
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
-;;
-*)
-:
-esac
 }
 ShowHelp()
 {
@@ -582,7 +523,7 @@ return 0
 GetAppVersion()
 {
 if IsSupportGetAppVersion && [[ -e $app_version_pathfile ]];then
-app_version=$(eval "$app_version_cmd")
+app_version=$(eval "$get_app_version_cmd")
 return 0
 else
 app_version=unknown
@@ -1123,7 +1064,7 @@ IsNotSupportReset()
 }
 IsSupportGetAppVersion()
 {
-[[ $app_version_cmd != undefined && $app_version_pathfile != undefined ]]
+[[ $get_app_version_cmd != undefined && $app_version_pathfile != undefined ]]
 }
 IsNotSupportGetAppVersion()
 {
@@ -1163,7 +1104,7 @@ IsNotOnlineArchive()
 }
 IsSupportAutoUpdate()
 {
-IsSourcedOnline
+[[ $can_restart_to_update = true ]]
 }
 IsNotSupportAutoUpdate()
 {
@@ -1744,7 +1685,7 @@ IsAutoUpdateMissing()
 }
 IsAutoUpdate()
 {
-[[ $(Lowercase "$(/sbin/getcfg $QPKG_NAME Auto_Update -f /etc/config/qpkg.conf)") = true ]]
+IsSupportAutoUpdate && [[ $(Lowercase "$(/sbin/getcfg $QPKG_NAME Auto_Update -f /etc/config/qpkg.conf)") = true ]]
 }
 IsNotAutoUpdate()
 {
@@ -1783,7 +1724,7 @@ return 0
 }
 ShowUnsupportedAction()
 {
-ShowAsError "specified action '$1' is unsupported by this service script."
+ShowAsError "specified action '$1' is unsupported by this service-script."
 SetError
 CommitToLog "specified action '$1' is unsupported."
 Display
@@ -1836,7 +1777,7 @@ fi
 ;;
 ?(--)clean|?(--)update|?(--)upgrade)
 IsSU ||	exit
-if IsSupportAutoUpdate;then
+if IsSourcedOnline;then
 SetServiceAction clean
 StopQPKG
 [[ $QPKG_NAME = nzbToMedia ]] && BackupConfig

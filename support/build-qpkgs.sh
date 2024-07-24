@@ -103,7 +103,7 @@ for d in "$qpkgs_path"/*; do
 	service_script_file=$(. $config_pathfile; echo "$QPKG_SERVICE_PROGRAM")
 
 	if [[ -z $service_script_file ]]; then
-		echo "service script file: unspecified"
+		echo "service-script file: unspecified"
 		echo "rebuild: not possible"
 		continue
 	fi

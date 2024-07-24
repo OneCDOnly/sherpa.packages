@@ -21,20 +21,20 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OTransmission
-readonly SERVICE_SCRIPT_VERSION='240602'
-readonly SERVICE_SCRIPT_TYPE=3
+readonly SERVICE_SCRIPT_VERSION='240724'
 InitService()
 {
-get_ui_port_secure_cmd='echo 0'
-get_ui_port_secure_enabled_test_cmd='false'
-orig_daemon_service_script=/opt/etc/init.d/S88transmission
 qpkg_ini_file=settings.json
-qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 daemon_pathfile=/opt/bin/transmission-daemon
-daemon_launch_cmd="$daemon_pathfile --config-dir $(/usr/bin/dirname "$qpkg_ini_pathfile") --pid-file $daemon_pid_pathfile"
+daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
+qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+orig_daemon_service_script=/opt/etc/init.d/S88transmission
 get_ui_listening_address_cmd="/opt/bin/jq -r '.\"rpc-bind-address\"' < $qpkg_ini_pathfile"
 get_ui_port_cmd="/opt/bin/jq -r '.\"rpc-port\"' < "$qpkg_ini_pathfile""
-qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+get_ui_port_secure_cmd='echo 0'
+get_ui_port_secure_enabled_test_cmd='false'
+daemon_launch_cmd="$daemon_pathfile --config-dir $(/usr/bin/dirname "$qpkg_ini_pathfile") --pid-file $daemon_pid_pathfile"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0

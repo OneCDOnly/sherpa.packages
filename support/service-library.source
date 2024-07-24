@@ -65,59 +65,231 @@ InitLibrary()
 	readonly SERVICE_STATUS_PATHFILE=/var/run/$QPKG_NAME.last.operation
 	export HOME=$QPKG_CONFIG_PATH
 
-	# default values
-	allow_access_to_sys_packages=true
-	app_version_cmd=undefined
-	app_version_pathfile=undefined
-	OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
-	daemon_launch_cmd=undefined
-	daemon_pathfile=undefined
-	daemon_pid_pathfile=undefined
-	daemon_port=0
-	get_daemon_port_cmd=undefined
-	get_ui_listening_address_cmd=undefined
-	get_ui_port_cmd=undefined
-	get_ui_port_secure_cmd=undefined
-	get_ui_port_secure_enabled_test_cmd=undefined
-	install_pip_deps=false
-	interpreter=undefined
-	launcher_pathfile=undefined					# On-demand executables only.
-	local_temp_path=undefined
-	orig_daemon_service_script=undefined		# Specific to Entware binaries only.
-	pidfile_is_managed_by_app=false
-	pip_cache_path=undefined
-	pyver=''
-	qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
-	qpkg_ini_file=config.ini
+	# NOTE: default session values are set here, but can be changed in the InitService() function for each QPKG.
+
+	# >>> Paths <<<
+
+		local_temp_path=undefined
+
+		pip_cache_path=undefined
+
+		qpkg_repo_path=undefined
+
+		qpkg_wheels_path=undefined
+
+		venv_path=undefined
+
+	# >>> Filenames <<<
+
+		qpkg_ini_file=config.ini
+
+	# >>> Pathfilenames <<<
+
+		app_version_pathfile=undefined
+
+		daemon_pathfile=undefined
+
+		daemon_pid_pathfile=undefined
+
+		launcher_pathfile=undefined					# On-demand executables only.
+
+		qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
+
 		qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
-			qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-	qpkg_repo_path=undefined
-	qpkg_wheels_path=undefined
-	recheck_daemon_pid_after_launch=false		# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
-	recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
-	remote_arch=undefined
-	remote_url=undefined
-	nice_daemon_to=0							# If non-zero, daemon proc is niced to this value on-launch.
-	resolve_remote_url=false					# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
-	run_daemon_in_screen_session=false
+
+		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+
+		source_archive_pathfile=undefined
+
+		userlink_pathfile=undefined					# On-demand executables only.
+
+		venv_pip_pathfile=undefined
+
+		venv_python_pathfile=undefined
+
+	# >>> Switches <<<
+
+		allow_access_to_sys_packages=true
+
+		can_restart_to_update=false					# If true, application files can be updated by restarting service-script.
+
+		install_pip_deps=false
+
+		pidfile_is_managed_by_app=false
+
+		recheck_daemon_pid_after_launch=false		# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+
+		recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+
+		resolve_remote_url=false					# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+
+		run_daemon_in_screen_session=false
+
+		silence_pypi_errors=true					# If true, PyPI package processing errors won't be shown in system log.
+
+	# >>> Values <<<
+
+		daemon_port=0
+
+		interpreter=undefined
+
+		nice_daemon_to=0							# If non-zero, daemon proc is niced to this value on-launch.
+
+		orig_daemon_service_script=undefined		# Specific to Entware binaries only.
+
+		remote_arch=undefined
+
+		source_arch=undefined
+
+		source_git_branch=undefined
+
+		source_git_branch_depth=undefined			# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		ui_listening_address=undefined
+
+		ui_port=0
+
+		ui_port_secure=0
+
+	# >>> URLs <<<
+
+		remote_url=undefined
+
+		source_git_url=undefined
+
+	# >>> CMDs <<<
+
+		get_app_version_cmd=undefined
+
+		get_daemon_port_cmd=undefined
+
+		get_ui_listening_address_cmd=undefined
+
+		get_ui_port_cmd=undefined
+
+		get_ui_port_secure_cmd=undefined
+
+		get_ui_port_secure_enabled_test_cmd=undefined
+
+		daemon_launch_cmd=undefined
+
+# --- start template ---
+	# This is a type n service-script.
+
+	# NOTE: default session values are set in service function library: uncomment to update, or copy to change.
+
+	# >>> Paths <<<
+
+		# local_temp_path=undefined
+
+		# pip_cache_path=undefined
+
+		# qpkg_repo_path=undefined
+
+		# qpkg_wheels_path=undefined
+
+		# venv_path=undefined
+
+	# >>> Filenames <<<
+
+		# qpkg_ini_file=config.ini
+
+	# >>> Pathfilenames <<<
+
+		# app_version_pathfile=undefined
+
+		# daemon_pathfile=undefined
+
+		# daemon_pid_pathfile=undefined
+
+		# launcher_pathfile=undefined					# On-demand executables only.
+
+		# qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
+
+		# qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
+
+		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+
+		# source_archive_pathfile=undefined
+
+		# userlink_pathfile=undefined					# On-demand executables only.
+
+		# venv_pip_pathfile=undefined
+
+		# venv_python_pathfile=undefined
+
+	# >>> Switches <<<
+
+		# allow_access_to_sys_packages=true
+
+		# can_restart_to_update=false					# If true, application can be updated by restarting service-script.
+
+		# install_pip_deps=false
+
+		# pidfile_is_managed_by_app=false
+
+		# recheck_daemon_pid_after_launch=false			# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+
+		# recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+
+		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+
+		# run_daemon_in_screen_session=false
+
+		# silence_pypi_errors=true						# If true, PyPI package processing errors won't be shown in system log.
+
+	# >>> Values <<<
+
+		# daemon_port=0
+
+		# interpreter=undefined
+
+		# nice_daemon_to=0								# If non-zero, daemon proc is niced to this value on-launch.
+
+		# orig_daemon_service_script=undefined			# Specific to Entware binaries only.
+
+		# remote_arch=undefined
+
+		# source_arch=undefined
+
+		# source_git_branch=undefined
+
+		# source_git_branch_depth=undefined				# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		# ui_listening_address=undefined
+
+		# ui_port=0
+
+		# ui_port_secure=0
+
+	# >>> URLs <<<
+
+		# remote_url=undefined
+
+		# source_git_url=undefined
+
+	# >>> CMDs <<<
+
+		# get_app_version_cmd=undefined
+
+		# get_daemon_port_cmd=undefined
+
+		# get_ui_listening_address_cmd=undefined
+
+		# get_ui_port_cmd=undefined
+
+		# get_ui_port_secure_cmd=undefined
+
+		# get_ui_port_secure_enabled_test_cmd=undefined
+
+		# daemon_launch_cmd=undefined
+# ---end template ---
+
+	InitService										# Located in parent service-script. Service-script vars can override vars set here.
+	OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
+	pyver=''
 	service_operation=unspecified
 	service_result=undefined
-	silence_pypi_errors=true					# If true, PyPI package processing errors won't be shown in system log.
-	source_arch=undefined
-	source_archive_pathfile=undefined
-	source_git_branch=undefined
-	source_git_branch_depth=undefined			# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
-	source_git_url=undefined
-	ui_listening_address=undefined
-	ui_port=0
-	ui_port_secure=0
-    userlink_pathfile=undefined					# On-demand executables only.
-	venv_path=undefined
-	venv_pip_pathfile=undefined
-	venv_python_pathfile=undefined
-
-	InitByServiceType
-	InitService									# Located in parent service-script. Service-script vars can override vars set here.
 	MakePaths
 	EnsureConfigFileExists
 	GetAppVersion
@@ -127,70 +299,6 @@ InitLibrary()
 	if [[ $run_daemon_in_screen_session = true && ! -e $SCREEN_CONF_PATHFILE ]]; then
 		echo -e "logfile ${SCREEN_LOG_PATHFILE}\nlogfile flush 1\nlog on" > "$SCREEN_CONF_PATHFILE"
 	fi
-
-	}
-
-InitByServiceType()
-	{
-
-	# Definitions: https://github.com/OneCDOnly/sherpa/wiki/Service-Script-Types
-
-	case $SERVICE_SCRIPT_TYPE in
-		1)
-			daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
-			install_pip_deps=true
-			interpreter=/opt/bin/python3
-			pidfile_is_managed_by_app=true
-			pip_cache_path=$QPKG_PATH/pip-cache
-			qpkg_repo_path=$QPKG_PATH/repo-cache
-			qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
-			recheck_daemon_pid_after_launch=true
-			source_git_branch=main
-			source_git_branch_depth=shallow
-			venv_path=$QPKG_PATH/venv
-				venv_pip_pathfile=$venv_path/bin/pip
-				venv_python_pathfile=$venv_path/bin/python3
-			;;
-		2)
-			:
-			;;
-		3)
-			daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
-			;;
-		4)
-			:
-			;;
-		5)
-			allow_access_to_sys_packages=false
-			daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
-			qpkg_repo_path=$QPKG_PATH/repo-cache
-				source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
-			;;
-		6)
-			daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
-			interpreter=/opt/bin/python3
-			pip_cache_path=$QPKG_PATH/pip-cache
-			qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
-			qpkg_ini_pathfile=undefined						# App config is unsupported.
-			qpkg_repo_path=$QPKG_PATH/repo-cache
-			run_daemon_in_screen_session=true
-			venv_path=$QPKG_PATH/venv
-				venv_pip_pathfile=$venv_path/bin/pip
-				venv_python_pathfile=$venv_path/bin/python3
-			;;
-		7)
-			interpreter=/opt/bin/python3
-			pip_cache_path=$QPKG_PATH/pip-cache
-			venv_path=$QPKG_PATH/venv
-				venv_pip_pathfile=$venv_path/bin/pip
-				venv_python_pathfile=$venv_path/bin/python3
-			;;
-		8)
-			daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
-			;;
-		*)
-			:
-	esac
 
 	}
 
@@ -745,13 +853,13 @@ LoadPorts()
 	[[ $get_ui_listening_address_cmd != undefined ]] && ui_listening_address=$(eval "$get_ui_listening_address_cmd")
 
 	# Validate port numbers.
-	ui_port=${ui_port//[!0-9]/}					# Strip everything not a numeral.
+	ui_port=${ui_port//[!0-9]/}					# Strip all non-numerals.
 	[[ -z $ui_port || $ui_port -lt 0 || $ui_port -gt 65535 ]] && ui_port=0
 
-	ui_port_secure=${ui_port_secure//[!0-9]/}	# Strip everything not a numeral.
+	ui_port_secure=${ui_port_secure//[!0-9]/}	# Strip all non-numerals
 	[[ -z $ui_port_secure || $ui_port_secure -lt 0 || $ui_port_secure -gt 65535 ]] && ui_port_secure=0
 
-	daemon_port=${daemon_port//[!0-9]/}			# Strip everything not a numeral.
+	daemon_port=${daemon_port//[!0-9]/}			# Strip all non-numerals.
 	[[ -z $daemon_port || $daemon_port -lt 0 || $daemon_port -gt 65535 ]] && daemon_port=0
 
 	[[ -z $ui_listening_address ]] && ui_listening_address=undefined
@@ -767,7 +875,7 @@ GetAppVersion()
 	# This is the installed application version (not the QPKG version).
 
 	if IsSupportGetAppVersion && [[ -e $app_version_pathfile ]]; then
-		app_version=$(eval "$app_version_cmd")
+		app_version=$(eval "$get_app_version_cmd")
 		return 0
 	else
 		app_version=unknown
@@ -1655,7 +1763,7 @@ IsNotSupportReset()
 IsSupportGetAppVersion()
 	{
 
-	[[ $app_version_cmd != undefined && $app_version_pathfile != undefined ]]
+	[[ $get_app_version_cmd != undefined && $app_version_pathfile != undefined ]]
 
 	}
 
@@ -1727,7 +1835,7 @@ IsNotOnlineArchive()
 IsSupportAutoUpdate()
 	{
 
-	IsSourcedOnline
+	[[ $can_restart_to_update = true ]]
 
 	}
 
@@ -1912,7 +2020,7 @@ IsPortAvailable()
 	#   $? = 0 : available
 	#   $? = 1 : already used
 
-	local port=${1//[!0-9]/}						# Strip everything not a numeral.
+	local port=${1//[!0-9]/}			# Strip all non-numerals.
 	[[ -n $port && $port -gt 0 ]] || return 0
 
 	/usr/sbin/lsof -i :"$port" -sTCP:LISTEN >/dev/null 2>&1 && return 1
@@ -1945,7 +2053,7 @@ IsPortResponds()
 	#   $? = 0 : response received
 	#   $? = 1 : not OK
 
-	local port=${1//[!0-9]/}		# Strip everything not a numeral.
+	local port=${1//[!0-9]/}			# Strip all non-numerals.
 
 	if [[ -z $port ]]; then
 		Display 'empty port: not testing for response'
@@ -1971,16 +2079,16 @@ IsPortResponds()
 		/sbin/curl --silent --fail --max-time 1 http://localhost:"$port" &>/dev/null
 
 		case $? in
-			0|22|52)	# accept these exitcodes as evidence of valid responses
+			0|22|52)	# Accept these exitcodes as evidence of valid responses.
 				Display OK
 				CommitToLog "responded in $acc second$(Pluralise "$acc")"
 				return 0
 				;;
-			28)			# timed-out
+			28)			# Timed-out.
 				: 			# do nothing
 				;;
-			7)			# this code is returned immediately
-				/bin/sleep 1		# ... so let's wait here a bit
+			7)			# This code is returned immediately,
+				/bin/sleep 1		# ... so let's wait here a bit.
 				;;
 			*)
 				: 			# do nothing
@@ -2010,7 +2118,7 @@ IsPortSecureResponds()
 	#   $? = 0 : response received
 	#   $? = 1 : not OK or secure port unspecified
 
-	local port=${1//[!0-9]/}		# Strip everything not a numeral.
+	local port=${1//[!0-9]/}			# Strip all non-numerals.
 
 	if [[ -z $port ]]; then
 		Display 'empty port: not testing for response'
@@ -2037,7 +2145,7 @@ IsPortSecureResponds()
 		/sbin/curl --silent --insecure --fail --max-time 1 https://localhost:"$port" &>/dev/null
 
 		case $? in
-			0|22|52)	# accept these exitcodes as evidence of valid responses
+			0|22|52)	# Accept these exitcodes as evidence of valid responses.
 				Display OK
 				CommitToLog "port responded after $acc second$(Pluralise "$acc")"
 				return 0
@@ -2046,11 +2154,11 @@ IsPortSecureResponds()
 				DisplayCommitToLog 'TLS inactive'
 				break
 				;;
-			28)			# timed-out
+			28)			# Timed-out.
 				: 			# do nothing
 				;;
-			7)			# this code is returned immediately
-				/bin/sleep 1		# ... so let's wait here a bit
+			7)			# This code is returned immediately,
+				/bin/sleep 1		# ... so let's wait here a bit.
 				;;
 			*)
 				: 			# do nothing
@@ -2677,7 +2785,7 @@ FormatAsThous()
 
 	local rightside_group=''
 	local foutput=''
-	local remainder=$(/bin/sed 's/[^0-9]*//g' <<< "${1:-}")	# Strip everything not a numeral.
+	local remainder=$(/bin/sed 's/[^0-9]*//g' <<< "${1:-}")	# Strip all non-numerals.
 
 	while [[ ${#remainder} -gt 0 ]]; do
 		rightside_group=${remainder:${#remainder}<3?0:-3}	# A nifty trick found here: https://stackoverflow.com/a/19858692
@@ -2741,7 +2849,7 @@ IsAutoUpdateMissing()
 IsAutoUpdate()
 	{
 
-	[[ $(Lowercase "$(/sbin/getcfg $QPKG_NAME Auto_Update -f /etc/config/qpkg.conf)") = true ]]
+	IsSupportAutoUpdate && [[ $(Lowercase "$(/sbin/getcfg $QPKG_NAME Auto_Update -f /etc/config/qpkg.conf)") = true ]]
 
 	}
 
@@ -2806,7 +2914,7 @@ IsSU()
 ShowUnsupportedAction()
 	{
 
-	ShowAsError "specified action '$1' is unsupported by this service script."
+	ShowAsError "specified action '$1' is unsupported by this service-script."
 	SetError
 	CommitToLog "specified action '$1' is unsupported."
 	Display
@@ -2886,7 +2994,7 @@ ProcessArgs()
 			?(--)clean|?(--)update|?(--)upgrade)
 				IsSU ||	exit
 
-				if IsSupportAutoUpdate; then
+				if IsSourcedOnline; then
 					SetServiceAction clean
 					StopQPKG
 					[[ $QPKG_NAME = nzbToMedia ]] && BackupConfig

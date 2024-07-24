@@ -21,21 +21,30 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=Unmanic
-readonly SERVICE_SCRIPT_VERSION='240602'
-readonly SERVICE_SCRIPT_TYPE=6
+readonly SERVICE_SCRIPT_VERSION='240722'
 InitService()
 {
+pip_cache_path=$QPKG_PATH/pip-cache
+qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
+venv_path=$QPKG_PATH/venv
+qpkg_ini_file=settings.json
 daemon_pathfile=$venv_path/bin/unmanic
-daemon_launch_cmd="export HOME_DIR=$QPKG_CONFIG_PATH;$venv_python_pathfile $daemon_pathfile"
-qpkg_ini_pathfile=$QPKG_CONFIG_PATH/.unmanic/config/settings.json
+daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+qpkg_backup_pathfile=undefined
+qpkg_ini_pathfile=$QPKG_CONFIG_PATH/.unmanic/config/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-get_ui_listening_address_cmd="echo '0.0.0.0'"
-get_ui_port_cmd="/opt/bin/jq -r '.\"ui_port\"' < "$qpkg_ini_pathfile""
-get_ui_port_secure_cmd="echo 0"
-get_ui_port_secure_enabled_test_cmd="false"
-qpkg_repo_path=undefined
-run_daemon_in_screen_session=true
 /bin/sed -i "s|<?installation_path?>|$QPKG_PATH|g" "$qpkg_ini_default_pathfile"
+venv_pip_pathfile=$venv_path/bin/pip
+venv_python_pathfile=$venv_path/bin/python3
+can_restart_to_update=true
+run_daemon_in_screen_session=true
+interpreter=/opt/bin/python3
+ui_listening_address=0.0.0.0
+get_ui_listening_address_cmd="echo $ui_listening_address"
+get_ui_port_cmd="/opt/bin/jq -r '.\"ui_port\"' < "$qpkg_ini_pathfile""
+get_ui_port_secure_cmd="echo $ui_port_secure"
+get_ui_port_secure_enabled_test_cmd='false'
+daemon_launch_cmd="export HOME_DIR=$QPKG_CONFIG_PATH;$venv_python_pathfile $daemon_pathfile"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0

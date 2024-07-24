@@ -21,19 +21,29 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OWatcher3
-readonly SERVICE_SCRIPT_VERSION='240602'
-readonly SERVICE_SCRIPT_TYPE=1
+readonly SERVICE_SCRIPT_VERSION='240724'
 InitService()
 {
-app_version_pathfile=$qpkg_repo_path/sabnzbd/version.py
+pip_cache_path=$QPKG_PATH/pip-cache
+qpkg_repo_path=$QPKG_PATH/repo-cache
+qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
+venv_path=$QPKG_PATH/venv
 daemon_pathfile=$qpkg_repo_path/watcher.py
-daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --daemon --userdata $(/usr/bin/dirname "$qpkg_ini_pathfile") --conf $qpkg_ini_pathfile --pid $daemon_pid_pathfile"
+daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+venv_pip_pathfile=$venv_path/bin/pip
+venv_python_pathfile=$venv_path/bin/python3
+install_pip_deps=true
+pidfile_is_managed_by_app=true
+recheck_daemon_pid_after_launch=true
+interpreter=/opt/bin/python3
+source_git_branch=master
+source_git_branch_depth=shallow
+source_git_url=https://github.com/barbequesauce/Watcher3.git
 get_ui_listening_address_cmd="/opt/bin/jq -r .Server.serverhost < $qpkg_ini_pathfile"
 get_ui_port_cmd="/opt/bin/jq -r .Server.serverport < $qpkg_ini_pathfile"
 get_ui_port_secure_cmd="/opt/bin/jq -r .Server.serverport < $qpkg_ini_pathfile"
 get_ui_port_secure_enabled_test_cmd=''
-source_git_branch=master
-source_git_url=https://github.com/barbequesauce/Watcher3.git
+daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --daemon --userdata $(/usr/bin/dirname "$qpkg_ini_pathfile") --conf $qpkg_ini_pathfile --pid $daemon_pid_pathfile"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0

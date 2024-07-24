@@ -31,4 +31,4 @@
 	npm notice
 	----------------------------------------------------------------------------
 	- Try with NodeJS 14 QPKG from myQNAP.
-	- Nope, far too-many outdated packages.
+	- Nope, far-too-many outdated packages.

@@ -21,21 +21,30 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=WebSSH
-readonly SERVICE_SCRIPT_VERSION='240602'
-readonly SERVICE_SCRIPT_TYPE=6
+readonly SERVICE_SCRIPT_VERSION='240722'
 InitService()
 {
-run_daemon_in_screen_session=true
-venv_python_pathfile=$venv_path/bin/python
+pip_cache_path=$QPKG_PATH/pip-cache
+qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
+venv_path=$QPKG_PATH/venv
 daemon_pathfile=$venv_path/bin/wssh
-daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --address='0.0.0.0' --port=8010 --encoding=850"
-get_ui_listening_address_cmd='echo 0.0.0.0'
-get_ui_port_cmd='echo 8010'
-get_ui_port_secure_cmd='echo 0'
-get_ui_port_secure_enabled_test_cmd='false'
+daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 qpkg_backup_pathfile=undefined
-qpkg_repo_path=undefined
+qpkg_ini_pathfile=undefined
+qpkg_ini_default_pathfile=undefined
+venv_pip_pathfile=$venv_path/bin/pip
+venv_python_pathfile=$venv_path/bin/python
+can_restart_to_update=true
+run_daemon_in_screen_session=true
+interpreter=/opt/bin/python3
 source_git_branch=master
+ui_listening_address=0.0.0.0
+ui_port=8010
+get_ui_listening_address_cmd="echo $ui_listening_address"
+get_ui_port_cmd="echo $ui_port"
+get_ui_port_secure_cmd="echo $ui_port_secure"
+get_ui_port_secure_enabled_test_cmd='false'
+daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --address=$ui_listening_address --port=$ui_port --encoding=850"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
