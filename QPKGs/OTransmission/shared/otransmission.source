@@ -71,6 +71,8 @@ InitService()
 
 		# allow_access_to_sys_packages=true
 
+		# can_restart_to_update=false					# If true, application can be updated by restarting service-script.
+
 		# install_pip_deps=false
 
 		# pidfile_is_managed_by_app=false

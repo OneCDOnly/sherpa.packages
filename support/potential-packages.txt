@@ -1,3 +1,6 @@
+* Soulseek daemon?
+	- https://github.com/slskd/slskd
+
 * codex?
 	- https://github.com/ajslater/codex/
 
