@@ -1,7 +1,7 @@
 # checksum_filename                  qpkg_filename                    package_name         version      arch   hash
 Bazarr_240722_arm_64.qpkg.md5        Bazarr_240722_arm_64.qpkg        Bazarr               240722       a64    8d4b843281bd89c79d853da84db6dac0
 Bazarr_240722_x86_64.qpkg.md5        Bazarr_240722_x86_64.qpkg        Bazarr               240722       i64    2428a333027467536360ec9cb91b1540
-ClamAV_240722.qpkg.md5               ClamAV_240722.qpkg               ClamAV               240722       all    bc458425f43448186a9efb0a891d440f
+ClamAV_240724.qpkg.md5               ClamAV_240724.qpkg               ClamAV               240724       all    e3e1a0c45b743046eaf700f894216d47
 duf_240414_arm_64.qpkg.md5           duf_240414_arm_64.qpkg           duf                  240414       a64    094f8dd8f783ed329fe11e8084d543ba
 duf_240414_arm-x31.qpkg.md5          duf_240414_arm-x31.qpkg          duf                  240414       a31    fee8c354656f5550870a83bdb1f499b1
 duf_240414_arm-x41.qpkg.md5          duf_240414_arm-x41.qpkg          duf                  240414       a41    0bcb0e2cc9b9b57bbeb51c644a537a0f
@@ -23,7 +23,7 @@ Kapowarr_240722_arm_64.qpkg.md5      Kapowarr_240722_arm_64.qpkg      Kapowarr  
 Kapowarr_240722_x86_64.qpkg.md5      Kapowarr_240722_x86_64.qpkg      Kapowarr             240722       i64    9be81efbd4487b042d88e22febd32c8f
 Kapowarr_240722_x86.qpkg.md5         Kapowarr_240722_x86.qpkg         Kapowarr             240722       i86    fc423ef053b9c576d30af68b99b73985
 LazyLibrarian_240722.qpkg.md5        LazyLibrarian_240722.qpkg        LazyLibrarian        240722       all    1391c5cc0d56fa19c94a60f9f382ebf7
-Mylar3_240722.qpkg.md5               Mylar3_240722.qpkg               Mylar3               240722       all    2285aac73dc68e4638bf44ac448206d4
+Mylar3_240724.qpkg.md5               Mylar3_240724.qpkg               Mylar3               240724       all    b1e6d61068032dab67262c1eeb44c8b6
 nzbget_24.1_arm_64.qpkg.md5          nzbget_24.1_arm_64.qpkg          nzbget               24.1         a64    3e397eb61ef9355839a097e0078c07fe
 nzbget_24.1_arm-x19.qpkg.md5         nzbget_24.1_arm-x19.qpkg         nzbget               24.1         a19    42d3adefe73332261ce11b24ce54a5b5
 nzbget_24.1_arm-x31.qpkg.md5         nzbget_24.1_arm-x31.qpkg         nzbget               24.1         a31    9d15dacbb1c2039e65ef1cc53d2e961f
@@ -49,7 +49,7 @@ OMedusa_240722_arm-x31.qpkg.md5      OMedusa_240722_arm-x31.qpkg      OMedusa   
 OMedusa_240722_arm-x41.qpkg.md5      OMedusa_240722_arm-x41.qpkg      OMedusa              240722       a41    6dcb07f9ac6f6c12836dbd1ad247d354
 OMedusa_240722_x86_64.qpkg.md5       OMedusa_240722_x86_64.qpkg       OMedusa              240722       i64    68d5cabcba2f273141a1dd776f3b5ec6
 OMedusa_240722_x86.qpkg.md5          OMedusa_240722_x86.qpkg          OMedusa              240722       i86    076e582e040a553e914881e1371dc9ad
-OqBittorrent_240722.qpkg.md5         OqBittorrent_240722.qpkg         OqBittorrent         240722       all    239c303fc856c6e15528a6df549e38ce
+OqBittorrent_240724.qpkg.md5         OqBittorrent_240724.qpkg         OqBittorrent         240724       all    8a9f0576552ec6b7c0fb32c6fa289bad
 OReadarr_240722_arm_64.qpkg.md5      OReadarr_240722_arm_64.qpkg      OReadarr             240722       a64    cc8d320f0469b4dd1776d72c1aad448c
 OReadarr_240722_x86_64.qpkg.md5      OReadarr_240722_x86_64.qpkg      OReadarr             240722       i64    b0c0e068186ca5f031793dc915fd3818
 OSickGear_240722_arm_64.qpkg.md5     OSickGear_240722_arm_64.qpkg     OSickGear            240722       a64    6a0b8da635d609e0ab9ae0005d9c4d88
@@ -66,13 +66,13 @@ OTautulli_240722_arm-x31.qpkg.md5    OTautulli_240722_arm-x31.qpkg    OTautulli 
 OTautulli_240722_arm-x41.qpkg.md5    OTautulli_240722_arm-x41.qpkg    OTautulli            240722       a41    2a9faa07b1d94aac5f49e86c5f0921c6
 OTautulli_240722_x86_64.qpkg.md5     OTautulli_240722_x86_64.qpkg     OTautulli            240722       i64    b6bcf4d26e2ffd5db805e221588f79f0
 OTautulli_240722_x86.qpkg.md5        OTautulli_240722_x86.qpkg        OTautulli            240722       i86    08743060491cb7ef8bdd742f361c57e2
-OTransmission_240722.qpkg.md5        OTransmission_240722.qpkg        OTransmission        240722       all    dfd6a1c92646f1b5d655ac6062c6d69c
-OWatcher3_240722_arm_64.qpkg.md5     OWatcher3_240722_arm_64.qpkg     OWatcher3            240722       a64    69d4b9e7efafa2883267acfc69a56318
-OWatcher3_240722_arm-x19.qpkg.md5    OWatcher3_240722_arm-x19.qpkg    OWatcher3            240722       a19    4c6b240ad9b383620f8a4445b6117935
-OWatcher3_240722_arm-x31.qpkg.md5    OWatcher3_240722_arm-x31.qpkg    OWatcher3            240722       a31    857f1ed4e3edf2d69f805b4c67d48f10
-OWatcher3_240722_arm-x41.qpkg.md5    OWatcher3_240722_arm-x41.qpkg    OWatcher3            240722       a41    e27236e33de63981d2fb8566d080db2f
-OWatcher3_240722_x86_64.qpkg.md5     OWatcher3_240722_x86_64.qpkg     OWatcher3            240722       i64    d84e249ac2750591086289ab2f9cbc8a
-OWatcher3_240722_x86.qpkg.md5        OWatcher3_240722_x86.qpkg        OWatcher3            240722       i86    1a5ef830449074310a718701346cb82c
+OTransmission_240724.qpkg.md5        OTransmission_240724.qpkg        OTransmission        240724       all    202564b00f23acf5cda63f94f90475e4
+OWatcher3_240724_arm_64.qpkg.md5     OWatcher3_240724_arm_64.qpkg     OWatcher3            240724       a64    fd306bb3a49892295660b2b09211916b
+OWatcher3_240724_arm-x19.qpkg.md5    OWatcher3_240724_arm-x19.qpkg    OWatcher3            240724       a19    6a489cac84551d423a868bed73e6845c
+OWatcher3_240724_arm-x31.qpkg.md5    OWatcher3_240724_arm-x31.qpkg    OWatcher3            240724       a31    025b938e7eaf86ad2bf765b5b489df89
+OWatcher3_240724_arm-x41.qpkg.md5    OWatcher3_240724_arm-x41.qpkg    OWatcher3            240724       a41    f2306745d6a66f78ca34149ff4783681
+OWatcher3_240724_x86_64.qpkg.md5     OWatcher3_240724_x86_64.qpkg     OWatcher3            240724       i64    07f438d4c05d15b6657fa9d4b58d732e
+OWatcher3_240724_x86.qpkg.md5        OWatcher3_240724_x86.qpkg        OWatcher3            240724       i86    0cfccf3edc26b01faf53f171fbec6ef0
 OWhisparr_240722_arm_64.qpkg.md5     OWhisparr_240722_arm_64.qpkg     OWhisparr            240722       a64    2f2daff15f81f01f1c73adbc52eb094a
 OWhisparr_240722_x86_64.qpkg.md5     OWhisparr_240722_x86_64.qpkg     OWhisparr            240722       i64    51dc88835327ff7f2b2ce6e405e11494
 Par2_0.8.1.1_arm-x19.qpkg.md5        Par2_0.8.1.1_arm-x19.qpkg        Par2                 0.8.1.1      a19    d312d8bd2dee43e62a720f0d209905f8
@@ -94,7 +94,7 @@ SABnzbd_240722_x86_64.qpkg.md5       SABnzbd_240722_x86_64.qpkg       SABnzbd   
 SABnzbd_240722_x86.qpkg.md5          SABnzbd_240722_x86.qpkg          SABnzbd              240722       i86    1dc70d8015287856e8c321c7f08ad9ba
 sha3sum_230312_x86_64.qpkg.md5       sha3sum_230312_x86_64.qpkg       sha3sum              230312       i64    6ceba9116e0dbcbdb4e6112f0c02f8c0
 sha3sum_230312_x86.qpkg.md5          sha3sum_230312_x86.qpkg          sha3sum              230312       i86    fdba9d16b88a5b6e3b04483ca77706dd
-sherpa_240722.qpkg.md5               sherpa_240722.qpkg               sherpa               240722       all    4603186fd337159fa796879dc046d319
+sherpa_240724.qpkg.md5               sherpa_240724.qpkg               sherpa               240724       all    0e54b5ebc623f50bceb99e5ea8ded902
 SortMyQPKGs_240601.qpkg.md5          SortMyQPKGs_240601.qpkg          SortMyQPKGs          240601       all    e33aee086ad4e2171833c341cac92f6b
 Unmanic_240722_arm_64.qpkg.md5       Unmanic_240722_arm_64.qpkg       Unmanic              240722       a64    ce9f1dd9306cf6d28d84faedb74c2440
 Unmanic_240722_arm-x19.qpkg.md5      Unmanic_240722_arm-x19.qpkg      Unmanic              240722       a19    26f9828efad00e369a95c59830e22d6e
