@@ -61,8 +61,9 @@ InitLibrary()
 		readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
 	readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
 	readonly SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
+	readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
 	readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
-	readonly SERVICE_STATUS_PATHFILE=/var/run/$QPKG_NAME.last.operation
+	readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
 	export HOME=$QPKG_CONFIG_PATH
 
 	# NOTE: default session values are set here, but can be changed in the InitService() function for each QPKG.
@@ -288,7 +289,7 @@ InitLibrary()
 	InitService										# Located in parent service-script. Service-script vars can override vars set here.
 	OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
 	pyver=''
-	service_operation=unspecified
+	service_action=unspecified
 	service_result=undefined
 	MakePaths
 	EnsureConfigFileExists
@@ -2277,37 +2278,55 @@ RequestLatestRelease()
 SetServiceAction()
 	{
 
-	service_operation=${1:-unspecified}
-	CommitServiceStatus "$service_operation"
+	service_action=${1:-none}
+	CommitServiceAction
+	SetServiceResultAsUnknown
 	DisplayAndCommitActionToLog
 
 	}
 
-SetServiceStatusAsOK()
+SetServiceResultAsOK()
 	{
 
 	service_result=ok
-	CommitServiceStatus "$service_result"
-	DisplayAndCommitStatusToLog
+	CommitServiceResult
+	DisplayAndCommitResultToLog
 
 	}
 
-SetServiceStatusAsFailed()
+SetServiceResultAsFailed()
 	{
 
 	service_result=failed
-	CommitServiceStatus "$service_result"
-	DisplayAndCommitStatusToLog
+	CommitServiceResult
+	DisplayAndCommitResultToLog
 
 	}
 
-CommitServiceStatus()
+SetServiceResultAsUnknown()
 	{
 
-	# $1 = result of operation to record
+	# Selected action is in-progress and hasn't generated a result yet.
+
+	service_result=unknown
+	CommitServiceResult
+
+	}
+
+CommitServiceAction()
+	{
 
 	if IsNotStatus && IsNotLog && IsNotNone; then
-		[[ -n ${1:-} && $SERVICE_STATUS_PATHFILE != undefined ]] && echo "${1:-}" > "$SERVICE_STATUS_PATHFILE"
+		[[ $SERVICE_ACTION_PATHFILE != undefined ]] && echo "$service_action" > "$SERVICE_ACTION_PATHFILE"
+	fi
+
+	}
+
+CommitServiceResult()
+	{
+
+	if IsNotStatus && IsNotLog && IsNotNone; then
+		[[ $SERVICE_RESULT_PATHFILE != undefined ]] && echo "$service_result" > "$SERVICE_RESULT_PATHFILE"
 	fi
 
 	}
@@ -2337,6 +2356,34 @@ IsNotRestartPending()
 	{
 
 	[[ ${_restart_pending_flag:=false} = false ]]
+
+	}
+
+SetStatusGet()
+	{
+
+	_get_status_flag=true
+
+	}
+
+UnsetStatusGet()
+	{
+
+	_get_status_flag=false
+
+	}
+
+IsStatus()
+	{
+
+	[[ ${_get_status_flag:=false} = true ]]
+
+	}
+
+IsNotStatus()
+	{
+
+	[[ ${_get_status_flag:=false} = false ]]
 
 	}
 
@@ -2373,7 +2420,7 @@ IsNotError()
 IsRestart()
 	{
 
-	[[ $service_operation = restart ]]
+	[[ $service_action = restart ]]
 
 	}
 
@@ -2387,21 +2434,21 @@ IsNotRestart()
 IsNotLog()
 	{
 
-	! [[ $service_operation = log ]]
+	! [[ $service_action = log ]]
 
 	}
 
 IsNotNone()
 	{
 
-	! [[ $service_operation = none ]]
+	! [[ $service_action = none ]]
 
 	}
 
 IsClean()
 	{
 
-	[[ $service_operation = clean ]]
+	[[ $service_action = clean ]]
 
 	}
 
@@ -2415,7 +2462,7 @@ IsNotClean()
 IsBackup()
 	{
 
-	[[ $service_operation = backup ]]
+	[[ $service_action = backup ]]
 
 	}
 
@@ -2429,7 +2476,7 @@ IsNotBackup()
 IsRestore()
 	{
 
-	[[ $service_operation = restore ]]
+	[[ $service_action = restore ]]
 
 	}
 
@@ -2443,7 +2490,7 @@ IsNotRestore()
 IsReset()
 	{
 
-	[[ $service_operation = reset ]]
+	[[ $service_action = reset ]]
 
 	}
 
@@ -2454,17 +2501,10 @@ IsNotReset()
 
 	}
 
-IsNotStatus()
-	{
-
-	! [[ $service_operation = status ]]
-
-	}
-
 IsUnsupported()
 	{
 
-	[[ $service_operation = unsupported ]]
+	[[ $service_action = unsupported ]]
 
 	}
 
@@ -2601,10 +2641,10 @@ DisplayWait()
 DisplayAndCommitActionToLog()
 	{
 
-	[[ $service_operation = unspecified ]] && return
+	[[ $service_action = unspecified ]] && return
 
 	starttime=$(/bin/date +%s%N)
-	local msg="source: $(/usr/bin/basename "$0"), action: $service_operation, datetime: $(date)"
+	local msg="source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date)"
 	msg=" $(/bin/tr -s ' ' <<< "$msg") "
 	local target=DisplayCommitToLog
 
@@ -2618,12 +2658,12 @@ DisplayAndCommitActionToLog()
 
 	}
 
-DisplayAndCommitStatusToLog()
+DisplayAndCommitResultToLog()
 	{
 
-	[[ $service_operation = unspecified ]] && return
+	[[ $service_action = unspecified ]] && return
 
-	local msg="source: $(/usr/bin/basename "$0"), action: $service_operation, datetime: $(date), result: $service_result, elapsed time: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(/bin/date +%s%N)")")"
+	local msg="source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date), result: $service_result, elapsed time: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(/bin/date +%s%N)")")"
 	msg=" $(/bin/tr -s ' ' <<< "$msg") "
 	local target=DisplayCommitToLog
 
@@ -3115,7 +3155,7 @@ ProcessArgs()
 				fi
 				;;
 			?(-)s|?(--)status)
-				SetServiceAction status
+				SetStatusGet
 				StatusQPKG
 				;;
 			?(--)stop)
@@ -3140,17 +3180,17 @@ ProcessArgs()
 		esac
 	fi
 
-	if [[ -n $user_arg ]]; then
+	if IsNotStatus && IsNotLog && IsNotNone; then
 		if IsError; then
-			SetServiceStatusAsFailed
+			SetServiceResultAsFailed
 
 			exit 1
 		else
-			SetServiceStatusAsOK
+			SetServiceResultAsOK
 		fi
 	fi
 
-	exit
+	exit 0
 
 	}
 
