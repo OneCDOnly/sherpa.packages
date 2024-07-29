@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240728'
+readonly SERVICE_LIB_VERSION='240729'
 InitLibrary()
 {
 IsQNAP || exit
@@ -1354,7 +1354,7 @@ SetServiceAction()
 {
 service_action=${1:-none}
 CommitServiceAction
-SetServiceResultAsUnknown
+SetServiceResultAsInProgress
 DisplayAndCommitActionToLog
 }
 SetServiceResultAsOK()
@@ -1369,9 +1369,9 @@ service_result=failed
 CommitServiceResult
 DisplayAndCommitResultToLog
 }
-SetServiceResultAsUnknown()
+SetServiceResultAsInProgress()
 {
-service_result=unknown
+service_result=in-progress
 CommitServiceResult
 }
 CommitServiceAction()
@@ -1920,7 +1920,6 @@ SetServiceAction stop
 StopQPKG
 ;;
 ?(-)v|?(--)version)
-SetServiceAction none
 Display "package: '$QPKG_VERSION'"
 Display "service: '$SERVICE_SCRIPT_VERSION'"
 Display "library: '$SERVICE_LIB_VERSION'"
