@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240729'
+readonly SERVICE_LIB_VERSION='240730'
 InitLibrary()
 {
 IsQNAP || exit
@@ -270,6 +270,7 @@ DisplayCommitToLog "nice daemon to: $nice_daemon_to"
 fi
 if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_in_screen_session";then
 SetError
+[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
 return 1
 fi
 WaitForDaemon
