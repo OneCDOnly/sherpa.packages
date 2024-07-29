@@ -39,7 +39,7 @@ break
 done
 UnsetError
 UnsetRestartPending
-readonly DAEMON_CHECK_TIMEOUT_SECONDS=60
+readonly DAEMON_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
 readonly DAEMON_STOP_TIMEOUT_SECONDS=180
 readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)
 readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
@@ -269,22 +269,22 @@ daemon_launch_cmd="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd
 DisplayCommitToLog "nice daemon to: $nice_daemon_to"
 fi
 if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_in_screen_session";then
-SetError
 [[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
+SetError
 return 1
 fi
 WaitForDaemon
 WaitForStartPid
 if ! IsDaemonActive;then
 DisplayErrCommitAllLogs 'IsDaemonActive() failed!'
-SetError
 [[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
+SetError
 return 1
 fi
 if ! CheckPorts;then
 DisplayErrCommitAllLogs 'CheckPorts() failed!'
-SetError
 [[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
+SetError
 return 1
 fi
 CommitInfoToSysLog 'start daemon: OK'
@@ -1417,7 +1417,7 @@ IsStatus()
 }
 IsNotStatus()
 {
-[[ ${_get_status_flag:=false} = false ]]
+! IsStatus
 }
 SetError()
 {
@@ -1445,13 +1445,21 @@ IsNotRestart()
 {
 ! IsRestart
 }
+IsLog()
+{
+[[ $service_action = log ]]
+}
 IsNotLog()
 {
-! [[ $service_action = log ]]
+! IsLog
+}
+IsNone()
+{
+[[ $service_action = none ]]
 }
 IsNotNone()
 {
-! [[ $service_action = none ]]
+! IsNone
 }
 IsClean()
 {
