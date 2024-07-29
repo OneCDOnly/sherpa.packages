@@ -40,7 +40,7 @@ InitLibrary()
 	UnsetError
 	UnsetRestartPending
 
-	readonly DAEMON_CHECK_TIMEOUT_SECONDS=60
+	readonly DAEMON_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)	# This value is for a single-core CPU and 1m load average of 1.0
 	readonly DAEMON_STOP_TIMEOUT_SECONDS=180
 	readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)	# This value is for a single-core CPU and 1m load average of 1.0
 	readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)	# This value is for a single-core CPU and 1m load average of 1.0
@@ -383,6 +383,7 @@ StartQPKGLibrary()
 					DisplayCommitToLog "symlink created: '$userlink_pathfile'"
 				else
 					DisplayErrCommitAllLogs "unable to create symlink to '$QPKG_NAME' launcher"
+
 					SetError
 					return 1
 				fi
@@ -454,6 +455,7 @@ StartQPKGLibrary()
 
 	if [[ $daemon_port -le 0 && $ui_port -le 0 && $ui_port_secure -le 0 ]]; then
 		DisplayErrCommitAllLogs "unable to start daemon: 'no port specified'"
+
 		SetError
 		return 1
 	elif IsNotPortAvailable $ui_port || IsNotPortAvailable $ui_port_secure; then
@@ -471,6 +473,7 @@ StartQPKGLibrary()
 
 	if IsUseVirtualPythonEnv && IsNotVirtualEnvironmentExist; then
 		DisplayErrCommitAllLogs "unable to start daemon: 'virtual environment does not exist'"
+
 		SetError
 		return 1
 	fi
@@ -488,8 +491,9 @@ StartQPKGLibrary()
 	fi
 
 	if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_in_screen_session"; then
-		SetError
 		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
+
+		SetError
 		return 1
 	fi
 
@@ -498,15 +502,17 @@ StartQPKGLibrary()
 
 	if ! IsDaemonActive; then
 		DisplayErrCommitAllLogs 'IsDaemonActive() failed!'
-		SetError
 		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
+
+		SetError
 		return 1
 	fi
 
 	if ! CheckPorts; then
 		DisplayErrCommitAllLogs 'CheckPorts() failed!'
-		SetError
 		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
+
+		SetError
 		return 1
 	fi
 
@@ -629,6 +635,7 @@ InstallAddons()
 
 	if IsNotVirtualEnvironmentExist; then
 		DisplayErrCommitAllLogs "unable to install addons: 'virtual environment does not exist'"
+
 		SetError
 		return 1
 	fi
@@ -790,6 +797,7 @@ RestoreConfig()
 
 	if [[ ! -f $qpkg_backup_pathfile ]]; then
 		DisplayErrCommitAllLogs "unable to restore configuration: 'no backup file was found'"
+
 		SetError
 		return 1
 	fi
@@ -846,6 +854,7 @@ LoadPorts()
 			;;
 		*)
 			DisplayErrCommitAllLogs "unable to load ports: action '$1' is unrecognised"
+
 			SetError
 			return 1
 	esac
@@ -1242,6 +1251,7 @@ ViewLog()
 		fi
 	else
 		Display "service log not found: $SERVICE_LOG_PATHFILE"
+
 		SetError
 		return 1
 	fi
@@ -1564,6 +1574,7 @@ CheckPorts()
 
 	if [[ -z $msg ]]; then
 		DisplayErrCommitAllLogs 'no response on configured port(s)'
+
 		SetError
 		return 1
 	else
@@ -1677,6 +1688,7 @@ IsQNAP()
 
 	if [[ ! -e /etc/init.d/functions ]]; then
 		Display 'QTS functions missing (is this a QNAP NAS?)'
+
 		SetError
 		return 1
 	fi
@@ -1994,6 +2006,7 @@ IsSysFilePresent()
 
 	if [[ ! -e $1 ]]; then
 		Display "A required NAS system file is missing: '$1'"
+
 		SetError
 		return 1
 	fi
