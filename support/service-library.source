@@ -2384,7 +2384,7 @@ IsStatus()
 IsNotStatus()
 	{
 
-	[[ ${_get_status_flag:=false} = false ]]
+	! IsStatus
 
 	}
 
@@ -2432,17 +2432,31 @@ IsNotRestart()
 
 	}
 
+IsLog()
+	{
+
+	[[ $service_action = log ]]
+
+	}
+
 IsNotLog()
 	{
 
-	! [[ $service_action = log ]]
+	! IsLog
+
+	}
+
+IsNone()
+	{
+
+	[[ $service_action = none ]]
 
 	}
 
 IsNotNone()
 	{
 
-	! [[ $service_action = none ]]
+	! IsNone
 
 	}
 
