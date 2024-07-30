@@ -1471,7 +1471,7 @@ WriteToLog()
 StripANSICodes()
 	{
 
-	# QTS 4.2.6 BusyBox 'sed' doesn't fully support extended regexes, so this only works with a real 'sed'.
+	# QTS 4.2.6 BusyBox `sed` doesn't fully support extended regexes, so this only works with a real `sed`.
 
 	if [[ -e /opt/bin/sed && -L /opt/etc/passwd ]]; then	# Try to ensure Entware is active before using this utility.
 		/opt/bin/sed -r 's/\x1b\[[0-9;]*m//g' <<< "${1:-}"
@@ -3205,7 +3205,7 @@ ProcessArgs()
 		esac
 	fi
 
-	if IsNotStatus && IsNotLog && IsNotNone; then
+	if IsNotLog && IsNotNone; then
 		if IsError; then
 			SetServiceResultAsFailed
 
