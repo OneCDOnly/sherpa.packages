@@ -91,7 +91,6 @@ InitService()
 		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
 		# run_daemon_in_screen_session=false
-		run_daemon_in_screen_session=true
 
 		# silence_pypi_errors=true						# If true, PyPI package processing errors won't be shown in system log.
 
