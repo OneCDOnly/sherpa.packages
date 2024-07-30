@@ -34,7 +34,6 @@ venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
 can_restart_to_update=true
 install_pip_deps=true
-pidfile_is_managed_by_app=true
 recheck_daemon_pid_after_launch=true
 interpreter=/opt/bin/python3
 source_git_branch=master
@@ -44,7 +43,7 @@ get_ui_listening_address_cmd="/sbin/getcfg general web_host -d undefined -f $qpk
 get_ui_port_cmd="/sbin/getcfg general web_port -d 0 -f $qpkg_ini_pathfile"
 get_ui_port_secure_cmd="/sbin/getcfg general web_port -d 0 -f $qpkg_ini_pathfile"
 get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg general enable_https -d 0 -f '$qpkg_ini_pathfile') = 1 ]]'
-daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_ini_pathfile") --config $qpkg_ini_pathfile --pidfile $daemon_pid_pathfile"
+daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_ini_pathfile") --config $qpkg_ini_pathfile"
 if [[ -e $qpkg_ini_default_pathfile ]];then
 /sbin/setcfg General log_dir "$QPKG_CONFIG_PATH"/logs -f "$qpkg_ini_default_pathfile"
 /sbin/setcfg General cache_dir "$QPKG_CONFIG_PATH"/cache -f "$qpkg_ini_default_pathfile"
