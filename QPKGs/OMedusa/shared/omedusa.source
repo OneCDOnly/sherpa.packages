@@ -81,7 +81,6 @@ InitService()
 		install_pip_deps=true
 
 		# pidfile_is_managed_by_app=false
-		pidfile_is_managed_by_app=true
 
 		# recheck_daemon_pid_after_launch=false			# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 		recheck_daemon_pid_after_launch=true
@@ -147,7 +146,7 @@ InitService()
 		get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg general enable_https -d 0 -f '$qpkg_ini_pathfile') = 1 ]]'
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_ini_pathfile") --config $qpkg_ini_pathfile --pidfile $daemon_pid_pathfile"
+		daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_ini_pathfile") --config $qpkg_ini_pathfile"
 
 	if [[ -e $qpkg_ini_default_pathfile ]]; then
 		/sbin/setcfg General log_dir "$QPKG_CONFIG_PATH"/logs -f "$qpkg_ini_default_pathfile"
