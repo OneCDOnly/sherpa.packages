@@ -21,12 +21,11 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OTransmission
-readonly SERVICE_SCRIPT_VERSION='240730'
+readonly SERVICE_SCRIPT_VERSION='240731'
 InitService()
 {
 qpkg_ini_file=settings.json
 daemon_pathfile=/opt/bin/transmission-daemon
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 orig_daemon_service_script=/opt/etc/init.d/S88transmission

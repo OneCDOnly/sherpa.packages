@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240730'
+readonly SERVICE_LIB_VERSION='240731'
 InitLibrary()
 {
 IsQNAP || exit
@@ -58,10 +58,10 @@ readonly APP_VERSION_STORE_PATHFILE=$QPKG_PATH/version.stored
 readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
 readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
 readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
-readonly SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
 readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
 readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
 readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
+readonly SERVICE_SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
 export HOME=$QPKG_CONFIG_PATH
 local_temp_path=undefined
 pip_cache_path=undefined
@@ -71,7 +71,7 @@ venv_path=undefined
 qpkg_ini_file=config.ini
 app_version_pathfile=undefined
 daemon_pathfile=undefined
-daemon_pid_pathfile=undefined
+daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 launcher_pathfile=undefined
 qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
@@ -84,10 +84,10 @@ allow_access_to_sys_packages=true
 can_restart_to_update=false
 install_pip_deps=false
 pidfile_is_managed_by_app=false
-recheck_daemon_pid_after_launch=false
 recheck_daemon_pid_after_kill=false
+recheck_daemon_pid_after_launch=false
 resolve_remote_url=false
-run_daemon_in_screen_session=false
+run_daemon_in_screen_session=true
 silence_pypi_errors=true
 daemon_port=0
 interpreter=undefined
@@ -120,7 +120,7 @@ GetAppVersion
 DisableOpkgDaemonStart
 IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate >/dev/null
 if [[ $run_daemon_in_screen_session = true && ! -e $SCREEN_CONF_PATHFILE ]];then
-echo -e "logfile ${SCREEN_LOG_PATHFILE}\nlogfile flush 1\nlog on" > "$SCREEN_CONF_PATHFILE"
+echo -e "logfile ${SERVICE_SCREEN_LOG_PATHFILE}\nlogfile flush 1\nlog on" > "$SCREEN_CONF_PATHFILE"
 fi
 }
 ShowHelp()
@@ -173,15 +173,14 @@ StartQPKGLibrary()
 {
 IsError && return
 if IsNotRestart && IsNotBackup && IsNotRestore && IsNotClean && IsNotReset;then
-StateQPKG
+ShowQPKGStates
 IsDaemonActive && return
 fi
 if IsBackup || IsRestore || IsClean || IsReset;then
 IsNotRestartPending && return
 fi
 CloneGitRepo || { SetError;return 1 ;}
-if IsNotDaemon;then
-if [[ $userlink_pathfile != undefined ]];then
+if IsNotDaemon && [[ $userlink_pathfile != undefined ]];then
 if [[ ! -L $userlink_pathfile && -e $launcher_pathfile ]];then
 ln -s "$launcher_pathfile" "$userlink_pathfile"
 if [[ -L $userlink_pathfile ]];then
@@ -195,7 +194,6 @@ else
 DisplayCommitToLog "symlink exists: '$userlink_pathfile'"
 fi
 return
-fi
 fi
 if IsOnlineArchive;then
 local source_archive_pathfile=$qpkg_repo_path/source.archive
@@ -262,28 +260,28 @@ fi
 local msg='start daemon'
 if [[ $run_daemon_in_screen_session = true ]];then
 msg+=' (in screen session)'
-rm -f "${SCREEN_LOG_PATHFILE:?}"
+rm -f "${SERVICE_SCREEN_LOG_PATHFILE:?}"
 fi
 if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]];then
 daemon_launch_cmd="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
 DisplayCommitToLog "nice daemon to: $nice_daemon_to"
 fi
 if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_in_screen_session";then
-[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
+[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
 SetError
 return 1
 fi
 WaitForDaemon
 WaitForStartPid
 if ! IsDaemonActive;then
-DisplayErrCommitAllLogs 'IsDaemonActive() failed!'
-[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
+DisplayErrCommitAllLogs 'daemon has failed to start!'
+[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
 SetError
 return 1
 fi
 if ! CheckPorts;then
-DisplayErrCommitAllLogs 'CheckPorts() failed!'
-[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
+DisplayErrCommitAllLogs 'port tests failed!'
+[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
 SetError
 return 1
 fi
@@ -308,7 +306,7 @@ DisplayCommitToLog "symlink removed: '$userlink_pathfile'"
 fi
 return
 fi
-StateQPKG
+ShowQPKGStates
 if IsDaemonActive;then
 if IsRestart || IsBackup || IsRestore || IsClean || IsReset;then
 SetRestartPending
@@ -532,7 +530,7 @@ app_version=unknown
 return 1
 fi
 }
-StateQPKG()
+ShowQPKGStates()
 {
 DisplayWaitCommitToLog 'enabled:'
 if IsQPKGEnabled;then
@@ -560,7 +558,7 @@ fi
 StatusQPKGLibrary()
 {
 IsNotError || return
-StateQPKG
+ShowQPKGStates
 if IsDaemonActive;then
 if IsDaemon || IsSourcedOnline;then
 LoadPorts app
@@ -829,7 +827,7 @@ z=$?
 fi
 fi
 if [[ ${5:-false} = true ]];then
-FormatAsCommand "$1" >> "$SCREEN_LOG_PATHFILE"
+FormatAsCommand "$1" >> "$SERVICE_SCREEN_LOG_PATHFILE"
 /usr/sbin/screen -c "$SCREEN_CONF_PATHFILE" -dmLS "$QPKG_NAME" bash -c "$1"
 z=$?
 fi
@@ -1942,7 +1940,7 @@ ShowUnsupportedAction "$user_arg"
 fi
 esac
 fi
-if IsNotStatus && IsNotLog && IsNotNone;then
+if IsNotLog && IsNotNone;then
 if IsError;then
 SetServiceResultAsFailed
 exit 1

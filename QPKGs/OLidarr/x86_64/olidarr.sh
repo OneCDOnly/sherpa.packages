@@ -21,20 +21,18 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OLidarr
-readonly SERVICE_SCRIPT_VERSION='240730'
+readonly SERVICE_SCRIPT_VERSION='240731'
 InitService()
 {
 local_temp_path=$QPKG_PATH/tmp
 qpkg_repo_path=$QPKG_PATH/repo-cache
 qpkg_ini_file=config.xml
 daemon_pathfile=$qpkg_repo_path/Lidarr/Lidarr
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
 allow_access_to_sys_packages=false
 can_restart_to_update=true
-run_daemon_in_screen_session=true
 ui_listening_address=0.0.0.0
 remote_url='https://lidarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&'
 remote_url+='arch=x64'

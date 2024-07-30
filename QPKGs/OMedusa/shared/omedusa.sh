@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OMedusa
-readonly SERVICE_SCRIPT_VERSION='240730'
+readonly SERVICE_SCRIPT_VERSION='240731'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache
@@ -30,7 +30,6 @@ qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
 venv_path=$QPKG_PATH/venv
 app_version_pathfile=$qpkg_repo_path/medusa/common.py
 daemon_pathfile=$qpkg_repo_path/start.py
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
 can_restart_to_update=true

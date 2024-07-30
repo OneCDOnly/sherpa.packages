@@ -21,21 +21,19 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=WebSSH
-readonly SERVICE_SCRIPT_VERSION='240730'
+readonly SERVICE_SCRIPT_VERSION='240731'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache
 qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
 venv_path=$QPKG_PATH/venv
 daemon_pathfile=$venv_path/bin/wssh
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 qpkg_backup_pathfile=undefined
 qpkg_ini_pathfile=undefined
 qpkg_ini_default_pathfile=undefined
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python
 can_restart_to_update=true
-run_daemon_in_screen_session=true
 interpreter=/opt/bin/python3
 source_git_branch=master
 ui_listening_address=0.0.0.0

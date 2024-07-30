@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=NZBHydra2
-readonly SERVICE_SCRIPT_VERSION='240730'
+readonly SERVICE_SCRIPT_VERSION='240731'
 InitService()
 {
 local_temp_path=$QPKG_PATH/tmp
@@ -30,7 +30,6 @@ qpkg_repo_path=$QPKG_PATH/repo-cache
 venv_path=$QPKG_PATH/venv
 qpkg_ini_file=nzbhydra.yml
 daemon_pathfile=$qpkg_repo_path/nzbhydra2wrapperPy3.py
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 venv_pip_pathfile=$venv_path/bin/pip

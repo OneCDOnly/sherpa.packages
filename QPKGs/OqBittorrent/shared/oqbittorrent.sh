@@ -21,12 +21,11 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OqBittorrent
-readonly SERVICE_SCRIPT_VERSION='240730'
+readonly SERVICE_SCRIPT_VERSION='240731'
 InitService()
 {
 qpkg_ini_file=qBittorrent.conf
 daemon_pathfile=/opt/bin/qbittorrent-nox
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/qBittorrent/config/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 orig_daemon_service_script=/opt/etc/init.d/S89qbittorrent
