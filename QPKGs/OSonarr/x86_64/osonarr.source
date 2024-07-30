@@ -82,14 +82,13 @@ InitService()
 
 		# pidfile_is_managed_by_app=false
 
-		# recheck_daemon_pid_after_launch=false			# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
-
 		# recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+
+		# recheck_daemon_pid_after_launch=false			# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 
 		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
-		# run_daemon_in_screen_session=false
-		run_daemon_in_screen_session=true
+		# run_daemon_in_screen_session=true
 
 		# silence_pypi_errors=true						# If true, PyPI package processing errors won't be shown in system log.
 
