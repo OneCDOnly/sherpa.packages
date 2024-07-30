@@ -46,8 +46,7 @@ InitService()
 
 		# daemon_pathfile=undefined
 
-		# daemon_pid_pathfile=undefined
-		daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+		# daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 
 		# launcher_pathfile=undefined					# On-demand executables only.
 
