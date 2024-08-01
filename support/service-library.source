@@ -40,12 +40,12 @@ InitLibrary()
 	UnsetError
 	UnsetRestartPending
 
-	readonly DAEMON_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)	# This value is for a single-core CPU and 1m load average of 1.0
-	readonly DAEMON_STOP_TIMEOUT_SECONDS=180
-	readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)	# This value is for a single-core CPU and 1m load average of 1.0
-	readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)	# This value is for a single-core CPU and 1m load average of 1.0
-	readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)	# This value is for a single-core CPU and 1m load average of 1.0
-	readonly PORT_CHECK_TIMEOUT_SECONDS=240
+	readonly DAEMON_START_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)	# This value is for a single-core CPU and 1m load average of 1.0
+	readonly DAEMON_STOP_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)	# This value is for a single-core CPU and 1m load average of 1.0
+	readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)		# This value is for a single-core CPU and 1m load average of 1.0
+	readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)		# This value is for a single-core CPU and 1m load average of 1.0
+	readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)		# This value is for a single-core CPU and 1m load average of 1.0
+	readonly PORT_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)			# This value is for a single-core CPU and 1m load average of 1.0
 
 	readonly BACKUP_PATH=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
 	readonly CHARS_REGULAR_PROMPT='$ '
@@ -124,7 +124,8 @@ InitLibrary()
 
 		resolve_remote_url=false					# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
-		run_daemon_in_screen_session=true			# If 'true', daemon is always launched in a screen session, but will exit screen when it can.
+		run_daemon_in_screen_session=false			# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
+													# NOTE: don't launch double-forked procs in a `screen` session.
 
 		silence_pypi_errors=true					# If 'true', PyPI package processing errors won't be shown in system log.
 
@@ -235,7 +236,8 @@ InitLibrary()
 
 		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
-		# run_daemon_in_screen_session=true				# If 'true', daemon is always launched in a screen session, but will exit screen when it can.
+		# run_daemon_in_screen_session=false			# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
+														# NOTE: don't launch double-forked procs in a `screen` session.
 
 		# silence_pypi_errors=true						# If 'true', PyPI package processing errors won't be shown in system log.
 
@@ -559,7 +561,7 @@ StopQPKGLibrary()
 
 		pid=$(<$daemon_pid_pathfile)
 
-		DisplayWaitCommitToLog "$msg (PID:${pid}) with SIGTERM (no-more than $DAEMON_STOP_TIMEOUT_SECONDS second$(Pluralise "$DAEMON_STOP_TIMEOUT_SECONDS")):"
+		DisplayWaitCommitToLog "$msg (PID:${pid}) with SIGTERM (no-more than $DAEMON_STOP_CHECK_TIMEOUT_SECONDS second$(Pluralise "$DAEMON_STOP_CHECK_TIMEOUT_SECONDS")):"
 
 		kill "$pid"
 
@@ -569,7 +571,7 @@ StopQPKGLibrary()
 				((acc++))
 				DisplayWait "$acc,"
 
-				if [[ $acc -ge $DAEMON_STOP_TIMEOUT_SECONDS ]]; then
+				if [[ $acc -ge $DAEMON_STOP_CHECK_TIMEOUT_SECONDS ]]; then
 					DisplayCommitToLog 'failed!'
 					DisplayCommitToLog "$msg (PID:${pid}) with SIGKILL:"
 
@@ -1146,7 +1148,7 @@ WaitForDaemon()
 	if [[ -n ${1:-} ]]; then
 		MAX_SECONDS=$1
 	else
-		MAX_SECONDS=$DAEMON_CHECK_TIMEOUT_SECONDS
+		MAX_SECONDS=$DAEMON_START_CHECK_TIMEOUT_SECONDS
 	fi
 
 	if [[ ! -e ${1:-} ]]; then

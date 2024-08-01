@@ -72,24 +72,26 @@ InitService()
 		# allow_access_to_sys_packages=true
 		allow_access_to_sys_packages=false
 
-		# can_restart_to_update=false					# If true, application can be updated by restarting service-script.
+		# can_restart_to_update=false					# If 'true', application can be updated by restarting service-script.
 		can_restart_to_update=true
 
 		# install_pip_deps=false
 
 		# pidfile_is_managed_by_app=false
 
-		# recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		# recheck_daemon_pid_after_kill=false			# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 
-		# recheck_daemon_pid_after_launch=false			# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
-		recheck_daemon_pid_after_launch=true
+		# recheck_daemon_pid_after_launch=false			# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+# 		recheck_daemon_pid_after_launch=true
 
 		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 		resolve_remote_url=true
 
-		# run_daemon_in_screen_session=true
+		# run_daemon_in_screen_session=false			# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
+														# NOTE: don't launch double-forked procs in a `screen` session.
+		run_daemon_in_screen_session=true
 
-		# silence_pypi_errors=true						# If true, PyPI package processing errors won't be shown in system log.
+		# silence_pypi_errors=true						# If 'true', PyPI package processing errors won't be shown in system log.
 
 	# >>> Values <<<
 
