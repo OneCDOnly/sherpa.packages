@@ -2327,6 +2327,16 @@ SetServiceResultAsInProgress()
 
 	}
 
+SetServiceResultAsUnsupported()
+	{
+
+	# Selected action isn't supported by this QPKG.
+
+	service_result=unsupported
+	CommitServiceResult
+
+	}
+
 CommitServiceAction()
 	{
 
@@ -3191,6 +3201,9 @@ ProcessArgs()
 
 				SetServiceAction stop
 				StopQPKG
+				;;
+			uninstall)
+				: # Ignore.
 				;;
 			?(-)v|?(--)version)
 				Display "package: '$QPKG_VERSION'"
