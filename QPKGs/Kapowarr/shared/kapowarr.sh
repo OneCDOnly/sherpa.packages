@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=Kapowarr
-readonly SERVICE_SCRIPT_VERSION='240801'
+readonly SERVICE_SCRIPT_VERSION='240802'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache
@@ -34,7 +34,7 @@ venv_python_pathfile=$venv_path/bin/python3
 can_restart_to_update=true
 install_pip_deps=true
 pidfile_is_managed_by_app=true
-recheck_daemon_pid_after_launch=true
+run_daemon_in_screen_session=true
 interpreter=/opt/bin/python3
 source_git_branch=development
 source_git_branch_depth=shallow

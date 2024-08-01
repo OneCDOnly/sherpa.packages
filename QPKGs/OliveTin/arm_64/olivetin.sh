@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OliveTin
-readonly SERVICE_SCRIPT_VERSION='240801'
+readonly SERVICE_SCRIPT_VERSION='240802'
 InitService()
 {
 qpkg_repo_path=$QPKG_PATH/repo-cache
@@ -31,8 +31,8 @@ qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
 allow_access_to_sys_packages=false
 can_restart_to_update=true
-recheck_daemon_pid_after_launch=true
 resolve_remote_url=true
+run_daemon_in_screen_session=true
 remote_arch=linux-arm64
 daemon_pathfile=$qpkg_repo_path/OliveTin-$remote_arch/OliveTin
 remote_url='https://api.github.com/repos/OliveTin/OliveTin/releases/latest'

@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=Unmanic
-readonly SERVICE_SCRIPT_VERSION='240801'
+readonly SERVICE_SCRIPT_VERSION='240802'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache
@@ -36,6 +36,7 @@ qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
 can_restart_to_update=true
+run_daemon_in_screen_session=true
 interpreter=/opt/bin/python3
 ui_listening_address=0.0.0.0
 get_ui_listening_address_cmd="echo $ui_listening_address"

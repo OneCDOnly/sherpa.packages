@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240801'
+readonly SERVICE_LIB_VERSION='240802'
 InitLibrary()
 {
 IsQNAP || exit
@@ -39,12 +39,12 @@ break
 done
 UnsetError
 UnsetRestartPending
-readonly DAEMON_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
-readonly DAEMON_STOP_TIMEOUT_SECONDS=180
+readonly DAEMON_START_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
+readonly DAEMON_STOP_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
 readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)
 readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
 readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
-readonly PORT_CHECK_TIMEOUT_SECONDS=240
+readonly PORT_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
 readonly BACKUP_PATH=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
 readonly CHARS_REGULAR_PROMPT='$ '
 readonly CHARS_SUDO_PROMPT="${CHARS_REGULAR_PROMPT}sudo "
@@ -87,7 +87,7 @@ pidfile_is_managed_by_app=false
 recheck_daemon_pid_after_kill=false
 recheck_daemon_pid_after_launch=false
 resolve_remote_url=false
-run_daemon_in_screen_session=true
+run_daemon_in_screen_session=false
 silence_pypi_errors=true
 daemon_port=0
 interpreter=undefined
@@ -316,14 +316,14 @@ local pid=0
 local msg='stop daemon'
 [[ $run_daemon_in_screen_session = true ]] && msg+=' (in screen session)'
 pid=$(<$daemon_pid_pathfile)
-DisplayWaitCommitToLog "$msg (PID:${pid}) with SIGTERM (no-more than $DAEMON_STOP_TIMEOUT_SECONDS second$(Pluralise "$DAEMON_STOP_TIMEOUT_SECONDS")):"
+DisplayWaitCommitToLog "$msg (PID:${pid}) with SIGTERM (no-more than $DAEMON_STOP_CHECK_TIMEOUT_SECONDS second$(Pluralise "$DAEMON_STOP_CHECK_TIMEOUT_SECONDS")):"
 kill "$pid"
 while true;do
 while [[ -d /proc/$pid ]];do
 /bin/sleep 1
 ((acc++))
 DisplayWait "$acc,"
-if [[ $acc -ge $DAEMON_STOP_TIMEOUT_SECONDS ]];then
+if [[ $acc -ge $DAEMON_STOP_CHECK_TIMEOUT_SECONDS ]];then
 DisplayCommitToLog 'failed!'
 DisplayCommitToLog "$msg (PID:${pid}) with SIGKILL:"
 kill -9 "$pid" 2> /dev/null
@@ -698,7 +698,7 @@ local -i i=0
 if [[ -n ${1:-} ]];then
 MAX_SECONDS=$1
 else
-MAX_SECONDS=$DAEMON_CHECK_TIMEOUT_SECONDS
+MAX_SECONDS=$DAEMON_START_CHECK_TIMEOUT_SECONDS
 fi
 if [[ ! -e ${1:-} ]];then
 DisplayWaitCommitToLog 'wait for daemon to appear:'
