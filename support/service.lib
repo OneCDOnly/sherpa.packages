@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240802'
+readonly SERVICE_LIB_VERSION='240803'
 InitLibrary()
 {
 IsQNAP || exit
@@ -1373,6 +1373,11 @@ SetServiceResultAsInProgress()
 service_result=in-progress
 CommitServiceResult
 }
+SetServiceResultAsUnsupported()
+{
+service_result=unsupported
+CommitServiceResult
+}
 CommitServiceAction()
 {
 if IsNotStatus && IsNotLog && IsNotNone;then
@@ -1925,6 +1930,9 @@ StatusQPKG
 IsSU ||	exit
 SetServiceAction stop
 StopQPKG
+;;
+uninstall)
+:
 ;;
 ?(-)v|?(--)version)
 Display "package: '$QPKG_VERSION'"
