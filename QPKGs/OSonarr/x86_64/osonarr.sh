@@ -21,14 +21,13 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OSonarr
-readonly SERVICE_SCRIPT_VERSION='240722'
+readonly SERVICE_SCRIPT_VERSION='240803'
 InitService()
 {
 local_temp_path=$QPKG_PATH/tmp
 qpkg_repo_path=$QPKG_PATH/repo-cache
 qpkg_ini_file=config.xml
 daemon_pathfile=$qpkg_repo_path/Sonarr/Sonarr
-daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"

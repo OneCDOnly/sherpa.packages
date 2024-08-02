@@ -50,8 +50,7 @@ InitService()
 		# daemon_pathfile=undefined
 		daemon_pathfile=$qpkg_repo_path/SABnzbd.py
 
-		# daemon_pid_pathfile=undefined
-		daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+		# daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 
 		# launcher_pathfile=undefined					# On-demand executables only.
 
@@ -75,7 +74,7 @@ InitService()
 
 		# allow_access_to_sys_packages=true
 
-		# can_restart_to_update=false					# If true, application can be updated by restarting service-script.
+		# can_restart_to_update=false					# If 'true', application can be updated by restarting service-script.
 		can_restart_to_update=true
 
 		# install_pip_deps=false
@@ -84,16 +83,16 @@ InitService()
 		# pidfile_is_managed_by_app=false
 		pidfile_is_managed_by_app=true
 
-		# recheck_daemon_pid_after_launch=false			# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		# recheck_daemon_pid_after_launch=false			# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 		recheck_daemon_pid_after_launch=true
 
-		# recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		# recheck_daemon_pid_after_kill=false			# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 
 		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
 		# run_daemon_in_screen_session=false
 
-		# silence_pypi_errors=true						# If true, PyPI package processing errors won't be shown in system log.
+		# silence_pypi_errors=true						# If 'true', PyPI package processing errors won't be shown in system log.
 
 	# >>> Values <<<
 

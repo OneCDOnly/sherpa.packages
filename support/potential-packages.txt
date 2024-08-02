@@ -1,3 +1,9 @@
+* nix package manager?
+	- https://nixos.org/download/
+
+* audiobookshelf?
+	- https://github.com/advplyr/audiobookshelf
+
 * Soulseek daemon?
 	- https://github.com/slskd/slskd
 

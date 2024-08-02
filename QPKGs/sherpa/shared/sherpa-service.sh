@@ -21,48 +21,128 @@
 #*   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 #*	 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
+set -o nounset -o pipefail
+shopt -s extglob
+ln -fns /proc/self/fd /dev/fd
+readonly USER_ARGS_RAW=$*
 Init()
 {
-local -r QPKG_PATH=$(/sbin/getcfg sherpa Install_Path -f /etc/config/qpkg.conf)
+readonly QPKG_NAME=sherpa
+local -r QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
 readonly REAL_LOG_PATHFILE=$QPKG_PATH/logs/session.archive.log
 readonly REAL_LOADER_SCRIPT_PATHNAME=$QPKG_PATH/sherpa-loader.sh
 readonly APPARENT_LOADER_SCRIPT_PATHNAME=/usr/sbin/sherpa
 readonly GUI_LOG_PATHFILE=/home/httpd/sherpa.debug.log
-readonly SERVICE_STATUS_PATHFILE=/var/run/sherpa.last.operation
+readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -f /etc/config/qpkg.conf)
+readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
+readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
 [[ ! -d $(/usr/bin/dirname "$REAL_LOG_PATHFILE") ]] && mkdir -p "$(/usr/bin/dirname "$REAL_LOG_PATHFILE")"
 [[ ! -e $REAL_LOG_PATHFILE ]] && /bin/touch "$REAL_LOG_PATHFILE"
 }
-SetServiceOperationResult()
+StartQPKG()
 {
-[[ -n $1 && -n $SERVICE_STATUS_PATHFILE ]] && echo "$1" > "$SERVICE_STATUS_PATHFILE"
-}
-Init
-case $1 in
-start)
 [[ ! -L $APPARENT_LOADER_SCRIPT_PATHNAME ]] && /bin/ln -s "$REAL_LOADER_SCRIPT_PATHNAME" "$APPARENT_LOADER_SCRIPT_PATHNAME"
 [[ ! -L $GUI_LOG_PATHFILE ]] && /bin/ln -s "$REAL_LOG_PATHFILE" "$GUI_LOG_PATHFILE"
 echo 'symlinks created'
-;;
-stop)
+}
+StopQPKG()
+{
 [[ -L $APPARENT_LOADER_SCRIPT_PATHNAME ]] && rm -f "$APPARENT_LOADER_SCRIPT_PATHNAME"
 [[ -L $GUI_LOG_PATHFILE ]] && rm -f "$GUI_LOG_PATHFILE"
 echo 'symlinks removed'
-;;
-restart)
-$0 stop
-$0 start
-;;
-status)
+}
+StatusQPKG()
+{
 if [[ -L $APPARENT_LOADER_SCRIPT_PATHNAME ]];then
-echo 'active'
+echo active
 exit 0
 else
-echo 'inactive'
+echo inactive
 exit 1
+fi
+}
+ShowTitle()
+{
+echo "$(ShowAsTitleName) $(ShowAsVersion)"
+}
+ShowAsTitleName()
+{
+TextBrightWhite $QPKG_NAME
+}
+ShowAsVersion()
+{
+printf '%s' "v$QPKG_VERSION"
+}
+ShowAsUsage()
+{
+echo -e "\nUsage: $0 {start|stop|restart|status}"
+}
+SetServiceAction()
+{
+service_action=${1:-none}
+CommitServiceAction
+SetServiceResultAsInProgress
+}
+SetServiceResultAsOK()
+{
+service_result=ok
+CommitServiceResult
+}
+SetServiceResultAsFailed()
+{
+service_result=failed
+CommitServiceResult
+}
+SetServiceResultAsInProgress()
+{
+service_result=in-progress
+CommitServiceResult
+}
+CommitServiceAction()
+{
+echo "$service_action" > "$SERVICE_ACTION_PATHFILE"
+}
+CommitServiceResult()
+{
+echo "$service_result" > "$SERVICE_RESULT_PATHFILE"
+}
+TextBrightWhite()
+{
+[[ -n ${1:-} ]] || return
+printf '\033[1;97m%s\033[0m' "$1"
+}
+Init
+user_arg=${USER_ARGS_RAW%% *}
+case $user_arg in
+?(--)start)
+SetServiceAction start
+if StartQPKG;then
+SetServiceResultAsOK
+else
+SetServiceResultAsFailed
+fi
+;;
+?(-)s|?(--)status)
+StatusQPKG
+;;
+?(--)stop)
+SetServiceAction stop
+if StopQPKG;then
+SetServiceResultAsOK
+else
+SetServiceResultAsFailed
+fi
+;;
+?(-)r|?(--)restart)
+SetServiceAction restart
+if StopQPKG && StartQPKG;then
+SetServiceResultAsOK
+else
+SetServiceResultAsFailed
 fi
 ;;
 *)
-echo -e "\n Usage: $0 {start|stop|restart|status}\n"
+ShowTitle
+ShowAsUsage
 esac
-SetServiceOperationResult ok
-exit
+exit 0

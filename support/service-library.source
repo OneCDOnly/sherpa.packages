@@ -40,12 +40,12 @@ InitLibrary()
 	UnsetError
 	UnsetRestartPending
 
-	readonly DAEMON_CHECK_TIMEOUT_SECONDS=60
-	readonly DAEMON_STOP_TIMEOUT_SECONDS=180
-	readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=60
-	readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)	# This value is for a single-core CPU and 1m load average of 1.0
-	readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)	# This value is for a single-core CPU and 1m load average of 1.0
-	readonly PORT_CHECK_TIMEOUT_SECONDS=240
+	readonly DAEMON_START_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)	# This value is for a single-core CPU and 1m load average of 1.0
+	readonly DAEMON_STOP_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)	# This value is for a single-core CPU and 1m load average of 1.0
+	readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)		# This value is for a single-core CPU and 1m load average of 1.0
+	readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)		# This value is for a single-core CPU and 1m load average of 1.0
+	readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)		# This value is for a single-core CPU and 1m load average of 1.0
+	readonly PORT_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)			# This value is for a single-core CPU and 1m load average of 1.0
 
 	readonly BACKUP_PATH=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
 	readonly CHARS_REGULAR_PROMPT='$ '
@@ -60,9 +60,10 @@ InitLibrary()
 		readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
 		readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
 	readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
-	readonly SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
+	readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
 	readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
-	readonly SERVICE_STATUS_PATHFILE=/var/run/$QPKG_NAME.last.operation
+	readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
+	readonly SERVICE_SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
 	export HOME=$QPKG_CONFIG_PATH
 
 	# NOTE: default session values are set here, but can be changed in the InitService() function for each QPKG.
@@ -89,7 +90,7 @@ InitLibrary()
 
 		daemon_pathfile=undefined
 
-		daemon_pid_pathfile=undefined
+		daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 
 		launcher_pathfile=undefined					# On-demand executables only.
 
@@ -111,21 +112,22 @@ InitLibrary()
 
 		allow_access_to_sys_packages=true
 
-		can_restart_to_update=false					# If true, application files can be updated by restarting service-script.
+		can_restart_to_update=false					# If 'true', application files can be updated by restarting service-script.
 
 		install_pip_deps=false
 
 		pidfile_is_managed_by_app=false
 
-		recheck_daemon_pid_after_launch=false		# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		recheck_daemon_pid_after_kill=false			# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 
-		recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		recheck_daemon_pid_after_launch=false		# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 
 		resolve_remote_url=false					# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
-		run_daemon_in_screen_session=false
+		run_daemon_in_screen_session=false			# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
+													# NOTE: don't launch double-forked procs in a `screen` session.
 
-		silence_pypi_errors=true					# If true, PyPI package processing errors won't be shown in system log.
+		silence_pypi_errors=true					# If 'true', PyPI package processing errors won't be shown in system log.
 
 	# >>> Values <<<
 
@@ -200,7 +202,7 @@ InitLibrary()
 
 		# daemon_pathfile=undefined
 
-		# daemon_pid_pathfile=undefined
+		# daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 
 		# launcher_pathfile=undefined					# On-demand executables only.
 
@@ -222,21 +224,22 @@ InitLibrary()
 
 		# allow_access_to_sys_packages=true
 
-		# can_restart_to_update=false					# If true, application can be updated by restarting service-script.
+		# can_restart_to_update=false					# If 'true', application can be updated by restarting service-script.
 
 		# install_pip_deps=false
 
 		# pidfile_is_managed_by_app=false
 
-		# recheck_daemon_pid_after_launch=false			# If true, application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		# recheck_daemon_pid_after_kill=false			# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 
-		# recheck_daemon_pid_after_kill=false			# If true, application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		# recheck_daemon_pid_after_launch=false			# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 
 		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
-		# run_daemon_in_screen_session=false
+		# run_daemon_in_screen_session=false			# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
+														# NOTE: don't launch double-forked procs in a `screen` session.
 
-		# silence_pypi_errors=true						# If true, PyPI package processing errors won't be shown in system log.
+		# silence_pypi_errors=true						# If 'true', PyPI package processing errors won't be shown in system log.
 
 	# >>> Values <<<
 
@@ -288,7 +291,7 @@ InitLibrary()
 	InitService										# Located in parent service-script. Service-script vars can override vars set here.
 	OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
 	pyver=''
-	service_operation=unspecified
+	service_action=unspecified
 	service_result=undefined
 	MakePaths
 	EnsureConfigFileExists
@@ -297,7 +300,7 @@ InitLibrary()
 	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate >/dev/null
 
 	if [[ $run_daemon_in_screen_session = true && ! -e $SCREEN_CONF_PATHFILE ]]; then
-		echo -e "logfile ${SCREEN_LOG_PATHFILE}\nlogfile flush 1\nlog on" > "$SCREEN_CONF_PATHFILE"
+		echo -e "logfile ${SERVICE_SCREEN_LOG_PATHFILE}\nlogfile flush 1\nlog on" > "$SCREEN_CONF_PATHFILE"
 	fi
 
 	}
@@ -363,7 +366,7 @@ StartQPKGLibrary()
 	IsError && return
 
 	if IsNotRestart && IsNotBackup && IsNotRestore && IsNotClean && IsNotReset; then
-		StateQPKG
+		ShowQPKGStates
 		IsDaemonActive && return
 	fi
 
@@ -373,24 +376,23 @@ StartQPKGLibrary()
 
 	CloneGitRepo || { SetError; return 1 ;}
 
-	if IsNotDaemon; then
-		if [[ $userlink_pathfile != undefined ]]; then
-			if [[ ! -L $userlink_pathfile && -e $launcher_pathfile ]]; then
-				ln -s "$launcher_pathfile" "$userlink_pathfile"
+	if IsNotDaemon && [[ $userlink_pathfile != undefined ]]; then
+		if [[ ! -L $userlink_pathfile && -e $launcher_pathfile ]]; then
+			ln -s "$launcher_pathfile" "$userlink_pathfile"
 
-				if [[ -L $userlink_pathfile ]]; then
-					DisplayCommitToLog "symlink created: '$userlink_pathfile'"
-				else
-					DisplayErrCommitAllLogs "unable to create symlink to '$QPKG_NAME' launcher"
-					SetError
-					return 1
-				fi
+			if [[ -L $userlink_pathfile ]]; then
+				DisplayCommitToLog "symlink created: '$userlink_pathfile'"
 			else
-				DisplayCommitToLog "symlink exists: '$userlink_pathfile'"
-			fi
+				DisplayErrCommitAllLogs "unable to create symlink to '$QPKG_NAME' launcher"
 
-			return
+				SetError
+				return 1
+			fi
+		else
+			DisplayCommitToLog "symlink exists: '$userlink_pathfile'"
 		fi
+
+		return
 	fi
 
 	if IsOnlineArchive; then
@@ -453,6 +455,7 @@ StartQPKGLibrary()
 
 	if [[ $daemon_port -le 0 && $ui_port -le 0 && $ui_port_secure -le 0 ]]; then
 		DisplayErrCommitAllLogs "unable to start daemon: 'no port specified'"
+
 		SetError
 		return 1
 	elif IsNotPortAvailable $ui_port || IsNotPortAvailable $ui_port_secure; then
@@ -470,6 +473,7 @@ StartQPKGLibrary()
 
 	if IsUseVirtualPythonEnv && IsNotVirtualEnvironmentExist; then
 		DisplayErrCommitAllLogs "unable to start daemon: 'virtual environment does not exist'"
+
 		SetError
 		return 1
 	fi
@@ -478,7 +482,7 @@ StartQPKGLibrary()
 
 	if [[ $run_daemon_in_screen_session = true ]]; then
 		msg+=' (in screen session)'
-		rm -f "${SCREEN_LOG_PATHFILE:?}"
+		rm -f "${SERVICE_SCREEN_LOG_PATHFILE:?}"
 	fi
 
 	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
@@ -487,6 +491,8 @@ StartQPKGLibrary()
 	fi
 
 	if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_in_screen_session"; then
+		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
+
 		SetError
 		return 1
 	fi
@@ -495,16 +501,18 @@ StartQPKGLibrary()
 	WaitForStartPid
 
 	if ! IsDaemonActive; then
-		DisplayErrCommitAllLogs 'IsDaemonActive() failed!'
+		DisplayErrCommitAllLogs 'daemon has failed to start!'
+		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
+
 		SetError
-		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
 		return 1
 	fi
 
 	if ! CheckPorts; then
-		DisplayErrCommitAllLogs 'CheckPorts() failed!'
+		DisplayErrCommitAllLogs 'port tests failed!'
+		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
+
 		SetError
-		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SCREEN_LOG_PATHFILE"
 		return 1
 	fi
 
@@ -539,7 +547,7 @@ StopQPKGLibrary()
 		return
 	fi
 
-	StateQPKG
+	ShowQPKGStates
 
 	if IsDaemonActive; then
 		if IsRestart || IsBackup || IsRestore || IsClean || IsReset; then
@@ -553,7 +561,7 @@ StopQPKGLibrary()
 
 		pid=$(<$daemon_pid_pathfile)
 
-		DisplayWaitCommitToLog "$msg (PID:${pid}) with SIGTERM (no-more than $DAEMON_STOP_TIMEOUT_SECONDS second$(Pluralise "$DAEMON_STOP_TIMEOUT_SECONDS")):"
+		DisplayWaitCommitToLog "$msg (PID:${pid}) with SIGTERM (no-more than $DAEMON_STOP_CHECK_TIMEOUT_SECONDS second$(Pluralise "$DAEMON_STOP_CHECK_TIMEOUT_SECONDS")):"
 
 		kill "$pid"
 
@@ -563,7 +571,7 @@ StopQPKGLibrary()
 				((acc++))
 				DisplayWait "$acc,"
 
-				if [[ $acc -ge $DAEMON_STOP_TIMEOUT_SECONDS ]]; then
+				if [[ $acc -ge $DAEMON_STOP_CHECK_TIMEOUT_SECONDS ]]; then
 					DisplayCommitToLog 'failed!'
 					DisplayCommitToLog "$msg (PID:${pid}) with SIGKILL:"
 
@@ -627,6 +635,7 @@ InstallAddons()
 
 	if IsNotVirtualEnvironmentExist; then
 		DisplayErrCommitAllLogs "unable to install addons: 'virtual environment does not exist'"
+
 		SetError
 		return 1
 	fi
@@ -788,6 +797,7 @@ RestoreConfig()
 
 	if [[ ! -f $qpkg_backup_pathfile ]]; then
 		DisplayErrCommitAllLogs "unable to restore configuration: 'no backup file was found'"
+
 		SetError
 		return 1
 	fi
@@ -844,6 +854,7 @@ LoadPorts()
 			;;
 		*)
 			DisplayErrCommitAllLogs "unable to load ports: action '$1' is unrecognised"
+
 			SetError
 			return 1
 	esac
@@ -884,7 +895,7 @@ GetAppVersion()
 
 	}
 
-StateQPKG()
+ShowQPKGStates()
 	{
 
 	DisplayWaitCommitToLog 'enabled:'
@@ -923,7 +934,7 @@ StatusQPKGLibrary()
 
 	IsNotError || return
 
-	StateQPKG
+	ShowQPKGStates
 
 	if IsDaemonActive; then
 		if IsDaemon || IsSourcedOnline; then
@@ -1137,7 +1148,7 @@ WaitForDaemon()
 	if [[ -n ${1:-} ]]; then
 		MAX_SECONDS=$1
 	else
-		MAX_SECONDS=$DAEMON_CHECK_TIMEOUT_SECONDS
+		MAX_SECONDS=$DAEMON_START_CHECK_TIMEOUT_SECONDS
 	fi
 
 	if [[ ! -e ${1:-} ]]; then
@@ -1240,6 +1251,7 @@ ViewLog()
 		fi
 	else
 		Display "service log not found: $SERVICE_LOG_PATHFILE"
+
 		SetError
 		return 1
 	fi
@@ -1277,7 +1289,7 @@ DisplayRunAndLog()
 	#   $1 = Processing message.
 	#   $2 = Commandstring to execute.
 	#   $3 = 'log:failure-only' (optional) - if specified, stdout & stderr are only recorded in the specified log if the command failed. Default is to always record stdout & stderr.
-	#   $4 = true/false (optional) - if true, run command in a screen session.
+	#   $4 = true/false (optional) - if true, run command in a `screen` session.
 
 	local -r LOG_PATHFILE=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 	local -i z=0
@@ -1314,7 +1326,7 @@ RunAndLog()
 	#   $2 = log pathfile to record stdout and stderr for commandstring.
 	#   $3 = 'log:failure-only' (optional) - if specified, stdout & stderr are only recorded in the specified log if the command failed. Default is to always record stdout & stderr.
 	#   $4 = e.g. '10' (optional) - an additional acceptable result code. Any other result from command (other than zero) will be considered a failure.
-	#   $5 = true/false (optional) - if true, run command in a screen session.
+	#   $5 = true/false (optional) - if true, run command in a `screen` session.
 
 	# Output:
 	#   stdout : commandstring stdout and stderr if script is in 'debug' mode.
@@ -1344,7 +1356,7 @@ RunAndLog()
 	fi
 
 	if [[ ${5:-false} = true ]]; then
-		FormatAsCommand "$1" >> "$SCREEN_LOG_PATHFILE"
+		FormatAsCommand "$1" >> "$SERVICE_SCREEN_LOG_PATHFILE"
 		/usr/sbin/screen -c "$SCREEN_CONF_PATHFILE" -dmLS "$QPKG_NAME" bash -c "$1"
 		z=$?
 	fi
@@ -1461,7 +1473,7 @@ WriteToLog()
 StripANSICodes()
 	{
 
-	# QTS 4.2.6 BusyBox 'sed' doesn't fully support extended regexes, so this only works with a real 'sed'.
+	# QTS 4.2.6 BusyBox `sed` doesn't fully support extended regexes, so this only works with a real `sed`.
 
 	if [[ -e /opt/bin/sed && -L /opt/etc/passwd ]]; then	# Try to ensure Entware is active before using this utility.
 		/opt/bin/sed -r 's/\x1b\[[0-9;]*m//g' <<< "${1:-}"
@@ -1562,6 +1574,7 @@ CheckPorts()
 
 	if [[ -z $msg ]]; then
 		DisplayErrCommitAllLogs 'no response on configured port(s)'
+
 		SetError
 		return 1
 	else
@@ -1675,6 +1688,7 @@ IsQNAP()
 
 	if [[ ! -e /etc/init.d/functions ]]; then
 		Display 'QTS functions missing (is this a QNAP NAS?)'
+
 		SetError
 		return 1
 	fi
@@ -1992,6 +2006,7 @@ IsSysFilePresent()
 
 	if [[ ! -e $1 ]]; then
 		Display "A required NAS system file is missing: '$1'"
+
 		SetError
 		return 1
 	fi
@@ -2277,37 +2292,65 @@ RequestLatestRelease()
 SetServiceAction()
 	{
 
-	service_operation=${1:-unspecified}
-	CommitServiceStatus "$service_operation"
+	service_action=${1:-none}
+	CommitServiceAction
+	SetServiceResultAsInProgress
 	DisplayAndCommitActionToLog
 
 	}
 
-SetServiceStatusAsOK()
+SetServiceResultAsOK()
 	{
 
 	service_result=ok
-	CommitServiceStatus "$service_result"
-	DisplayAndCommitStatusToLog
+	CommitServiceResult
+	DisplayAndCommitResultToLog
 
 	}
 
-SetServiceStatusAsFailed()
+SetServiceResultAsFailed()
 	{
 
 	service_result=failed
-	CommitServiceStatus "$service_result"
-	DisplayAndCommitStatusToLog
+	CommitServiceResult
+	DisplayAndCommitResultToLog
 
 	}
 
-CommitServiceStatus()
+SetServiceResultAsInProgress()
 	{
 
-	# $1 = result of operation to record
+	# Selected action is in-progress and hasn't generated a result yet.
+
+	service_result=in-progress
+	CommitServiceResult
+
+	}
+
+SetServiceResultAsUnsupported()
+	{
+
+	# Selected action isn't supported by this QPKG.
+
+	service_result=unsupported
+	CommitServiceResult
+
+	}
+
+CommitServiceAction()
+	{
 
 	if IsNotStatus && IsNotLog && IsNotNone; then
-		[[ -n ${1:-} && $SERVICE_STATUS_PATHFILE != undefined ]] && echo "${1:-}" > "$SERVICE_STATUS_PATHFILE"
+		[[ $SERVICE_ACTION_PATHFILE != undefined ]] && echo "$service_action" > "$SERVICE_ACTION_PATHFILE"
+	fi
+
+	}
+
+CommitServiceResult()
+	{
+
+	if IsNotStatus && IsNotLog && IsNotNone; then
+		[[ $SERVICE_RESULT_PATHFILE != undefined ]] && echo "$service_result" > "$SERVICE_RESULT_PATHFILE"
 	fi
 
 	}
@@ -2337,6 +2380,34 @@ IsNotRestartPending()
 	{
 
 	[[ ${_restart_pending_flag:=false} = false ]]
+
+	}
+
+SetStatusGet()
+	{
+
+	_get_status_flag=true
+
+	}
+
+UnsetStatusGet()
+	{
+
+	_get_status_flag=false
+
+	}
+
+IsStatus()
+	{
+
+	[[ ${_get_status_flag:=false} = true ]]
+
+	}
+
+IsNotStatus()
+	{
+
+	! IsStatus
 
 	}
 
@@ -2373,7 +2444,7 @@ IsNotError()
 IsRestart()
 	{
 
-	[[ $service_operation = restart ]]
+	[[ $service_action = restart ]]
 
 	}
 
@@ -2384,24 +2455,38 @@ IsNotRestart()
 
 	}
 
+IsLog()
+	{
+
+	[[ $service_action = log ]]
+
+	}
+
 IsNotLog()
 	{
 
-	! [[ $service_operation = log ]]
+	! IsLog
+
+	}
+
+IsNone()
+	{
+
+	[[ $service_action = none ]]
 
 	}
 
 IsNotNone()
 	{
 
-	! [[ $service_operation = none ]]
+	! IsNone
 
 	}
 
 IsClean()
 	{
 
-	[[ $service_operation = clean ]]
+	[[ $service_action = clean ]]
 
 	}
 
@@ -2415,7 +2500,7 @@ IsNotClean()
 IsBackup()
 	{
 
-	[[ $service_operation = backup ]]
+	[[ $service_action = backup ]]
 
 	}
 
@@ -2429,7 +2514,7 @@ IsNotBackup()
 IsRestore()
 	{
 
-	[[ $service_operation = restore ]]
+	[[ $service_action = restore ]]
 
 	}
 
@@ -2443,7 +2528,7 @@ IsNotRestore()
 IsReset()
 	{
 
-	[[ $service_operation = reset ]]
+	[[ $service_action = reset ]]
 
 	}
 
@@ -2454,17 +2539,10 @@ IsNotReset()
 
 	}
 
-IsNotStatus()
-	{
-
-	! [[ $service_operation = status ]]
-
-	}
-
 IsUnsupported()
 	{
 
-	[[ $service_operation = unsupported ]]
+	[[ $service_action = unsupported ]]
 
 	}
 
@@ -2601,10 +2679,10 @@ DisplayWait()
 DisplayAndCommitActionToLog()
 	{
 
-	[[ $service_operation = unspecified ]] && return
+	[[ $service_action = unspecified ]] && return
 
 	starttime=$(/bin/date +%s%N)
-	local msg="source: $(/usr/bin/basename "$0"), action: $service_operation, datetime: $(date)"
+	local msg="source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date)"
 	msg=" $(/bin/tr -s ' ' <<< "$msg") "
 	local target=DisplayCommitToLog
 
@@ -2618,12 +2696,12 @@ DisplayAndCommitActionToLog()
 
 	}
 
-DisplayAndCommitStatusToLog()
+DisplayAndCommitResultToLog()
 	{
 
-	[[ $service_operation = unspecified ]] && return
+	[[ $service_action = unspecified ]] && return
 
-	local msg="source: $(/usr/bin/basename "$0"), action: $service_operation, datetime: $(date), result: $service_result, elapsed time: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(/bin/date +%s%N)")")"
+	local msg="source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date), result: $service_result, elapsed time: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(/bin/date +%s%N)")")"
 	msg=" $(/bin/tr -s ' ' <<< "$msg") "
 	local target=DisplayCommitToLog
 
@@ -3115,7 +3193,7 @@ ProcessArgs()
 				fi
 				;;
 			?(-)s|?(--)status)
-				SetServiceAction status
+				SetStatusGet
 				StatusQPKG
 				;;
 			?(--)stop)
@@ -3124,8 +3202,10 @@ ProcessArgs()
 				SetServiceAction stop
 				StopQPKG
 				;;
+			uninstall)
+				: # Ignore.
+				;;
 			?(-)v|?(--)version)
-				SetServiceAction none
 				Display "package: '$QPKG_VERSION'"
 				Display "service: '$SERVICE_SCRIPT_VERSION'"
 				Display "library: '$SERVICE_LIB_VERSION'"
@@ -3140,17 +3220,17 @@ ProcessArgs()
 		esac
 	fi
 
-	if [[ -n $user_arg ]]; then
+	if IsNotLog && IsNotNone; then
 		if IsError; then
-			SetServiceStatusAsFailed
+			SetServiceResultAsFailed
 
 			exit 1
 		else
-			SetServiceStatusAsOK
+			SetServiceResultAsOK
 		fi
 	fi
 
-	exit
+	exit 0
 
 	}
 
