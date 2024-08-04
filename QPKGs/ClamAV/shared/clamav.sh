@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=ClamAV
-readonly SERVICE_SCRIPT_VERSION='240803'
+readonly SERVICE_SCRIPT_VERSION='240805'
 InitService()
 {
 qpkg_ini_file=undefined
@@ -64,7 +64,12 @@ return 0
 StatusQPKGCustom()
 {
 IsNotError || return
-IsPackageActive && exit 0 || exit 1
+if [[ -e $BACKUP_SERVICE_PATHFILE ]];then
+printf active
+exit 0
+fi
+printf inactive
+exit 1
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0

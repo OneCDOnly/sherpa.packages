@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OWatcher3
-readonly SERVICE_SCRIPT_VERSION='240803'
+readonly SERVICE_SCRIPT_VERSION='240805'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache
@@ -31,8 +31,8 @@ venv_path=$QPKG_PATH/venv
 daemon_pathfile=$qpkg_repo_path/watcher.py
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
+daemon_pidfile_is_managed_by_app=true
 install_pip_deps=true
-pidfile_is_managed_by_app=true
 interpreter=/opt/bin/python3
 source_git_branch=master
 source_git_branch_depth=shallow

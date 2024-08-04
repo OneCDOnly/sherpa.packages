@@ -21,14 +21,14 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OTransmission
-readonly SERVICE_SCRIPT_VERSION='240803'
+readonly SERVICE_SCRIPT_VERSION='240805'
 InitService()
 {
 qpkg_ini_file=settings.json
 daemon_pathfile=/opt/bin/transmission-daemon
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-pidfile_is_managed_by_app=true
+daemon_pidfile_is_managed_by_app=true
 run_daemon_in_screen_session=false
 orig_daemon_service_script=/opt/etc/init.d/S88transmission
 get_ui_listening_address_cmd="/opt/bin/jq -r '.\"rpc-bind-address\"' < $qpkg_ini_pathfile"

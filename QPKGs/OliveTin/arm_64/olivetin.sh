@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OliveTin
-readonly SERVICE_SCRIPT_VERSION='240803'
+readonly SERVICE_SCRIPT_VERSION='240805'
 InitService()
 {
 qpkg_repo_path=$QPKG_PATH/repo-cache
