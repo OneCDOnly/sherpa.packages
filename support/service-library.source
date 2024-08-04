@@ -40,12 +40,13 @@ InitLibrary()
 	UnsetError
 	UnsetRestartPending
 
-	readonly DAEMON_START_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)	# This value is for a single-core CPU and 1m load average of 1.0
-	readonly DAEMON_STOP_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)	# This value is for a single-core CPU and 1m load average of 1.0
-	readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)		# This value is for a single-core CPU and 1m load average of 1.0
-	readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)		# This value is for a single-core CPU and 1m load average of 1.0
-	readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)		# This value is for a single-core CPU and 1m load average of 1.0
-	readonly PORT_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)			# This value is for a single-core CPU and 1m load average of 1.0
+	# The following values are for a single-core CPU and 1m load average of 1.0
+	readonly DAEMON_START_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
+	readonly DAEMON_STOP_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
+	readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)
+	readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
+	readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
+	readonly PORT_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
 
 	readonly BACKUP_PATH=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
 	readonly CHARS_REGULAR_PROMPT='$ '
@@ -90,9 +91,9 @@ InitLibrary()
 
 		daemon_pathfile=undefined
 
-		daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+		daemon_pid_pathfile=/var/run/$QPKG_NAME-daemon.pid
 
-		launcher_pathfile=undefined					# On-demand executables only.
+		launcher_pathfile=undefined								# On-demand executables only.
 
 		qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
 
@@ -102,32 +103,36 @@ InitLibrary()
 
 		source_archive_pathfile=undefined
 
-		userlink_pathfile=undefined					# On-demand executables only.
+		userlink_pathfile=undefined								# On-demand executables only.
 
 		venv_pip_pathfile=undefined
 
 		venv_python_pathfile=undefined
 
+		wrapper_pathfile=undefined
+
+		wrapper_pid_pathfile=/var/run/$QPKG_NAME-wrapper.pid
+
 	# >>> Switches <<<
 
 		allow_access_to_sys_packages=true
 
-		can_restart_to_update=false					# If 'true', application files can be updated by restarting service-script.
+		can_restart_to_update=false								# If 'true', application files can be updated by restarting service-script.
+
+		daemon_pidfile_is_managed_by_app=false
 
 		install_pip_deps=false
 
-		pidfile_is_managed_by_app=false
+		recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 
-		recheck_daemon_pid_after_kill=false			# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		recheck_daemon_pid_after_launch=false					# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 
-		recheck_daemon_pid_after_launch=false		# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		resolve_remote_url=false								# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
-		resolve_remote_url=false					# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+		run_daemon_in_screen_session=false						# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
+																# NOTE: don't launch double-forked procs in a `screen` session.
 
-		run_daemon_in_screen_session=false			# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
-													# NOTE: don't launch double-forked procs in a `screen` session.
-
-		silence_pypi_errors=true					# If 'true', PyPI package processing errors won't be shown in system log.
+		silence_pypi_errors=true								# If 'true', PyPI package processing errors won't be shown in system log.
 
 	# >>> Values <<<
 
@@ -135,9 +140,9 @@ InitLibrary()
 
 		interpreter=undefined
 
-		nice_daemon_to=0							# If non-zero, daemon proc is niced to this value on-launch.
+		nice_daemon_to=0										# If non-zero, daemon proc is niced to this value on-launch.
 
-		orig_daemon_service_script=undefined		# Specific to Entware binaries only.
+		orig_daemon_service_script=undefined					# Specific to Entware binaries only.
 
 		remote_arch=undefined
 
@@ -145,7 +150,7 @@ InitLibrary()
 
 		source_git_branch=undefined
 
-		source_git_branch_depth=undefined			# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+		source_git_branch_depth=undefined						# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 
 		ui_listening_address=undefined
 
@@ -176,6 +181,7 @@ InitLibrary()
 		daemon_launch_cmd=undefined
 
 # --- start template ---
+
 	# This is a type n service-script.
 
 	# NOTE: default session values are set in service function library: uncomment to update, or copy to change.
@@ -202,9 +208,9 @@ InitLibrary()
 
 		# daemon_pathfile=undefined
 
-		# daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+		# daemon_pid_pathfile=/var/run/$QPKG_NAME-daemon.pid
 
-		# launcher_pathfile=undefined					# On-demand executables only.
+		# launcher_pathfile=undefined								# On-demand executables only.
 
 		# qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
 
@@ -214,32 +220,36 @@ InitLibrary()
 
 		# source_archive_pathfile=undefined
 
-		# userlink_pathfile=undefined					# On-demand executables only.
+		# userlink_pathfile=undefined								# On-demand executables only.
 
 		# venv_pip_pathfile=undefined
 
 		# venv_python_pathfile=undefined
 
+		# wrapper_pathfile=undefined
+
+		# wrapper_pid_pathfile=/var/run/$QPKG_NAME-wrapper.pid
+
 	# >>> Switches <<<
 
 		# allow_access_to_sys_packages=true
 
-		# can_restart_to_update=false					# If 'true', application can be updated by restarting service-script.
+		# can_restart_to_update=false								# If 'true', application files can be updated by restarting service-script.
+
+		# daemon_pidfile_is_managed_by_app=false
 
 		# install_pip_deps=false
 
-		# pidfile_is_managed_by_app=false
+		# recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 
-		# recheck_daemon_pid_after_kill=false			# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 
-		# recheck_daemon_pid_after_launch=false			# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		# resolve_remote_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
-		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+		# run_daemon_in_screen_session=false						# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
+																	# NOTE: don't launch double-forked procs in a `screen` session.
 
-		# run_daemon_in_screen_session=false			# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
-														# NOTE: don't launch double-forked procs in a `screen` session.
-
-		# silence_pypi_errors=true						# If 'true', PyPI package processing errors won't be shown in system log.
+		# silence_pypi_errors=true									# If 'true', PyPI package processing errors won't be shown in system log.
 
 	# >>> Values <<<
 
@@ -247,9 +257,9 @@ InitLibrary()
 
 		# interpreter=undefined
 
-		# nice_daemon_to=0								# If non-zero, daemon proc is niced to this value on-launch.
+		# nice_daemon_to=0											# If non-zero, daemon proc is niced to this value on-launch.
 
-		# orig_daemon_service_script=undefined			# Specific to Entware binaries only.
+		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
 		# remote_arch=undefined
 
@@ -257,7 +267,7 @@ InitLibrary()
 
 		# source_git_branch=undefined
 
-		# source_git_branch_depth=undefined				# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 
 		# ui_listening_address=undefined
 
@@ -286,9 +296,10 @@ InitLibrary()
 		# get_ui_port_secure_enabled_test_cmd=undefined
 
 		# daemon_launch_cmd=undefined
+
 # ---end template ---
 
-	InitService										# Located in parent service-script. Service-script vars can override vars set here.
+	InitService											# Located in parent service-script. Service-script vars can override vars set here.
 	OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
 	pyver=''
 	service_action=unspecified
@@ -301,6 +312,350 @@ InitLibrary()
 
 	if [[ $run_daemon_in_screen_session = true && ! -e $SCREEN_CONF_PATHFILE ]]; then
 		echo -e "logfile ${SERVICE_SCREEN_LOG_PATHFILE}\nlogfile flush 1\nlog on" > "$SCREEN_CONF_PATHFILE"
+	fi
+
+	}
+
+StartQPKG()
+	{
+
+	if [[ $(type -t StartQPKGCustom) = function ]]; then
+		StartQPKGCustom
+	else
+		StartQPKGLibrary
+	fi
+
+	}
+
+StartQPKGLibrary()
+	{
+
+	IsNotError || return
+
+	if IsNotRestart && IsNotBackup && IsNotRestore && IsNotClean && IsNotReset; then
+		ShowQPKGStates
+		IsWrapper && IsWrapperActive
+		IsDaemon && IsDaemonActive && return
+	fi
+
+	ShowQPKGStates
+
+	if IsBackup || IsRestore || IsClean || IsReset; then
+		IsNotRestartPending && return
+	fi
+
+	if IsGitApp; then
+		CloneGitRepo || return
+	fi
+
+	IsOnlinePackageArchive && RefreshReleasePackageFiles
+
+	if IsVirtualPythonEnv; then
+		CheckVirtualPythonEnv || return
+		InstallAddons || return
+	fi
+
+	if IsNotDaemon; then
+		CreateUserlinkToExec
+		return
+	fi
+
+	EnsureConfigFileExists
+	LoadPorts app || return
+	CheckPortsAvailable || return
+	StartDaemon
+
+	return
+
+	}
+
+StopQPKG()
+	{
+
+	if [[ $(type -t StopQPKGCustom) = function ]]; then
+		StopQPKGCustom
+	else
+		StopQPKGLibrary
+	fi
+
+	}
+
+StopQPKGLibrary()
+	{
+
+	IsNotError || return
+
+	if IsRestart || IsBackup || IsRestore || IsClean || IsReset; then
+		SetRestartPending
+	fi
+
+	ShowQPKGStates
+
+	if IsNotDaemon; then
+		RemoveUserlinkToExec
+		return
+	fi
+
+	IsWrapper && IsWrapperActive
+
+	if IsDaemon && IsDaemonActive; then
+		StopDaemon
+	fi
+
+	return
+
+	}
+
+StatusQPKG()
+	{
+
+	if [[ $(type -t StatusQPKGCustom) = function ]]; then
+		StatusQPKGCustom
+	else
+		StatusQPKGLibrary
+	fi
+
+	}
+
+StatusQPKGLibrary()
+	{
+
+	IsNotError || return
+
+	ShowQPKGStates
+
+	# The following only checks for daemon services, and only HTTP/S port responses (where-applicable).
+	# Any other status checks must be customised for the application and placed in StatusQPKGCustom() in the QPKG service-script.
+
+	RefreshPidFiles
+	IsWrapper && IsWrapperActive
+
+	if IsDaemon && IsDaemonActive; then
+		LoadPorts app
+		CheckPorts || exit
+	else
+		exit 1
+	fi
+
+	exit 0
+
+	}
+
+CreateUserlinkToExec()
+	{
+
+	if [[ $userlink_pathfile != undefined ]]; then
+		if [[ ! -L $userlink_pathfile && -e $launcher_pathfile ]]; then
+			ln -s "$launcher_pathfile" "$userlink_pathfile"
+
+			if [[ -L $userlink_pathfile ]]; then
+				DisplayCommitToLog "symlink created: '$userlink_pathfile'"
+			else
+				DisplayErrCommitAllLogs "unable to create symlink to '$QPKG_NAME' launcher"
+
+				SetError; return 1
+			fi
+		else
+			DisplayCommitToLog "symlink exists: '$userlink_pathfile'"
+		fi
+
+		return
+	fi
+
+	}
+
+RemoveUserlinkToExec()
+	{
+
+	if [[ $userlink_pathfile != undefined ]]; then
+		if [[ -L $userlink_pathfile ]]; then
+			rm -f "$userlink_pathfile"
+			DisplayCommitToLog "symlink removed: '$userlink_pathfile'"
+		fi
+	fi
+
+	}
+
+StartDaemon()
+	{
+
+	local msg='start daemon'
+
+	if [[ $run_daemon_in_screen_session = true ]]; then
+		msg+=' (in screen session)'
+		rm -f "${SERVICE_SCREEN_LOG_PATHFILE:?}"
+	fi
+
+	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
+		daemon_launch_cmd="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
+		DisplayCommitToLog "nice daemon to: $nice_daemon_to"
+	fi
+
+	if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_in_screen_session"; then
+		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
+
+		SetError; return 1
+	fi
+
+	WaitForDaemonPid
+# 	WaitForStartPid
+
+	IsWrapper && IsWrapperActive
+
+	if ! IsDaemonActive; then
+		DisplayErrCommitAllLogs 'daemon has failed to start!'
+		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
+
+		SetError; return 1
+	fi
+
+	if ! CheckPorts; then
+		DisplayErrCommitAllLogs 'port tests failed!'
+		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
+
+		SetError; return 1
+	fi
+
+	CommitInfoToSysLog 'start daemon: OK'
+
+	}
+
+StopDaemon()
+	{
+
+	local acc=0
+	local pid=0
+	local msg='stop daemon'
+	[[ $run_daemon_in_screen_session = true ]] && msg+=' (in screen session)'
+
+	pid=$(<$daemon_pid_pathfile)
+
+	DisplayWaitCommitToLog "$msg (PID:${pid}) with SIGTERM (no-more than $DAEMON_STOP_CHECK_TIMEOUT_SECONDS second$(Pluralise "$DAEMON_STOP_CHECK_TIMEOUT_SECONDS")):"
+
+	kill "$pid"
+
+	while true; do
+		while [[ -d /proc/$pid ]]; do
+			/bin/sleep 1
+			((acc++))
+			DisplayWait "$acc,"
+
+			if [[ $acc -ge $DAEMON_STOP_CHECK_TIMEOUT_SECONDS ]]; then
+				DisplayCommitToLog 'failed!'
+				DisplayCommitToLog "$msg (PID:${pid}) with SIGKILL:"
+
+				kill -9 "$pid" 2> /dev/null
+
+				[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
+				break 2
+			fi
+		done
+
+		[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
+
+		Display OK
+		CommitToLog "stopped in $acc second$(Pluralise "$acc")"
+
+		CommitInfoToSysLog "$msg: OK"
+		break
+	done
+
+	WaitForKillPid
+
+	IsWrapper && IsWrapperActive
+
+	if IsDaemonActive; then
+		SetError; return 1
+	fi
+
+	}
+
+RefreshReleasePackageFiles()
+	{
+
+	local source_archive_pathfile=$qpkg_repo_path/source.archive
+
+	if IsAutoUpdate || [[ ! -e $source_archive_pathfile ]]; then		# Get remote archive - even when auto-update is disabled - if one doesn't exist locally.
+		local release_url=''
+		local download_opts=$curl_insecure_arg
+		[[ $debug = false ]] && download_opts+=' --silent'
+
+		if [[ $resolve_remote_url = true ]]; then
+			DisplayWaitCommitToLog 'check release package:'
+
+			if IsSiteUp "$remote_url"; then
+				release_url=$(RequestLatestRelease "$remote_url" "$remote_arch")
+
+				if [[ -n $release_url && $release_url != undefined ]]; then
+					DisplayCommitToLog OK
+				else
+					DisplayErrCommitAllLogs "'unable to calculate remote URL'"
+				fi
+			else
+				DisplayErrCommitAllLogs "'unable to access remote site'"
+			fi
+		else
+			release_url=$remote_url
+		fi
+
+		if [[ -n $release_url ]]; then
+			[[ -e $source_archive_pathfile ]] && download_opts+=" --time-cond $source_archive_pathfile"
+			download_opts+=" --show-error --location --output $source_archive_pathfile"
+
+			DisplayRunAndLog 'refresh release package' "/sbin/curl${download_opts} '$release_url'" log:failure-only
+		fi
+	fi
+
+	local tar_extract_verbose=''
+	local tar_extract_opts=''
+	local unzip_extract_verbose=''
+	local unzip_extract_opts=''
+
+	if [[ $debug = true ]]; then
+		tar_extract_verbose=' --verbose'
+# 			unzip_extract_verbose=' -v'			# Don't enable this, seems to prevent actual file extraction from occurring.
+	fi
+
+	if [[ -e $source_archive_pathfile ]] && [[ ! -e $daemon_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$source_archive_pathfile" -c %Y))) -lt 60 ]]; then			# Extract from latest release archive.
+		tar_extract_opts="$tar_extract_verbose --extract --gzip --file=$source_archive_pathfile --directory=$qpkg_repo_path"
+		unzip_extract_opts="$unzip_extract_verbose -o $source_archive_pathfile -d $qpkg_repo_path"
+
+		# Try '.zip' first, then '.tar.gz'
+		DisplayRunAndLog 'extract release package' "/usr/bin/unzip${unzip_extract_opts} 2>/dev/null || /bin/tar${tar_extract_opts}" log:failure-only
+	fi
+
+	}
+
+CheckVirtualPythonEnv()
+	{
+
+	if IsVirtualPythonEnv && IsNotVirtualPythonEnvExist; then
+		DisplayErrCommitAllLogs "unable to start daemon: 'virtual environment does not exist'"
+
+		SetError; return 1
+	fi
+
+	return 0
+
+	}
+
+CheckPortsAvailable()
+	{
+
+	if [[ $daemon_port -le 0 && $ui_port -le 0 && $ui_port_secure -le 0 ]]; then
+		DisplayErrCommitAllLogs "unable to start daemon: 'no port specified'"
+
+		SetError; return 1
+	elif IsNotPortAvailable $ui_port || IsNotPortAvailable $ui_port_secure; then
+		DisplayErrCommitAllLogs "unable to start daemon: ports '$ui_port' or '$ui_port_secure' are already in-use"
+
+		portpid=$(/usr/sbin/lsof -i :$ui_port -Fp)
+		DisplayErrCommitAllLogs "process details for port '$ui_port': '${portpid}': PID '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
+
+		portpid=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
+		DisplayErrCommitAllLogs "process details for secure port '$ui_port_secure': PID '${portpid}': '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
+
+		SetError; return 1
 	fi
 
 	}
@@ -349,260 +704,10 @@ ShowHelp()
 
 	}
 
-StartQPKG()
-	{
-
-	if [[ $(type -t StartQPKGCustom) = function ]]; then
-		StartQPKGCustom
-	else
-		StartQPKGLibrary
-	fi
-
-	}
-
-StartQPKGLibrary()
-	{
-
-	IsError && return
-
-	if IsNotRestart && IsNotBackup && IsNotRestore && IsNotClean && IsNotReset; then
-		ShowQPKGStates
-		IsDaemonActive && return
-	fi
-
-	if IsBackup || IsRestore || IsClean || IsReset; then
-		IsNotRestartPending && return
-	fi
-
-	CloneGitRepo || { SetError; return 1 ;}
-
-	if IsNotDaemon && [[ $userlink_pathfile != undefined ]]; then
-		if [[ ! -L $userlink_pathfile && -e $launcher_pathfile ]]; then
-			ln -s "$launcher_pathfile" "$userlink_pathfile"
-
-			if [[ -L $userlink_pathfile ]]; then
-				DisplayCommitToLog "symlink created: '$userlink_pathfile'"
-			else
-				DisplayErrCommitAllLogs "unable to create symlink to '$QPKG_NAME' launcher"
-
-				SetError
-				return 1
-			fi
-		else
-			DisplayCommitToLog "symlink exists: '$userlink_pathfile'"
-		fi
-
-		return
-	fi
-
-	if IsOnlineArchive; then
-		local source_archive_pathfile=$qpkg_repo_path/source.archive
-
-		if IsAutoUpdate || [[ ! -e $source_archive_pathfile ]]; then		# Get remote archive - even when auto-update is disabled - if one doesn't exist locally.
-			local release_url=''
-			local download_opts=$curl_insecure_arg
-			[[ $debug = false ]] && download_opts+=' --silent'
-
-			if [[ $resolve_remote_url = true ]]; then
-				DisplayWaitCommitToLog 'check release package:'
-
-				if IsSiteUp "$remote_url"; then
-					release_url=$(RequestLatestRelease "$remote_url" "$remote_arch")
-
-					if [[ -n $release_url && $release_url != undefined ]]; then
-						DisplayCommitToLog OK
-					else
-						DisplayErrCommitAllLogs "'unable to calculate remote URL'"
-					fi
-				else
-					DisplayErrCommitAllLogs "'unable to access remote site'"
-				fi
-			else
-				release_url=$remote_url
-			fi
-
-			if [[ -n $release_url ]]; then
-				[[ -e $source_archive_pathfile ]] && download_opts+=" --time-cond $source_archive_pathfile"
-				download_opts+=" --show-error --location --output $source_archive_pathfile"
-
-				DisplayRunAndLog 'refresh release package' "/sbin/curl${download_opts} '$release_url'" log:failure-only
-			fi
-		fi
-
-		local tar_extract_verbose=''
-		local tar_extract_opts=''
-		local unzip_extract_verbose=''
-		local unzip_extract_opts=''
-
-		if [[ $debug = true ]]; then
-			tar_extract_verbose=' --verbose'
-# 			unzip_extract_verbose=' -v'			# Don't enable this, seems to prevent actual file extraction from occurring.
-		fi
-
-		if [[ -e $source_archive_pathfile ]] && [[ ! -e $daemon_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$source_archive_pathfile" -c %Y))) -lt 60 ]]; then			# Extract from latest release archive.
-			tar_extract_opts="$tar_extract_verbose --extract --gzip --file=$source_archive_pathfile --directory=$qpkg_repo_path"
-			unzip_extract_opts="$unzip_extract_verbose -o $source_archive_pathfile -d $qpkg_repo_path"
-
-			# Try '.zip' first, then '.tar.gz'
-			DisplayRunAndLog 'extract release package' "/usr/bin/unzip${unzip_extract_opts} 2>/dev/null || /bin/tar${tar_extract_opts}" log:failure-only
-		fi
-	fi
-
-	InstallAddons || { SetError; return 1 ;}
-	[[ -e $(GetLaunchTarget) ]] || { SetError; return 1 ;}
-	EnsureConfigFileExists
-	LoadPorts app || { SetError; return 1 ;}
-
-	if [[ $daemon_port -le 0 && $ui_port -le 0 && $ui_port_secure -le 0 ]]; then
-		DisplayErrCommitAllLogs "unable to start daemon: 'no port specified'"
-
-		SetError
-		return 1
-	elif IsNotPortAvailable $ui_port || IsNotPortAvailable $ui_port_secure; then
-		DisplayErrCommitAllLogs "unable to start daemon: ports '$ui_port' or '$ui_port_secure' are already in-use"
-
-		portpid=$(/usr/sbin/lsof -i :$ui_port -Fp)
-		DisplayErrCommitAllLogs "process details for port '$ui_port': '${portpid}': PID '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
-
-		portpid=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
-		DisplayErrCommitAllLogs "process details for secure port '$ui_port_secure': PID '${portpid}': '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
-
-		SetError
-		return 1
-	fi
-
-	if IsUseVirtualPythonEnv && IsNotVirtualEnvironmentExist; then
-		DisplayErrCommitAllLogs "unable to start daemon: 'virtual environment does not exist'"
-
-		SetError
-		return 1
-	fi
-
-	local msg='start daemon'
-
-	if [[ $run_daemon_in_screen_session = true ]]; then
-		msg+=' (in screen session)'
-		rm -f "${SERVICE_SCREEN_LOG_PATHFILE:?}"
-	fi
-
-	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
-		daemon_launch_cmd="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
-		DisplayCommitToLog "nice daemon to: $nice_daemon_to"
-	fi
-
-	if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_in_screen_session"; then
-		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
-
-		SetError
-		return 1
-	fi
-
-	WaitForDaemon
-	WaitForStartPid
-
-	if ! IsDaemonActive; then
-		DisplayErrCommitAllLogs 'daemon has failed to start!'
-		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
-
-		SetError
-		return 1
-	fi
-
-	if ! CheckPorts; then
-		DisplayErrCommitAllLogs 'port tests failed!'
-		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
-
-		SetError
-		return 1
-	fi
-
-	CommitInfoToSysLog 'start daemon: OK'
-
-	return 0
-
-	}
-
-StopQPKG()
-	{
-
-	if [[ $(type -t StopQPKGCustom) = function ]]; then
-		StopQPKGCustom
-	else
-		StopQPKGLibrary
-	fi
-
-	}
-
-StopQPKGLibrary()
-	{
-
-	IsError && return
-
-	if IsNotDaemon; then
-		if [[ -L $userlink_pathfile ]]; then
-			rm -f "$userlink_pathfile"
-			DisplayCommitToLog "symlink removed: '$userlink_pathfile'"
-		fi
-
-		return
-	fi
-
-	ShowQPKGStates
-
-	if IsDaemonActive; then
-		if IsRestart || IsBackup || IsRestore || IsClean || IsReset; then
-			SetRestartPending
-		fi
-
-		local acc=0
-		local pid=0
-		local msg='stop daemon'
-		[[ $run_daemon_in_screen_session = true ]] && msg+=' (in screen session)'
-
-		pid=$(<$daemon_pid_pathfile)
-
-		DisplayWaitCommitToLog "$msg (PID:${pid}) with SIGTERM (no-more than $DAEMON_STOP_CHECK_TIMEOUT_SECONDS second$(Pluralise "$DAEMON_STOP_CHECK_TIMEOUT_SECONDS")):"
-
-		kill "$pid"
-
-		while true; do
-			while [[ -d /proc/$pid ]]; do
-				/bin/sleep 1
-				((acc++))
-				DisplayWait "$acc,"
-
-				if [[ $acc -ge $DAEMON_STOP_CHECK_TIMEOUT_SECONDS ]]; then
-					DisplayCommitToLog 'failed!'
-					DisplayCommitToLog "$msg (PID:${pid}) with SIGKILL:"
-
-					kill -9 "$pid" 2> /dev/null
-
-					[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
-					break 2
-				fi
-			done
-
-			[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
-
-			Display OK
-			CommitToLog "stopped in $acc second$(Pluralise "$acc")"
-
-			CommitInfoToSysLog "$msg: OK"
-			break
-		done
-
-		WaitForKillPid
-		IsNotDaemonActive || { SetError; return 1 ;}
-	fi
-
-	return 0
-
-	}
-
 InstallAddons()
 	{
 
-	IsUseVirtualPythonEnv || return 0
+	IsVirtualPythonEnv || return 0
 
 	local default_essential_modules_pathfile=$QPKG_PATH/pip-essential.txt
 	local default_requirements_modules_pathfile=$QPKG_PATH/pip-requirements.txt
@@ -628,16 +733,15 @@ InstallAddons()
 	[[ $allow_access_to_sys_packages != true ]] && allow_sys_packages=''
 	[[ $install_pip_deps = true ]] && no_pip_deps=''
 
-	if IsNotVirtualEnvironmentExist; then
+	if IsNotVirtualPythonEnvExist; then
 		DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$pip_cache_path VIRTUALENV_OVERRIDE_APP_DATA=$pip_cache_path; $interpreter -m virtualenv ${venv_path}${allow_sys_packages}" log:failure-only
 		new_env=true
 	fi
 
-	if IsNotVirtualEnvironmentExist; then
+	if IsNotVirtualPythonEnvExist; then
 		DisplayErrCommitAllLogs "unable to install addons: 'virtual environment does not exist'"
 
-		SetError
-		return 1
+		SetError; return 1
 	fi
 
 	if [[ ! -e $pip_conf_pathfile ]]; then
@@ -786,9 +890,9 @@ StripComments()
 BackupConfig()
 	{
 
-	DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=$qpkg_backup_pathfile --directory=$QPKG_PATH/config ." log:failure-only || SetError
-
-	return 0
+	if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=$qpkg_backup_pathfile --directory=$QPKG_PATH/config ." log:failure-only; then
+		SetError; return 1
+	fi
 
 	}
 
@@ -798,22 +902,21 @@ RestoreConfig()
 	if [[ ! -f $qpkg_backup_pathfile ]]; then
 		DisplayErrCommitAllLogs "unable to restore configuration: 'no backup file was found'"
 
-		SetError
-		return 1
+		SetError; return 1
 	fi
 
-	DisplayRunAndLog 'restore configuration backup' "/bin/tar --extract --gzip --file=$qpkg_backup_pathfile --directory=$QPKG_PATH/config" log:failure-only || SetError
-
-	return 0
+	if ! DisplayRunAndLog 'restore configuration backup' "/bin/tar --extract --gzip --file=$qpkg_backup_pathfile --directory=$QPKG_PATH/config" log:failure-only; then
+		SetError; return 1
+	fi
 
 	}
 
 ResetConfig()
 	{
 
-	DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $QPKG_PATH; rm -rf $QPKG_PATH/config/*; mkdir -p $(/usr/bin/dirname "$qpkg_ini_default_pathfile"); mv $QPKG_PATH/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only || SetError
-
-	return 0
+	if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $QPKG_PATH; rm -rf $QPKG_PATH/config/*; mkdir -p $(/usr/bin/dirname "$qpkg_ini_default_pathfile"); mv $QPKG_PATH/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only; then
+		SetError; return 1
+	fi
 
 	}
 
@@ -855,8 +958,7 @@ LoadPorts()
 		*)
 			DisplayErrCommitAllLogs "unable to load ports: action '$1' is unrecognised"
 
-			SetError
-			return 1
+			SetError; return 1
 	esac
 
 	# Always read these from the application configuration.
@@ -915,37 +1017,6 @@ ShowQPKGStates()
 			DisplayCommitToLog false
 		fi
 	fi
-
-	}
-
-StatusQPKG()
-	{
-
-	if [[ $(type -t StatusQPKGCustom) = function ]]; then
-		StatusQPKGCustom
-	else
-		StatusQPKGLibrary
-	fi
-
-	}
-
-StatusQPKGLibrary()
-	{
-
-	IsNotError || return
-
-	ShowQPKGStates
-
-	if IsDaemonActive; then
-		if IsDaemon || IsSourcedOnline; then
-			LoadPorts app
-			CheckPorts || exit
-		fi
-	else
-		exit 1
-	fi
-
-	exit 0
 
 	}
 
@@ -1013,12 +1084,11 @@ CleanLocalRepo()
 	# For occasions where the local repo needs to be deleted and cloned again from source.
 
 	if [[ -z $QPKG_PATH || -z $QPKG_NAME ]] || IsNotSourcedOnline; then
-		SetError
-		return 1
+		SetError; return 1
 	fi
 
-	(IsGitApp || IsOnlineArchive) && DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
-	IsUseVirtualPythonEnv && [[ -d $venv_path ]] && DisplayRunAndLog 'clean virtual environment' "rm -rf \"$venv_path\"" log:failure-only
+	(IsGitApp || IsOnlinePackageArchive) && DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
+	IsVirtualPythonEnv && [[ -d $venv_path ]] && DisplayRunAndLog 'clean virtual environment' "rm -rf \"$venv_path\"" log:failure-only
 	IsUsePipCache && [[ -d $pip_cache_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$pip_cache_path\"" log:failure-only
 	[[ -e $APP_VERSION_STORE_PATHFILE ]] && DisplayRunAndLog 'remove application version' "rm -f \"$APP_VERSION_STORE_PATHFILE\"" log:failure-only
 	IsUseTemp && [[ -d $local_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$local_temp_path\"" log:failure-only
@@ -1032,12 +1102,12 @@ WaitForGit()
 
 	if IsNotQPKGInstalled Entware; then
 		DisplayErrCommitAllLogs "'git' unavailable: 'Entware is not installed'"
-		return 1
+		SetError; return 1
 	fi
 
 	if IsNotQPKGEnabled Entware; then
 		DisplayErrCommitAllLogs "'git' unavailable: 'Entware is not enabled'"
-		return 1
+		SetError; return 1
 	fi
 
 	if WaitForFileToAppear '/opt/bin/git' 300; then
@@ -1045,7 +1115,7 @@ WaitForGit()
 		return 0
 	fi
 
-	return 1
+	SetError; return 1
 
 	}
 
@@ -1053,36 +1123,94 @@ GetLaunchTarget()
 	{
 
 	if [[ $venv_python_pathfile != undefined ]]; then
-		echo -n "$venv_python_pathfile"
+		printf '%s' "$venv_python_pathfile"
 	elif [[ $daemon_pathfile != undefined ]]; then
-		echo -n "$daemon_pathfile"
+		printf '%s' "$daemon_pathfile"
 	else
 		return 1
 	fi
 
 	}
 
-ReconfirmPidFile()
+RefreshPidFiles()
 	{
 
-	local target_pid=0
-	local process_pathfilename=$(GetLaunchTarget)
+	# Input (global):
+	#   $daemon_pathfile
+	#   $daemon_pid_pathfile
+	#   $wrapper_pathfile
+	#   $wrapper_pid_pathfile
 
-	[[ -n $process_pathfilename ]] || return
-	[[ -n $daemon_pid_pathfile ]] || return
+	if [[ -e $daemon_pid_pathfile && ! -d /proc/"$(<$daemon_pid_pathfile)" ]]; then
+		rm -f "$daemon_pid_pathfile"
+	fi
+
+	if [[ -e $wrapper_pid_pathfile && ! -d /proc/"$(<$wrapper_pid_pathfile)" ]]; then
+		rm -f "$wrapper_pid_pathfile"
+	fi
+
+	WriteDaemonPid
+	WriteWrapperPid
+
+	}
+
+WriteDaemonPid()
+	{
+
+	# Input (global):
+	#   $daemon_pathfile
+	#   $daemon_pid_pathfile
+
+	# Output:
+	#   found daemon pid -> $daemon_pid_pathfile
+
+	local pid=$(FindPid "$daemon_pathfile")
+
+	[[ -n $pid ]] && echo "$pid" > "$daemon_pid_pathfile"
+
+	}
+
+WriteWrapperPid()
+	{
+
+	# Input (global):
+	#   $wrapper_pathfile
+	#   $wrapper_pid_pathfile
+
+	# Output:
+	#   found wrapper pid -> $wrapper_pid_pathfile
+
+	local pid=$(FindPid "$wrapper_pathfile")
+
+	[[ -n $pid ]] && echo "$pid" > "$wrapper_pid_pathfile"
+
+	}
+
+FindPid()
+	{
+
+	# Input:
+	#   $1 = process pathfilename to find
+
+	# Output:
+	#   $? = 0 (found) or 1 (not found)
+	#	stdout = PID
+
+	[[ -n ${1:-} ]] || return
+
+	local pid=0
 
 	# CAUTION: QTS `pidof` is unreliable.
 
-	for target_pid in $(/bin/pidof "$(/usr/bin/basename "$process_pathfilename")"); do
-		[[ -d /proc/$target_pid ]] || continue
-		[[ -e /proc/$target_pid/cmdline ]] || continue
-		[[ $(</proc/$target_pid/cmdline) =~ $process_pathfilename ]] || continue
-		echo "$target_pid" > "$daemon_pid_pathfile"
+	for pid in $(/bin/pidof "$(/usr/bin/basename "$1")"); do
+		[[ -d /proc/$pid ]] || continue
+		[[ -e /proc/$pid/cmdline && -L /proc/$pid/exe ]] || continue
+		[[ $(</proc/$pid/cmdline) =~ $1 || $(/usr/bin/readlink /proc/$pid/exe) = "$1" ]] || continue
+
+		printf '%s' "$pid"
 
 		return
 	done
-
-	rm -f "$daemon_pid_pathfile"
 
 	return 1
 
@@ -1093,7 +1221,7 @@ WaitForStartPid()
 
 	local -i i=0
 
-	if [[ $pidfile_is_managed_by_app = true ]]; then
+	if [[ $daemon_pidfile_is_managed_by_app = true ]]; then
 		if WaitForFileToAppear "$daemon_pid_pathfile" "$PIDFILE_APPEAR_TIMEOUT_SECONDS"; then
 			/bin/sleep 1		# Wait one more second to allow file to have PID written into it.
 		fi
@@ -1110,7 +1238,7 @@ WaitForStartPid()
 		DisplayCommitToLog 'done'
 	fi
 
-	ReconfirmPidFile || return
+	RefreshPidFiles || return
 
 	}
 
@@ -1130,11 +1258,11 @@ WaitForKillPid()
 		DisplayCommitToLog 'done'
 	fi
 
-	! ReconfirmPidFile || return
+	! RefreshPidFiles || return
 
 	}
 
-WaitForDaemon()
+WaitForDaemonPid()
 	{
 
 	# Input:
@@ -1163,7 +1291,9 @@ WaitForDaemon()
 				/bin/sleep 1
 				DisplayWait "$i,"
 
-				if IsProcessActive "$target_proc" "$daemon_pid_pathfile"; then
+				RefreshPidFiles
+
+				if IsDaemonProcessActive; then
 					Display OK
 					CommitToLog "appeared in $i second$(Pluralise "$i")"
 					true
@@ -1252,8 +1382,7 @@ ViewLog()
 	else
 		Display "service log not found: $SERVICE_LOG_PATHFILE"
 
-		SetError
-		return 1
+		SetError; return 1
 	fi
 
 	return 0
@@ -1424,7 +1553,7 @@ DebugBulletSeparatorWithText()
 	local b=$(((DEBUG_LOG_DATAWIDTH-${#a})/2))
 	local c=$((DEBUG_LOG_DATAWIDTH-${#a}-b))
 
-	eval printf '%0.s•' "{1..$b}"; echo -n "$a"; eval printf '%0.s•' "{1..$c}"; echo 	# `seq` is unavailable in QTS, so must resort to `eval` trickery instead.
+	eval printf '%0.s•' "{1..$b}"; printf '%s' "$a"; eval printf '%0.s•' "{1..$c}"; echo 	# `seq` is unavailable in QTS, so must resort to `eval` trickery instead.
 
 	}
 
@@ -1575,8 +1704,7 @@ CheckPorts()
 	if [[ -z $msg ]]; then
 		DisplayErrCommitAllLogs 'no response on configured port(s)'
 
-		SetError
-		return 1
+		SetError; return 1
 	else
 		DisplayCommitToLog "$msg test: OK"
 		ReWriteUIPorts
@@ -1689,8 +1817,7 @@ IsQNAP()
 	if [[ ! -e /etc/init.d/functions ]]; then
 		Display 'QTS functions missing (is this a QNAP NAS?)'
 
-		SetError
-		return 1
+		SetError; return 1
 	fi
 
 	return 0
@@ -1788,17 +1915,17 @@ IsNotSupportGetAppVersion()
 
 	}
 
-IsUseVirtualPythonEnv()
+IsVirtualPythonEnv()
 	{
 
 	[[ $venv_path != undefined ]]
 
 	}
 
-IsNotVirtualEnvironmentUsed()
+IsNotVirtualPythonEnv()
 	{
 
-	! IsUseVirtualPythonEnv
+	! IsVirtualPythonEnv
 
 	}
 
@@ -1832,17 +1959,17 @@ IsNotUsePipCache()
 
 	}
 
-IsOnlineArchive()
+IsOnlinePackageArchive()
 	{
 
 	[[ $remote_url != undefined ]]
 
 	}
 
-IsNotOnlineArchive()
+IsNotOnlinePackageArchive()
 	{
 
-	! IsOnlineArchive
+	! IsOnlinePackageArchive
 
 	}
 
@@ -1863,7 +1990,7 @@ IsNotSupportAutoUpdate()
 IsSourcedOnline()
 	{
 
-	IsGitApp || IsUsePipCache || IsUseVirtualPythonEnv || IsOnlineArchive
+	IsGitApp || IsUsePipCache || IsOnlinePackageArchive
 
 	}
 
@@ -1916,6 +2043,20 @@ IsNotDaemon()
 
 	}
 
+IsWrapper()
+	{
+
+	[[ $wrapper_pathfile != undefined ]]
+
+	}
+
+IsNotWrapper()
+	{
+
+	! IsWrapper
+
+	}
+
 IsDaemonActive()
 	{
 
@@ -1924,10 +2065,7 @@ IsDaemonActive()
 
 	DisplayWaitCommitToLog 'daemon:'
 
-	local target_proc=''
-	target_proc=$(GetLaunchTarget)
-
-	if IsProcessActive "$target_proc" "$daemon_pid_pathfile"; then
+	if IsDaemonProcessActive; then
 		DisplayCommitToLog "active (PID:$(<"$daemon_pid_pathfile"))"
 		return 0
 	fi
@@ -1944,52 +2082,70 @@ IsNotDaemonActive()
 
 	}
 
-IsProcessActive()
+IsWrapperActive()
 	{
 
-	# Input:
-	#   $1 = process pathfile
-	#   $2 = PID pathfile
+	# $? = 0 : $wrapper_pathfile is in memory
+	# $? = 1 : $wrapper_pathfile is not in memory
 
-	# Output:
-	#   $? = 0 : $1 is in memory
-	#   $? = 1 : $1 is not in memory
+	DisplayWaitCommitToLog 'wrapper:'
 
-	[[ -n ${1:?process pathfilename null} ]] || return
-	[[ -n ${2:?pid pathfilename null} ]] || return
-	rm -f "$2"
-	[[ ! -e $2 ]] && ReconfirmPidFile
-	[[ -e $2 && -d /proc/"$(<$2)" && -n ${1:-} && $(</proc/"$(<$2)"/cmdline) =~ ${1:-} ]]
-
-	}
-
-IsPackageActive()
-	{
-
-	# Output:
-	# 	$? = 0 : package is `started`
-	# 	$? = 1 : package is `stopped`
-
-	DisplayWaitCommitToLog 'package active:'
-
-	if [[ -e $BACKUP_SERVICE_PATHFILE ]]; then
-		DisplayCommitToLog true
+	if IsWrapperProcessActive; then
+		DisplayCommitToLog "active (PID:$(<"$wrapper_pid_pathfile"))"
 		return 0
 	fi
 
-	DisplayCommitToLog false
+	DisplayCommitToLog inactive
 	return 1
 
 	}
 
-IsNotPackageActive()
+IsNotWrapperActive()
 	{
 
-	# Output:
-	# 	$? = 0 : package is `stopped`
-	# 	$? = 1 : package is `started`
+	! IsWrapperActive
 
-	! IsPackageActive
+	}
+
+IsDaemonProcessActive()
+	{
+
+	# Input (global):
+	#   $daemon_pathfile
+	#   $daemon_pid_pathfile
+
+	# Output:
+	#   $? = 0 : $daemon_pathfile is in memory
+	#   $? = 1 : $daemon_pathfile is not in memory
+
+	if [[ -e $daemon_pid_pathfile && -d /proc/"$(<$daemon_pid_pathfile)" ]]; then
+		if IsWrapper; then
+			[[ $(/usr/bin/readlink /proc/"$(<$daemon_pid_pathfile)"/exe) = "$daemon_pathfile" ]]
+		else
+			[[ $(</proc/"$(<$daemon_pid_pathfile)"/cmdline) =~ $daemon_pathfile ]]
+		fi
+	else
+		false
+	fi
+
+	}
+
+IsWrapperProcessActive()
+	{
+
+	# Input (global):
+	#   $wrapper_pathfile
+	#   $wrapper_pid_pathfile
+
+	# Output:
+	#   $? = 0 : $wrapper_pathfile is in memory
+	#   $? = 1 : $wrapper_pathfile is not in memory
+
+	if [[ -e $wrapper_pid_pathfile && -d /proc/"$(<$wrapper_pid_pathfile)" ]]; then
+		[[ $(</proc/"$(<$wrapper_pid_pathfile)"/cmdline) =~ $wrapper_pathfile ]]
+	else
+		false
+	fi
 
 	}
 
@@ -2000,15 +2156,13 @@ IsSysFilePresent()
 	#   $1 = pathfilename to check
 
 	if [[ -z ${1:?pathfilename null} ]]; then
-		SetError
-		return 1
+		SetError; return 1
 	fi
 
 	if [[ ! -e $1 ]]; then
 		Display "A required NAS system file is missing: '$1'"
 
-		SetError
-		return 1
+		SetError; return 1
 	fi
 
 	return 0
@@ -2086,7 +2240,9 @@ IsPortResponds()
 	target_proc=$(GetLaunchTarget)
 
 	while true; do
-		if ! IsProcessActive "$target_proc" "$daemon_pid_pathfile"; then
+# 		RefreshPidFiles
+
+		if ! IsDaemonProcessActive; then
 			DisplayCommitToLog 'process not active'
 			break
 		fi
@@ -2152,7 +2308,7 @@ IsPortSecureResponds()
 	target_proc=$(GetLaunchTarget)
 
 	while true; do
-		if ! IsProcessActive "$target_proc" "$daemon_pid_pathfile"; then
+		if ! IsDaemonProcessActive; then
 			DisplayCommitToLog 'process not active'
 			break
 		fi
@@ -2225,19 +2381,19 @@ IsNotDefaultConfigFound()
 
 	}
 
-IsVirtualEnvironmentExist()
+IsVirtualPythonEnvExist()
 	{
 
-	# Is there a virtual environment?
+	# Is there a virtual Python environment?
 
 	[[ -e $venv_path/bin/activate ]]
 
 	}
 
-IsNotVirtualEnvironmentExist()
+IsNotVirtualPythonEnvExist()
 	{
 
-	! IsVirtualEnvironmentExist
+	! IsVirtualPythonEnvExist
 
 	}
 
@@ -2285,7 +2441,7 @@ RequestLatestRelease()
 	a=$(/sbin/curl${download_opts} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
 	[[ -n ${2:-} && ${2:-} != undefined ]] && a=$(/bin/grep "$2" <<< "$a")
 
-	echo -n "$a"
+	printf '%s' "$a"
 
 	} 2>/dev/null
 
@@ -2756,7 +2912,7 @@ CommitToLogWait()
 	{
 
 	if IsNotStatus && IsNotLog && IsNotNone; then
-		echo -n "${1:-} " >> "$SERVICE_LOG_PATHFILE"
+		printf '%s' "${1:-} " >> "$SERVICE_LOG_PATHFILE"
 	fi
 
 	}
@@ -2776,8 +2932,7 @@ CommitSysLog()
 
 	if IsNotStatus && IsNotLog && IsNotNone; then
 		if [[ -z ${1:-} || -z ${2:-} ]]; then
-			SetError
-			return 1
+			SetError; return 1
 		fi
 
 		/sbin/write_log "[$QPKG_NAME] $1" "$2"
@@ -2881,7 +3036,7 @@ FormatAsThous()
 		fi
 	done
 
-	echo -n "$foutput"
+	printf '%s' "$foutput"
 
 	return 0
 
@@ -2894,7 +3049,7 @@ FormatAsDuration()
 	#	$1 = Duration in milliseconds.
 
 	if [[ ${1:-0} -lt 10000 ]]; then
-		echo -n "$(FormatAsThous "${1:-0}")ms"
+		printf '%s' "$(FormatAsThous "${1:-0}")ms"
 	else
 		FormatSecsToHoursMinutesSecs "$(($1/1000))"
 	fi
@@ -3017,7 +3172,7 @@ CalcAdaptiveSeconds()
 	[[ $((10#$c)) -gt 1 ]] && d=$((c*d))
 	[[ $((10#$d)) -gt 1800 ]] && d=1800
 
-	echo -n "$d"
+	printf '%s' "$d"
 
 	}
 
@@ -3031,11 +3186,11 @@ GetSysLoad1MinAverage()
 GetCPUCores()
 	{
 
-	local n=$(/bin/grep -c '^processor' /proc/cpuinfo)
+	local a=$(/bin/grep -c '^processor' /proc/cpuinfo)
 
-	[[ $n -eq 0 ]] && n=$(/bin/grep -c '^Processor' /proc/cpuinfo)
+	[[ $a -eq 0 ]] && a=$(/bin/grep -c '^Processor' /proc/cpuinfo)
 
-	echo -n "$n"
+	printf '%s' "$a"
 
 	}
 

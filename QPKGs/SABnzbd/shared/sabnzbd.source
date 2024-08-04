@@ -77,11 +77,11 @@ InitService()
 		# can_restart_to_update=false					# If 'true', application can be updated by restarting service-script.
 		can_restart_to_update=true
 
+		# daemon_pidfile_is_managed_by_app=false
+		daemon_pidfile_is_managed_by_app=true
+
 		# install_pip_deps=false
 		install_pip_deps=true
-
-		# pidfile_is_managed_by_app=false
-		pidfile_is_managed_by_app=true
 
 		# recheck_daemon_pid_after_launch=false			# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 		recheck_daemon_pid_after_launch=true

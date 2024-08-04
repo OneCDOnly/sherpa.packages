@@ -77,9 +77,9 @@ InitService()
 		# can_restart_to_update=false					# If 'true', application can be updated by restarting service-script.
 		can_restart_to_update=true
 
-		# install_pip_deps=false
+		# daemon_pidfile_is_managed_by_app=false
 
-		# pidfile_is_managed_by_app=false
+		# install_pip_deps=false
 
 		# recheck_daemon_pid_after_kill=false			# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 

@@ -72,10 +72,10 @@ InitService()
 
 		# can_restart_to_update=false					# If 'true', application can be updated by restarting service-script.
 
+		# daemon_pidfile_is_managed_by_app=false
+
 		# install_pip_deps=false
 		install_pip_deps=true
-
-		# pidfile_is_managed_by_app=false
 
 		# recheck_daemon_pid_after_launch=false			# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 
@@ -196,7 +196,16 @@ StatusQPKGCustom()
 	{
 
 	IsNotError || return
-	IsPackageActive && exit 0 || exit 1
+
+	if [[ -e $BACKUP_SERVICE_PATHFILE ]]; then
+		printf active
+
+		exit 0
+	fi
+
+	printf inactive
+
+	exit 1
 
 	}
 
