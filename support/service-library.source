@@ -346,9 +346,10 @@ StartQPKGLibrary()
 	fi
 
 	IsOnlinePackageArchive && RefreshReleasePackageFiles
+
 	if IsVirtualPythonEnv; then
 		CheckVirtualPythonEnv || return
-		InstallAddons || return
+		InstallPythonPackages || return
 	fi
 
 	if IsNotDaemon; then
@@ -694,7 +695,7 @@ ShowHelp()
 
 	}
 
-InstallAddons()
+InstallPythonPackages()
 	{
 
 	IsVirtualPythonEnv || return 0
