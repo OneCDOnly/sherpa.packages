@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240805'
+readonly SERVICE_LIB_VERSION='240806'
 InitLibrary()
 {
 IsQNAP || exit
@@ -70,8 +70,10 @@ qpkg_wheels_path=undefined
 venv_path=undefined
 qpkg_ini_file=config.ini
 app_version_pathfile=undefined
-daemon_pathfile=undefined
-daemon_pid_pathfile=/var/run/$QPKG_NAME-daemon.pid
+daemon_check_pathfile=undefined
+daemon_exec_pathfile=undefined
+daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+daemon_script_pathfile=undefined
 launcher_pathfile=undefined
 qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
@@ -80,8 +82,6 @@ source_archive_pathfile=undefined
 userlink_pathfile=undefined
 venv_pip_pathfile=undefined
 venv_python_pathfile=undefined
-wrapper_pathfile=undefined
-wrapper_pid_pathfile=/var/run/$QPKG_NAME-wrapper.pid
 allow_access_to_sys_packages=true
 can_restart_to_update=false
 daemon_pidfile_is_managed_by_app=false
@@ -138,7 +138,6 @@ StartQPKGLibrary()
 IsNotError || return
 if IsNotRestart && IsNotBackup && IsNotRestore && IsNotClean && IsNotReset;then
 ShowQPKGStates
-IsWrapper && IsWrapperActive
 IsDaemon && IsDaemonActive && return
 fi
 ShowQPKGStates
@@ -182,7 +181,7 @@ if IsNotDaemon;then
 RemoveUserlinkToExec
 return
 fi
-IsWrapper && IsWrapperActive
+RefreshPidFile
 if IsDaemon && IsDaemonActive;then
 StopDaemon
 fi
@@ -200,8 +199,7 @@ StatusQPKGLibrary()
 {
 IsNotError || return
 ShowQPKGStates
-RefreshPidFiles
-IsWrapper && IsWrapperActive
+RefreshPidFile
 if IsDaemon && IsDaemonActive;then
 LoadPorts app
 CheckPorts || exit
@@ -252,7 +250,7 @@ if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_
 SetError;return 1
 fi
 WaitForDaemonPid
-IsWrapper && IsWrapperActive
+WaitForStartPid
 if ! IsDaemonActive;then
 DisplayErrCommitAllLogs 'daemon has failed to start!'
 [[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
@@ -270,9 +268,8 @@ StopDaemon()
 local acc=0
 local pid=0
 local msg='stop daemon'
-[[ $run_daemon_in_screen_session = true ]] && msg+=' (in screen session)'
 pid=$(<$daemon_pid_pathfile)
-DisplayWaitCommitToLog "$msg (PID:${pid}) with SIGTERM (no-more than $DAEMON_STOP_CHECK_TIMEOUT_SECONDS second$(Pluralise "$DAEMON_STOP_CHECK_TIMEOUT_SECONDS")):"
+DisplayWaitCommitToLog "$msg '${pid}' with SIGTERM (no-more than $DAEMON_STOP_CHECK_TIMEOUT_SECONDS second$(Pluralise "$DAEMON_STOP_CHECK_TIMEOUT_SECONDS")):"
 kill "$pid"
 while true;do
 while [[ -d /proc/$pid ]];do
@@ -281,7 +278,7 @@ while [[ -d /proc/$pid ]];do
 DisplayWait "$acc,"
 if [[ $acc -ge $DAEMON_STOP_CHECK_TIMEOUT_SECONDS ]];then
 DisplayCommitToLog 'failed!'
-DisplayCommitToLog "$msg (PID:${pid}) with SIGKILL:"
+DisplayCommitToLog "$msg '${pid}' with SIGKILL:"
 kill -9 "$pid" 2> /dev/null
 [[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
 break 2
@@ -294,7 +291,6 @@ CommitInfoToSysLog "$msg: OK"
 break
 done
 WaitForKillPid
-IsWrapper && IsWrapperActive
 if IsDaemonActive;then
 SetError;return 1
 fi
@@ -334,7 +330,7 @@ local unzip_extract_opts=''
 if [[ $debug = true ]];then
 tar_extract_verbose=' --verbose'
 fi
-if [[ -e $source_archive_pathfile ]] && [[ ! -e $daemon_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$source_archive_pathfile" -c %Y))) -lt 60 ]];then
+if [[ -e $source_archive_pathfile ]] && [[ ! -e $daemon_exec_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$source_archive_pathfile" -c %Y))) -lt 60 ]];then
 tar_extract_opts="$tar_extract_verbose --extract --gzip --file=$source_archive_pathfile --directory=$qpkg_repo_path"
 unzip_extract_opts="$unzip_extract_verbose -o $source_archive_pathfile -d $qpkg_repo_path"
 DisplayRunAndLog 'extract release package' "/usr/bin/unzip${unzip_extract_opts} 2>/dev/null || /bin/tar${tar_extract_opts}" log:failure-only
@@ -670,36 +666,18 @@ return 0
 fi
 SetError;return 1
 }
-GetLaunchTarget()
+RefreshPidFile()
 {
-if [[ $venv_python_pathfile != undefined ]];then
-printf '%s' "$venv_python_pathfile"
-elif [[ $daemon_pathfile != undefined ]];then
-printf '%s' "$daemon_pathfile"
-else
-return 1
-fi
-}
-RefreshPidFiles()
-{
+local pid=0
 if [[ -e $daemon_pid_pathfile && ! -d /proc/"$(<$daemon_pid_pathfile)" ]];then
 rm -f "$daemon_pid_pathfile"
 fi
-if [[ -e $wrapper_pid_pathfile && ! -d /proc/"$(<$wrapper_pid_pathfile)" ]];then
-rm -f "$wrapper_pid_pathfile"
+if [[ $daemon_check_pathfile != undefined ]];then
+pid=$(FindPid "$daemon_check_pathfile")
+else
+pid=$(FindPid "$daemon_exec_pathfile")
 fi
-WriteDaemonPid
-WriteWrapperPid
-}
-WriteDaemonPid()
-{
-local pid=$(FindPid "$daemon_pathfile")
-[[ -n $pid ]] && echo "$pid" > "$daemon_pid_pathfile"
-}
-WriteWrapperPid()
-{
-local pid=$(FindPid "$wrapper_pathfile")
-[[ -n $pid ]] && echo "$pid" > "$wrapper_pid_pathfile"
+[[ -n $pid && $pid -gt 0 ]] && echo "$pid" > "$daemon_pid_pathfile"
 }
 FindPid()
 {
@@ -730,7 +708,7 @@ DisplayWait "$i,"
 done
 DisplayCommitToLog 'done'
 fi
-RefreshPidFiles || return
+RefreshPidFile || return
 }
 WaitForKillPid()
 {
@@ -743,7 +721,7 @@ DisplayWait "$i,"
 done
 DisplayCommitToLog 'done'
 fi
-! RefreshPidFiles || return
+! RefreshPidFile || return
 }
 WaitForDaemonPid()
 {
@@ -753,16 +731,14 @@ MAX_SECONDS=$1
 else
 MAX_SECONDS=$DAEMON_START_CHECK_TIMEOUT_SECONDS
 fi
-if [[ ! -e ${1:-} ]];then
-DisplayWaitCommitToLog 'wait for daemon to appear:'
+if [[ ! -e $daemon_pid_pathfile ]];then
+DisplayWaitCommitToLog 'wait for daemon process to appear in memory:'
 DisplayWait "(no-more than $MAX_SECONDS second$(Pluralise "$MAX_SECONDS")):"
-local target_proc=''
-target_proc=$(GetLaunchTarget)
 (
 for ((i=1;i<=MAX_SECONDS; i++)); do
 /bin/sleep 1
 DisplayWait "$i,"
-RefreshPidFiles
+RefreshPidFile
 if IsDaemonProcessActive;then
 Display OK
 CommitToLog "appeared in $i second$(Pluralise "$i")"
@@ -773,11 +749,11 @@ done
 false
 )
 if [[ $? -ne 0 ]];then
-DisplayErrCommitAllLogs "daemon not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
+DisplayErrCommitAllLogs "daemon process not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
 return 1
 fi
 fi
-DisplayCommitToLog "daemon: exists"
+DisplayCommitToLog "daemon exists: '$(<$daemon_pid_pathfile)'"
 return 0
 }
 WaitForFileToAppear()
@@ -790,7 +766,7 @@ else
 MAX_SECONDS=30
 fi
 if [[ ! -e $1 ]];then
-DisplayWaitCommitToLog "wait for $1 to appear:"
+DisplayWaitCommitToLog "wait for $1 to appear in filesystem:"
 DisplayWait "(no-more than $MAX_SECONDS second$(Pluralise "$MAX_SECONDS")):"
 (
 for ((i=1;i<=MAX_SECONDS; i++)); do
@@ -810,7 +786,7 @@ DisplayErrCommitAllLogs "$1 not found! (exceeded timeout: $MAX_SECONDS second$(P
 return 1
 fi
 fi
-DisplayCommitToLog "file '$1': exists"
+DisplayCommitToLog "file exists: '$1'"
 return 0
 }
 ViewLog()
@@ -1187,64 +1163,41 @@ IsNotSSLEnabled()
 }
 IsDaemon()
 {
-[[ $daemon_pathfile != undefined ]]
+[[ $daemon_exec_pathfile != undefined ]]
 }
 IsNotDaemon()
 {
 ! IsDaemon
 }
-IsWrapper()
+IsDaemonCheck()
 {
-[[ $wrapper_pathfile != undefined ]]
+[[ $daemon_check_pathfile != undefined ]]
 }
-IsNotWrapper()
+IsNotDaemonCheck()
 {
-! IsWrapper
+! IsDaemonCheck
 }
 IsDaemonActive()
 {
-DisplayWaitCommitToLog 'daemon:'
 if IsDaemonProcessActive;then
-DisplayCommitToLog "active (PID:$(<"$daemon_pid_pathfile"))"
+DisplayCommitToLog "daemon active: '$(<"$daemon_pid_pathfile")'"
 return 0
 fi
-DisplayCommitToLog inactive
+DisplayCommitToLog "daemon: inactive"
 return 1
 }
 IsNotDaemonActive()
 {
 ! IsDaemonActive
 }
-IsWrapperActive()
-{
-DisplayWaitCommitToLog 'wrapper:'
-if IsWrapperProcessActive;then
-DisplayCommitToLog "active (PID:$(<"$wrapper_pid_pathfile"))"
-return 0
-fi
-DisplayCommitToLog inactive
-return 1
-}
-IsNotWrapperActive()
-{
-! IsWrapperActive
-}
 IsDaemonProcessActive()
 {
 if [[ -e $daemon_pid_pathfile && -d /proc/"$(<$daemon_pid_pathfile)" ]];then
-if IsWrapper;then
-[[ $(/usr/bin/readlink /proc/"$(<$daemon_pid_pathfile)"/exe) = "$daemon_pathfile" ]]
+if IsDaemonCheck;then
+[[ $(/usr/bin/readlink /proc/"$(<$daemon_pid_pathfile)"/exe) = "$daemon_check_pathfile" ]]
 else
-[[ $(</proc/"$(<$daemon_pid_pathfile)"/cmdline) =~ $daemon_pathfile ]]
+[[ $(</proc/"$(<$daemon_pid_pathfile)"/cmdline) =~ $daemon_exec_pathfile ]]
 fi
-else
-false
-fi
-}
-IsWrapperProcessActive()
-{
-if [[ -e $wrapper_pid_pathfile && -d /proc/"$(<$wrapper_pid_pathfile)" ]];then
-[[ $(</proc/"$(<$wrapper_pid_pathfile)"/cmdline) =~ $wrapper_pathfile ]]
 else
 false
 fi
@@ -1287,8 +1240,6 @@ return 1
 fi
 local acc=0
 DisplayWaitCommitToLog "test for port '$port' response (no-more than $PORT_CHECK_TIMEOUT_SECONDS second$(Pluralise "$PORT_CHECK_TIMEOUT_SECONDS")):"
-local target_proc=''
-target_proc=$(GetLaunchTarget)
 while true;do
 if ! IsDaemonProcessActive;then
 DisplayCommitToLog 'process not active'
@@ -1333,8 +1284,6 @@ fi
 local acc=0
 DisplayWaitCommitToLog "test for secure port '$port' response:"
 DisplayWait "(no-more than $PORT_CHECK_TIMEOUT_SECONDS second$(Pluralise "$PORT_CHECK_TIMEOUT_SECONDS")):"
-local target_proc=''
-target_proc=$(GetLaunchTarget)
 while true;do
 if ! IsDaemonProcessActive;then
 DisplayCommitToLog 'process not active'

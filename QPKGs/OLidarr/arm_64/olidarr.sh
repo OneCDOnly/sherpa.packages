@@ -21,13 +21,13 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OLidarr
-readonly SERVICE_SCRIPT_VERSION='240805'
+readonly SERVICE_SCRIPT_VERSION='240806'
 InitService()
 {
 local_temp_path=$QPKG_PATH/tmp
 qpkg_repo_path=$QPKG_PATH/repo-cache
 qpkg_ini_file=config.xml
-daemon_pathfile=$qpkg_repo_path/Lidarr/Lidarr
+daemon_exec_pathfile=$qpkg_repo_path/Lidarr/Lidarr
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
@@ -41,7 +41,7 @@ get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd='grep "<Port>" $qpkg_ini_pathfile | sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
 get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_ini_pathfile | sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'
 get_ui_port_secure_enabled_test_cmd='[[ $(grep "<EnableSsl>" $qpkg_ini_pathfile | sed "s/.*<EnableSsl>\(.*\)<\/EnableSsl>.*/\1/") = True ]]'
-daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$local_temp_path;$daemon_pathfile --nobrowser --data=$QPKG_CONFIG_PATH"
+daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$local_temp_path;$daemon_exec_pathfile --nobrowser --data=$QPKG_CONFIG_PATH"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0

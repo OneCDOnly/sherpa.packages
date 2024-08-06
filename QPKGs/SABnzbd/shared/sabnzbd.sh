@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=SABnzbd
-readonly SERVICE_SCRIPT_VERSION='240805'
+readonly SERVICE_SCRIPT_VERSION='240806'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache
@@ -29,7 +29,8 @@ qpkg_repo_path=$QPKG_PATH/repo-cache
 qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
 venv_path=$QPKG_PATH/venv
 app_version_pathfile=$qpkg_repo_path/sabnzbd/version.py
-daemon_pathfile=$qpkg_repo_path/SABnzbd.py
+daemon_exec_pathfile=$venv_path/bin/python3
+daemon_script_pathfile=$qpkg_repo_path/SABnzbd.py
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
 can_restart_to_update=true
@@ -45,7 +46,7 @@ get_ui_listening_address_cmd="/sbin/getcfg misc host -d undefined -f $qpkg_ini_p
 get_ui_port_cmd="/sbin/getcfg misc port -d $ui_port -f $qpkg_ini_pathfile"
 get_ui_port_secure_cmd="/sbin/getcfg misc https_port -d $ui_port_secure -f $qpkg_ini_pathfile"
 get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg misc enable_https -d 0 -f '$qpkg_ini_pathfile') = 1 ]]'
-daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --daemon --browser 0 --config-file $qpkg_ini_pathfile --pidfile $daemon_pid_pathfile"
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --browser 0 --config-file $qpkg_ini_pathfile --pidfile $daemon_pid_pathfile"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
