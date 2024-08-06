@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240806'
+readonly SERVICE_LIB_VERSION='240807'
 InitLibrary()
 {
 IsQNAP || exit
@@ -136,11 +136,10 @@ fi
 StartQPKGLibrary()
 {
 IsNotError || return
-if IsNotRestart && IsNotBackup && IsNotRestore && IsNotClean && IsNotReset;then
 ShowQPKGStates
+if IsNotRestart && IsNotBackup && IsNotRestore && IsNotClean && IsNotReset;then
 IsDaemon && IsDaemonActive && return
 fi
-ShowQPKGStates
 if IsBackup || IsRestore || IsClean || IsReset;then
 IsNotRestartPending && return
 fi
@@ -148,9 +147,9 @@ if IsGitApp;then
 CloneGitRepo || return
 fi
 IsOnlinePackageArchive && RefreshReleasePackageFiles
-if IsVirtualPythonEnv;then
-CheckVirtualPythonEnv || return
-InstallAddons || return
+if IsVirtualPythonEnv && IsNotVirtualPythonEnvExist;then
+CreateVirtualPythonEnv || return
+InstallPythonPackages || return
 fi
 if IsNotDaemon;then
 CreateUserlinkToExec
@@ -233,6 +232,25 @@ rm -f "$userlink_pathfile"
 DisplayCommitToLog "symlink removed: '$userlink_pathfile'"
 fi
 fi
+}
+CreateVirtualPythonEnv()
+{
+new_env=false
+local allow_sys_packages=' --system-site-packages'
+local pip_conf_pathfile=$venv_path/pip.conf
+[[ $allow_access_to_sys_packages != true ]] && allow_sys_packages=''
+if IsNotVirtualPythonEnvExist;then
+DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$pip_cache_path VIRTUALENV_OVERRIDE_APP_DATA=$pip_cache_path;$interpreter -m virtualenv ${venv_path}${allow_sys_packages}" log:failure-only
+new_env=true
+if [[ ! -e $pip_conf_pathfile ]];then
+DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $pip_conf_pathfile" log:failure-only
+DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $pip_conf_pathfile" log:failure-only
+if [[ -d $qpkg_wheels_path ]];then
+DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' as 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $pip_conf_pathfile" log:failure-only
+fi
+fi
+fi
+return 0
 }
 StartDaemon()
 {
@@ -396,7 +414,7 @@ Display false
 fi
 fi
 }
-InstallAddons()
+InstallPythonPackages()
 {
 IsVirtualPythonEnv || return 0
 local default_essential_modules_pathfile=$QPKG_PATH/pip-essential.txt
@@ -408,31 +426,16 @@ local essential_modules_pathfile=$qpkg_repo_path/pip-essential.txt
 local requirements_modules_pathfile=$qpkg_repo_path/requirements.txt
 local recommended_modules_pathfile=$qpkg_repo_path/recommended.txt
 local pyproject_pathfile=$qpkg_repo_path/pyproject.toml
-local pip_conf_pathfile=$venv_path/pip.conf
-local new_env=false
-local allow_sys_packages=' --system-site-packages'
 local no_pips_installed=true
 local no_pip_deps=' --no-deps'
 local module_exclusions=''
 local re=''
 local cmd=''
 local a=''
-[[ $allow_access_to_sys_packages != true ]] && allow_sys_packages=''
 [[ $install_pip_deps = true ]] && no_pip_deps=''
-if IsNotVirtualPythonEnvExist;then
-DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$pip_cache_path VIRTUALENV_OVERRIDE_APP_DATA=$pip_cache_path;$interpreter -m virtualenv ${venv_path}${allow_sys_packages}" log:failure-only
-new_env=true
-fi
 if IsNotVirtualPythonEnvExist;then
 DisplayErrCommitAllLogs "unable to install addons: 'virtual environment does not exist'"
 SetError;return 1
-fi
-if [[ ! -e $pip_conf_pathfile ]];then
-DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $pip_conf_pathfile" log:failure-only
-DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $pip_conf_pathfile" log:failure-only
-if [[ -d $qpkg_wheels_path ]];then
-DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' as 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $pip_conf_pathfile" log:failure-only
-fi
 fi
 IsNotAutoUpdate && [[ $new_env = false ]] && return 0
 if [[ $QPKG_NAME = OWatcher3 ]];then
@@ -1821,7 +1824,7 @@ if IsSupportBackup;then
 SetServiceAction backup
 StopQPKG
 BackupConfig
-StartQPKG
+IsQPKGEnabled && StartQPKG
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
@@ -1834,7 +1837,7 @@ SetServiceAction clean
 StopQPKG
 [[ $QPKG_NAME = nzbToMedia ]] && BackupConfig
 CleanLocalRepo
-StartQPKG
+IsQPKGEnabled && StartQPKG
 [[ $QPKG_NAME = nzbToMedia ]] && RestoreConfig
 else
 SetServiceAction unsupported
@@ -1899,7 +1902,7 @@ if IsSupportReset;then
 SetServiceAction reset
 StopQPKG
 ResetConfig
-StartQPKG
+IsQPKGEnabled && StartQPKG
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
@@ -1921,7 +1924,7 @@ if IsSupportBackup;then
 SetServiceAction restore
 StopQPKG
 RestoreConfig
-StartQPKG
+IsQPKGEnabled && StartQPKG
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
