@@ -9,7 +9,7 @@
 #* Project:
 #*	 https://git.io/sherpa
 #* Forum:
-#*	 https://forum.qnap.com/viewtopic.php?f=320&t=132373
+#*	 https://forum.qnap.com/viewtopic.php?t=132373
 #* Tested on:
 #*	 GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*	 GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
@@ -24,7 +24,7 @@
 readonly USER_ARGS_RAW=$*
 Init()
 {
-export LOADER_SCRIPT_VER='240807'
+export LOADER_SCRIPT_VER='240808'
 export LOADER_SCRIPT_PPID=$PPID
 readonly QPKG_NAME=sherpa
 readonly CHARS_REGULAR_PROMPT='$ '

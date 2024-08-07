@@ -7,7 +7,7 @@
 #* Project:
 #*	 https://git.io/sherpa
 #* Forum:
-#*	 https://forum.qnap.com/viewtopic.php?f=320&t=132373
+#*	 https://forum.qnap.com/viewtopic.php?t=132373
 #* Tested on:
 #*	 GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*	 GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=LazyLibrarian
-readonly SERVICE_SCRIPT_VERSION='240807'
+readonly SERVICE_SCRIPT_VERSION='240808'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache

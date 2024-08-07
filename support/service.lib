@@ -10,7 +10,7 @@
 #* Project:
 #*	 https://git.io/sherpa
 #* Forum:
-#*	 https://forum.qnap.com/viewtopic.php?f=320&t=132373
+#*	 https://forum.qnap.com/viewtopic.php?t=132373
 #* Tested on:
 #*	 GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*	 GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240807'
+readonly SERVICE_LIB_VERSION='240808'
 InitLibrary()
 {
 IsQNAP || exit
@@ -39,30 +39,30 @@ break
 done
 UnsetError
 UnsetRestartPending
+readonly BACKUP_PATH=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
+readonly OPKG_PATH=/opt/bin:/opt/sbin
+export PATH=$OPKG_PATH:$(/bin/sed "s|$OPKG_PATH||" <<< "$PATH")
+readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
+readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
+export HOME=$QPKG_CONFIG_PATH
+readonly APP_VERSION_STORE_PATHFILE=$QPKG_PATH/version.stored
+readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
+readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
+readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
+readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
+readonly SERVICE_SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
 readonly DAEMON_START_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
 readonly DAEMON_STOP_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
 readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)
 readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
 readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
 readonly PORT_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
-readonly BACKUP_PATH=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
 readonly CHARS_REGULAR_PROMPT='$ '
 readonly CHARS_SUDO_PROMPT="${CHARS_REGULAR_PROMPT}sudo "
 readonly CHARS_SUPER_PROMPT='# '
 readonly DEBUG_LOG_DATAWIDTH=100
-readonly NAS_FIRMWARE_VER=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
-readonly OPKG_PATH=/opt/bin:/opt/sbin
-export PATH=$OPKG_PATH:$(/bin/sed "s|$OPKG_PATH||" <<< "$PATH")
-readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
-readonly APP_VERSION_STORE_PATHFILE=$QPKG_PATH/version.stored
-readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
-readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
+readonly NAS_FIRMWARE_VERSION=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
-readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
-readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
-readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
-readonly SERVICE_SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
-export HOME=$QPKG_CONFIG_PATH
 local_temp_path=undefined
 pip_cache_path=undefined
 qpkg_repo_path=undefined
@@ -735,7 +735,7 @@ else
 MAX_SECONDS=$DAEMON_START_CHECK_TIMEOUT_SECONDS
 fi
 if [[ ! -e $daemon_pid_pathfile ]];then
-DisplayWaitCommitToLog 'wait for daemon process to appear in memory:'
+DisplayWaitCommitToLog 'wait for process to appear in memory:'
 DisplayWait "(no-more than $MAX_SECONDS second$(Pluralise "$MAX_SECONDS")):"
 (
 for ((i=1;i<=MAX_SECONDS; i++)); do
@@ -752,11 +752,10 @@ done
 false
 )
 if [[ $? -ne 0 ]];then
-DisplayErrCommitAllLogs "daemon process not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
+DisplayErrCommitAllLogs "process not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
 return 1
 fi
 fi
-DisplayCommitToLog "daemon exists: '$(<$daemon_pid_pathfile)'"
 return 0
 }
 WaitForFileToAppear()
@@ -785,7 +784,7 @@ done
 false
 )
 if [[ $? -ne 0 ]];then
-DisplayErrCommitAllLogs "$1 not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
+DisplayErrCommitAllLogs "file $1 not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
 return 1
 fi
 fi
@@ -1348,7 +1347,7 @@ IsNotVirtualPythonEnvExist()
 }
 OSIsSupportSecureDownload()
 {
-[[ ${NAS_FIRMWARE_VER//.} -ge 500 ]]
+[[ ${NAS_FIRMWARE_VERSION//.} -ge 500 ]]
 }
 IsSiteUp()
 {
