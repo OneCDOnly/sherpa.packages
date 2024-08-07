@@ -1239,7 +1239,7 @@ WaitForDaemonPid()
 	fi
 
 	if [[ ! -e $daemon_pid_pathfile ]]; then
-		DisplayWaitCommitToLog 'wait for daemon process to appear in memory:'
+		DisplayWaitCommitToLog 'wait for process to appear in memory:'
 		DisplayWait "(no-more than $MAX_SECONDS second$(Pluralise "$MAX_SECONDS")):"
 
 		(
@@ -1262,12 +1262,10 @@ WaitForDaemonPid()
 		)
 
 		if [[ $? -ne 0 ]]; then
-			DisplayErrCommitAllLogs "daemon process not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
+			DisplayErrCommitAllLogs "process not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
 			return 1
 		fi
 	fi
-
-	DisplayCommitToLog "daemon exists: '$(<$daemon_pid_pathfile)'"
 
 	return 0
 
@@ -1315,7 +1313,7 @@ WaitForFileToAppear()
 		)
 
 		if [[ $? -ne 0 ]]; then
-			DisplayErrCommitAllLogs "$1 not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
+			DisplayErrCommitAllLogs "file $1 not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
 			return 1
 		fi
 	fi
