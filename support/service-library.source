@@ -40,34 +40,47 @@ InitLibrary()
 	UnsetError
 	UnsetRestartPending
 
-	# The following values are for a single-core CPU and 1m load average of 1.0
-	readonly DAEMON_START_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
-	readonly DAEMON_STOP_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
-	readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)
-	readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
-	readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
-	readonly PORT_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
+	# Internal session constants.
 
-	readonly BACKUP_PATH=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
-	readonly CHARS_REGULAR_PROMPT='$ '
-		readonly CHARS_SUDO_PROMPT="${CHARS_REGULAR_PROMPT}sudo "
-	readonly CHARS_SUPER_PROMPT='# '
-	readonly DEBUG_LOG_DATAWIDTH=100
-	readonly NAS_FIRMWARE_VER=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
-	readonly OPKG_PATH=/opt/bin:/opt/sbin
-		export PATH=$OPKG_PATH:$(/bin/sed "s|$OPKG_PATH||" <<< "$PATH")
-	readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
-		readonly APP_VERSION_STORE_PATHFILE=$QPKG_PATH/version.stored
-		readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
-		readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
-	readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
-	readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
-	readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
-	readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
-	readonly SERVICE_SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
-	export HOME=$QPKG_CONFIG_PATH
+		# Paths.
 
-	# NOTE: default session values are set here, but can be changed in the InitService() function for each QPKG.
+			readonly BACKUP_PATH=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
+			readonly OPKG_PATH=/opt/bin:/opt/sbin
+				export PATH=$OPKG_PATH:$(/bin/sed "s|$OPKG_PATH||" <<< "$PATH")
+			readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
+				readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
+					export HOME=$QPKG_CONFIG_PATH
+
+		# Pathfilenames.
+
+			readonly APP_VERSION_STORE_PATHFILE=$QPKG_PATH/version.stored
+			readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
+			readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
+			readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
+			readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
+			readonly SERVICE_SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
+
+		# Timeouts.
+
+			# The following values are for a single-core CPU and 1m load average of 1.0
+
+			readonly DAEMON_START_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
+			readonly DAEMON_STOP_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
+			readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)
+			readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
+			readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
+			readonly PORT_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
+
+		# Values.
+
+			readonly CHARS_REGULAR_PROMPT='$ '
+				readonly CHARS_SUDO_PROMPT="${CHARS_REGULAR_PROMPT}sudo "
+			readonly CHARS_SUPER_PROMPT='# '
+			readonly DEBUG_LOG_DATAWIDTH=100
+			readonly NAS_FIRMWARE_VERSION=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
+			readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
+
+	# NOTE: default session variables are set below, but may be customised in the InitService() function for each QPKG.
 
 	# >>> Paths <<<
 
@@ -179,11 +192,11 @@ InitLibrary()
 
 		daemon_launch_cmd=undefined
 
-# --- start template ---
+# --- start of template for service-script ---
 
-	# This is a type n service-script.
+	# This is a type _ service-script.
 
-	# NOTE: default session values are set in service function library: uncomment to update, or copy to change.
+	# NOTE: default session values are set in InitLibrary(): uncomment or copy to update/modify.
 
 	# >>> Paths <<<
 
@@ -295,9 +308,9 @@ InitLibrary()
 
 		# daemon_launch_cmd=undefined
 
-# ---end template ---
+# --- end of template for service-script ---
 
-	InitService											# Located in parent service-script. Service-script vars can override vars set here.
+	InitService											# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
 	OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
 	pyver=''
 	service_action=unspecified
@@ -2303,7 +2316,7 @@ IsNotVirtualPythonEnvExist()
 OSIsSupportSecureDownload()
 	{
 
-	[[ ${NAS_FIRMWARE_VER//.} -ge 500 ]]
+	[[ ${NAS_FIRMWARE_VERSION//.} -ge 500 ]]
 
 	}
 
