@@ -2389,6 +2389,17 @@ SetServiceResultAsFailed()
 
 	}
 
+SetServiceResultAsAborted()
+	{
+
+	# Selected action received a SIGINT while executing.
+
+	service_result=aborted
+	CommitServiceResult
+	DisplayAndCommitResultToLog
+
+	}
+
 SetServiceResultAsInProgress()
 	{
 
@@ -3110,6 +3121,30 @@ GetCPUCores()
 
 	}
 
+CaughtSIGHUP()
+	{
+
+	trap - SIGHUP
+
+	DisplayCommitToLog 'caught SIGHUP: abort.'
+	SetServiceResultAsAborted
+
+	exit
+
+	}
+
+CaughtSIGINT()
+	{
+
+	trap - SIGINT
+
+	DisplayCommitToLog 'caught SIGINT: abort.'
+	SetServiceResultAsAborted
+
+	exit
+
+	}
+
 ProcessArgs()
 	{
 
@@ -3304,5 +3339,8 @@ ProcessArgs()
 	exit 0
 
 	}
+
+trap CaughtSIGHUP SIGHUP
+trap CaughtSIGINT SIGINT
 
 InitLibrary
