@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OliveTin
-readonly SERVICE_SCRIPT_VERSION='240803'
+readonly SERVICE_SCRIPT_VERSION='240807'
 InitService()
 {
 qpkg_repo_path=$QPKG_PATH/repo-cache
@@ -34,13 +34,13 @@ can_restart_to_update=true
 resolve_remote_url=true
 run_daemon_in_screen_session=true
 remote_arch=linux-amd64
-daemon_pathfile=$qpkg_repo_path/OliveTin-$remote_arch/OliveTin
+daemon_exec_pathfile=$qpkg_repo_path/OliveTin-$remote_arch/OliveTin
 remote_url='https://api.github.com/repos/OliveTin/OliveTin/releases/latest'
 get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep listenAddressSingleHTTPFrontend | cut -d= -f2 | cut -d: -f1 | /bin/sed "s|\"||"'
 get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep listenAddressSingleHTTPFrontend | cut -d= -f2 | cut -d: -f2 | /bin/sed "s| .*$||"'
 get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-$remote_arch && $daemon_pathfile -configdir $QPKG_CONFIG_PATH"
+daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-$remote_arch && $daemon_exec_pathfile -configdir $QPKG_CONFIG_PATH"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0

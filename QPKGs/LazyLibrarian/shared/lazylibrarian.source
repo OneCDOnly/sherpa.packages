@@ -47,12 +47,17 @@ InitService()
 		# app_version_pathfile=undefined
 		app_version_pathfile=$qpkg_repo_path/lazylibrarian/version.py
 
-		# daemon_pathfile=undefined
-		daemon_pathfile=$qpkg_repo_path/LazyLibrarian.py
+		# daemon_check_pathfile=undefined							# If set, look for this process pathfilename instead of $daemon_exec_pathfile.
+
+		# daemon_exec_pathfile=undefined							# The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this will be the interpreter to launch.
+		daemon_exec_pathfile=$venv_path/bin/python3
 
 		# daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 
-		# launcher_pathfile=undefined					# On-demand executables only.
+		# daemon_script_pathfile=undefined							# When an interpreter is to be used, interpret this script.
+		daemon_script_pathfile=$qpkg_repo_path/LazyLibrarian.py
+
+		# launcher_pathfile=undefined								# On-demand executables only.
 
 		# qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
 
@@ -62,7 +67,7 @@ InitService()
 
 		# source_archive_pathfile=undefined
 
-		# userlink_pathfile=undefined					# On-demand executables only.
+		# userlink_pathfile=undefined								# On-demand executables only.
 
 		# venv_pip_pathfile=undefined
 		venv_pip_pathfile=$venv_path/bin/pip
@@ -74,25 +79,25 @@ InitService()
 
 		# allow_access_to_sys_packages=true
 
-		# can_restart_to_update=false					# If 'true', application can be updated by restarting service-script.
+		# can_restart_to_update=false								# If 'true', application can be updated by restarting service-script.
 		can_restart_to_update=true
+
+		# daemon_pidfile_is_managed_by_app=false
+		daemon_pidfile_is_managed_by_app=true
 
 		# install_pip_deps=false
 		install_pip_deps=true
 
-		# pidfile_is_managed_by_app=false
-		pidfile_is_managed_by_app=true
-
-		# recheck_daemon_pid_after_launch=false			# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 		recheck_daemon_pid_after_launch=true
 
-		# recheck_daemon_pid_after_kill=false			# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		# recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 
-		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+		# resolve_remote_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
 		# run_daemon_in_screen_session=false
 
-		# silence_pypi_errors=true						# If 'true', PyPI package processing errors won't be shown in system log.
+		# silence_pypi_errors=true									# If 'true', PyPI package processing errors won't be shown in system log.
 
 	# >>> Values <<<
 
@@ -101,9 +106,9 @@ InitService()
 		# interpreter=undefined
 		interpreter=/opt/bin/python3
 
-		# nice_daemon_to=0								# If non-zero, daemon proc is niced to this value on-launch.
+		# nice_daemon_to=0											# If non-zero, daemon proc is niced to this value on-launch.
 
-		# orig_daemon_service_script=undefined			# Specific to Entware binaries only.
+		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
 		# remote_arch=undefined
 
@@ -112,7 +117,7 @@ InitService()
 		# source_git_branch=undefined
 		source_git_branch=master
 
-		# source_git_branch_depth=undefined				# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 		source_git_branch_depth=shallow
 
 		# ui_listening_address=undefined
@@ -151,7 +156,7 @@ InitService()
 		get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg General https_enabled -d 0 -f '$qpkg_ini_pathfile') = 1 ]]'
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_ini_pathfile") --config $qpkg_ini_pathfile --pidfile $daemon_pid_pathfile"
+		daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_ini_pathfile") --config $qpkg_ini_pathfile --pidfile $daemon_pid_pathfile"
 
 	IsSupportGetAppVersion && app_version_cmd="/bin/grep '__version__ =' $app_version_pathfile | /bin/sed 's|^.*\"\(.*\)\"|\1|'"
 

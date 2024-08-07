@@ -45,12 +45,16 @@ InitService()
 
 		# app_version_pathfile=undefined
 
-		# daemon_pathfile=undefined
-		daemon_pathfile=$qpkg_repo_path/Readarr/Readarr
+		# daemon_check_pathfile=undefined							# If set, look for this process pathfilename instead of $daemon_exec_pathfile.
+
+		# daemon_exec_pathfile=undefined							# The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this will be the interpreter to launch.
+		daemon_exec_pathfile=$qpkg_repo_path/Readarr/Readarr
 
 		# daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
 
-		# launcher_pathfile=undefined					# On-demand executables only.
+		# daemon_script_pathfile=undefined							# When an interpreter is to be used, interpret this script.
+
+		# launcher_pathfile=undefined								# On-demand executables only.
 
 		# qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
 
@@ -63,7 +67,7 @@ InitService()
 		# source_archive_pathfile=undefined
 		source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
 
-		# userlink_pathfile=undefined					# On-demand executables only.
+		# userlink_pathfile=undefined								# On-demand executables only.
 
 		# venv_pip_pathfile=undefined
 
@@ -74,24 +78,23 @@ InitService()
 		# allow_access_to_sys_packages=true
 		allow_access_to_sys_packages=false
 
-		# can_restart_to_update=false					# If 'true', application can be updated by restarting service-script.
+		# can_restart_to_update=false								# If 'true', application can be updated by restarting service-script.
 		can_restart_to_update=true
+
+		# daemon_pidfile_is_managed_by_app=false
 
 		# install_pip_deps=false
 
-		# pidfile_is_managed_by_app=false
+		# recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 
-		# recheck_daemon_pid_after_kill=false			# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 
-		# recheck_daemon_pid_after_launch=false			# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		# resolve_remote_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
-		# resolve_remote_url=false						# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
-
-		# run_daemon_in_screen_session=false			# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
-														# NOTE: don't launch double-forked procs in a `screen` session.
+		# run_daemon_in_screen_session=false						# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
 		run_daemon_in_screen_session=true
 
-		# silence_pypi_errors=true						# If 'true', PyPI package processing errors won't be shown in system log.
+		# silence_pypi_errors=true									# If 'true', PyPI package processing errors won't be shown in system log.
 
 	# >>> Values <<<
 
@@ -99,17 +102,18 @@ InitService()
 
 		# interpreter=undefined
 
-		# nice_daemon_to=0								# If non-zero, daemon proc is niced to this value on-launch.
+		# nice_daemon_to=0											# If non-zero, daemon proc is niced to this value on-launch.
 
-		# orig_daemon_service_script=undefined			# Specific to Entware binaries only.
+		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
 		# remote_arch=undefined
+		remote_arch=x64
 
 		# source_arch=undefined
 
 		# source_git_branch=undefined
 
-		# source_git_branch_depth=undefined				# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 
 		# ui_listening_address=undefined
 		ui_listening_address=0.0.0.0
@@ -121,8 +125,7 @@ InitService()
 	# >>> URLs <<<
 
 		# remote_url=undefined
-		remote_url='https://readarr.servarr.com/v1/update/develop/updatefile?os=linux&runtime=netcore&'
-		remote_url+='arch=x64'
+		remote_url='https://readarr.servarr.com/v1/update/develop/updatefile?os=linux&runtime=netcore&arch='$remote_arch
 
 		# source_git_url=undefined
 
@@ -145,7 +148,7 @@ InitService()
 		get_ui_port_secure_enabled_test_cmd='[[ $(grep "<EnableSsl>" $qpkg_ini_pathfile | sed "s/.*<EnableSsl>\(.*\)<\/EnableSsl>.*/\1/") = True ]]'
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$local_temp_path; $daemon_pathfile --nobrowser --data=$QPKG_CONFIG_PATH"
+		daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$local_temp_path; $daemon_exec_pathfile --nobrowser --data=$QPKG_CONFIG_PATH"
 
 	}
 

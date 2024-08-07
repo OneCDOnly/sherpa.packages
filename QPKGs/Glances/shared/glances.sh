@@ -21,14 +21,15 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=Glances
-readonly SERVICE_SCRIPT_VERSION='240803'
+readonly SERVICE_SCRIPT_VERSION='240807'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache
 qpkg_repo_path=$QPKG_PATH/repo-cache
 qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
 venv_path=$QPKG_PATH/venv
-daemon_pathfile=$venv_path/bin/glances
+daemon_exec_pathfile=$venv_path/bin/python3
+daemon_script_pathfile=$venv_path/bin/glances
 qpkg_backup_pathfile=undefined
 qpkg_ini_pathfile=undefined
 qpkg_ini_default_pathfile=undefined
@@ -44,7 +45,7 @@ get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="echo $ui_port"
 get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="$venv_python_pathfile $daemon_pathfile --webserver"
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --webserver"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
