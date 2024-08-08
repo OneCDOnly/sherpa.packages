@@ -9,7 +9,7 @@
 #* Project:
 #*	 https://git.io/sherpa
 #* Forum:
-#*	 https://forum.qnap.com/viewtopic.php?f=320&t=132373
+#*	 https://forum.qnap.com/viewtopic.php?t=132373
 #* Tested on:
 #*	 GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*	 GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)

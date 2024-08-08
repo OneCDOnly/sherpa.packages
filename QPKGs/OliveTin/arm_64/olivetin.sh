@@ -7,7 +7,7 @@
 #* Project:
 #*	 https://git.io/sherpa
 #* Forum:
-#*	 https://forum.qnap.com/viewtopic.php?f=320&t=132373
+#*	 https://forum.qnap.com/viewtopic.php?t=132373
 #* Tested on:
 #*	 GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*	 GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
@@ -21,14 +21,13 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OliveTin
-readonly SERVICE_SCRIPT_VERSION='240807'
+readonly SERVICE_SCRIPT_VERSION='240809'
 InitService()
 {
 qpkg_repo_path=$QPKG_PATH/repo-cache
 qpkg_ini_file=config.yaml
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
 allow_access_to_sys_packages=false
 can_restart_to_update=true
 resolve_remote_url=true

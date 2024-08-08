@@ -24,8 +24,6 @@ InitService()
 
 	# >>> Paths <<<
 
-		# local_temp_path=undefined
-
 		# pip_cache_path=undefined
 		pip_cache_path=$QPKG_PATH/pip-cache
 
@@ -68,8 +66,6 @@ InitService()
 		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 
 		/bin/sed -i "s|<?installation_path?>|$QPKG_PATH|g" "$qpkg_ini_default_pathfile"		# Update for Unmanic.
-
-		# source_archive_pathfile=undefined
 
 		# userlink_pathfile=undefined								# On-demand executables only.
 

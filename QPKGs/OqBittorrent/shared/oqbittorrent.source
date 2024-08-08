@@ -24,8 +24,6 @@ InitService()
 
 	# >>> Paths <<<
 
-		# local_temp_path=undefined
-
 		# pip_cache_path=undefined
 
 		# qpkg_repo_path=undefined
@@ -61,8 +59,6 @@ InitService()
 
 		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-
-		# source_archive_pathfile=undefined
 
 		# userlink_pathfile=undefined								# On-demand executables only.
 

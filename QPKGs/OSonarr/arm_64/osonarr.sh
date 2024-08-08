@@ -7,7 +7,7 @@
 #* Project:
 #*	 https://git.io/sherpa
 #* Forum:
-#*	 https://forum.qnap.com/viewtopic.php?f=320&t=132373
+#*	 https://forum.qnap.com/viewtopic.php?t=132373
 #* Tested on:
 #*	 GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*	 GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
@@ -21,16 +21,14 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OSonarr
-readonly SERVICE_SCRIPT_VERSION='240807'
+readonly SERVICE_SCRIPT_VERSION='240809'
 InitService()
 {
-local_temp_path=$QPKG_PATH/tmp
 qpkg_repo_path=$QPKG_PATH/repo-cache
 qpkg_ini_file=config.xml
 daemon_exec_pathfile=$qpkg_repo_path/Sonarr/Sonarr
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
 allow_access_to_sys_packages=false
 can_restart_to_update=true
 run_daemon_in_screen_session=true
@@ -41,7 +39,7 @@ get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd='grep "<Port>" $qpkg_ini_pathfile | sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
 get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_ini_pathfile | sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'
 get_ui_port_secure_enabled_test_cmd='[[ $(grep "<EnableSsl>" $qpkg_ini_pathfile | sed "s/.*<EnableSsl>\(.*\)<\/EnableSsl>.*/\1/") = True ]]'
-daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$local_temp_path;$daemon_exec_pathfile --nobrowser --data=$QPKG_CONFIG_PATH"
+daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$QPKG_TEMP_PATH;$daemon_exec_pathfile --nobrowser --data=$QPKG_CONFIG_PATH"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0

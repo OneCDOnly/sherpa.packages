@@ -7,7 +7,7 @@
 #* Project:
 #*	 https://git.io/sherpa
 #* Forum:
-#*	 https://forum.qnap.com/viewtopic.php?f=320&t=132373
+#*	 https://forum.qnap.com/viewtopic.php?t=132373
 #* Tested on:
 #*	 GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*	 GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
@@ -21,10 +21,9 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=NZBHydra2
-readonly SERVICE_SCRIPT_VERSION='240807'
+readonly SERVICE_SCRIPT_VERSION='240809'
 InitService()
 {
-local_temp_path=$QPKG_PATH/tmp
 pip_cache_path=$QPKG_PATH/pip-cache
 qpkg_repo_path=$QPKG_PATH/repo-cache
 venv_path=$QPKG_PATH/venv
@@ -47,7 +46,7 @@ get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_h
 get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_port= | cut -d\" -f2'
 get_ui_port_secure_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_port= | cut -d\" -f2'
 get_ui_port_secure_enabled_test_cmd='[[ $(parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_ssl= | cut -d\" -f2) = true ]]'
-daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$local_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $QPKG_CONFIG_PATH"
+daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$QPKG_TEMP_PATH;$daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $QPKG_CONFIG_PATH"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0

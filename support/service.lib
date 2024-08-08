@@ -10,7 +10,7 @@
 #* Project:
 #*	 https://git.io/sherpa
 #* Forum:
-#*	 https://forum.qnap.com/viewtopic.php?f=320&t=132373
+#*	 https://forum.qnap.com/viewtopic.php?t=132373
 #* Tested on:
 #*	 GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*	 GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240807'
+readonly SERVICE_LIB_VERSION='240809'
 InitLibrary()
 {
 IsQNAP || exit
@@ -38,32 +38,32 @@ debug=true
 break
 done
 UnsetError
-UnsetRestartPending
+readonly BACKUP_PATH=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
+readonly OPKG_PATH=/opt/bin:/opt/sbin
+export PATH=$OPKG_PATH:$(/bin/sed "s|$OPKG_PATH||" <<< "$PATH")
+readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
+readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
+export HOME=$QPKG_CONFIG_PATH
+readonly QPKG_TEMP_PATH=$QPKG_PATH/tmp
+readonly APP_VERSION_STORE_PATHFILE=$QPKG_PATH/version.stored
+readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
+readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
+readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
+readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
+readonly SERVICE_SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
+readonly SOURCE_ARCHIVE_PATHFILE=$QPKG_TEMP_PATH/source.archive
 readonly DAEMON_START_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
 readonly DAEMON_STOP_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
 readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)
 readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
 readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
 readonly PORT_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
-readonly BACKUP_PATH=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
 readonly CHARS_REGULAR_PROMPT='$ '
 readonly CHARS_SUDO_PROMPT="${CHARS_REGULAR_PROMPT}sudo "
 readonly CHARS_SUPER_PROMPT='# '
 readonly DEBUG_LOG_DATAWIDTH=100
-readonly NAS_FIRMWARE_VER=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
-readonly OPKG_PATH=/opt/bin:/opt/sbin
-export PATH=$OPKG_PATH:$(/bin/sed "s|$OPKG_PATH||" <<< "$PATH")
-readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
-readonly APP_VERSION_STORE_PATHFILE=$QPKG_PATH/version.stored
-readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
-readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
+readonly NAS_FIRMWARE_VERSION=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
-readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
-readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
-readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
-readonly SERVICE_SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
-export HOME=$QPKG_CONFIG_PATH
-local_temp_path=undefined
 pip_cache_path=undefined
 qpkg_repo_path=undefined
 qpkg_wheels_path=undefined
@@ -78,7 +78,6 @@ launcher_pathfile=undefined
 qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-source_archive_pathfile=undefined
 userlink_pathfile=undefined
 venv_pip_pathfile=undefined
 venv_python_pathfile=undefined
@@ -127,6 +126,9 @@ fi
 }
 StartQPKG()
 {
+if IsReinstall || IsUpgrade;then
+return
+fi
 if [[ $(type -t StartQPKGCustom) = function ]];then
 StartQPKGCustom
 else
@@ -137,16 +139,14 @@ StartQPKGLibrary()
 {
 IsNotError || return
 ShowQPKGStates
-if IsNotRestart && IsNotBackup && IsNotRestore && IsNotClean && IsNotReset;then
 IsDaemon && IsDaemonActive && return
-fi
-if IsBackup || IsRestore || IsClean || IsReset;then
-IsNotRestartPending && return
-fi
+IsNotStart && IsNotRestart && QPKGWasNotActive && return
 if IsGitApp;then
 CloneGitRepo || return
 fi
-IsOnlinePackageArchive && RefreshReleasePackageFiles
+if IsOnlinePackageArchive;then
+RefreshReleasePackageFiles || return
+fi
 if IsVirtualPythonEnv && IsNotVirtualPythonEnvExist;then
 CreateVirtualPythonEnv || return
 InstallPythonPackages || return
@@ -172,9 +172,6 @@ fi
 StopQPKGLibrary()
 {
 IsNotError || return
-if IsRestart || IsBackup || IsRestore || IsClean || IsReset;then
-SetRestartPending
-fi
 ShowQPKGStates
 if IsNotDaemon;then
 RemoveUserlinkToExec
@@ -182,6 +179,7 @@ return
 fi
 RefreshPidFile
 if IsDaemon && IsDaemonActive;then
+SetQPKGWasActive
 StopDaemon
 fi
 return
@@ -315,8 +313,7 @@ fi
 }
 RefreshReleasePackageFiles()
 {
-local source_archive_pathfile=$qpkg_repo_path/source.archive
-if IsAutoUpdate || [[ ! -e $source_archive_pathfile ]];then
+if IsAutoUpdate || [[ ! -e $SOURCE_ARCHIVE_PATHFILE ]];then
 local release_url=''
 local download_opts=$curl_insecure_arg
 [[ $debug = false ]] && download_opts+=' --silent'
@@ -336,8 +333,8 @@ else
 release_url=$remote_url
 fi
 if [[ -n $release_url ]];then
-[[ -e $source_archive_pathfile ]] && download_opts+=" --time-cond $source_archive_pathfile"
-download_opts+=" --show-error --location --output $source_archive_pathfile"
+[[ -e $SOURCE_ARCHIVE_PATHFILE ]] && download_opts+=" --time-cond $SOURCE_ARCHIVE_PATHFILE"
+download_opts+=" --show-error --location --output $SOURCE_ARCHIVE_PATHFILE"
 DisplayRunAndLog 'refresh release package' "/sbin/curl${download_opts} '$release_url'" log:failure-only
 fi
 fi
@@ -348,11 +345,23 @@ local unzip_extract_opts=''
 if [[ $debug = true ]];then
 tar_extract_verbose=' --verbose'
 fi
-if [[ -e $source_archive_pathfile ]] && [[ ! -e $daemon_exec_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$source_archive_pathfile" -c %Y))) -lt 60 ]];then
-tar_extract_opts="$tar_extract_verbose --extract --gzip --file=$source_archive_pathfile --directory=$qpkg_repo_path"
-unzip_extract_opts="$unzip_extract_verbose -o $source_archive_pathfile -d $qpkg_repo_path"
+if [[ -e $SOURCE_ARCHIVE_PATHFILE ]] && [[ ! -e $daemon_exec_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$SOURCE_ARCHIVE_PATHFILE" -c %Y))) -lt 60 ]];then
+tar_extract_opts="$tar_extract_verbose --extract --gzip --file=$SOURCE_ARCHIVE_PATHFILE --directory=$qpkg_repo_path"
+unzip_extract_opts="$unzip_extract_verbose -o $SOURCE_ARCHIVE_PATHFILE -d $qpkg_repo_path"
 DisplayRunAndLog 'extract release package' "/usr/bin/unzip${unzip_extract_opts} 2>/dev/null || /bin/tar${tar_extract_opts}" log:failure-only
 fi
+if IsOnlinePackageArchive;then
+if [[ -d $qpkg_repo_path ]];then
+if IsPathEmpty "$qpkg_repo_path";then
+DisplayErrCommitAllLogs 'local repository files do not exist'
+SetError;return 1
+fi
+else
+DisplayErrCommitAllLogs 'local repository path does not exist'
+SetError;return 1
+fi
+fi
+return 0
 }
 CheckVirtualPythonEnv()
 {
@@ -541,7 +550,7 @@ MakePaths()
 {
 local a=''
 if [[ -d $QPKG_PATH ]];then
-for a in "$local_temp_path" "$qpkg_repo_path" "$pip_cache_path" "$venv_path";do
+for a in "$QPKG_TEMP_PATH" "$qpkg_repo_path" "$pip_cache_path" "$venv_path";do
 [[ $a != undefined && ! -d $a ]] && mkdir -p "$a"
 done
 fi
@@ -650,7 +659,7 @@ fi
 IsVirtualPythonEnv && [[ -d $venv_path ]] && DisplayRunAndLog 'clean virtual environment' "rm -rf \"$venv_path\"" log:failure-only
 IsUsePipCache && [[ -d $pip_cache_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$pip_cache_path\"" log:failure-only
 [[ -e $APP_VERSION_STORE_PATHFILE ]] && DisplayRunAndLog 'remove application version' "rm -f \"$APP_VERSION_STORE_PATHFILE\"" log:failure-only
-IsUseTemp && [[ -d $local_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$local_temp_path\"" log:failure-only
+IsUseTemp && [[ -d $QPKG_TEMP_PATH ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$QPKG_TEMP_PATH\"" log:failure-only
 MakePaths
 }
 WaitForGit()
@@ -735,7 +744,7 @@ else
 MAX_SECONDS=$DAEMON_START_CHECK_TIMEOUT_SECONDS
 fi
 if [[ ! -e $daemon_pid_pathfile ]];then
-DisplayWaitCommitToLog 'wait for daemon process to appear in memory:'
+DisplayWaitCommitToLog 'wait for process to appear in memory:'
 DisplayWait "(no-more than $MAX_SECONDS second$(Pluralise "$MAX_SECONDS")):"
 (
 for ((i=1;i<=MAX_SECONDS; i++)); do
@@ -752,11 +761,10 @@ done
 false
 )
 if [[ $? -ne 0 ]];then
-DisplayErrCommitAllLogs "daemon process not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
+DisplayErrCommitAllLogs "process not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
 return 1
 fi
 fi
-DisplayCommitToLog "daemon exists: '$(<$daemon_pid_pathfile)'"
 return 0
 }
 WaitForFileToAppear()
@@ -785,7 +793,7 @@ done
 false
 )
 if [[ $? -ne 0 ]];then
-DisplayErrCommitAllLogs "$1 not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
+DisplayErrCommitAllLogs "file $1 not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
 return 1
 fi
 fi
@@ -883,10 +891,11 @@ AddFileToDebug()
 local debug_was_set=$debug
 local linebuff=''
 debug=false
+[[ -e ${1:?no filename supplied} ]] || return
 DebugAsLog ''
 DebugAsLog 'adding external log to main log ...'
 DebugExtLogMinorSeparator
-DebugAsLog "$(FormatAsLogFilename "${1:?no filename supplied}")"
+DebugAsLog "$(FormatAsLogFilename "$1")"
 while read -r linebuff;do
 DebugAsLog "$linebuff"
 done < "$1"
@@ -1068,6 +1077,14 @@ IsNotQPKGInstalled()
 {
 ! IsQPKGInstalled "${1:-$QPKG_NAME}"
 }
+IsQPKGActive()
+{
+IsDaemon && IsDaemonActive
+}
+IsNotQPKGActive()
+{
+! IsNotQPKGActive
+}
 IsQPKGEnabled()
 {
 [[ $(Lowercase "$(/sbin/getcfg "${1:-$QPKG_NAME}" Enable -d false -f /etc/config/qpkg.conf)") = true ]]
@@ -1150,7 +1167,7 @@ IsNotSourcedOnline()
 }
 IsUseTemp()
 {
-[[ $local_temp_path != undefined ]]
+[[ $QPKG_TEMP_PATH != undefined ]]
 }
 IsNotUseTemp()
 {
@@ -1348,7 +1365,7 @@ IsNotVirtualPythonEnvExist()
 }
 OSIsSupportSecureDownload()
 {
-[[ ${NAS_FIRMWARE_VER//.} -ge 500 ]]
+[[ ${NAS_FIRMWARE_VERSION//.} -ge 500 ]]
 }
 IsSiteUp()
 {
@@ -1387,6 +1404,12 @@ service_result=failed
 CommitServiceResult
 DisplayAndCommitResultToLog
 }
+SetServiceResultAsAborted()
+{
+service_result=aborted
+CommitServiceResult
+DisplayAndCommitResultToLog
+}
 SetServiceResultAsInProgress()
 {
 service_result=in-progress
@@ -1409,21 +1432,21 @@ if IsNotStatus && IsNotLog && IsNotNone;then
 [[ $SERVICE_RESULT_PATHFILE != undefined ]] && echo "$service_result" > "$SERVICE_RESULT_PATHFILE"
 fi
 }
-SetRestartPending()
+SetQPKGWasActive()
 {
-_restart_pending_flag=true
+_qpkg_was_active=true
 }
-UnsetRestartPending()
+UnsetQPKGWasActive()
 {
-_restart_pending_flag=false
+_qpkg_was_active=false
 }
-IsRestartPending()
+QPKGWasActive()
 {
-[[ ${_restart_pending_flag:=false} = true ]]
+[[ ${_qpkg_was_active:=false} = true ]]
 }
-IsNotRestartPending()
+QPKGWasNotActive()
 {
-[[ ${_restart_pending_flag:=false} = false ]]
+[[ ${_qpkg_was_active:=false} = false ]]
 }
 SetStatusGet()
 {
@@ -1458,6 +1481,22 @@ IsError()
 IsNotError()
 {
 ! IsError
+}
+IsReinstall()
+{
+[[ ${QPKG_REINSTALL:=false} = true ]]
+}
+IsUpgrade()
+{
+[[ ${QPKG_UPGRADE:=false} = true ]]
+}
+IsStart()
+{
+[[ $service_action = start ]]
+}
+IsNotStart()
+{
+! IsStart
 }
 IsRestart()
 {
@@ -1518,6 +1557,16 @@ IsNotReset()
 IsUnsupported()
 {
 [[ $service_action = unsupported ]]
+}
+IsPathEmpty()
+{
+local a=${1:-}
+[[ -n $a && -d $a ]] || return
+rmdir "$a" &>/dev/null && mkdir "$a"
+}
+IsNotPathEmpty()
+{
+! IsPathEmpty "${1:-}"
 }
 ShowAsError()
 {
@@ -1805,6 +1854,20 @@ local a=$(/bin/grep -c '^processor' /proc/cpuinfo)
 [[ $a -eq 0 ]] && a=$(/bin/grep -c '^Processor' /proc/cpuinfo)
 printf '%s' "$a"
 }
+CaughtSIGHUP()
+{
+trap - SIGHUP
+DisplayCommitToLog 'caught SIGHUP: abort.'
+SetServiceResultAsAborted
+exit
+}
+CaughtSIGINT()
+{
+trap - SIGINT
+DisplayCommitToLog 'caught SIGINT: abort.'
+SetServiceResultAsAborted
+exit
+}
 ProcessArgs()
 {
 if IsGitApp;then
@@ -1976,4 +2039,6 @@ fi
 fi
 exit 0
 }
+trap CaughtSIGHUP SIGHUP
+trap CaughtSIGINT SIGINT
 InitLibrary
