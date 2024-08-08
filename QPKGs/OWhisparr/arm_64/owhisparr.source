@@ -24,9 +24,6 @@ InitService()
 
 	# >>> Paths <<<
 
-		# local_temp_path=undefined
-		local_temp_path=$QPKG_PATH/tmp
-
 		# pip_cache_path=undefined
 
 		# qpkg_repo_path=undefined
