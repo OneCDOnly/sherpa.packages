@@ -325,6 +325,10 @@ InitLibrary()
 StartQPKG()
 	{
 
+	if IsReinstall || IsUpgrade; then			# Don't start QPKG when these actions are run from sherpa.
+		return
+	fi
+
 	if [[ $(type -t StartQPKGCustom) = function ]]; then
 		StartQPKGCustom
 	else
@@ -2539,6 +2543,24 @@ IsNotError()
 	{
 
 	! IsError
+
+	}
+
+IsReinstall()
+	{
+
+	# `QPKG_REINSTALL=true` in sherpa management script when action 'reinstall' is run.
+
+	[[ ${QPKG_REINSTALL:=false} = true ]]
+
+	}
+
+IsUpgrade()
+	{
+
+	# `QPKG_UPGRADE=true` in sherpa management script when action 'upgrade' is run.
+
+	[[ ${QPKG_UPGRADE:=false} = true ]]
 
 	}
 
