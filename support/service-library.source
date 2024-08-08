@@ -323,7 +323,7 @@ InitLibrary()
 StartQPKG()
 	{
 
-	if IsReinstall || IsUpgrade; then			# Don't start QPKG when these actions are run from sherpa.
+	if IsReinstall || IsUpgrade; then			# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled the service result will be 'failed' (techically correct as the last action after upgrade is 'start', but probably better to see the upgrade/reinstall result instead).
 		return
 	fi
 
