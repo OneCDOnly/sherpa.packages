@@ -30,7 +30,6 @@ qpkg_ini_file=config.xml
 daemon_exec_pathfile=$qpkg_repo_path/Sonarr/Sonarr
 qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-source_archive_pathfile="$qpkg_repo_path/$QPKG_NAME.tar.gz"
 allow_access_to_sys_packages=false
 can_restart_to_update=true
 run_daemon_in_screen_session=true
