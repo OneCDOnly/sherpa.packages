@@ -24,7 +24,6 @@ readonly QPKG_NAME=OWhisparr
 readonly SERVICE_SCRIPT_VERSION='240808'
 InitService()
 {
-local_temp_path=$QPKG_PATH/tmp
 qpkg_repo_path=$QPKG_PATH/repo-cache
 qpkg_ini_file=config.xml
 daemon_exec_pathfile=$qpkg_repo_path/Whisparr/Whisparr

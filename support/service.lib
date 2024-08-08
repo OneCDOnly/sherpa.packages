@@ -44,12 +44,14 @@ export PATH=$OPKG_PATH:$(/bin/sed "s|$OPKG_PATH||" <<< "$PATH")
 readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
 readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
 export HOME=$QPKG_CONFIG_PATH
+readonly QPKG_TEMP_PATH=$QPKG_PATH/tmp
 readonly APP_VERSION_STORE_PATHFILE=$QPKG_PATH/version.stored
 readonly SCREEN_CONF_PATHFILE=$QPKG_PATH/screen.conf
 readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
 readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
 readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
 readonly SERVICE_SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
+readonly SOURCE_ARCHIVE_PATHFILE=$QPKG_TEMP_PATH/source.archive
 readonly DAEMON_START_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
 readonly DAEMON_STOP_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
 readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)
@@ -62,7 +64,6 @@ readonly CHARS_SUPER_PROMPT='# '
 readonly DEBUG_LOG_DATAWIDTH=100
 readonly NAS_FIRMWARE_VERSION=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
-local_temp_path=undefined
 pip_cache_path=undefined
 qpkg_repo_path=undefined
 qpkg_wheels_path=undefined
@@ -312,8 +313,7 @@ fi
 }
 RefreshReleasePackageFiles()
 {
-local source_archive_pathfile=$local_temp_path/source.archive
-if IsAutoUpdate || [[ ! -e $source_archive_pathfile ]];then
+if IsAutoUpdate || [[ ! -e $SOURCE_ARCHIVE_PATHFILE ]];then
 local release_url=''
 local download_opts=$curl_insecure_arg
 [[ $debug = false ]] && download_opts+=' --silent'
@@ -333,8 +333,8 @@ else
 release_url=$remote_url
 fi
 if [[ -n $release_url ]];then
-[[ -e $source_archive_pathfile ]] && download_opts+=" --time-cond $source_archive_pathfile"
-download_opts+=" --show-error --location --output $source_archive_pathfile"
+[[ -e $SOURCE_ARCHIVE_PATHFILE ]] && download_opts+=" --time-cond $SOURCE_ARCHIVE_PATHFILE"
+download_opts+=" --show-error --location --output $SOURCE_ARCHIVE_PATHFILE"
 DisplayRunAndLog 'refresh release package' "/sbin/curl${download_opts} '$release_url'" log:failure-only
 fi
 fi
@@ -345,9 +345,9 @@ local unzip_extract_opts=''
 if [[ $debug = true ]];then
 tar_extract_verbose=' --verbose'
 fi
-if [[ -e $source_archive_pathfile ]] && [[ ! -e $daemon_exec_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$source_archive_pathfile" -c %Y))) -lt 60 ]];then
-tar_extract_opts="$tar_extract_verbose --extract --gzip --file=$source_archive_pathfile --directory=$qpkg_repo_path"
-unzip_extract_opts="$unzip_extract_verbose -o $source_archive_pathfile -d $qpkg_repo_path"
+if [[ -e $SOURCE_ARCHIVE_PATHFILE ]] && [[ ! -e $daemon_exec_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$SOURCE_ARCHIVE_PATHFILE" -c %Y))) -lt 60 ]];then
+tar_extract_opts="$tar_extract_verbose --extract --gzip --file=$SOURCE_ARCHIVE_PATHFILE --directory=$qpkg_repo_path"
+unzip_extract_opts="$unzip_extract_verbose -o $SOURCE_ARCHIVE_PATHFILE -d $qpkg_repo_path"
 DisplayRunAndLog 'extract release package' "/usr/bin/unzip${unzip_extract_opts} 2>/dev/null || /bin/tar${tar_extract_opts}" log:failure-only
 fi
 if IsOnlinePackageArchive;then
@@ -550,7 +550,7 @@ MakePaths()
 {
 local a=''
 if [[ -d $QPKG_PATH ]];then
-for a in "$local_temp_path" "$qpkg_repo_path" "$pip_cache_path" "$venv_path";do
+for a in "$QPKG_TEMP_PATH" "$qpkg_repo_path" "$pip_cache_path" "$venv_path";do
 [[ $a != undefined && ! -d $a ]] && mkdir -p "$a"
 done
 fi
@@ -659,7 +659,7 @@ fi
 IsVirtualPythonEnv && [[ -d $venv_path ]] && DisplayRunAndLog 'clean virtual environment' "rm -rf \"$venv_path\"" log:failure-only
 IsUsePipCache && [[ -d $pip_cache_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$pip_cache_path\"" log:failure-only
 [[ -e $APP_VERSION_STORE_PATHFILE ]] && DisplayRunAndLog 'remove application version' "rm -f \"$APP_VERSION_STORE_PATHFILE\"" log:failure-only
-IsUseTemp && [[ -d $local_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$local_temp_path\"" log:failure-only
+IsUseTemp && [[ -d $QPKG_TEMP_PATH ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$QPKG_TEMP_PATH\"" log:failure-only
 MakePaths
 }
 WaitForGit()
@@ -1167,7 +1167,7 @@ IsNotSourcedOnline()
 }
 IsUseTemp()
 {
-[[ $local_temp_path != undefined ]]
+[[ $QPKG_TEMP_PATH != undefined ]]
 }
 IsNotUseTemp()
 {

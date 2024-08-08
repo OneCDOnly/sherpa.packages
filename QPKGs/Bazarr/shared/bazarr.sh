@@ -24,7 +24,6 @@ readonly QPKG_NAME=Bazarr
 readonly SERVICE_SCRIPT_VERSION='240808'
 InitService()
 {
-local_temp_path=$QPKG_PATH/tmp
 pip_cache_path=$QPKG_PATH/pip-cache
 qpkg_repo_path=$QPKG_PATH/repo-cache
 venv_path=$QPKG_PATH/venv
