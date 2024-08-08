@@ -61,8 +61,6 @@ InitService()
 
 		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 
-		# source_archive_pathfile=undefined
-
 		# userlink_pathfile=undefined								# On-demand executables only.
 		userlink_pathfile=/usr/bin/gpte
 

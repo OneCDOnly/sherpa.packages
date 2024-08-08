@@ -69,8 +69,6 @@ InitService()
 
 		/bin/sed -i "s|<?installation_path?>|$QPKG_PATH|g" "$qpkg_ini_default_pathfile"		# Update for Unmanic.
 
-		# source_archive_pathfile=undefined
-
 		# userlink_pathfile=undefined								# On-demand executables only.
 
 		# venv_pip_pathfile=undefined

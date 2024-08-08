@@ -62,8 +62,6 @@ InitService()
 		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 
-		# source_archive_pathfile=undefined
-
 		# userlink_pathfile=undefined								# On-demand executables only.
 
 		# venv_pip_pathfile=undefined

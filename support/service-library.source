@@ -38,7 +38,6 @@ InitLibrary()
 	done
 
 	UnsetError
-	UnsetRestartPending
 
 	# Internal session constants.
 
@@ -117,8 +116,6 @@ InitLibrary()
 		qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 
 		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-
-		source_archive_pathfile=undefined
 
 		userlink_pathfile=undefined								# On-demand executables only.
 
@@ -234,8 +231,6 @@ InitLibrary()
 
 		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 
-		# source_archive_pathfile=undefined
-
 		# userlink_pathfile=undefined								# On-demand executables only.
 
 		# venv_pip_pathfile=undefined
@@ -342,22 +337,17 @@ StartQPKGLibrary()
 	{
 
 	IsNotError || return
-
 	ShowQPKGStates
-
-	if IsNotRestart && IsNotBackup && IsNotRestore && IsNotClean && IsNotReset; then
-		IsDaemon && IsDaemonActive && return
-	fi
-
-	if IsBackup || IsRestore || IsClean || IsReset; then
-		IsNotRestartPending && return
-	fi
+	IsDaemon && IsDaemonActive && return
+	IsNotStart && IsNotRestart && QPKGWasNotActive && return
 
 	if IsGitApp; then
 		CloneGitRepo || return
 	fi
 
-	IsOnlinePackageArchive && RefreshReleasePackageFiles
+	if IsOnlinePackageArchive; then
+		RefreshReleasePackageFiles || return
+	fi
 
 	if IsVirtualPythonEnv && IsNotVirtualPythonEnvExist; then
 		CreateVirtualPythonEnv || return
@@ -393,11 +383,6 @@ StopQPKGLibrary()
 	{
 
 	IsNotError || return
-
-	if IsRestart || IsBackup || IsRestore || IsClean || IsReset; then
-		SetRestartPending
-	fi
-
 	ShowQPKGStates
 
 	if IsNotDaemon; then
@@ -408,6 +393,7 @@ StopQPKGLibrary()
 	RefreshPidFile
 
 	if IsDaemon && IsDaemonActive; then
+		SetQPKGWasActive
 		StopDaemon
 	fi
 
@@ -604,7 +590,7 @@ StopDaemon()
 RefreshReleasePackageFiles()
 	{
 
-	local source_archive_pathfile=$qpkg_repo_path/source.archive
+	local source_archive_pathfile=$local_temp_path/source.archive
 
 	if IsAutoUpdate || [[ ! -e $source_archive_pathfile ]]; then		# Get remote archive - even when auto-update is disabled - if one doesn't exist locally.
 		local release_url=''
@@ -654,6 +640,22 @@ RefreshReleasePackageFiles()
 		# Try '.zip' first, then '.tar.gz'
 		DisplayRunAndLog 'extract release package' "/usr/bin/unzip${unzip_extract_opts} 2>/dev/null || /bin/tar${tar_extract_opts}" log:failure-only
 	fi
+
+	if IsOnlinePackageArchive; then
+		if [[ -d $qpkg_repo_path ]]; then
+			if IsPathEmpty "$qpkg_repo_path"; then
+				DisplayErrCommitAllLogs 'local repository files do not exist'
+
+				SetError; return 1
+			fi
+		else
+			DisplayErrCommitAllLogs 'local repository path does not exist'
+
+			SetError; return 1
+		fi
+	fi
+
+	return 0
 
 	}
 
@@ -1487,10 +1489,12 @@ AddFileToDebug()
 	# Prevent external log contents appearing onscreen again, as they have already been seen "live".
 	debug=false
 
+	[[ -e ${1:?no filename supplied} ]] || return
+
 	DebugAsLog ''
 	DebugAsLog 'adding external log to main log ...'
 	DebugExtLogMinorSeparator
-	DebugAsLog "$(FormatAsLogFilename "${1:?no filename supplied}")"
+	DebugAsLog "$(FormatAsLogFilename "$1")"
 
 	while read -r linebuff; do
 		DebugAsLog "$linebuff"
@@ -1809,6 +1813,20 @@ IsNotQPKGInstalled()
 	{
 
 	! IsQPKGInstalled "${1:-$QPKG_NAME}"
+
+	}
+
+IsQPKGActive()
+	{
+
+	IsDaemon && IsDaemonActive
+
+	}
+
+IsNotQPKGActive()
+	{
+
+	! IsNotQPKGActive
 
 	}
 
@@ -2438,31 +2456,31 @@ CommitServiceResult()
 
 	}
 
-SetRestartPending()
+SetQPKGWasActive()
 	{
 
-	_restart_pending_flag=true
+	_qpkg_was_active=true
 
 	}
 
-UnsetRestartPending()
+UnsetQPKGWasActive()
 	{
 
-	_restart_pending_flag=false
+	_qpkg_was_active=false
 
 	}
 
-IsRestartPending()
+QPKGWasActive()
 	{
 
-	[[ ${_restart_pending_flag:=false} = true ]]
+	[[ ${_qpkg_was_active:=false} = true ]]
 
 	}
 
-IsNotRestartPending()
+QPKGWasNotActive()
 	{
 
-	[[ ${_restart_pending_flag:=false} = false ]]
+	[[ ${_qpkg_was_active:=false} = false ]]
 
 	}
 
@@ -2521,6 +2539,20 @@ IsNotError()
 	{
 
 	! IsError
+
+	}
+
+IsStart()
+	{
+
+	[[ $service_action = start ]]
+
+	}
+
+IsNotStart()
+	{
+
+	! IsStart
 
 	}
 
@@ -2626,6 +2658,31 @@ IsUnsupported()
 	{
 
 	[[ $service_action = unsupported ]]
+
+	}
+
+IsPathEmpty()
+	{
+
+	# Input:
+	#   $1 = directory to check if empty.
+
+	# Output:
+	#   $? = 0 : true
+	#   $? = 1 : false or $1 does not exist.
+
+	local a=${1:-}
+
+	[[ -n $a && -d $a ]] || return
+
+	rmdir "$a" &>/dev/null && mkdir "$a"
+
+	}
+
+IsNotPathEmpty()
+	{
+
+	! IsPathEmpty "${1:-}"
 
 	}
 
