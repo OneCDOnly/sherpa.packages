@@ -4,6 +4,7 @@ coreutils-sort
 coreutils-stty
 coreutils-timeout
 findutils
+gawk
 gcc
 git
 git-http
