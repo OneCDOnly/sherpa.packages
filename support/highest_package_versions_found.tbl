@@ -15,7 +15,7 @@ Glances_240809_arm-x41.qpkg.md5      Glances_240809_arm-x41.qpkg      Glances   
 Glances_240809_x86_64.qpkg.md5       Glances_240809_x86_64.qpkg       Glances              240809       i64    7a3500c0ff97f241505c0a2656015127
 Glances_240809_x86.qpkg.md5          Glances_240809_x86.qpkg          Glances              240809       i86    4cbba02d8221fb578d8583c31a895d64
 gpt-engineer_240202.qpkg.md5         gpt-engineer_240202.qpkg         gpt-engineer         240202       all    f04fde0d2eab15a4ff645f8d99ca9b2f
-Headphones_240809.qpkg.md5           Headphones_240809.qpkg           Headphones           240809       all    281c7c5a94900c3f6aa7884071e58de1
+Headphones_240810.qpkg.md5           Headphones_240810.qpkg           Headphones           240810       all    f0903ad3b40fcc0bddfd8aae774d69f8
 HideThatBanner_240807.qpkg.md5       HideThatBanner_240807.qpkg       HideThatBanner       240807       all    629cd406d0ccf298602001bae7d120ce
 IncreaseTimeouts_240808.qpkg.md5     IncreaseTimeouts_240808.qpkg     IncreaseTimeouts     240808       all    0c76a11a0db6d43c75125e68faef04ae
 inxi_240417.qpkg.md5                 inxi_240417.qpkg                 inxi                 240417       all    a6be021ef7592ed1eb3aeac56d922816
@@ -94,7 +94,7 @@ SABnzbd_240809_x86_64.qpkg.md5       SABnzbd_240809_x86_64.qpkg       SABnzbd   
 SABnzbd_240809_x86.qpkg.md5          SABnzbd_240809_x86.qpkg          SABnzbd              240809       i86    255c6a759bc69fb877b9d3e2da177f3c
 sha3sum_240808_x86_64.qpkg.md5       sha3sum_240808_x86_64.qpkg       sha3sum              240808       i64    2933e3f0aaa4b5261408b230d1a90df1
 sha3sum_240808_x86.qpkg.md5          sha3sum_240808_x86.qpkg          sha3sum              240808       i86    788c070aab5a3b96006b6a963532a284
-sherpa_240810.qpkg.md5               sherpa_240810.qpkg               sherpa               240810       all    05d9794f8e3fc48403b4e733f49a2ade
+sherpa_240810.qpkg.md5               sherpa_240810.qpkg               sherpa               240810       all    b0a7ee7bd764ab8551f4a0ed1a3ebe52
 SortMyQPKGs_240801.qpkg.md5          SortMyQPKGs_240801.qpkg          SortMyQPKGs          240801       all    111031554f2417fd5bdc4c472fd34229
 Unmanic_240809_arm_64.qpkg.md5       Unmanic_240809_arm_64.qpkg       Unmanic              240809       a64    6f4594b40f93cbb7c7d6e1ca584135e3
 Unmanic_240809_arm-x19.qpkg.md5      Unmanic_240809_arm-x19.qpkg      Unmanic              240809       a19    6e39dd0a43dad2f39e87054204f59cc7
