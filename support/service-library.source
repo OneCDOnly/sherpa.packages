@@ -521,6 +521,7 @@ StartDaemon()
 		SetError; return 1
 	fi
 
+	IsDaemonActive
 	WaitForDaemonPid
 	WaitForStartPid
 
@@ -1265,8 +1266,8 @@ WaitForDaemonPid()
 				RefreshPidFile
 
 				if IsDaemonProcessActive; then
-					Display OK
-					CommitToLog "appeared in $i second$(Pluralise "$i")"
+					Display "OK '$(>$daemon_pid_pathfile)'"
+					CommitToLog "appeared in $i second$(Pluralise "$i") '$(<$daemon_pid_pathfile)'"
 					true
 
 					exit	# Only this sub-shell.
@@ -1394,7 +1395,7 @@ DisplayRunAndLog()
 
 	DisplayWaitCommitToLog "$1:"
 
-	RunAndLog "${2:?empty}" "$LOG_PATHFILE" "${3:-}" '' "${4:-false}"
+	RunAndLog "${2:?empty}" "$LOG_PATHFILE" "${4:-false}"
 	z=$?
 
 	if [[ $z -eq 0 ]]; then
@@ -1417,14 +1418,12 @@ DisplayRunAndLog()
 RunAndLog()
 	{
 
-	# Run a commandstring, log the results, and show onscreen if required.
+	# Run a commandstring, log the results, and show onscreen if-requested.
 
 	# Input:
 	#   $1 = commandstring to execute.
 	#   $2 = log pathfile to record stdout and stderr for commandstring.
-# 	#   $3 = 'log:failure-only' (optional) - if specified, stdout & stderr are only recorded in the specified log if the command failed. Default is to always record stdout & stderr.
-# 	#   $4 = e.g. '10' (optional) - an additional acceptable result code. Any other result from command (other than zero) will be considered a failure.
-	#   $5 = true/false (optional) - if true, run command in a `screen` session.
+	#   $3 = true/false (optional) - if true, run command in a `screen` session.
 
 	# Output:
 	#   stdout : commandstring stdout and stderr if script is in 'debug' mode.
@@ -1432,30 +1431,23 @@ RunAndLog()
 	#   $? : $result_code of commandstring.
 
 	local -r LOG_PATHFILE=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
+	local run_in_screen=${3:-false}
 	local -i z=0
 
 	FormatAsCommand "${1:?empty}" > "${2:?empty}"
 
-	if [[ $debug = true ]]; then
-		Display
-
-		if [[ ${5:-false} = false ]]; then
-			Display "exec: '$1'"
-			eval "$1 > >(/usr/bin/tee $LOG_PATHFILE) 2>&1"		# NOTE: 'tee' buffers stdout here
-			z=${PIPESTATUS[0]}						# must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
-		else
-			Display "exec (in screen session): '$1'"
-		fi
-	else
-		if [[ ${5:-false} = false ]]; then
-			(eval "$1" > "$LOG_PATHFILE" 2>&1)					# Run in a subshell to suppress "Terminated" message later.
-			z=$?
-		fi
-	fi
-
-	if [[ ${5:-false} = true ]]; then
+	if [[ $run_in_screen = true ]]; then
+		Display "exec (in screen session): '$1'"
 		FormatAsCommand "$1" >> "$SERVICE_SCREEN_LOG_PATHFILE"
 		/usr/sbin/screen -c "$SCREEN_CONF_PATHFILE" -dmLS "$QPKG_NAME" bash -c "$1"
+		z=$?
+	elif [[ $debug = true ]]; then
+		Display
+		Display "exec: '$1'"
+		eval "$1 > >(/usr/bin/tee $LOG_PATHFILE) 2>&1"		# NOTE: 'tee' buffers stdout here
+		z=${PIPESTATUS[0]}									# must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
+	else
+		(eval "$1" > "$LOG_PATHFILE" 2>&1)					# Run in a subshell to suppress "Terminated" message later.
 		z=$?
 	fi
 
@@ -1469,7 +1461,7 @@ RunAndLog()
 		if [[ $z -eq 0 ]]; then
 			Display 'exec: completed OK'
 		else
-			Display 'exec: completed, but with errors'
+			Display 'exec: completed with errors'
 		fi
 	fi
 
