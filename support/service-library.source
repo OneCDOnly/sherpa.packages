@@ -1382,7 +1382,7 @@ DisplayRunAndLog()
 	{
 
 	# Run a commandstring with a summarised description, log the results, and show onscreen if required.
-	# This function is just a fancy wrapper for RunAndLog()
+	# This function is just a fancy wrapper for Executer()
 
 	# Input:
 	#   $1 = Processing message.
@@ -1395,7 +1395,7 @@ DisplayRunAndLog()
 
 	DisplayWaitCommitToLog "$1:"
 
-	RunAndLog "${2:?empty}" "$LOG_PATHFILE" "${4:-false}"
+	Executer "${2:?empty}" "$LOG_PATHFILE" "${4:-false}"
 	z=$?
 
 	if [[ $z -eq 0 ]]; then
@@ -1415,12 +1415,13 @@ DisplayRunAndLog()
 
 	}
 
-RunAndLog()
+Executer()
 	{
 
 	# Run a commandstring, log the results, and show onscreen if-requested.
 
 	# Input:
+	#	$debug (global)	= run in debug mode, show commandstring to be executed.
 	#   $1 = commandstring to execute.
 	#   $2 = log pathfile to record stdout and stderr for commandstring.
 	#   $3 = true/false (optional) - if true, run command in a `screen` session.
@@ -1437,7 +1438,11 @@ RunAndLog()
 	FormatAsCommand "${1:?empty}" > "${2:?empty}"
 
 	if [[ $run_in_screen = true ]]; then
-		Display "exec (in screen session): '$1'"
+		if [[ $debug = true ]]; then
+			Display
+			Display "exec (in screen session): '$1'"
+		fi
+
 		FormatAsCommand "$1" >> "$SERVICE_SCREEN_LOG_PATHFILE"
 		/usr/sbin/screen -c "$SCREEN_CONF_PATHFILE" -dmLS "$QPKG_NAME" bash -c "$1"
 		z=$?
