@@ -6,7 +6,7 @@ ESSENTIAL_IPKS='<?essential_ipks?>'
 ESSENTIAL_PIPS='<?essential_pips?>'
 EXCLUSION_PIPS='<?exclusion_pips?>'	# Ensure these PIP modules are removed from the saved PIP list created during Entware uninstall.
 MIN_PYTHON_VER=3117					# Keep this up-to-date with Entware Python3 version, so IPK upgrade notifier will work.
-MIN_PERL_VER=5382					# Keep this up-to-date with Entware Perl version, so IPK upgrade notifier will work.
+MIN_PERL_VER=5400					# Keep this up-to-date with Entware Perl version, so IPK upgrade notifier will work.
 
 # Use pseudo-alpha-sorted QPKG name order (i.e. disregard character-case and leading 'O').
 # Indent QPKGs with the same name but different arch.
@@ -1398,7 +1398,7 @@ QPKG_AUTHOR+=('OneCD (OneCDOnly on GitHub)')
 QPKG_AUTHOR_EMAIL+=("onecdonly@gmail.com")
 QPKG_APPL_AUTHOR+=("Chocobo1 & sledgehammer999 @GitHub")
 QPKG_APPL_AUTHOR_EMAIL+=(none)
-QPKG_APPL_VERSION+=(4.6.3)
+QPKG_APPL_VERSION+=(4.6.5)
 QPKG_DESC+=('open-source software alternative to µTorrent')
 QPKG_NOTE+=(none)
 QPKG_ABBRVS+=('qb oqb qbit bitorrent bittorrent qbittorrent oqbittorrent')
@@ -2123,7 +2123,7 @@ QPKG_AUTHOR+=('OneCD (OneCDOnly on GitHub)')
 QPKG_AUTHOR_EMAIL+=("onecdonly@gmail.com")
 QPKG_APPL_AUTHOR+=('Charles Kerr')
 QPKG_APPL_AUTHOR_EMAIL+=(none)
-QPKG_APPL_VERSION+=(4.0.4)
+QPKG_APPL_VERSION+=(4.0.6)
 QPKG_DESC+=('lite BitTorrent download manager with a simple web UI')
 QPKG_NOTE+=(none)
 QPKG_ABBRVS+=('tm tr ot trans otrans tmission transmission otransmission')
