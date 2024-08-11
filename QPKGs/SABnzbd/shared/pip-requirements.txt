@@ -36,7 +36,7 @@ rebulk==3.2.0
 # We recommend using "orjson" as it is 2x as fast as "ujson". However, it requires
 # Rust so SABnzbd works just as well with "ujson" or the Python built in "json" module
 #ujson==5.10.0				# disabled by OneCD: Let's try an 'orjson' wheel.
-orjson						# added by OneCD.
+orjson==3.10.6				# added by OneCD. Use static version as can't build newer 3.10.7 on armv7 (yet) due to rust issues.
 
 # Windows system integration
 #pywin32==306; sys_platform == 'win32'

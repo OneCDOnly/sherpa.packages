@@ -1422,8 +1422,8 @@ RunAndLog()
 	# Input:
 	#   $1 = commandstring to execute.
 	#   $2 = log pathfile to record stdout and stderr for commandstring.
-	#   $3 = 'log:failure-only' (optional) - if specified, stdout & stderr are only recorded in the specified log if the command failed. Default is to always record stdout & stderr.
-	#   $4 = e.g. '10' (optional) - an additional acceptable result code. Any other result from command (other than zero) will be considered a failure.
+# 	#   $3 = 'log:failure-only' (optional) - if specified, stdout & stderr are only recorded in the specified log if the command failed. Default is to always record stdout & stderr.
+# 	#   $4 = e.g. '10' (optional) - an additional acceptable result code. Any other result from command (other than zero) will be considered a failure.
 	#   $5 = true/false (optional) - if true, run command in a `screen` session.
 
 	# Output:
