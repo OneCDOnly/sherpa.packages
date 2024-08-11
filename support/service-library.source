@@ -1266,7 +1266,7 @@ WaitForDaemonPid()
 				RefreshPidFile
 
 				if IsDaemonProcessActive; then
-					Display "OK '$(>$daemon_pid_pathfile)'"
+					Display "OK '$(<$daemon_pid_pathfile)'"
 					CommitToLog "appeared in $i second$(Pluralise "$i") '$(<$daemon_pid_pathfile)'"
 					true
 
