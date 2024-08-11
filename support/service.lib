@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240811'
+readonly SERVICE_LIB_VERSION='240812'
 InitLibrary()
 {
 IsQNAP || exit
@@ -265,6 +265,7 @@ if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_
 [[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
 SetError;return 1
 fi
+IsDaemonActive
 WaitForDaemonPid
 WaitForStartPid
 if ! IsDaemonActive;then
@@ -752,8 +753,8 @@ for ((i=1;i<=MAX_SECONDS; i++)); do
 DisplayWait "$i,"
 RefreshPidFile
 if IsDaemonProcessActive;then
-Display OK
-CommitToLog "appeared in $i second$(Pluralise "$i")"
+Display "OK '$(>$daemon_pid_pathfile)'"
+CommitToLog "appeared in $i second$(Pluralise "$i") '$(<$daemon_pid_pathfile)'"
 true
 exit
 fi
@@ -831,7 +832,7 @@ DisplayRunAndLog()
 local -r LOG_PATHFILE=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 local -i z=0
 DisplayWaitCommitToLog "$1:"
-RunAndLog "${2:?empty}" "$LOG_PATHFILE" "${3:-}" '' "${4:-false}"
+RunAndLog "${2:?empty}" "$LOG_PATHFILE" "${4:-false}"
 z=$?
 if [[ $z -eq 0 ]];then
 DisplayCommitToLog OK
@@ -849,26 +850,21 @@ return $z
 RunAndLog()
 {
 local -r LOG_PATHFILE=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
+local run_in_screen=${3:-false}
 local -i z=0
 FormatAsCommand "${1:?empty}" > "${2:?empty}"
-if [[ $debug = true ]];then
+if [[ $run_in_screen = true ]];then
+Display "exec (in screen session): '$1'"
+FormatAsCommand "$1" >> "$SERVICE_SCREEN_LOG_PATHFILE"
+/usr/sbin/screen -c "$SCREEN_CONF_PATHFILE" -dmLS "$QPKG_NAME" bash -c "$1"
+z=$?
+elif [[ $debug = true ]];then
 Display
-if [[ ${5:-false} = false ]];then
 Display "exec: '$1'"
 eval "$1 > >(/usr/bin/tee $LOG_PATHFILE) 2>&1"
 z=${PIPESTATUS[0]}
 else
-Display "exec (in screen session): '$1'"
-fi
-else
-if [[ ${5:-false} = false ]];then
 (eval "$1" > "$LOG_PATHFILE" 2>&1)
-z=$?
-fi
-fi
-if [[ ${5:-false} = true ]];then
-FormatAsCommand "$1" >> "$SERVICE_SCREEN_LOG_PATHFILE"
-/usr/sbin/screen -c "$SCREEN_CONF_PATHFILE" -dmLS "$QPKG_NAME" bash -c "$1"
 z=$?
 fi
 if [[ -e $LOG_PATHFILE ]];then
@@ -880,7 +876,7 @@ if [[ $debug = true ]];then
 if [[ $z -eq 0 ]];then
 Display 'exec: completed OK'
 else
-Display 'exec: completed, but with errors'
+Display 'exec: completed with errors'
 fi
 fi
 [[ -e $LOG_PATHFILE ]] && rm -f "$LOG_PATHFILE"
