@@ -753,7 +753,7 @@ for ((i=1;i<=MAX_SECONDS; i++)); do
 DisplayWait "$i,"
 RefreshPidFile
 if IsDaemonProcessActive;then
-Display "OK '$(>$daemon_pid_pathfile)'"
+Display "OK '$(<$daemon_pid_pathfile)'"
 CommitToLog "appeared in $i second$(Pluralise "$i") '$(<$daemon_pid_pathfile)'"
 true
 exit
@@ -832,7 +832,7 @@ DisplayRunAndLog()
 local -r LOG_PATHFILE=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 local -i z=0
 DisplayWaitCommitToLog "$1:"
-RunAndLog "${2:?empty}" "$LOG_PATHFILE" "${4:-false}"
+Executer "${2:?empty}" "$LOG_PATHFILE" "${4:-false}"
 z=$?
 if [[ $z -eq 0 ]];then
 DisplayCommitToLog OK
@@ -847,14 +847,17 @@ fi
 [[ -e $LOG_PATHFILE ]] && rm -f "$LOG_PATHFILE"
 return $z
 }
-RunAndLog()
+Executer()
 {
 local -r LOG_PATHFILE=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 local run_in_screen=${3:-false}
 local -i z=0
 FormatAsCommand "${1:?empty}" > "${2:?empty}"
 if [[ $run_in_screen = true ]];then
+if [[ $debug = true ]];then
+Display
 Display "exec (in screen session): '$1'"
+fi
 FormatAsCommand "$1" >> "$SERVICE_SCREEN_LOG_PATHFILE"
 /usr/sbin/screen -c "$SCREEN_CONF_PATHFILE" -dmLS "$QPKG_NAME" bash -c "$1"
 z=$?

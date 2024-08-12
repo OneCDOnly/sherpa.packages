@@ -40,7 +40,7 @@ get_ui_listening_address_cmd="GetPyloadConfig $qpkg_ini_pathfile webui host"
 get_ui_port_cmd="GetPyloadConfig $qpkg_ini_pathfile webui port"
 get_ui_port_secure_cmd="GetPyloadConfig $qpkg_ini_pathfile webui port"
 get_ui_port_secure_enabled_test_cmd="[[ $(GetPyloadConfig "$qpkg_ini_pathfile" webui use_ssl) = True ]]"
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $QPKG_PATH/config"
+daemon_launch_cmd="export TEMP=$QPKG_TEMP_PATH;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $QPKG_PATH/config"
 }
 GetPyloadConfig()
 {

@@ -45,7 +45,7 @@ get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="echo $ui_port"
 get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --webserver"
+daemon_launch_cmd="export TEMP=$QPKG_TEMP_PATH;$daemon_exec_pathfile $daemon_script_pathfile --webserver"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
