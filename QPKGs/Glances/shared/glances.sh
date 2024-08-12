@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=Glances
-readonly SERVICE_SCRIPT_VERSION='240811'
+readonly SERVICE_SCRIPT_VERSION='240813'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache
@@ -45,7 +45,7 @@ get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="echo $ui_port"
 get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --webserver"
+daemon_launch_cmd="export TEMP=$QPKG_TEMP_PATH;$daemon_exec_pathfile $daemon_script_pathfile --webserver"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
