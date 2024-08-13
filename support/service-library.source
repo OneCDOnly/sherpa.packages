@@ -60,17 +60,6 @@ InitLibrary()
 			readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
 			readonly SERVICE_SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
 
-		# Timeouts.
-
-			# The following values are for a single-core CPU and 1m load average of 1.0
-
-			readonly DAEMON_START_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
-			readonly DAEMON_STOP_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
-			readonly PIDFILE_APPEAR_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 60)
-			readonly PID_START_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
-			readonly PID_STOP_RECHECK_WAIT_SECONDS=$(CalcAdaptiveSeconds 10)
-			readonly PORT_CHECK_TIMEOUT_SECONDS=$(CalcAdaptiveSeconds 120)
-
 		# Values.
 
 			readonly CHARS_REGULAR_PROMPT='$ '
@@ -550,12 +539,13 @@ StopDaemon()
 	{
 
 	local acc=0
+	local daemon_stop_check_timeout_seconds=$(CalcAdaptiveSeconds 120)
 	local pid=0
 	local msg='stop daemon'
 
 	pid=$(<$daemon_pid_pathfile)
 
-	DisplayWaitCommitToLog "$msg '${pid}' with SIGTERM (no-more than $DAEMON_STOP_CHECK_TIMEOUT_SECONDS second$(Pluralise "$DAEMON_STOP_CHECK_TIMEOUT_SECONDS")):"
+	DisplayWaitCommitToLog "$msg '${pid}' with SIGTERM (no-more than $daemon_stop_check_timeout_seconds second$(Pluralise "$daemon_stop_check_timeout_seconds")):"
 
 	kill "$pid"
 
@@ -565,7 +555,7 @@ StopDaemon()
 			((acc++))
 			DisplayWait "$acc,"
 
-			if [[ $acc -ge $DAEMON_STOP_CHECK_TIMEOUT_SECONDS ]]; then
+			if [[ $acc -ge $daemon_stop_check_timeout_seconds ]]; then
 				DisplayCommitToLog 'failed!'
 				DisplayCommitToLog "$msg '${pid}' with SIGKILL:"
 
@@ -1225,17 +1215,18 @@ WaitForStartPid()
 	{
 
 	local -i i=0
+	local pid_start_recheck_wait_seconds=$(CalcAdaptiveSeconds 10)
 
 	if [[ $daemon_pidfile_is_managed_by_app = true ]]; then
-		if WaitForFileToAppear "$daemon_pid_pathfile" "$PIDFILE_APPEAR_TIMEOUT_SECONDS"; then
+		if WaitForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds 60)"; then
 			/bin/sleep 1		# Wait one more second to allow file to have PID written into it.
 		fi
 	fi
 
 	if [[ $recheck_daemon_pid_after_launch = true ]]; then
-		DisplayWaitCommitToLog "wait $PID_START_RECHECK_WAIT_SECONDS second$(Pluralise "$PID_START_RECHECK_WAIT_SECONDS") to recheck PID:"
+		DisplayWaitCommitToLog "wait $pid_start_recheck_wait_seconds second$(Pluralise "$pid_start_recheck_wait_seconds") to recheck PID:"
 
-		for ((i=1; i<=PID_START_RECHECK_WAIT_SECONDS; i++)); do
+		for ((i=1; i<=pid_start_recheck_wait_seconds; i++)); do
 			/bin/sleep 1
 			DisplayWait "$i,"
 		done
@@ -1251,11 +1242,12 @@ WaitForKillPid()
 	{
 
 	local -i i=0
+	local pid_stop_recheck_wait_seconds=$(CalcAdaptiveSeconds 10)
 
 	if [[ $recheck_daemon_pid_after_kill = true ]]; then
-		DisplayWaitCommitToLog "wait $PID_STOP_RECHECK_WAIT_SECONDS second$(Pluralise "$PID_STOP_RECHECK_WAIT_SECONDS") to recheck PID:"
+		DisplayWaitCommitToLog "wait $pid_stop_recheck_wait_seconds second$(Pluralise "$pid_stop_recheck_wait_seconds") to recheck PID:"
 
-		for ((i=1; i<=PID_STOP_RECHECK_WAIT_SECONDS; i++)); do
+		for ((i=1; i<=pid_stop_recheck_wait_seconds; i++)); do
 			/bin/sleep 1
 			DisplayWait "$i,"
 		done
@@ -1281,7 +1273,7 @@ WaitForDaemonPid()
 	if [[ -n ${1:-} ]]; then
 		MAX_SECONDS=$1
 	else
-		MAX_SECONDS=$DAEMON_START_CHECK_TIMEOUT_SECONDS
+		MAX_SECONDS=$(CalcAdaptiveSeconds 120)
 	fi
 
 	if [[ ! -e $daemon_pid_pathfile ]]; then
@@ -2189,6 +2181,7 @@ IsPortResponds()
 	#   $? = 1 : not OK
 
 	local port=${1//[!0-9]/}			# Strip all non-numerals.
+	local port_check_timeout_seconds=$(CalcAdaptiveSeconds 120)
 
 	if [[ -z $port ]]; then
 		Display 'empty port: not testing for response'
@@ -2200,7 +2193,7 @@ IsPortResponds()
 
 	local acc=0
 
-	DisplayWaitCommitToLog "test for port '$port' response (no-more than $PORT_CHECK_TIMEOUT_SECONDS second$(Pluralise "$PORT_CHECK_TIMEOUT_SECONDS")):"
+	DisplayWaitCommitToLog "test for port '$port' response (no-more than $port_check_timeout_seconds second$(Pluralise "$port_check_timeout_seconds")):"
 
 # 	RefreshPidFile
 
@@ -2232,7 +2225,7 @@ IsPortResponds()
 		((acc+=1))
 		DisplayWait "$acc,"
 
-		if [[ $acc -ge $PORT_CHECK_TIMEOUT_SECONDS ]]; then
+		if [[ $acc -ge $port_check_timeout_seconds ]]; then
 			DisplayCommitToLog 'failed!'
 			CommitErrToSysLog "port '$port' failed to respond after $acc second$(Pluralise "$acc")!"
 			break
@@ -2254,6 +2247,7 @@ IsPortSecureResponds()
 	#   $? = 1 : not OK or secure port unspecified
 
 	local port=${1//[!0-9]/}			# Strip all non-numerals.
+	local port_check_timeout_seconds=$(CalcAdaptiveSeconds 120)
 
 	if [[ -z $port ]]; then
 		Display 'empty port: not testing for response'
@@ -2266,7 +2260,7 @@ IsPortSecureResponds()
 	local acc=0
 
 	DisplayWaitCommitToLog "test for secure port '$port' response:"
-	DisplayWait "(no-more than $PORT_CHECK_TIMEOUT_SECONDS second$(Pluralise "$PORT_CHECK_TIMEOUT_SECONDS")):"
+	DisplayWait "(no-more than $port_check_timeout_seconds second$(Pluralise "$port_check_timeout_seconds")):"
 
 	while true; do
 		if ! IsDaemonProcessActive; then
@@ -2299,7 +2293,7 @@ IsPortSecureResponds()
 		((acc+=1))
 		DisplayWait "$acc,"
 
-		if [[ $acc -ge $PORT_CHECK_TIMEOUT_SECONDS ]]; then
+		if [[ $acc -ge $port_check_timeout_seconds ]]; then
 			DisplayCommitToLog 'failed'
 			CommitErrToSysLog "secure port '$port' failed to respond after $acc second$(Pluralise "$acc")!"
 			break
