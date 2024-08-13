@@ -731,6 +731,7 @@ ShowHelp()
 	DisplayAsHelp status "check if $(FormatAsPackageName $QPKG_NAME) application is active. Returns \$? = 0 if active, 1 if not."
 	IsSupportBackup && DisplayAsHelp backup "backup current $(FormatAsPackageName $QPKG_NAME) configuration to persistent storage."
 	IsSupportBackup && DisplayAsHelp restore "restore a previously saved configuration from persistent storage."
+	IsSupportActions && DisplayAsHelp reset-action "clear the current service-script action and action result."
 	IsSupportReset && DisplayAsHelp reset-config "delete $(FormatAsPackageName $QPKG_NAME) configuration, databases and history."
 	IsSourcedOnline && DisplayAsHelp clean "delete & redownload $(FormatAsPackageName $QPKG_NAME) from remote source. Configuration will be retained."
 	DisplayAsHelp log 'display the service-script log.'
@@ -1905,6 +1906,20 @@ IsNotSupportReset()
 
 	}
 
+IsSupportActions()
+	{
+
+	[[ -e $SERVICE_ACTION_PATHFILE || -e $SERVICE_RESULT_PATHFILE ]]
+
+	}
+
+IsNotSupportActions()
+	{
+
+	! IsSupportActions
+
+	}
+
 IsSupportGetAppVersion()
 	{
 
@@ -2455,7 +2470,7 @@ DownloadReleasePackage()
 	[[ -e $release_package_pathfile ]] && curl_opts+=" --time-cond $release_package_pathfile"
 	curl_opts+=" --show-error --max-time 300 --location --output $release_package_pathfile"
 
-	DisplayRunAndLog 'download release package' "/sbin/curl${curl_opts} '$source_url'" log:failure-only
+	DisplayRunAndLog 'download latest release package' "/sbin/curl${curl_opts} '$source_url'" log:failure-only
 
 	}
 
@@ -2492,6 +2507,14 @@ ExtractReleasePackage()
 
 		[[ -n $release_package_name_ref_pathfilename ]] && /bin/touch "$release_package_name_ref_pathfilename"
 	fi
+
+	}
+
+ResetServiceAction()
+	{
+
+	SetServiceAction reset-action
+	SetServiceResultAsOK
 
 	}
 
@@ -3438,6 +3461,17 @@ ProcessArgs()
 				;;
 			remove)			# Only called by the QDK '.uninstall.sh' script.
 				SetServiceAction uninstall
+				;;
+			?(--)reset-action)
+				IsSU ||	exit
+
+				if IsSupportActions; then
+					ResetServiceAction
+					exit
+				else
+					SetServiceAction unsupported
+					ShowUnsupportedAction "$user_arg"
+				fi
 				;;
 			?(--)reset-config)
 				IsSU ||	exit
