@@ -59,7 +59,6 @@ InitLibrary()
 			readonly SERVICE_LOG_PATHFILE=/var/log/$QPKG_NAME.log
 			readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
 			readonly SERVICE_SCREEN_LOG_PATHFILE=/var/log/$QPKG_NAME.screen.log
-			readonly SOURCE_ARCHIVE_PATHFILE=$QPKG_TEMP_PATH/source.archive			# Local filename of the remote application archive.
 
 		# Timeouts.
 
@@ -128,6 +127,8 @@ InitLibrary()
 		allow_access_to_sys_packages=true
 
 		can_restart_to_update=false								# If 'true', application files can be updated by restarting service-script.
+
+		compare_release_filename=false							# If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
 
 		daemon_pidfile_is_managed_by_app=false
 
@@ -240,6 +241,8 @@ InitLibrary()
 		# allow_access_to_sys_packages=true
 
 		# can_restart_to_update=false								# If 'true', application files can be updated by restarting service-script.
+
+		# compare_release_filename=false							# If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
 
 		# daemon_pidfile_is_managed_by_app=false
 
@@ -593,64 +596,91 @@ StopDaemon()
 RefreshReleasePackageFiles()
 	{
 
-	if IsAutoUpdate || [[ ! -e $SOURCE_ARCHIVE_PATHFILE ]]; then		# Get remote archive - even when auto-update is disabled - if one doesn't exist locally.
-		local release_url=''
-		local download_opts=$curl_insecure_arg
-		[[ $debug = false ]] && download_opts+=' --silent'
+	# Input:
+	#	$compare_release_filename (global).
+	#	$QPKG_TEMP_PATH (global).
+	#	$remote_arch (global).
+	#	$remote_url (global).
+	#	$resolve_remote_url (global).
 
+	local extract_release_package=false
+	local refresh_release_package=false
+	local release_package_filename=''
+	local release_package_name_ref_pathfilename=''
+	local release_package_pathfile=$QPKG_TEMP_PATH/source.package			# Local filename of the remote application package.
+	local release_package_url=''
+
+	if IsAutoUpdate || [[ ! -e $release_package_pathfile ]]; then			# Get remote package - even when auto-update is disabled - if one doesn't exist locally.
 		if [[ $resolve_remote_url = true ]]; then
-			DisplayWaitCommitToLog 'check release package:'
+			refresh_release_package=true
 
 			if IsSiteUp "$remote_url"; then
-				release_url=$(RequestLatestRelease "$remote_url" "$remote_arch")
-
-				if [[ -n $release_url && $release_url != undefined ]]; then
-					DisplayCommitToLog OK
-				else
-					DisplayErrCommitAllLogs "'unable to calculate remote URL'"
-				fi
+				release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_arch")
 			else
 				DisplayErrCommitAllLogs "'unable to access remote site'"
 			fi
 		else
-			release_url=$remote_url
+			release_package_url=$remote_url
 		fi
 
-		if [[ -n $release_url ]]; then
-			[[ -e $SOURCE_ARCHIVE_PATHFILE ]] && download_opts+=" --time-cond $SOURCE_ARCHIVE_PATHFILE"
-			download_opts+=" --show-error --location --output $SOURCE_ARCHIVE_PATHFILE"
+		if [[ $compare_release_filename = true ]]; then
+			DisplayWaitCommitToLog 'get remote release package filename:'
 
-			DisplayRunAndLog 'refresh release package' "/sbin/curl${download_opts} '$release_url'" log:failure-only
+			if IsSiteUp "$remote_url"; then
+				release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
+
+				if [[ -n $release_package_filename ]]; then
+					DisplayCommitToLog "OK '$release_package_filename'"
+				else
+					DisplayErrCommitAllLogs "'unable to get remote release package filename'"
+				fi
+			else
+				DisplayErrCommitAllLogs "'unable to access remote site'"
+			fi
+
+		fi
+
+		if [[ -z $release_package_filename && -n $release_package_url && $release_package_url != undefined ]]; then
+			release_package_filename=$(/usr/bin/basename "$release_package_url")
+		fi
+
+		if [[ -z $release_package_name_ref_pathfilename && -n $release_package_filename && -n $release_package_url && $release_package_url != undefined ]]; then
+			release_package_name_ref_pathfilename=$(/usr/bin/dirname "$release_package_pathfile")/$release_package_filename
+		fi
+
+		if [[ -n $release_package_filename && -n $release_package_name_ref_pathfilename ]]; then
+			DisplayWaitCommitToLog 'release package filename already exists locally:'
+
+			if [[ -e $release_package_name_ref_pathfilename ]]; then
+				DisplayCommitToLog OK
+			else
+				DisplayCommitToLog no
+				refresh_release_package=true
+			fi
 		fi
 	fi
 
-	local tar_extract_verbose=''
-	local tar_extract_opts=''
-	local unzip_extract_verbose=''
-	local unzip_extract_opts=''
+	if [[ $refresh_release_package = true && -n $release_package_url ]]; then
+		DownloadReleasePackage "$release_package_url" "$release_package_pathfile"
 
-	if [[ $debug = true ]]; then
-		tar_extract_verbose=' --verbose'
-# 			unzip_extract_verbose=' -v'			# Don't enable this, seems to prevent actual file extraction from occurring.
+		if [[ -e $release_package_pathfile ]] && [[ ! -e $daemon_exec_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$release_package_pathfile" -c %Y))) -lt 10 ]]; then		# If release package was downloaded less-than 10 minutes ago, assume it's new and must therefore be extracted-from.
+			extract_release_package=true
+		fi
 	fi
 
-	if [[ -e $SOURCE_ARCHIVE_PATHFILE ]] && [[ ! -e $daemon_exec_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$SOURCE_ARCHIVE_PATHFILE" -c %Y))) -lt 60 ]]; then			# Extract from latest release archive.
-		tar_extract_opts="$tar_extract_verbose --extract --gzip --file=$SOURCE_ARCHIVE_PATHFILE --directory=$qpkg_repo_path"
-		unzip_extract_opts="$unzip_extract_verbose -o $SOURCE_ARCHIVE_PATHFILE -d $qpkg_repo_path"
-
-		# Try '.zip' first, then '.tar.gz'
-		DisplayRunAndLog 'extract release package' "/usr/bin/unzip${unzip_extract_opts} 2>/dev/null || /bin/tar${tar_extract_opts}" log:failure-only
+	if [[ $extract_release_package = true && -e $release_package_pathfile ]]; then
+		ExtractReleasePackage "$release_package_pathfile" "$release_package_name_ref_pathfilename"
 	fi
 
 	if IsOnlinePackageArchive; then
 		if [[ -d $qpkg_repo_path ]]; then
 			if IsPathEmpty "$qpkg_repo_path"; then
-				DisplayErrCommitAllLogs 'local repository files do not exist'
+				DisplayErrCommitAllLogs "'local repository files do not exist'"
 
 				SetError; return 1
 			fi
 		else
-			DisplayErrCommitAllLogs 'local repository path does not exist'
+			DisplayErrCommitAllLogs "'local repository path does not exist'"
 
 			SetError; return 1
 		fi
@@ -2343,7 +2373,9 @@ IsSiteUp()
 	# Input:
 	#   $1 = URL to check.
 
-	local site=$(cut -d'/' -f3 <<< ${1:-} | cut -d':' -f1)
+	[[ -n $1 && $1 != undefined ]] || return
+
+	local site=$(cut -d'/' -f3 <<< "$1" | cut -d':' -f1)
 	[[ -n $site && $site != undefined ]] || return
 
 	for ((n=0; n<20; n++)); do
@@ -2355,7 +2387,33 @@ IsSiteUp()
 
 	} &>/dev/null
 
-RequestLatestRelease()
+RequestLatestReleaseFilename()
+	{
+
+	# Request latest release filename from remote site.
+
+	# Input:
+	#   $1 = URL to check.
+	#   $2 = arch to match (optional).
+	#	$curl_insecure_arg (global).
+
+	# Output:
+	#   stdout = filename.
+
+	[[ -n ${1:-} && ${1:-} != undefined ]] || return
+
+	local a=''
+	local curl_opts="$curl_insecure_arg --silent --max-time 5 --location -D -"	# https://stackoverflow.com/a/26644485
+	local source_url=$1
+
+	a=$(/sbin/curl${curl_opts} "$source_url" | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2)
+	[[ -n ${2:-} && ${2:-} != undefined ]] && a=$(/bin/grep "$2" <<< "$a")
+
+	printf '%s' "$a"
+
+	} 2>/dev/null
+
+RequestLatestReleaseURL()
 	{
 
 	# Request latest release URL from remote site.
@@ -2363,18 +2421,85 @@ RequestLatestRelease()
 	# Input:
 	#   $1 = URL to check.
 	#   $2 = arch to match (optional).
+	#	$curl_insecure_arg (global).
 
-	[[ -n $1 && $1 != undefined ]] || return
+	# Output:
+	#   stdout = URL.
+
+	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 
 	local a=''
+	local curl_opts="$curl_insecure_arg --silent --max-time 5 --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
+	local source_url=$1
 
-	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
-	a=$(/sbin/curl${download_opts} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
+	a=$(/sbin/curl${curl_opts} "$source_url" | /bin/grep browser_download_url | cut -d\" -f4)
 	[[ -n ${2:-} && ${2:-} != undefined ]] && a=$(/bin/grep "$2" <<< "$a")
 
 	printf '%s' "$a"
 
 	} 2>/dev/null
+
+DownloadReleasePackage()
+	{
+
+	# Request specific release filename from remote site.
+
+	# Input:
+	#   $1 = URL of the source release package.
+	#	$2 = pathfilename to save the release package to.
+	#	$curl_insecure_arg (global).
+	#	$debug (global).
+
+	[[ -n ${1:-} && ${1:-} != undefined ]] || return
+	[[ -n ${2:-} && ${2:-} != undefined ]] || return
+
+	local curl_opts=$curl_insecure_arg
+	local release_package_pathfile=$2
+	local source_url=$1
+
+	[[ $debug = false ]] && curl_opts+=' --silent'
+	[[ -e $release_package_pathfile ]] && curl_opts+=" --time-cond $release_package_pathfile"
+	curl_opts+=" --show-error --max-time 300 --location --output $release_package_pathfile"
+
+	DisplayRunAndLog 'download release package' "/sbin/curl${curl_opts} '$source_url'" log:failure-only
+
+	}
+
+ExtractReleasePackage()
+	{
+
+	# Input:
+	#	$1 = pathfilename of the release package to process.
+	#   $2 = release package name ref pathfilename.
+	#	$debug (global).
+	#	$qpkg_repo_path (global).
+
+	[[ -n ${1:-} && ${1:-} != undefined ]] || return
+	[[ -n ${2:-} && ${2:-} != undefined ]] || return
+
+	local release_package_name_ref_pathfilename=$2
+	local release_package_pathfile=$1
+	local tar_extract_opts=''
+	local tar_extract_verbose=''
+	local unzip_extract_opts=''
+	local unzip_extract_verbose=''
+
+	if [[ $debug = true ]]; then
+		tar_extract_verbose=' --verbose'
+# 			unzip_extract_verbose=' -v'			# Don't enable this, seems to prevent actual file extraction from occurring.
+	fi
+
+	if [[ -e $release_package_pathfile ]]; then
+		tar_extract_opts="$tar_extract_verbose --extract --gzip --file=$release_package_pathfile --directory=$qpkg_repo_path"
+		unzip_extract_opts="$unzip_extract_verbose -o $release_package_pathfile -d $qpkg_repo_path"
+
+		# Try as '.zip' first, then '.tar.gz'
+		DisplayRunAndLog 'extract release package' "/usr/bin/unzip${unzip_extract_opts} 2>/dev/null || /bin/tar${tar_extract_opts}" log:failure-only
+
+		[[ -n $release_package_name_ref_pathfilename ]] && /bin/touch "$release_package_name_ref_pathfilename"
+	fi
+
+	}
 
 SetServiceAction()
 	{
