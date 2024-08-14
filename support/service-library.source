@@ -437,14 +437,14 @@ CreateUserlinkToExec()
 			ln -s "$launcher_pathfile" "$userlink_pathfile"
 
 			if [[ -L $userlink_pathfile ]]; then
-				DisplayCommitToLog "symlink created: '$userlink_pathfile'"
+				DisplayCommitToLog "= symlink created: '$userlink_pathfile'"
 			else
-				DisplayErrCommitAllLogs "unable to create symlink to '$QPKG_NAME' launcher"
+				DisplayErrCommitAllLogs "= unable to create symlink to '$QPKG_NAME' launcher"
 
 				SetError; return 1
 			fi
 		else
-			DisplayCommitToLog "symlink exists: '$userlink_pathfile'"
+			DisplayCommitToLog "- symlink exists: '$userlink_pathfile'"
 		fi
 
 		return
@@ -458,7 +458,7 @@ RemoveUserlinkToExec()
 	if [[ $userlink_pathfile != undefined ]]; then
 		if [[ -L $userlink_pathfile ]]; then
 			rm -f "$userlink_pathfile"
-			DisplayCommitToLog "symlink removed: '$userlink_pathfile'"
+			DisplayCommitToLog "= symlink removed: '$userlink_pathfile'"
 		fi
 	fi
 
@@ -483,7 +483,7 @@ CreateVirtualPythonEnv()
 			DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $pip_conf_pathfile" log:failure-only
 
 			if [[ -d $qpkg_wheels_path ]]; then
-				DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' as 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $pip_conf_pathfile" log:failure-only
+				DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $pip_conf_pathfile" log:failure-only
 			fi
 		fi
 	fi
@@ -504,7 +504,7 @@ StartDaemon()
 
 	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
 		daemon_launch_cmd="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
-		DisplayCommitToLog "nice daemon to: $nice_daemon_to"
+		DisplayCommitToLog "> nice daemon to: $nice_daemon_to"
 	fi
 
 	if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_in_screen_session"; then
@@ -557,7 +557,7 @@ StopDaemon()
 
 			if [[ $acc -ge $daemon_stop_check_timeout_seconds ]]; then
 				DisplayCommitToLog 'failed!'
-				DisplayCommitToLog "$msg '${pid}' with SIGKILL:"
+				DisplayCommitToLog "> $msg '${pid}' with SIGKILL:"
 
 				kill -9 "$pid" 2> /dev/null
 
@@ -639,7 +639,7 @@ RefreshReleasePackageFiles()
 		fi
 
 		if [[ -n $release_package_filename && -n $release_package_name_ref_pathfilename ]]; then
-			DisplayWaitCommitToLog '= release package filename already exists locally:'
+			DisplayWaitCommitToLog '- release package filename already exists locally:'
 
 			if [[ -e $release_package_name_ref_pathfilename ]]; then
 				DisplayCommitToLog OK
@@ -704,10 +704,10 @@ CheckPortsAvailable()
 		DisplayErrCommitAllLogs "unable to start daemon: ports '$ui_port' or '$ui_port_secure' are already in-use"
 
 		portpid=$(/usr/sbin/lsof -i :$ui_port -Fp)
-		DisplayErrCommitAllLogs "= process details for port '$ui_port': '${portpid}': PID '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
+		DisplayErrCommitAllLogs "- process details for port '$ui_port': '${portpid}': PID '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
 
 		portpid=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
-		DisplayErrCommitAllLogs "= process details for secure port '$ui_port_secure': PID '${portpid}': '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
+		DisplayErrCommitAllLogs "- process details for secure port '$ui_port_secure': PID '${portpid}': '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
 
 		SetError; return 1
 	fi
@@ -838,7 +838,7 @@ InstallPythonPackages()
 						cmd="/bin/sed -i '/${re}/d' $target"			# Eh, hope for the best.
 					fi
 
-					DisplayRunAndLog "exclude problem PyPI modules from '$(/usr/bin/basename "$target")'" "$cmd" log:failure-only
+					DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$target")'" "$cmd" log:failure-only
 				fi
 			done
 		fi
@@ -851,7 +851,7 @@ InstallPythonPackages()
 			DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$target")'" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip -r $target" log:failure-only
 
 			if [[ $? -gt 0 && $silence_pypi_errors = false ]]; then
-				CommitWarnToSysLog 'PyPI module installation failed.'
+				CommitWarnToSysLog '= PyPI module installation failed.'
 			fi
 
 			no_pips_installed=false
@@ -885,13 +885,13 @@ InstallPythonPackages()
 
 		if [[ $new_env = false && -e $APP_VERSION_STORE_PATHFILE && $(<"$APP_VERSION_STORE_PATHFILE") != "$app_version" ]]; then
 			# Remove existing .pyc files to prevent runtime errors
-			DisplayRunAndLog "clean Python bytecode files" "/opt/bin/find $qpkg_repo_path -type d -name '__pycache__' -print0 | xargs -I {} -0 rm -rf '{}'
+			DisplayRunAndLog 'clean Python bytecode files' "/opt/bin/find $qpkg_repo_path -type d -name '__pycache__' -print0 | xargs -I {} -0 rm -rf '{}'
 " log:failure-only
 		fi
 
 		if [[ ! -e $APP_VERSION_STORE_PATHFILE || $(<"$APP_VERSION_STORE_PATHFILE") != "$app_version" ]]; then
 			# Generate language translations.
-			DisplayRunAndLog "generate language translations" "cd $qpkg_repo_path; $venv_python_pathfile $qpkg_repo_path/tools/make_mo.py" log:failure-only
+			DisplayRunAndLog 'generate language translations' "cd $qpkg_repo_path; $venv_python_pathfile $qpkg_repo_path/tools/make_mo.py" log:failure-only
 		fi
 
 		SaveAppVersion
@@ -1036,7 +1036,7 @@ GetAppVersion()
 ShowQPKGStates()
 	{
 
-	DisplayWaitCommitToLog '= enabled:'
+	DisplayWaitCommitToLog '- enabled:'
 
 	if IsQPKGEnabled; then
 		DisplayCommitToLog true
@@ -1045,7 +1045,7 @@ ShowQPKGStates()
 	fi
 
 	if IsSupportAutoUpdate; then
-		DisplayWaitCommitToLog '= auto-update:'
+		DisplayWaitCommitToLog '- auto-update:'
 
 		if IsAutoUpdate; then
 			DisplayCommitToLog true
@@ -1088,9 +1088,9 @@ CloneGitRepo()
 	if [[ -d $qpkg_repo_path/.git ]]; then
 		if [[ $active_branch != "$source_git_branch" ]]; then
 			branch_switch=true
-			DisplayCommitToLog "= active git branch: '$active_branch', new git branch: '$source_git_branch'"
+			DisplayCommitToLog "- active git branch: '$active_branch', new git branch: '$source_git_branch'"
 			[[ $QPKG_NAME = nzbToMedia ]] && BackupConfig
-			DisplayCommitToLog 'new git branch has been specified, so must clean local repository'
+			DisplayCommitToLog '- new git branch has been specified, so must clean local repository'
 			CleanLocalRepo
 		fi
 	fi
@@ -1105,7 +1105,7 @@ CloneGitRepo()
 	fi
 
 	if IsAutoUpdate; then
-		DisplayCommitToLog "= active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
+		DisplayCommitToLog "- active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
 	fi
 
 	[[ $branch_switch = true && $QPKG_NAME = nzbToMedia ]] && RestoreConfig
@@ -1357,7 +1357,7 @@ WaitForFileToAppear()
 		fi
 	fi
 
-	DisplayCommitToLog "= file exists: '$1'"
+	DisplayCommitToLog "- file exists: '$1'"
 
 	return 0
 
@@ -1422,9 +1422,17 @@ DisplayRunAndLog()
 	z=$?
 
 	if [[ $z -eq 0 ]]; then
-		DisplayCommitToLog OK
+		if [[ $debug = false ]]; then
+			DisplayCommitToLog OK
+		else
+			DisplayCommitToLog "= $1: OK"
+		fi
 	else
-		DisplayCommitToLog failed
+		if [[ $debug = false ]]; then
+			DisplayCommitToLog failed
+		else
+			DisplayCommitToLog "= $1: failed"
+		fi
 	fi
 
 	if [[ $z -eq 0 ]]; then
@@ -1463,7 +1471,7 @@ Executer()
 	if [[ $run_in_screen = true ]]; then
 		if [[ $debug = true ]]; then
 			Display
-			Display "> exec (in screen session): '$1'"
+			Display "{ exec (in screen session): '$1'"
 		fi
 
 		FormatAsCommand "$1" >> "$SERVICE_SCREEN_LOG_PATHFILE"
@@ -1471,8 +1479,8 @@ Executer()
 		z=$?
 	elif [[ $debug = true ]]; then
 		Display
-		Display "> exec: '$1'"
-		eval "$1 > >(/usr/bin/tee $LOG_PATHFILE) 2>&1"		# NOTE: 'tee' buffers stdout here
+		Display "{ exec: '$1'"
+		eval "$1 > >(/usr/bin/tee $LOG_PATHFILE) 2>&1"		# NOTE: 'tee' buffers stdout here.
 		z=${PIPESTATUS[0]}									# must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
 	else
 		(eval "$1" > "$LOG_PATHFILE" 2>&1)					# Run in a subshell to suppress "Terminated" message later.
@@ -1487,9 +1495,9 @@ Executer()
 
 	if [[ $debug = true ]]; then
 		if [[ $z -eq 0 ]]; then
-			Display '= exec: completed OK'
+			Display '} exec: completed OK'
 		else
-			Display '= exec: completed with errors'
+			Display '} exec: completed with errors'
 		fi
 	fi
 
@@ -1662,20 +1670,20 @@ CheckPorts()
 
 	local msg=''
 
-	DisplayCommitToLog "= daemon listening address: '$ui_listening_address'"
+	DisplayCommitToLog "- daemon listening address: '$ui_listening_address'"
 
 	if [[ $daemon_port -ne 0 ]]; then
-		DisplayCommitToLog "daemon port: '$daemon_port'"
+		DisplayCommitToLog "- daemon port: '$daemon_port'"
 
 		if IsPortResponds $daemon_port; then
 			msg="daemon port '$daemon_port'"
 		fi
 	else
-		DisplayWaitCommitToLog '= HTTPS port enabled:'
+		DisplayWaitCommitToLog '- HTTPS port enabled:'
 
 		if IsSSLEnabled; then
 			DisplayCommitToLog true
-			DisplayCommitToLog "HTTPS port: '$ui_port_secure'"
+			DisplayCommitToLog "- HTTPS port: '$ui_port_secure'"
 
 			if IsPortSecureResponds $ui_port_secure; then
 				msg="HTTPS port '$ui_port_secure'"
@@ -1684,7 +1692,7 @@ CheckPorts()
 			DisplayCommitToLog false
 		fi
 
-		DisplayCommitToLog "= HTTP port: '$ui_port'"
+		DisplayCommitToLog "- HTTP port: '$ui_port'"
 
 		if IsPortResponds $ui_port; then
 			[[ -n $msg ]] && msg+=' and '
@@ -1697,7 +1705,6 @@ CheckPorts()
 
 		SetError; return 1
 	else
-		DisplayCommitToLog "= $msg test: OK"
 		ReWriteUIPorts
 		return 0
 	fi
@@ -1729,17 +1736,17 @@ RenameSharedObjectFile()
 
 	if [[ -e $(GetModulePath)/$(GetOriginalModuleSOFilename "_$1") ]]; then
 		mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "_$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "_$1")"
-		DisplayCommitToLog "renamed module: _$1"
+		DisplayCommitToLog "= renamed module: _$1"
 	fi
 
 	if [[ -e $(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1") ]]; then
 		mv "$(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$1/$(GetFixedModuleSOFilename "$1")"
-		DisplayCommitToLog "renamed module: $1/$1"
+		DisplayCommitToLog "= renamed module: $1/$1"
 	fi
 
 	if [[ -e $(GetModulePath)/$(GetOriginalModuleSOFilename "$1") ]]; then
 		mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "$1")"
-		DisplayCommitToLog "renamed module: $1"
+		DisplayCommitToLog "= renamed module: $1"
 	fi
 
 	return 0
@@ -2083,11 +2090,11 @@ IsDaemonActive()
 	# $? = 1 : $daemon_exec_pathfile is not in memory
 
 	if IsDaemonProcessActive; then
-		DisplayCommitToLog "= daemon active: '$(<"$daemon_pid_pathfile")'"
+		DisplayCommitToLog "- daemon active: '$(<"$daemon_pid_pathfile")'"
 		return 0
 	fi
 
-	DisplayCommitToLog '= daemon: inactive'
+	DisplayCommitToLog '- daemon: inactive'
 	return 1
 
 	}
@@ -2920,7 +2927,7 @@ FormatAsResultAndStdout()
 	if [[ ${1:-0} -eq 0 ]]; then
 		echo "= result_code: $(FormatAsExitcode "$1")"
 	else
-		echo "! result_code: $(FormatAsExitcode "$1")"
+		echo "= result_code: $(FormatAsExitcode "$1")"
 	fi
 
 	DebugBulletSeparatorWithText 'stdout & stderr begins below'
@@ -2979,7 +2986,7 @@ DisplayAndCommitActionToLog()
 	[[ $service_action = unspecified ]] && return
 
 	starttime=$(/bin/date +%s%N)
-	local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date)"
+	local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date)"
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
 	local target=DisplayCommitToLog
 
@@ -2988,7 +2995,7 @@ DisplayAndCommitActionToLog()
 		CommitToLog '•'
 
 		$target "$(TextInverse "$msg")"
-		$target "= package: $QPKG_VERSION, service: $SERVICE_SCRIPT_VERSION, library: $SERVICE_LIB_VERSION"
+		$target "- package: $QPKG_VERSION, service: $SERVICE_SCRIPT_VERSION, library: $SERVICE_LIB_VERSION"
 	fi
 
 	}
@@ -3252,7 +3259,7 @@ StoreAutoUpdateSelection()
 	{
 
 	/sbin/setcfg "$QPKG_NAME" Auto_Update "$(Uppercase "$1")" -f /etc/config/qpkg.conf
-	DisplayCommitToLog "= auto-update: $1"
+	DisplayCommitToLog "- auto-update: $1"
 
 	}
 
@@ -3340,7 +3347,7 @@ CaughtSIGHUP()
 
 	trap - SIGHUP
 
-	DisplayCommitToLog 'caught SIGHUP: abort.'
+	DisplayCommitToLog '* caught SIGHUP: abort.'
 	SetServiceResultAsAborted
 
 	exit
@@ -3352,7 +3359,7 @@ CaughtSIGINT()
 
 	trap - SIGINT
 
-	DisplayCommitToLog 'caught SIGINT: abort.'
+	DisplayCommitToLog '* caught SIGINT: abort.'
 	SetServiceResultAsAborted
 
 	exit
