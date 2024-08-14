@@ -272,7 +272,7 @@ DisplayErrCommitAllLogs 'port tests failed!'
 [[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
 SetError;return 1
 fi
-CommitInfoToSysLog 'start daemon: OK'
+CommitInfoToSysLog "$msg: OK"
 }
 StopDaemon()
 {
@@ -646,7 +646,7 @@ WaitForGit || return
 if [[ -d $qpkg_repo_path/.git ]];then
 if [[ $active_branch != "$source_git_branch" ]];then
 branch_switch=true
-DisplayCommitToLog "active git branch: '$active_branch', new git branch: '$source_git_branch'"
+DisplayCommitToLog "= active git branch: '$active_branch', new git branch: '$source_git_branch'"
 [[ $QPKG_NAME = nzbToMedia ]] && BackupConfig
 DisplayCommitToLog 'new git branch has been specified, so must clean local repository'
 CleanLocalRepo
@@ -660,7 +660,7 @@ DisplayRunAndLog "update $(FormatAsPackageName "$QPKG_NAME") from remote reposit
 fi
 fi
 if IsAutoUpdate;then
-DisplayCommitToLog "active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
+DisplayCommitToLog "= active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
 fi
 [[ $branch_switch = true && $QPKG_NAME = nzbToMedia ]] && RestoreConfig
 return 0
