@@ -143,6 +143,10 @@ InitLibrary()
 
 		orig_daemon_service_script=undefined					# Specific to Entware binaries only.
 
+		pid_start_wait_seconds=60								# This value is adaptive (changes depending on system load average).
+
+		port_check_timeout_seconds=120							# This value is adaptive (changes depending on system load average).
+
 		remote_arch=undefined
 
 		source_arch=undefined
@@ -256,6 +260,10 @@ InitLibrary()
 		# nice_daemon_to=0											# If non-zero, daemon proc is niced to this value on-launch.
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
+
+		# pid_start_wait_seconds=60									# This value is adaptive (changes depending on system load average).
+
+		# port_check_timeout_seconds=120							# This value is adaptive (changes depending on system load average).
 
 		# remote_arch=undefined
 
@@ -1219,7 +1227,7 @@ WaitForStartPid()
 	local pid_start_recheck_wait_seconds=$(CalcAdaptiveSeconds 10)
 
 	if [[ $daemon_pidfile_is_managed_by_app = true ]]; then
-		if WaitForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds 60)"; then
+		if WaitForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$pid_start_wait_seconds")"; then
 			/bin/sleep 1		# Wait one more second to allow file to have PID written into it.
 		fi
 	fi
@@ -2202,7 +2210,7 @@ IsPortResponds()
 	#   $? = 1 : not OK
 
 	local port=${1//[!0-9]/}			# Strip all non-numerals.
-	local port_check_timeout_seconds=$(CalcAdaptiveSeconds 120)
+	local local_port_check_timeout_seconds=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
 
 	if [[ -z $port ]]; then
 		Display 'empty port: not testing for response'
@@ -2214,7 +2222,7 @@ IsPortResponds()
 
 	local acc=0
 
-	DisplayWaitCommitToLog "> test for port '$port' response (no-more than $port_check_timeout_seconds second$(Pluralise "$port_check_timeout_seconds")):"
+	DisplayWaitCommitToLog "> test for port '$port' response (no-more than $local_port_check_timeout_seconds second$(Pluralise "$local_port_check_timeout_seconds")):"
 
 # 	RefreshPidFile
 
@@ -2246,7 +2254,7 @@ IsPortResponds()
 		((acc+=1))
 		DisplayWait "$acc,"
 
-		if [[ $acc -ge $port_check_timeout_seconds ]]; then
+		if [[ $acc -ge $local_port_check_timeout_seconds ]]; then
 			DisplayCommitToLog 'failed!'
 			CommitErrToSysLog "port '$port' failed to respond after $acc second$(Pluralise "$acc")!"
 			break
@@ -2268,7 +2276,7 @@ IsPortSecureResponds()
 	#   $? = 1 : not OK or secure port unspecified
 
 	local port=${1//[!0-9]/}			# Strip all non-numerals.
-	local port_check_timeout_seconds=$(CalcAdaptiveSeconds 120)
+	local local_port_check_timeout_seconds=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
 
 	if [[ -z $port ]]; then
 		Display 'empty port: not testing for response'
@@ -2281,7 +2289,7 @@ IsPortSecureResponds()
 	local acc=0
 
 	DisplayWaitCommitToLog "> test for secure port '$port' response:"
-	DisplayWait "(no-more than $port_check_timeout_seconds second$(Pluralise "$port_check_timeout_seconds")):"
+	DisplayWait "(no-more than $local_port_check_timeout_seconds second$(Pluralise "$local_port_check_timeout_seconds")):"
 
 	while true; do
 		if ! IsDaemonProcessActive; then
@@ -2314,7 +2322,7 @@ IsPortSecureResponds()
 		((acc+=1))
 		DisplayWait "$acc,"
 
-		if [[ $acc -ge $port_check_timeout_seconds ]]; then
+		if [[ $acc -ge $local_port_check_timeout_seconds ]]; then
 			DisplayCommitToLog 'failed'
 			CommitErrToSysLog "secure port '$port' failed to respond after $acc second$(Pluralise "$acc")!"
 			break
