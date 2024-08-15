@@ -340,8 +340,8 @@ StartQPKGLibrary()
 
 	IsNotError || return
 	ShowQPKGStates
-	IsDaemon && IsDaemonActive && return
-	IsNotStart && IsNotRestart && QPKGWasNotActive && return
+	IsNotRestart && IsDaemon && IsDaemonActive && return			# No-need to check for active daemon during 'restart' as it has already been killed.
+	IsNotStart && IsNotRestart && QPKGWasNotActive && return		# Don't start (after running actions like 'backup') if daemon wasn't active before.
 
 	if IsGitApp; then
 		CloneGitRepo || return
@@ -553,7 +553,7 @@ StopDaemon()
 
 	pid=$(<$daemon_pid_pathfile)
 
-	DisplayWaitCommitToLog "> $msg '${pid}' with SIGTERM (no-more than $daemon_stop_check_timeout_seconds second$(Pluralise "$daemon_stop_check_timeout_seconds")):"
+	DisplayWaitCommitToLog "> $msg PID '${pid}' with SIGTERM (no-more than $daemon_stop_check_timeout_seconds second$(Pluralise "$daemon_stop_check_timeout_seconds")):"
 
 	kill "$pid"
 
@@ -565,7 +565,7 @@ StopDaemon()
 
 			if [[ $acc -ge $daemon_stop_check_timeout_seconds ]]; then
 				DisplayCommitToLog 'failed!'
-				DisplayCommitToLog "> $msg '${pid}' with SIGKILL:"
+				DisplayCommitToLog "> $msg PID '${pid}' with SIGKILL:"
 
 				kill -9 "$pid" 2> /dev/null
 
@@ -647,7 +647,7 @@ RefreshReleasePackageFiles()
 		fi
 
 		if [[ -n $release_package_filename && -n $release_package_name_ref_pathfilename ]]; then
-			DisplayWaitCommitToLog '- filename exists locally:'
+			DisplayWaitCommitToLog '- release package exists locally:'
 
 			if [[ -e $release_package_name_ref_pathfilename ]]; then
 				DisplayCommitToLog true
@@ -747,7 +747,7 @@ ShowHelp()
 	IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $QPKG_NAME) before starting it"
 	DisplayAsHelp version 'display the package version numbers'
 	Display
-	DisplayWait 'enabled:'
+	DisplayWait 'QPKG enabled:'
 
 	if IsQPKGEnabled; then
 		Display true
@@ -756,7 +756,7 @@ ShowHelp()
 	fi
 
 	if IsSupportAutoUpdate; then
-		DisplayWait 'auto-update:'
+		DisplayWait 'application auto-update:'
 
 		if IsAutoUpdate; then
 			Display true
@@ -1044,7 +1044,7 @@ GetAppVersion()
 ShowQPKGStates()
 	{
 
-	DisplayWaitCommitToLog '- enabled:'
+	DisplayWaitCommitToLog '- QPKG enabled:'
 
 	if IsQPKGEnabled; then
 		DisplayCommitToLog true
@@ -1053,7 +1053,7 @@ ShowQPKGStates()
 	fi
 
 	if IsSupportAutoUpdate; then
-		DisplayWaitCommitToLog '- auto-update:'
+		DisplayWaitCommitToLog '- application auto-update:'
 
 		if IsAutoUpdate; then
 			DisplayCommitToLog true
@@ -1278,26 +1278,27 @@ WaitForDaemonPid()
 	#   $? = 0 (file was found) or 1 (file not found: timeout)
 
 	local -i i=0
+	local -i max_seconds=0
 
 	if [[ -n ${1:-} ]]; then
-		MAX_SECONDS=$1
+		max_seconds=$1
 	else
-		MAX_SECONDS=$(CalcAdaptiveSeconds 120)
+		max_seconds=$(CalcAdaptiveSeconds 120)
 	fi
 
 	if [[ ! -e $daemon_pid_pathfile ]]; then
-		DisplayWaitCommitToLog "> wait for process to appear in memory (no-more than $MAX_SECONDS second$(Pluralise "$MAX_SECONDS")):"
+		DisplayWaitCommitToLog "> wait for daemon process name to appear (no-more than $max_seconds second$(Pluralise "$max_seconds")):"
 
 		(
-			for ((i=1; i<=MAX_SECONDS; i++)); do
+			for ((i=1; i<=max_seconds; i++)); do
 				/bin/sleep 1
 				DisplayWait "$i,"
 
 				RefreshPidFile
 
 				if IsDaemonProcessActive; then
-					Display "OK '$(<$daemon_pid_pathfile)'"
-					CommitToLog "appeared in $i second$(Pluralise "$i") '$(<$daemon_pid_pathfile)'"
+					Display OK
+					CommitToLog "appeared in $i second$(Pluralise "$i")"
 					true
 
 					exit	# Only this sub-shell.
@@ -1308,7 +1309,7 @@ WaitForDaemonPid()
 		)
 
 		if [[ $? -ne 0 ]]; then
-			DisplayErrCommitAllLogs "process not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
+			DisplayErrCommitAllLogs "process not found! (exceeded timeout: $max_seconds second$(Pluralise "$max_seconds"))"
 			return 1
 		fi
 	fi
@@ -1329,20 +1330,21 @@ WaitForFileToAppear()
 	#   $? = 1 : file not found/timeout
 
 	local -i i=0
+	local -i max_seconds=0
 
 	[[ -n $1 ]] || return
 
 	if [[ -n $2 ]]; then
-		MAX_SECONDS=$2
+		max_seconds=$2
 	else
-		MAX_SECONDS=30
+		max_seconds=30
 	fi
 
 	if [[ ! -e $1 ]]; then
-		DisplayWaitCommitToLog "> wait for $1 to appear in filesystem (no-more than $MAX_SECONDS second$(Pluralise "$MAX_SECONDS")):"
+		DisplayWaitCommitToLog "> wait for $1 to appear in filesystem (no-more than $max_seconds second$(Pluralise "$max_seconds")):"
 
 		(
-			for ((i=1; i<=MAX_SECONDS; i++)); do
+			for ((i=1; i<=max_seconds; i++)); do
 				/bin/sleep 1
 				DisplayWait "$i,"
 
@@ -1358,7 +1360,7 @@ WaitForFileToAppear()
 		)
 
 		if [[ $? -ne 0 ]]; then
-			DisplayErrCommitAllLogs "file $1 not found! (exceeded timeout: $MAX_SECONDS second$(Pluralise "$MAX_SECONDS"))"
+			DisplayErrCommitAllLogs "file $1 not found! (exceeded timeout: $max_seconds second$(Pluralise "$max_seconds"))"
 			return 1
 		fi
 	fi
@@ -2097,11 +2099,11 @@ IsDaemonActive()
 	# $? = 1 : $daemon_exec_pathfile is not in memory
 
 	if IsDaemonProcessActive; then
-		DisplayCommitToLog "- daemon active: '$(<"$daemon_pid_pathfile")'"
+		DisplayCommitToLog "- daemon PID: '$(<"$daemon_pid_pathfile")'"
 		return 0
 	fi
 
-	DisplayCommitToLog '- daemon: inactive'
+	DisplayCommitToLog '- daemon PID: none'
 	return 1
 
 	}
@@ -3266,7 +3268,7 @@ StoreAutoUpdateSelection()
 	{
 
 	/sbin/setcfg $QPKG_NAME Auto_Update "$(Uppercase "$1")" -f /etc/config/qpkg.conf
-	DisplayCommitToLog "- auto-update: $1"
+	DisplayCommitToLog "- application auto-update: $1"
 
 	}
 
@@ -3304,7 +3306,7 @@ ShowUnsupportedAction()
 
 	ShowAsError "specified action '$1' is unsupported by this service-script."
 	SetError
-	CommitToLog "specified action '$1' is unsupported."
+	CommitToLog "- specified action '$1' is unsupported."
 	Display
 	ShowHelp
 
