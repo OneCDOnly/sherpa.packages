@@ -1,3 +1,6 @@
+* spacedrive?
+	- https://github.com/spacedriveapp/spacedrive
+
 * metube?
 	- https://github.com/alexta69/metube
 

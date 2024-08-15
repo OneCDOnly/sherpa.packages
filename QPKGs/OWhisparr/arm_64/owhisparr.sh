@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OWhisparr
-readonly SERVICE_SCRIPT_VERSION='240813'
+readonly SERVICE_SCRIPT_VERSION='240816'
 InitService()
 {
 qpkg_repo_path=$QPKG_PATH/repo-cache
@@ -31,6 +31,7 @@ qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 allow_access_to_sys_packages=false
 can_restart_to_update=true
+compare_release_filename=true
 run_daemon_in_screen_session=true
 remote_arch=arm64
 ui_listening_address=0.0.0.0
