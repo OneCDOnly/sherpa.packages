@@ -323,7 +323,7 @@ InitLibrary()
 StartQPKG()
 	{
 
-	if IsReinstall || IsUpgrade; then			# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled the service result will be 'failed' (techically correct as the last action after upgrade is 'start', but probably better to see the upgrade/reinstall result instead).
+	if IsReinstall || IsUpgrade; then			# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is techically correct as the last action after upgrade is 'start', but probably better to see the upgrade/reinstall result instead).
 		return
 	fi
 
@@ -1874,7 +1874,7 @@ IsQPKGEnabled()
 	#   $? = 0 : true
 	#   $? = 1 : false
 
-	[[ $(Lowercase "$(/sbin/getcfg "${1:-$QPKG_NAME}" Enable -d false -f /etc/config/qpkg.conf)") = true ]]
+	[[ $(Lowercase "$(/sbin/getcfg ${1:-$QPKG_NAME} Enable -d false -f /etc/config/qpkg.conf)") = true ]]
 
 	}
 
@@ -3265,7 +3265,7 @@ DisableAutoUpdate()
 StoreAutoUpdateSelection()
 	{
 
-	/sbin/setcfg "$QPKG_NAME" Auto_Update "$(Uppercase "$1")" -f /etc/config/qpkg.conf
+	/sbin/setcfg $QPKG_NAME Auto_Update "$(Uppercase "$1")" -f /etc/config/qpkg.conf
 	DisplayCommitToLog "- auto-update: $1"
 
 	}
