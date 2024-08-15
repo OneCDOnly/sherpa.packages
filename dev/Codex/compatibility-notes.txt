@@ -4,11 +4,15 @@
 		python3-django
 		python3-pytz ???
 		python3-psutil
-
+		python3-asgiref
+		python3-sqlparse
 
 	PIP
 		channels
 		django<6.0.0,>=5.0.6
+		comicfn2dict
+
+	at-least 1GB RAM
 
 
 
@@ -76,3 +80,15 @@ psutil<7.0.0,>=6.0.0
 setuptools<73.0.0,>=72.1.0
 
 - couldn't build swig wheel on ARMv5
+
+
+confuse<3.0.0,>=2.0.0
+marshmallow<4.0.0,>=3.19.0
+marshmallow-union<0.2.0,>=0.1.15.post1
+pycountry<25.0.0,>=24.6.1
+rarfile<5.0,>=4.0
+ruamel-yaml<0.19.00,>=0.17.32
+simplejson<4.0.0,>=3.19.1
+stringcase<2.0.0,>=1.2.0
+urnparse<0.3.0,>=0.2.0
+xmltodict<0.14.0,>=0.13.0
