@@ -746,24 +746,6 @@ ShowHelp()
 	IsSupportAutoUpdate && DisplayAsHelp enable-auto-update "auto-update $(FormatAsPackageName $QPKG_NAME) before starting (default)"
 	IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $QPKG_NAME) before starting it"
 	DisplayAsHelp version 'display the package version numbers'
-	Display
-	DisplayWait 'QPKG enabled:'
-
-	if IsQPKGEnabled; then
-		Display true
-	else
-		Display false
-	fi
-
-	if IsSupportAutoUpdate; then
-		DisplayWait 'application auto-update:'
-
-		if IsAutoUpdate; then
-			Display true
-		else
-			Display false
-		fi
-	fi
 
 	}
 
@@ -1062,6 +1044,10 @@ ShowQPKGStates()
 		fi
 	fi
 
+	if IsGitApp; then
+		DisplayCommitToLog "- active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
+	fi
+
 	}
 
 DisableOpkgDaemonStart()
@@ -1090,21 +1076,22 @@ CloneGitRepo()
 	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
 	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 	local branch_switch=false
+	local new_branch=false
 
 	WaitForGit || return
 
 	if [[ -d $qpkg_repo_path/.git ]]; then
 		if [[ $active_branch != "$source_git_branch" ]]; then
+			DisplayCommitToLog "- new git branch specified: '$source_git_branch'"
 			branch_switch=true
-			DisplayCommitToLog "- active git branch: '$active_branch', new git branch: '$source_git_branch'"
 			[[ $QPKG_NAME = nzbToMedia ]] && BackupConfig
-			DisplayCommitToLog '- new git branch has been specified, so must clean local repository'
 			CleanLocalRepo
 		fi
 	fi
 
 	if [[ ! -d $qpkg_repo_path/.git ]]; then
-		DisplayRunAndLog "clone $(FormatAsPackageName "$QPKG_NAME") from remote repository" "cd /tmp; /opt/bin/git clone --branch $source_git_branch $branch_depth -c advice.detachedHead=false $source_git_url $qpkg_repo_path" log:failure-only
+		DisplayRunAndLog "create $(FormatAsPackageName "$QPKG_NAME") from remote repository" "cd /tmp; /opt/bin/git clone --branch $source_git_branch $branch_depth -c advice.detachedHead=false $source_git_url $qpkg_repo_path" log:failure-only
+		new_branch=true
 	else
 		if IsAutoUpdate; then
 			# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
@@ -1112,10 +1099,7 @@ CloneGitRepo()
 		fi
 	fi
 
-	if IsAutoUpdate; then
-		DisplayCommitToLog "- active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
-	fi
-
+	IsAutoUpdate && [[ $new_branch = true || $branch_switch = true ]] && DisplayCommitToLog "- active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
 	[[ $branch_switch = true && $QPKG_NAME = nzbToMedia ]] && RestoreConfig
 
 	return 0
@@ -1132,7 +1116,7 @@ CleanLocalRepo()
 	fi
 
 	(IsGitApp || IsOnlinePackageArchive) && DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
-	IsVirtualPythonEnv && [[ -d $venv_path ]] && DisplayRunAndLog 'clean virtual environment' "rm -rf \"$venv_path\"" log:failure-only
+	IsVirtualPythonEnv && [[ -d $venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$venv_path\"" log:failure-only
 	IsUsePipCache && [[ -d $pip_cache_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$pip_cache_path\"" log:failure-only
 	[[ -e $APP_VERSION_STORE_PATHFILE ]] && DisplayRunAndLog 'remove application version' "rm -f \"$APP_VERSION_STORE_PATHFILE\"" log:failure-only
 	IsUseTemp && [[ -d $QPKG_TEMP_PATH ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$QPKG_TEMP_PATH\"" log:failure-only
