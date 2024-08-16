@@ -324,7 +324,6 @@ StartQPKG()
 	{
 
 	IsNotError || return
-	ShowQPKGStates
 
 	if IsReinstall || IsUpgrade; then			# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is techically correct as the last action after upgrade is 'start', but probably better to see the upgrade/reinstall result instead).
 		return
@@ -332,6 +331,7 @@ StartQPKG()
 
 	IsNotRestart && IsDaemon && IsDaemonActive && return		# No-need to check for active daemon during 'restart' as it has already been killed.
 	IsNotStart && IsNotRestart && QPKGWasNotActive && return	# Don't start (after running actions like 'backup') if daemon wasn't active before.
+	IsStart && ShowQPKGStates
 
 	if [[ $(type -t StartQPKGCustom) = function ]]; then
 		StartQPKGCustom
