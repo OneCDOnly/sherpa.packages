@@ -148,7 +148,7 @@ InitService()
 		get_ui_port_secure_enabled_test_cmd='false'
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="export TEMP=$QPKG_TEMP_PATH; $daemon_exec_pathfile $daemon_script_pathfile --webserver"
+		daemon_launch_cmd="export TEMP=$QPKG_TEMP_PATH CODEX_CONFIG_DIR=$QPKG_CONFIG_PATH LOGLEVEL=DEBUG; $daemon_exec_pathfile $daemon_script_pathfile"
 
 	}
 
