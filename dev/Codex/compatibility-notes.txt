@@ -1,99 +1,22 @@
-* requires:
-
-	IPK
-		python3-django
+* Requires:
+	IPK:
 		python3-pytz ???
 		python3-psutil
 		python3-asgiref
 		python3-sqlparse
+		libyaml
 
-		apt install build-essential libimagequant0 libjpeg-turbo8 libopenjp2-7 libssl libyaml-0-2 libtiff6 libwebp7 python3-dev python3-pip mupdf unrar zlib1g
-
-			libyaml
-
-
-	PIP
+	PIP:
 		channels
 		django<6.0.0,>=5.0.6
 		comicfn2dict
 
-	at-least 1GB RAM
+	hardware:
+		at-least 1GB RAM
 
-
-
-(venv) [/var/log] # pip install channels
-Collecting channels
-  Downloading channels-4.1.0-py3-none-any.whl.metadata (4.5 kB)
-Requirement already satisfied: Django>=4.2 in /share/HDA_DATA/.qpkg/Entware/lib/python3.11/site-packages (from channels) (4.2.3)
-Requirement already satisfied: asgiref<4,>=3.6.0 in /share/HDA_DATA/.qpkg/Entware/lib/python3.11/site-packages (from channels) (3.7.2)
-Requirement already satisfied: sqlparse>=0.3.1 in /share/HDA_DATA/.qpkg/Entware/lib/python3.11/site-packages (from Django>=4.2->channels) (0.4.4)
-Downloading channels-4.1.0-py3-none-any.whl (30 kB)
-Installing collected packages: channels
-ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
-codex 1.6.17 requires aioprocessing<3.0.0,>=2.0.1, which is not installed.
-codex 1.6.17 requires ansicolors<2.0,>=1.1, which is not installed.
-codex 1.6.17 requires bidict<0.24.0,>=0.23.1, which is not installed.
-codex 1.6.17 requires case-converter<2.0.0,>=1.1.0, which is not installed.
-codex 1.6.17 requires comicbox[pdf]<2.0.0,>=1.1.10, which is not installed.
-codex 1.6.17 requires django-cachalot<3.0.0,>=2.6.2, which is not installed.
-codex 1.6.17 requires django-cors-headers<5.0,>=4.0, which is not installed.
-codex 1.6.17 requires django-rest-registration<0.9.0,>=0.8.3, which is not installed.
-codex 1.6.17 requires django-vite<4.0.0,>=3.0.1, which is not installed.
-codex 1.6.17 requires djangorestframework<4.0.0,>=3.15.1, which is not installed.
-codex 1.6.17 requires djangorestframework-camel-case<2.0.0,>=1.4.2, which is not installed.
-codex 1.6.17 requires drf-spectacular<0.28.0,>=0.27.2, which is not installed.
-codex 1.6.17 requires fnvhash<0.2,>=0.1, which is not installed.
-codex 1.6.17 requires humanfriendly<11.0,>=10.0, which is not installed.
-codex 1.6.17 requires humanize<5.0.0,>=4.0.0, which is not installed.
-codex 1.6.17 requires hypercorn[h3]<0.18.0,>=0.17.3, which is not installed.
-codex 1.6.17 requires tzlocal<6.0,>=5.0, which is not installed.
-codex 1.6.17 requires versio<0.6.0,>=0.5.0, which is not installed.
-codex 1.6.17 requires watchdog<5.0,>=4.0, which is not installed.
-codex 1.6.17 requires websocket_client<2.0,>=1.2, which is not installed.
-codex 1.6.17 requires whitenoise[brotli]<7.0,>=6.0, which is not installed.
-codex 1.6.17 requires whoosh-reloaded<3.0.0,>=2.7.5, which is not installed.
-codex 1.6.17 requires django<6.0.0,>=5.0.6, but you have django 4.2.3 which is incompatible.
-codex 1.6.17 requires psutil<7.0.0,>=6.0.0, but you have psutil 5.9.5 which is incompatible.
-codex 1.6.17 requires setuptools<73.0.0,>=72.1.0, but you have setuptools 70.1.0 which is incompatible.
-Successfully installed channels-4.1.0
-
-
-aioprocessing<3.0.0,>=2.0.1
-ansicolors<2.0,>=1.1
-bidict<0.24.0,>=0.23.1
-case-converter<2.0.0,>=1.1.0
-comicbox[pdf]<2.0.0,>=1.1.10
-django-cachalot<3.0.0,>=2.6.2
-django-cors-headers<5.0,>=4.0
-django-rest-registration<0.9.0,>=0.8.3
-django-vite<4.0.0,>=3.0.1
-djangorestframework<4.0.0,>=3.15.1
-djangorestframework-camel-case<2.0.0,>=1.4.2
-drf-spectacular<0.28.0,>=0.27.2
-fnvhash<0.2,>=0.1
-humanfriendly<11.0,>=10.0
-humanize<5.0.0,>=4.0.0
-hypercorn[h3]<0.18.0,>=0.17.3
-tzlocal<6.0,>=5.0
-versio<0.6.0,>=0.5.0
-watchdog<5.0,>=4.0
-websocket_client<2.0,>=1.2
-whitenoise[brotli]<7.0,>=6.0
-whoosh-reloaded<3.0.0,>=2.7.5
-django<6.0.0,>=5.0.6
-psutil<7.0.0,>=6.0.0
-setuptools<73.0.0,>=72.1.0
-
-- couldn't build swig wheel on ARMv5
-
-
-confuse<3.0.0,>=2.0.0
-marshmallow<4.0.0,>=3.19.0
-marshmallow-union<0.2.0,>=0.1.15.post1
-pycountry<25.0.0,>=24.6.1
-rarfile<5.0,>=4.0
-ruamel-yaml<0.19.00,>=0.17.32
-simplejson<4.0.0,>=3.19.1
-stringcase<2.0.0,>=1.2.0
-urnparse<0.3.0,>=0.2.0
-xmltodict<0.14.0,>=0.13.0
+* Observations:
+	- Open main page to a spinning wheel with no explanation of why.
+	- Added users and they don't appear on-screen, but seem to be in the database as there's a brief flash of an error message stating something like "user already exists".
+	- Added a new library that isn't then shown in browser window. Also seems to be in database as I can't re-add it.
+	- Has a few issues working with sqlite3, locked database errors and such.
+	- Not sure it's ready for prime-time just yet. UX needs to be much better. :(
