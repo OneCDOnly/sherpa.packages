@@ -305,6 +305,7 @@ InitLibrary()
 
 	InitService											# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
 	OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
+	new_env=false
 	pyver=''
 	service_action=unspecified
 	service_result=undefined
@@ -325,12 +326,12 @@ StartQPKG()
 
 	IsNotError || return
 
-	if IsReinstall || IsUpgrade; then			# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is techically correct as the last action after upgrade is 'start', but probably better to see the upgrade/reinstall result instead).
+	if IsReinstall || IsUpgrade; then			# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is techically correct as the last action after upgrade is 'start', but probably better to see the upgrade or reinstall result instead).
 		return
 	fi
 
-	IsNotRestart && IsDaemon && IsDaemonActive && return		# No-need to check for active daemon during 'restart' as it has already been killed.
 	IsNotStart && IsNotRestart && QPKGWasNotActive && return	# Don't start (after running actions like 'backup') if daemon wasn't active before.
+	IsNotRestart && IsDaemon && IsDaemonActive && return		# No-need to check for an active daemon during 'restart' as it has already been killed.
 	IsStart && ShowQPKGStates
 
 	if [[ $(type -t StartQPKGCustom) = function ]]; then
@@ -375,7 +376,11 @@ StopQPKG()
 	{
 
 	IsNotError || return
-	ShowQPKGStates
+	IsNotRestart && IsDaemon && IsNotDaemonActive && return
+
+	if IsStop || IsRestart; then
+		ShowQPKGStates
+	fi
 
 	if [[ $(type -t StopQPKGCustom) = function ]]; then
 		StopQPKGCustom
@@ -546,28 +551,35 @@ StartDaemon()
 StopDaemon()
 	{
 
-	local acc=0
-	local daemon_stop_check_timeout_seconds=$(CalcAdaptiveSeconds 120)
-	local pid=0
-	local msg='stop daemon'
+	# Input (global):
+	#	$daemon_pid_pathfile
 
-	pid=$(<$daemon_pid_pathfile)
+	[[ -e $daemon_pid_pathfile ]] || return
 
-	DisplayWaitCommitToLog "> $msg PID '${pid}' with SIGTERM (no-more than $daemon_stop_check_timeout_seconds second$(Pluralise "$daemon_stop_check_timeout_seconds")):"
+	local a='stop daemon'
+	local -i b=$(CalcAdaptiveSeconds 120)
+	local -i c=0
+	local -i d=0
 
-	kill "$pid"
+	d=$(<$daemon_pid_pathfile)
+
+	[[ $d -gt 1 ]] || return
+
+	DisplayWaitCommitToLog "> $a PID '${d}' with SIGTERM (no-more than $b second$(Pluralise "$b")):"
+
+	kill "$d"
 
 	while true; do
-		while [[ -d /proc/$pid ]]; do
+		while [[ -d /proc/$d ]]; do
 			/bin/sleep 1
-			((acc++))
-			DisplayWait "$acc,"
+			((c++))
+			DisplayWait "$c,"
 
-			if [[ $acc -ge $daemon_stop_check_timeout_seconds ]]; then
+			if [[ $c -ge $b ]]; then
 				DisplayCommitToLog 'failed!'
-				DisplayCommitToLog "> $msg PID '${pid}' with SIGKILL:"
+				DisplayCommitToLog "> $a PID '${d}' with SIGKILL:"
 
-				kill -9 "$pid" 2> /dev/null
+				kill -9 "$d" 2> /dev/null
 
 				[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
 				break 2
@@ -577,9 +589,9 @@ StopDaemon()
 		[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
 
 		Display OK
-		CommitToLog "stopped in $acc second$(Pluralise "$acc")"
+		CommitToLog "stopped in $c second$(Pluralise "$c")"
 
-		CommitInfoToSysLog "$msg: OK"
+		CommitInfoToSysLog "$a: OK"
 		break
 	done
 
@@ -594,12 +606,12 @@ StopDaemon()
 RefreshReleasePackageFiles()
 	{
 
-	# Input:
-	#	$compare_release_filename (global).
-	#	$QPKG_TEMP_PATH (global).
-	#	$remote_arch (global).
-	#	$remote_url (global).
-	#	$resolve_remote_url (global).
+	# Inputs (global):
+	#	$compare_release_filename
+	#	$QPKG_TEMP_PATH
+	#	$remote_arch
+	#	$remote_url
+	#	$resolve_remote_url
 
 	local extract_release_package=false
 	local refresh_release_package=false
@@ -688,34 +700,28 @@ RefreshReleasePackageFiles()
 
 	}
 
-CheckVirtualPythonEnv()
-	{
-
-	if IsVirtualPythonEnv && IsNotVirtualPythonEnvExist; then
-		DisplayErrCommitAllLogs "unable to start daemon: 'virtual environment does not exist'"
-
-		SetError; return 1
-	fi
-
-	return 0
-
-	}
-
 CheckPortsAvailable()
 	{
 
+	# Inputs (global):
+	#	$daemon_port
+	#	$ui_port
+	#	$ui_port_secure
+
+	local a=''
+
 	if [[ $daemon_port -le 0 && $ui_port -le 0 && $ui_port_secure -le 0 ]]; then
-		DisplayErrCommitAllLogs "unable to start daemon: 'no port specified'"
+		DisplayErrCommitAllLogs "'no port specified'"
 
 		SetError; return 1
 	elif IsNotPortAvailable $ui_port || IsNotPortAvailable $ui_port_secure; then
-		DisplayErrCommitAllLogs "unable to start daemon: ports '$ui_port' or '$ui_port_secure' are already in-use"
+		DisplayErrCommitAllLogs "ports '$ui_port' or '$ui_port_secure' are already in-use"
 
-		portpid=$(/usr/sbin/lsof -i :$ui_port -Fp)
-		DisplayErrCommitAllLogs "- process details for port '$ui_port': '${portpid}': PID '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
+		a=$(/usr/sbin/lsof -i :$ui_port -Fp)
+		DisplayErrCommitAllLogs "- process details for port '$ui_port': '${a}': PID '$([[ -n ${a:-} ]] && /bin/tr '\000' ' ' </proc/"${a/p/}"/cmdline)'"
 
-		portpid=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
-		DisplayErrCommitAllLogs "- process details for secure port '$ui_port_secure': PID '${portpid}': '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
+		a=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
+		DisplayErrCommitAllLogs "- process details for secure port '$ui_port_secure': PID '${a}': '$([[ -n ${a:-} ]] && /bin/tr '\000' ' ' </proc/"${a/p/}"/cmdline)'"
 
 		SetError; return 1
 	fi
@@ -754,28 +760,26 @@ InstallPythonPackages()
 
 	IsVirtualPythonEnv || return 0
 
-	local default_essential_modules_pathfile=$QPKG_PATH/pip-essential.txt
-	local default_requirements_modules_pathfile=$QPKG_PATH/pip-requirements.txt
-	local default_recommended_modules_pathfile=$QPKG_PATH/pip-recommended.txt
-	local excluded_modules_pathfile=$QPKG_PATH/pip-exclusions.txt
-	local rename_modules_pathfile=$QPKG_PATH/pip-rename.txt
-
-	local essential_modules_pathfile=$qpkg_repo_path/pip-essential.txt
-	local requirements_modules_pathfile=$qpkg_repo_path/requirements.txt
-	local recommended_modules_pathfile=$qpkg_repo_path/recommended.txt
-
-	local pyproject_pathfile=$qpkg_repo_path/pyproject.toml
-	local no_pips_installed=true
-	local no_pip_deps=' --no-deps'
-	local module_exclusions=''
-	local re=''
-	local cmd=''
 	local a=''
+	local cmd=''
+	local default_essential_modules_pathfile=$QPKG_PATH/pip-essential.txt
+	local default_recommended_modules_pathfile=$QPKG_PATH/pip-recommended.txt
+	local default_requirements_modules_pathfile=$QPKG_PATH/pip-requirements.txt
+	local essential_modules_pathfile=$qpkg_repo_path/pip-essential.txt
+	local excluded_modules_pathfile=$QPKG_PATH/pip-exclusions.txt
+	local module_exclusions=''
+	local no_pip_deps=' --no-deps'
+	local no_pips_installed=true
+	local pyproject_pathfile=$qpkg_repo_path/pyproject.toml
+	local re=''
+	local recommended_modules_pathfile=$qpkg_repo_path/recommended.txt
+	local rename_modules_pathfile=$QPKG_PATH/pip-rename.txt
+	local requirements_modules_pathfile=$qpkg_repo_path/requirements.txt
 
 	[[ $install_pip_deps = true ]] && no_pip_deps=''
 
 	if IsNotVirtualPythonEnvExist; then
-		DisplayErrCommitAllLogs "unable to install addons: 'virtual environment does not exist'"
+		DisplayErrCommitAllLogs "unable to install addons: 'virtual Python environment does not exist'"
 
 		SetError; return 1
 	fi
@@ -898,7 +902,7 @@ StripComments()
 	#   $1 = String to strip comment lines, empty lines, and so-on.
 
 	# Output:
-	#   stdout = Stripped string.
+	#   stdout = string.
 
 	[[ -n $1 ]] || return
 
@@ -987,7 +991,7 @@ LoadPorts()
 			SetError; return 1
 	esac
 
-	# Always read these from the application configuration.
+	# Always read these from the application configuration file.
 	[[ $get_daemon_port_cmd != undefined ]] && daemon_port=$(eval "$get_daemon_port_cmd")
 	[[ $get_ui_listening_address_cmd != undefined ]] && ui_listening_address=$(eval "$get_ui_listening_address_cmd")
 
@@ -1009,9 +1013,10 @@ LoadPorts()
 GetAppVersion()
 	{
 
-	# Find the application's internal version number.
-	# Creates a global var: $app_version
-	# This is the installed application version (not the QPKG version).
+	# Find the application's internal version number. This is the installed application version (not the QPKG version).
+
+	# Output (global):
+	#   $app_version
 
 	if IsSupportGetAppVersion && [[ -e $app_version_pathfile ]]; then
 		app_version=$(eval "$get_app_version_cmd")
@@ -1063,12 +1068,12 @@ DisableOpkgDaemonStart()
 CloneGitRepo()
 	{
 
-	# inputs (global):
+	# Inputs (global):
 	#   $QPKG_NAME
-	#   $source_git_url
+	#   $qpkg_repo_path
 	#   $source_git_branch
 	#   $source_git_branch_depth
-	#   $qpkg_repo_path
+	#   $source_git_url
 
 	IsGitApp || return 0
 
@@ -1111,6 +1116,14 @@ CleanLocalRepo()
 
 	# For occasions where the local repo needs to be deleted and cloned again from source.
 
+	# Inputs (global):
+	#   $APP_VERSION_STORE_PATHFILE
+	#   $pip_cache_path
+	#   $QPKG_NAME
+	#   $qpkg_repo_path
+	#   $QPKG_TEMP_PATH
+	#   $venv_path
+
 	if [[ -z $QPKG_PATH || -z $QPKG_NAME ]] || IsNotSourcedOnline; then
 		SetError; return 1
 	fi
@@ -1127,6 +1140,13 @@ CleanLocalRepo()
 
 WaitForGit()
 	{
+
+	# Inputs (global):
+	#   $PATH
+	#   $OPKG_PATH
+
+	# Output:
+	#   $PATH
 
 	if IsNotQPKGInstalled Entware; then
 		DisplayErrCommitAllLogs "'git' unavailable: 'Entware is not installed'"
@@ -1150,27 +1170,27 @@ WaitForGit()
 RefreshPidFile()
 	{
 
-	# Input (global):
+	# Inputs (global):
 	#   $daemon_check_pathfile
 	#   $daemon_exec_pathfile
 	#   $daemon_pid_pathfile
 
 	# Output:
-	#   found daemon pid -> $daemon_pid_pathfile
+	#   > $daemon_pid_pathfile
 
-	local pid=0
+	local -i a=0
 
 	if [[ -e $daemon_pid_pathfile && ! -d /proc/"$(<$daemon_pid_pathfile)" ]]; then
 		rm -f "$daemon_pid_pathfile"
 	fi
 
 	if [[ $daemon_check_pathfile != undefined ]]; then
-		pid=$(FindPid "$daemon_check_pathfile")
+		a=$(FindPid "$daemon_check_pathfile")
 	else
-		pid=$(FindPid "$daemon_exec_pathfile")
+		a=$(FindPid "$daemon_exec_pathfile" "$daemon_script_pathfile")
 	fi
 
-	[[ -n $pid && $pid -gt 0 ]] && echo "$pid" > "$daemon_pid_pathfile"
+	[[ -n $a && $a -gt 0 ]] && echo "$a" > "$daemon_pid_pathfile"
 
 	}
 
@@ -1178,24 +1198,31 @@ FindPid()
 	{
 
 	# Input:
-	#   $1 = process pathfilename to find
+	#   $1 = Process pathfilename to find.
+	#   $2 (optional) = additional string to match if there are multiple processes with identical pathfilenames.
 
-	# Output:
+	# Outputs:
 	#   $? = 0 (found) or 1 (not found)
 	#	stdout = PID
 
 	[[ -n ${1:-} ]] || return
 
-	local pid=0
+	local -i a=0
+	local b=''
 
-	# CAUTION: QTS `pidof` is unreliable.
+	[[ -n ${2:-} && $2 != undefined ]] && b=$2
 
-	for pid in $(/bin/pidof "$(/usr/bin/basename "$1")"); do
-		[[ -d /proc/$pid ]] || continue
-		[[ -e /proc/$pid/cmdline && -L /proc/$pid/exe ]] || continue
-		[[ $(</proc/$pid/cmdline) =~ $1 || $(/usr/bin/readlink /proc/$pid/exe) = "$1" ]] || continue
+	for a in $(/bin/pidof "$(/usr/bin/basename "$1")"); do
+		[[ $a -gt 1 ]] || continue
+		[[ -d /proc/$a ]] || continue
+		[[ -e /proc/$a/cmdline && -L /proc/$a/exe ]] || continue
+		[[ $(</proc/$a/cmdline) =~ $1 || $(/usr/bin/readlink /proc/$a/exe) = "$1" ]] || continue
 
-		printf '%s' "$pid"
+		if [[ -n $b ]]; then
+			[[ $(</proc/$a/cmdline) =~ $b ]] || continue	# Check for additional string (if-specified).
+		fi
+
+		printf '%s' "$a"
 
 		return
 	done
@@ -1207,8 +1234,14 @@ FindPid()
 WaitForStartPid()
 	{
 
+	# Inputs (global):
+	#   $daemon_pid_pathfile
+	#   $daemon_pidfile_is_managed_by_app
+	#   $pid_start_wait_seconds
+	#   $recheck_daemon_pid_after_launch
+
+	local -i a=$(CalcAdaptiveSeconds 10)
 	local -i i=0
-	local pid_start_recheck_wait_seconds=$(CalcAdaptiveSeconds 10)
 
 	if [[ $daemon_pidfile_is_managed_by_app = true ]]; then
 		if WaitForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$pid_start_wait_seconds")"; then
@@ -1217,9 +1250,9 @@ WaitForStartPid()
 	fi
 
 	if [[ $recheck_daemon_pid_after_launch = true ]]; then
-		DisplayWaitCommitToLog "> wait $pid_start_recheck_wait_seconds second$(Pluralise "$pid_start_recheck_wait_seconds") to recheck PID:"
+		DisplayWaitCommitToLog "> wait $a second$(Pluralise "$a") to recheck PID:"
 
-		for ((i=1; i<=pid_start_recheck_wait_seconds; i++)); do
+		for ((i=1; i<=a; i++)); do
 			/bin/sleep 1
 			DisplayWait "$i,"
 		done
@@ -1234,13 +1267,16 @@ WaitForStartPid()
 WaitForKillPid()
 	{
 
+	# Input (global):
+	#   $recheck_daemon_pid_after_kill
+
+	local -i a=$(CalcAdaptiveSeconds 10)
 	local -i i=0
-	local pid_stop_recheck_wait_seconds=$(CalcAdaptiveSeconds 10)
 
 	if [[ $recheck_daemon_pid_after_kill = true ]]; then
-		DisplayWaitCommitToLog "> wait $pid_stop_recheck_wait_seconds second$(Pluralise "$pid_stop_recheck_wait_seconds") to recheck PID:"
+		DisplayWaitCommitToLog "> wait $a second$(Pluralise "$a") to recheck PID:"
 
-		for ((i=1; i<=pid_stop_recheck_wait_seconds; i++)); do
+		for ((i=1; i<=a; i++)); do
 			/bin/sleep 1
 			DisplayWait "$i,"
 		done
@@ -1255,26 +1291,29 @@ WaitForKillPid()
 WaitForDaemonPid()
 	{
 
+	# Input (global):
+	#   $daemon_pid_pathfile
+
 	# Input:
 	#   $1 = Timeout in seconds (optional) - default 30
 
 	# Output:
 	#   $? = 0 (file was found) or 1 (file not found: timeout)
 
+	local -i a=0
 	local -i i=0
-	local -i max_seconds=0
 
 	if [[ -n ${1:-} ]]; then
-		max_seconds=$1
+		a=$1
 	else
-		max_seconds=$(CalcAdaptiveSeconds 120)
+		a=$(CalcAdaptiveSeconds 120)
 	fi
 
 	if [[ ! -e $daemon_pid_pathfile ]]; then
-		DisplayWaitCommitToLog "> wait for daemon process name to appear (no-more than $max_seconds second$(Pluralise "$max_seconds")):"
+		DisplayWaitCommitToLog "> wait for daemon process name to appear (no-more than $a second$(Pluralise "$a")):"
 
 		(
-			for ((i=1; i<=max_seconds; i++)); do
+			for ((i=1; i<=a; i++)); do
 				/bin/sleep 1
 				DisplayWait "$i,"
 
@@ -1293,7 +1332,7 @@ WaitForDaemonPid()
 		)
 
 		if [[ $? -ne 0 ]]; then
-			DisplayErrCommitAllLogs "process not found! (exceeded timeout: $max_seconds second$(Pluralise "$max_seconds"))"
+			DisplayErrCommitAllLogs "process not found! (exceeded timeout: $a second$(Pluralise "$a"))"
 			return 1
 		fi
 	fi
@@ -1305,7 +1344,7 @@ WaitForDaemonPid()
 WaitForFileToAppear()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = pathfilename to watch-for.
 	#   $2 = timeout in seconds (optional) - default 30
 
@@ -1313,22 +1352,22 @@ WaitForFileToAppear()
 	#   $? = 0 : file was found
 	#   $? = 1 : file not found/timeout
 
-	local -i i=0
-	local -i max_seconds=0
-
 	[[ -n $1 ]] || return
 
+	local -i a=0
+	local -i i=0
+
 	if [[ -n $2 ]]; then
-		max_seconds=$2
+		a=$2
 	else
-		max_seconds=30
+		a=30
 	fi
 
 	if [[ ! -e $1 ]]; then
-		DisplayWaitCommitToLog "> wait for $1 to appear in filesystem (no-more than $max_seconds second$(Pluralise "$max_seconds")):"
+		DisplayWaitCommitToLog "> wait for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a")):"
 
 		(
-			for ((i=1; i<=max_seconds; i++)); do
+			for ((i=1; i<=a; i++)); do
 				/bin/sleep 1
 				DisplayWait "$i,"
 
@@ -1344,7 +1383,7 @@ WaitForFileToAppear()
 		)
 
 		if [[ $? -ne 0 ]]; then
-			DisplayErrCommitAllLogs "file $1 not found! (exceeded timeout: $max_seconds second$(Pluralise "$max_seconds"))"
+			DisplayErrCommitAllLogs "file $1 not found! (exceeded timeout: $a second$(Pluralise "$a"))"
 			return 1
 		fi
 	fi
@@ -1399,7 +1438,7 @@ DisplayRunAndLog()
 	# Run a commandstring with a summarised description, log the results, and show onscreen if required.
 	# This function is just a fancy wrapper for Executer()
 
-	# Input:
+	# Inputs:
 	#   $1 = Processing message.
 	#   $2 = Commandstring to execute.
 	#   $3 = 'log:failure-only' (optional) - if specified, stdout & stderr are only recorded in the specified log if the command failed. Default is to always record stdout & stderr.
@@ -1444,13 +1483,15 @@ Executer()
 
 	# Run a commandstring, log the results, and show onscreen if-requested.
 
-	# Input:
-	#	$debug (global)	= run in debug mode, show commandstring to be executed.
+	# Input (global):
+	#	$debug
+
+	# Inputs:
 	#   $1 = commandstring to execute.
 	#   $2 = log pathfile to record stdout and stderr for commandstring.
 	#   $3 = true/false (optional) - if true, run command in a `screen` session.
 
-	# Output:
+	# Outputs:
 	#   stdout : commandstring stdout and stderr if script is in 'debug' mode.
 	#   pathfile ($2) : commandstring ($1) stdout and stderr.
 	#   $? : $result_code of commandstring.
@@ -1504,21 +1545,21 @@ AddFileToDebug()
 
 	# Add the contents of specified pathfile $1 to the runtime log.
 
+	[[ -e ${1:?no filename supplied} ]] || return
+
+	local a=''
 	local debug_was_set=$debug
-	local linebuff=''
 
 	# Prevent external log contents appearing onscreen again, as they have already been seen "live".
 	debug=false
-
-	[[ -e ${1:?no filename supplied} ]] || return
 
 	DebugAsLog ''
 	DebugAsLog 'adding external log to main log ...'
 	DebugExtLogMinorSeparator
 	DebugAsLog "$(FormatAsLogFilename "$1")"
 
-	while read -r linebuff; do
-		DebugAsLog "$linebuff"
+	while read -r a; do
+		DebugAsLog "$a"
 	done < "$1"
 
 	DebugExtLogMinorSeparator
@@ -1536,6 +1577,9 @@ DebugExtLogMinorSeparator()
 DebugBulletSeparatorWithText()
 	{
 
+	# Input (global):
+	#	$DEBUG_LOG_DATAWIDTH
+
 	# Input:
 	#   $1 = Text to center in separator line.
 
@@ -1551,6 +1595,9 @@ DebugBulletSeparatorWithText()
 
 DebugMinorSeparator()
 	{
+
+	# Input (global):
+	#	$DEBUG_LOG_DATAWIDTH
 
 	eval printf '%0.s-' "{1..$DEBUG_LOG_DATAWIDTH}"		# `seq` is unavailable in QTS, so must resort to `eval` trickery instead.
 
@@ -1568,6 +1615,9 @@ DebugAsLog()
 DebugThis()
 	{
 
+	# Input (global):
+	#	$debug
+
 	[[ $debug = true ]] && Display "${1:-}"
 	WriteAsDebug "${1:-}"
 
@@ -1582,6 +1632,9 @@ WriteAsDebug()
 
 WriteToLog()
 	{
+
+	# Input (global):
+	#	$SERVICE_LOG_PATHFILE
 
 	# Input:
 	#   $1 = pass/fail
@@ -1643,6 +1696,12 @@ ReWriteUIPorts()
 
 	# If SSL is enabled, attempting to access with non-SSL via 'Web_Port' results in "connection was reset".
 
+	# Inputs (global):
+	#	$get_daemon_port_cmd
+	#	$QPKG_NAME
+	#	$ui_port
+	#	$ui_port_secure
+
 	[[ $get_daemon_port_cmd != undefined ]] && return		# Don't need to rewrite QTS UI ports if this app has a daemon port, as UI ports are unused.
 
 	DisplayWaitCommitToLog '> update QPKG icon with UI ports:'
@@ -1661,7 +1720,13 @@ ReWriteUIPorts()
 CheckPorts()
 	{
 
-	local msg=''
+	# Inputs (global):
+	#	$daemon_port
+	#	$ui_listening_address
+	#	$ui_port
+	#	$ui_port_secure
+
+	local a=''
 
 	DisplayCommitToLog "- daemon listening address: '$ui_listening_address'"
 
@@ -1669,7 +1734,7 @@ CheckPorts()
 		DisplayCommitToLog "- daemon port: '$daemon_port'"
 
 		if IsPortResponds $daemon_port; then
-			msg="daemon port '$daemon_port'"
+			a="daemon port '$daemon_port'"
 		fi
 	else
 		DisplayWaitCommitToLog '- HTTPS port enabled:'
@@ -1679,7 +1744,7 @@ CheckPorts()
 			DisplayCommitToLog "- HTTPS port: '$ui_port_secure'"
 
 			if IsPortSecureResponds $ui_port_secure; then
-				msg="HTTPS port '$ui_port_secure'"
+				a="HTTPS port '$ui_port_secure'"
 			fi
 		else
 			DisplayCommitToLog false
@@ -1688,12 +1753,12 @@ CheckPorts()
 		DisplayCommitToLog "- HTTP port: '$ui_port'"
 
 		if IsPortResponds $ui_port; then
-			[[ -n $msg ]] && msg+=' and '
-			msg+="HTTP port '$ui_port'"
+			[[ -n $a ]] && a+=' and '
+			a+="HTTP port '$ui_port'"
 		fi
 	fi
 
-	if [[ -z $msg ]]; then
+	if [[ -z $a ]]; then
 		DisplayErrCommitAllLogs 'no response on configured port(s)'
 
 		SetError; return 1
@@ -1707,9 +1772,11 @@ CheckPorts()
 GetPythonVer()
 	{
 
-	local v=''
-	v=$(GetThisBinPath ${1:-python} &>/dev/null && ${1:-python} -V 2>&1 | /bin/sed 's|^Python ||;s|\.||g')
-	[[ -n $v ]] && echo "${v:0:3}"
+	local a=''
+
+	a=$(GetThisBinPath ${1:-python} &>/dev/null && ${1:-python} -V 2>&1 | /bin/sed 's|^Python ||;s|\.||g')
+
+	[[ -n $a ]] && echo "${a:0:3}"
 
 	}
 
@@ -1775,7 +1842,7 @@ parse_yaml()
 
 	# a nice bit of coding! https://stackoverflow.com/a/21189044
 
-	# Input:
+	# Inputs:
 	#   $1 = filename to parse
 	#	$2 = key prefix (optional)
 
@@ -2102,7 +2169,7 @@ IsNotDaemonActive()
 IsDaemonProcessActive()
 	{
 
-	# Input (global):
+	# Inputs (global):
 	#   $daemon_exec_pathfile
 	#   $daemon_pid_pathfile
 
@@ -2126,7 +2193,7 @@ IsSysFilePresent()
 	{
 
 	# Input:
-	#   $1 = pathfilename to check
+	#   $1 = pathfilename to check.
 
 	if [[ -z ${1:?pathfilename null} ]]; then
 		SetError; return 1
@@ -2146,7 +2213,7 @@ IsNotSysFilePresent()
 	{
 
 	# Input:
-	#   $1 = pathfilename to check
+	#   $1 = pathfilename to check.
 
 	! IsSysFilePresent "${1:?pathfilename null}"
 
@@ -2156,11 +2223,11 @@ IsPortAvailable()
 	{
 
 	# Input:
-	#   $1 = port to check
+	#   $1 = port to check.
 
 	# Output:
-	#   $? = 0 : available
-	#   $? = 1 : already used
+	#   $? = 0 : available.
+	#   $? = 1 : already used.
 
 	local port=${1//[!0-9]/}			# Strip all non-numerals.
 	[[ -n $port && $port -gt 0 ]] || return 0
@@ -2175,11 +2242,11 @@ IsNotPortAvailable()
 	{
 
 	# Input:
-	#   $1 = port to check
+	#   $1 = port to check.
 
 	# Output:
-	#   $? = 1 : port available
-	#   $? = 0 : already used
+	#   $? = 1 : port available.
+	#   $? = 0 : already used.
 
 	! IsPortAvailable "${1:-0}"
 
@@ -2189,42 +2256,38 @@ IsPortResponds()
 	{
 
 	# Input:
-	#   $1 = port to check
+	#   $1 = port to check.
 
 	# Output:
-	#   $? = 0 : response received
-	#   $? = 1 : not OK
+	#   $? = 0 : response received.
+	#   $? = 1 : not OK.
 
-	local port=${1//[!0-9]/}			# Strip all non-numerals.
-	local local_port_check_timeout_seconds=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
+	local -i a=${1//[!0-9]/}			# Strip all non-numerals.
+	local -i b=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
+	local -i c=0
 
-	if [[ -z $port ]]; then
+	if [[ -z $a ]]; then
 		Display 'empty port: not testing for response'
 		return 1
-	elif [[ $port -eq 0 ]]; then
+	elif [[ $a -eq 0 ]]; then
 		Display "port '0': not testing for response"
 		return 1
 	fi
 
-	local acc=0
-
-	DisplayWaitCommitToLog "> test for port '$port' response (no-more than $local_port_check_timeout_seconds second$(Pluralise "$local_port_check_timeout_seconds")):"
-
-# 	RefreshPidFile
+	DisplayWaitCommitToLog "> test for port '$a' response (no-more than $b second$(Pluralise "$b")):"
 
 	while true; do
-
 		if ! IsDaemonProcessActive; then
 			DisplayCommitToLog 'process not active'
 			break
 		fi
 
-		/sbin/curl --silent --fail --max-time 1 http://localhost:"$port" &>/dev/null
+		/sbin/curl --silent --fail --max-time 1 http://localhost:"$a" &>/dev/null
 
 		case $? in
 			0|22|52)	# Accept these exitcodes as evidence of valid responses.
 				Display OK
-				CommitToLog "responded in $acc second$(Pluralise "$acc")"
+				CommitToLog "responded in $c second$(Pluralise "$c")"
 				return 0
 				;;
 			28)			# Timed-out.
@@ -2237,12 +2300,12 @@ IsPortResponds()
 				: 			# do nothing
 		esac
 
-		((acc+=1))
-		DisplayWait "$acc,"
+		((c++))
+		DisplayWait "$c,"
 
-		if [[ $acc -ge $local_port_check_timeout_seconds ]]; then
+		if [[ $c -ge $b ]]; then
 			DisplayCommitToLog 'failed!'
-			CommitErrToSysLog "port '$port' failed to respond after $acc second$(Pluralise "$acc")!"
+			CommitErrToSysLog "port '$a' failed to respond after $c second$(Pluralise "$c")!"
 			break
 		fi
 	done
@@ -2255,27 +2318,25 @@ IsPortSecureResponds()
 	{
 
 	# Input:
-	#   $1 = secure port to check
+	#   $1 = secure port to check.
 
 	# Output:
-	#   $? = 0 : response received
-	#   $? = 1 : not OK or secure port unspecified
+	#   $? = 0 : response received.
+	#   $? = 1 : not OK or secure port unspecified.
 
-	local port=${1//[!0-9]/}			# Strip all non-numerals.
-	local local_port_check_timeout_seconds=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
+	local -i a=${1//[!0-9]/}			# Strip all non-numerals.
+	local -i b=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
+	local -i c=0
 
-	if [[ -z $port ]]; then
+	if [[ -z $a ]]; then
 		Display 'empty port: not testing for response'
 		return 1
-	elif [[ $port -eq 0 ]]; then
+	elif [[ $a -eq 0 ]]; then
 		Display "port '0': not testing for response"
 		return 1
 	fi
 
-	local acc=0
-
-	DisplayWaitCommitToLog "> test for secure port '$port' response:"
-	DisplayWait "(no-more than $local_port_check_timeout_seconds second$(Pluralise "$local_port_check_timeout_seconds")):"
+	DisplayWaitCommitToLog "> test for secure port '$a' response (no-more than $b second$(Pluralise "$b")):"
 
 	while true; do
 		if ! IsDaemonProcessActive; then
@@ -2283,12 +2344,12 @@ IsPortSecureResponds()
 			break
 		fi
 
-		/sbin/curl --silent --insecure --fail --max-time 1 https://localhost:"$port" &>/dev/null
+		/sbin/curl --silent --insecure --fail --max-time 1 https://localhost:"$a" &>/dev/null
 
 		case $? in
 			0|22|52)	# Accept these exitcodes as evidence of valid responses.
 				Display OK
-				CommitToLog "port responded after $acc second$(Pluralise "$acc")"
+				CommitToLog "port responded after $c second$(Pluralise "$c")"
 				return 0
 				;;
 			35)
@@ -2305,12 +2366,12 @@ IsPortSecureResponds()
 				: 			# do nothing
 		esac
 
-		((acc+=1))
-		DisplayWait "$acc,"
+		((c++))
+		DisplayWait "$c,"
 
-		if [[ $acc -ge $local_port_check_timeout_seconds ]]; then
+		if [[ $c -ge $b ]]; then
 			DisplayCommitToLog 'failed'
-			CommitErrToSysLog "secure port '$port' failed to respond after $acc second$(Pluralise "$acc")!"
+			CommitErrToSysLog "secure port '$a' failed to respond after $c second$(Pluralise "$c")!"
 			break
 		fi
 	done
@@ -2401,10 +2462,12 @@ RequestLatestReleaseFilename()
 
 	# Request latest release filename from remote site.
 
-	# Input:
+	# Input (global):
+	#	$curl_insecure_arg
+
+	# Inputs:
 	#   $1 = URL to check.
 	#   $2 = arch to match (optional).
-	#	$curl_insecure_arg (global).
 
 	# Output:
 	#   stdout = filename.
@@ -2427,10 +2490,12 @@ RequestLatestReleaseURL()
 
 	# Request latest release URL from remote site.
 
-	# Input:
+	# Input (global):
+	#	$curl_insecure_arg
+
+	# Inputs:
 	#   $1 = URL to check.
 	#   $2 = arch to match (optional).
-	#	$curl_insecure_arg (global).
 
 	# Output:
 	#   stdout = URL.
@@ -2453,35 +2518,47 @@ DownloadReleasePackage()
 
 	# Request specific release filename from remote site.
 
-	# Input:
+	# Inputs (global):
+	#	$curl_insecure_arg
+	#	$debug
+
+	# Inputs:
 	#   $1 = URL of the source release package.
 	#	$2 = pathfilename to save the release package to.
-	#	$curl_insecure_arg (global).
-	#	$debug (global).
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 	[[ -n ${2:-} && ${2:-} != undefined ]] || return
 
+	local a=''
 	local curl_opts=$curl_insecure_arg
 	local release_package_pathfile=$2
 	local source_url=$1
 
 	[[ $debug = false ]] && curl_opts+=' --silent'
-	[[ -e $release_package_pathfile ]] && curl_opts+=" --time-cond $release_package_pathfile"
+
+	if [[ -e $release_package_pathfile ]]; then
+		a='refresh release package (only if-newer)'
+		curl_opts+=" --time-cond $release_package_pathfile"
+	else
+		a='download latest release package'
+	fi
+
 	curl_opts+=" --show-error --max-time 300 --location --output $release_package_pathfile"
 
-	DisplayRunAndLog 'download latest release package' "/sbin/curl${curl_opts} '$source_url'" log:failure-only
+	DisplayRunAndLog "$a" "/sbin/curl${curl_opts} '$source_url'" log:failure-only
 
 	}
 
 ExtractReleasePackage()
 	{
 
-	# Input:
+	# Inputs (global):
+	#	$debug
+	#	$qpkg_repo_path
+
+	# Inputs:
 	#	$1 = pathfilename of the release package to process.
 	#   $2 = release package name ref pathfilename.
-	#	$debug (global).
-	#	$qpkg_repo_path (global).
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 	[[ -n ${2:-} && ${2:-} != undefined ]] || return
@@ -2710,6 +2787,20 @@ IsNotStart()
 	{
 
 	! IsStart
+
+	}
+
+IsStop()
+	{
+
+	[[ $service_action = stop ]]
+
+	}
+
+IsNotStop()
+	{
+
+	! IsStop
 
 	}
 
@@ -3061,10 +3152,10 @@ CommitToLogWait()
 CommitSysLog()
 	{
 
-	# input (global):
+	# Input (global):
 	#   $QPKG_NAME
 
-	# Input:
+	# Inputs:
 	#   $1 = message to append to QTS system log
 	#   $2 = event type:
 	#	 1 : Error
@@ -3133,7 +3224,7 @@ Pluralise()
 CalcMilliDifference()
 	{
 
-	# Input:
+	# Inputs:
 	#	$1 = starttime in epoch nanoseconds
 	#	$2 = endtime in epoch nanoseconds
 
