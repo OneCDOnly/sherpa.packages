@@ -480,15 +480,16 @@ RemoveUserlinkToExec()
 CreateVirtualPythonEnv()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$allow_access_to_sys_packages
 	#	$interpreter
 	#	$pip_cache_path
 	#	$qpkg_wheels_path
 	#	$venv_path
 
-	# Output (global):
-	#   $new_env
+	# Output: (global)
+	#   $new_env = true: new virtual environment was created.
+	#   		 = false: a virtual environment already exists.
 
 	new_env=false
 	local a=''
@@ -517,7 +518,7 @@ CreateVirtualPythonEnv()
 StartDaemon()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$daemon_launch_cmd
 	#	$nice_daemon_to
 	#	$run_daemon_in_screen_session
@@ -567,7 +568,7 @@ StartDaemon()
 StopDaemon()
 	{
 
-	# Input (global):
+	# Input: (global)
 	#	$daemon_pid_pathfile
 
 	[[ -e $daemon_pid_pathfile ]] || return
@@ -622,7 +623,7 @@ StopDaemon()
 RefreshReleasePackageFiles()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$compare_release_filename
 	#	$QPKG_TEMP_PATH
 	#	$remote_arch
@@ -730,7 +731,7 @@ RefreshReleasePackageFiles()
 CheckPortsAvailable()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$daemon_port
 	#	$ui_port
 	#	$ui_port_secure
@@ -758,7 +759,7 @@ CheckPortsAvailable()
 ShowHelp()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$QPKG_NAME
 	#	$SERVICE_SCRIPT_VERSION
 
@@ -929,11 +930,11 @@ InstallPythonPackages()
 StripComments()
 	{
 
-	# Input:
+	# Input: (local)
 	#   $1 = String to strip comment lines, empty lines, and so-on.
 
-	# Output:
-	#   stdout = string.
+	# Output: (local)
+	#   stdout
 
 	[[ -n $1 ]] || return
 
@@ -951,7 +952,7 @@ StripComments()
 BackupConfig()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$qpkg_backup_pathfile
 	#	$QPKG_PATH
 
@@ -964,7 +965,7 @@ BackupConfig()
 RestoreConfig()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$qpkg_backup_pathfile
 	#	$QPKG_PATH
 
@@ -983,7 +984,7 @@ RestoreConfig()
 ResetConfig()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$qpkg_ini_default_pathfile
 	#	$QPKG_PATH
 
@@ -996,7 +997,7 @@ ResetConfig()
 MakePaths()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$BACKUP_PATH
 	#	$pip_cache_path
 	#	$QPKG_PATH
@@ -1021,17 +1022,17 @@ LoadPorts()
 
 	# If user changes ports via application UI, must first 'stop' application on old ports, then 'start' on new ports.
 
-	# Inputs (global):
+	# Input: (local)
+	#	$1 = source location of ports.
+
+	# Inputs: (global)
 	#	$get_daemon_port_cmd
 	#	$get_ui_listening_address_cmd
 	#	$get_ui_port_cmd
 	#	$get_ui_port_secure_cmd
 	#	$QPKG_NAME
 
-	# Input:
-	#	$1 = source location of ports.
-
-	# Outputs (global):
+	# Outputs: (global)
 	#	$daemon_port
 	#	$ui_listening_address
 	#	$ui_port
@@ -1083,7 +1084,7 @@ GetAppVersion()
 
 	# Find the application's internal version number. This is the installed application version (not the QPKG version).
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$app_version_pathfile
 	#	$get_app_version_cmd
 
@@ -1103,7 +1104,7 @@ GetAppVersion()
 ShowQPKGStates()
 	{
 
-	# Input (global):
+	# Input: (global)
 	#	$qpkg_repo_path
 
 	DisplayWaitCommitToLog '- QPKG enabled:'
@@ -1133,7 +1134,7 @@ ShowQPKGStates()
 DisableOpkgDaemonStart()
 	{
 
-	# Input (global):
+	# Input: (global)
 	#	$orig_daemon_service_script
 
 	if [[ $orig_daemon_service_script != undefined && -x $orig_daemon_service_script ]]; then
@@ -1146,7 +1147,7 @@ DisableOpkgDaemonStart()
 CloneGitRepo()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#   $QPKG_NAME
 	#   $qpkg_repo_path
 	#   $source_git_branch
@@ -1194,7 +1195,7 @@ CleanLocalRepo()
 
 	# For occasions where the local repo needs to be deleted and cloned again from source.
 
-	# Inputs (global):
+	# Inputs: (global)
 	#   $APP_VERSION_STORE_PATHFILE
 	#   $pip_cache_path
 	#   $QPKG_NAME
@@ -1219,11 +1220,11 @@ CleanLocalRepo()
 WaitForGit()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#   $PATH
 	#   $OPKG_PATH
 
-	# Output:
+	# Output: (global)
 	#   $PATH
 
 	if IsNotQPKGInstalled Entware; then
@@ -1248,7 +1249,7 @@ WaitForGit()
 RefreshPidFile()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#   $daemon_check_pathfile
 	#   $daemon_exec_pathfile
 	#   $daemon_pid_pathfile
@@ -1275,7 +1276,7 @@ RefreshPidFile()
 FindPid()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = Process pathfilename to find.
 	#   $2 (optional) = additional string to match if there are multiple processes with identical pathfilenames.
 
@@ -1312,7 +1313,7 @@ FindPid()
 WaitForStartPid()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#   $daemon_pid_pathfile
 	#   $daemon_pidfile_is_managed_by_app
 	#   $pid_start_wait_seconds
@@ -1345,7 +1346,7 @@ WaitForStartPid()
 WaitForKillPid()
 	{
 
-	# Input (global):
+	# Input: (global)
 	#   $recheck_daemon_pid_after_kill
 
 	local -i a=$(CalcAdaptiveSeconds 10)
@@ -1369,11 +1370,11 @@ WaitForKillPid()
 WaitForDaemonPid()
 	{
 
-	# Input (global):
-	#   $daemon_pid_pathfile
-
-	# Input:
+	# Input: (local)
 	#   $1 (optional) = Timeout in seconds - default 30
+
+	# Input: (global)
+	#   $daemon_pid_pathfile
 
 	# Output:
 	#   $? = 0 (file was found) or 1 (file not found: timeout)
@@ -1422,7 +1423,7 @@ WaitForDaemonPid()
 WaitForFileToAppear()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = pathfilename to watch-for.
 	#   $2 (optional) = timeout in seconds - default 30
 
@@ -1561,13 +1562,13 @@ Executer()
 
 	# Run a commandstring, log the results, and show onscreen if-requested.
 
-	# Input (global):
-	#	$debug
-
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = commandstring to execute.
 	#   $2 = log pathfile to record stdout and stderr for commandstring.
 	#   $3 (optional) = true/false - if true, run command in a `screen` session.
+
+	# Input: (global)
+	#	$debug
 
 	# Outputs:
 	#   stdout : commandstring stdout and stderr if script is in 'debug' mode.
@@ -1655,7 +1656,7 @@ DebugExtLogMinorSeparator()
 DebugBulletSeparatorWithText()
 	{
 
-	# Input (global):
+	# Input: (global)
 	#	$DEBUG_LOG_DATAWIDTH
 
 	# Input:
@@ -1674,7 +1675,7 @@ DebugBulletSeparatorWithText()
 DebugMinorSeparator()
 	{
 
-	# Input (global):
+	# Input: (global)
 	#	$DEBUG_LOG_DATAWIDTH
 
 	eval printf '%0.s-' "{1..$DEBUG_LOG_DATAWIDTH}"		# `seq` is unavailable in QTS, so must resort to `eval` trickery instead.
@@ -1693,7 +1694,7 @@ DebugAsLog()
 DebugThis()
 	{
 
-	# Input (global):
+	# Input: (global)
 	#	$debug
 
 	[[ $debug = true ]] && Display "${1:-}"
@@ -1711,7 +1712,7 @@ WriteAsDebug()
 WriteToLog()
 	{
 
-	# Input (global):
+	# Input: (global)
 	#	$SERVICE_LOG_PATHFILE
 
 	# Input:
@@ -1774,7 +1775,7 @@ ReWriteUIPorts()
 
 	# If SSL is enabled, attempting to access with non-SSL via 'Web_Port' results in "connection was reset".
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$get_daemon_port_cmd
 	#	$QPKG_NAME
 	#	$ui_port
@@ -1798,7 +1799,7 @@ ReWriteUIPorts()
 CheckPorts()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$daemon_port
 	#	$ui_listening_address
 	#	$ui_port
@@ -1920,7 +1921,7 @@ parse_yaml()
 
 	# a nice bit of coding! https://stackoverflow.com/a/21189044
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = filename to parse.
 	#	$2 (optional) = key prefix.
 
@@ -1963,7 +1964,7 @@ IsQNAP()
 IsQPKGInstalled()
 	{
 
-	# Input:
+	# Input: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
 	# Output:
@@ -1998,7 +1999,7 @@ IsNotQPKGActive()
 IsQPKGEnabled()
 	{
 
-	# Input:
+	# Input: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
 	# Output:
@@ -2012,7 +2013,7 @@ IsQPKGEnabled()
 IsNotQPKGEnabled()
 	{
 
-	# Input:
+	# Input: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
 	# Output:
@@ -2247,7 +2248,7 @@ IsNotDaemonActive()
 IsDaemonProcessActive()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#   $daemon_exec_pathfile
 	#   $daemon_pid_pathfile
 
@@ -2543,7 +2544,7 @@ RequestLatestReleaseFilename()
 
 	# Request latest release filename from remote site.
 
-	# Input (global):
+	# Input: (global)
 	#	$curl_insecure_arg
 
 	# Inputs:
@@ -2570,7 +2571,7 @@ RequestLatestReleaseURL()
 
 	# Request latest release URL from remote site.
 
-	# Input (global):
+	# Input: (global)
 	#	$curl_insecure_arg
 
 	# Inputs:
@@ -2597,7 +2598,7 @@ DownloadReleasePackage()
 
 	# Request specific release filename from remote site.
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$curl_insecure_arg
 	#	$debug
 
@@ -2630,7 +2631,7 @@ DownloadReleasePackage()
 ExtractReleasePackage()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$compare_release_filename
 	#	$debug
 	#	$qpkg_repo_path
@@ -3236,7 +3237,7 @@ CommitToLogWait()
 CommitSysLog()
 	{
 
-	# Input (global):
+	# Input: (global)
 	#   $QPKG_NAME
 
 	# Inputs:
@@ -3308,11 +3309,11 @@ Pluralise()
 CalcMilliDifference()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#	$1 = starttime in epoch nanoseconds
 	#	$2 = endtime in epoch nanoseconds
 
-	# Output:
+	# Output: (local)
 	#	stdout = difference in milliseconds
 
 	local start=${1:-0}
