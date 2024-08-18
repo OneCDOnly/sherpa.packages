@@ -303,7 +303,7 @@ InitLibrary()
 
 # --- end of template for service-script ---
 
-	InitService											# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
+	InitService					# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
 	OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
 	new_env=false
 	pyver=''
@@ -326,7 +326,7 @@ StartQPKG()
 
 	IsNotError || return
 
-	if IsReinstall || IsUpgrade; then			# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is techically correct as the last action after upgrade is 'start', but probably better to see the upgrade or reinstall result instead).
+	if IsReinstall || IsUpgrade; then		# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is techically correct as the last action after upgrade is 'start', but probably better to see the upgrade or reinstall result instead).
 		return
 	fi
 
@@ -480,23 +480,32 @@ RemoveUserlinkToExec()
 CreateVirtualPythonEnv()
 	{
 
-	new_env=false
-	local allow_sys_packages=' --system-site-packages'
-	local pip_conf_pathfile=$venv_path/pip.conf
+	# Inputs (global):
+	#	$allow_access_to_sys_packages
+	#	$interpreter
+	#	$pip_cache_path
+	#	$qpkg_wheels_path
+	#	$venv_path
 
-	[[ $allow_access_to_sys_packages != true ]] && allow_sys_packages=''
+	# Output (global):
+	#   $new_env
+
+	new_env=false
+	local a=''
+	local b=$venv_path/pip.conf
+
+	[[ $allow_access_to_sys_packages = true ]] && a=' --system-site-packages'
 
 	if IsNotVirtualPythonEnvExist; then
-		DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$pip_cache_path VIRTUALENV_OVERRIDE_APP_DATA=$pip_cache_path; $interpreter -m virtualenv ${venv_path}${allow_sys_packages}" log:failure-only
+		DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$pip_cache_path VIRTUALENV_OVERRIDE_APP_DATA=$pip_cache_path; $interpreter -m virtualenv ${venv_path}${a}" log:failure-only
 		new_env=true
 
-		if [[ ! -e $pip_conf_pathfile ]]; then
-			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $pip_conf_pathfile" log:failure-only
-
-			DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $pip_conf_pathfile" log:failure-only
+		if [[ ! -e $b ]]; then
+			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $b" log:failure-only
+			DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $b" log:failure-only
 
 			if [[ -d $qpkg_wheels_path ]]; then
-				DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $pip_conf_pathfile" log:failure-only
+				DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
 			fi
 		fi
 	fi
@@ -508,19 +517,26 @@ CreateVirtualPythonEnv()
 StartDaemon()
 	{
 
-	local msg='start daemon'
+	# Inputs (global):
+	#	$daemon_launch_cmd
+	#	$nice_daemon_to
+	#	$run_daemon_in_screen_session
+	#	$SERVICE_SCREEN_LOG_PATHFILE
+
+	local a='start daemon'
+	local b=''
 
 	if [[ $run_daemon_in_screen_session = true ]]; then
-		msg+=' (in screen session)'
+		a+=' (in screen session)'
 		rm -f "${SERVICE_SCREEN_LOG_PATHFILE:?}"
 	fi
 
 	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
-		daemon_launch_cmd="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
+		b="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
 		DisplayCommitToLog "> nice daemon to: $nice_daemon_to"
 	fi
 
-	if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_in_screen_session"; then
+	if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; then
 		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
 
 		SetError; return 1
@@ -544,7 +560,7 @@ StartDaemon()
 		SetError; return 1
 	fi
 
-	CommitInfoToSysLog "$msg: OK"
+	CommitInfoToSysLog "$a: OK"
 
 	}
 
@@ -742,6 +758,10 @@ CheckPortsAvailable()
 ShowHelp()
 	{
 
+	# Inputs (global):
+	#	$QPKG_NAME
+	#	$SERVICE_SCRIPT_VERSION
+
 	Display "$(TextBrightWhite "$(/usr/bin/basename "$0")") $SERVICE_SCRIPT_VERSION • a service control script for the $(FormatAsPackageName $QPKG_NAME) QPKG"
 	Display
 	Display "Usage: $0 [ACTION]"
@@ -917,7 +937,7 @@ StripComments()
 
 	[[ -n $1 ]] || return
 
-	local a="$1"
+	local a=$1
 
 	a=$(/bin/sed -e '/^#[[:space:]].*/d;/#$/d;s/[[:space:]]#[[:space:]].*//' <<< "$a")		# Remove comment lines and line comments.
 	a=$(/bin/sed -e 's/^[[:space:]]*//' <<< "$a")											# Remove leading whitespace.
@@ -931,6 +951,10 @@ StripComments()
 BackupConfig()
 	{
 
+	# Inputs (global):
+	#	$qpkg_backup_pathfile
+	#	$QPKG_PATH
+
 	if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=$qpkg_backup_pathfile --directory=$QPKG_PATH/config ." log:failure-only; then
 		SetError; return 1
 	fi
@@ -939,6 +963,10 @@ BackupConfig()
 
 RestoreConfig()
 	{
+
+	# Inputs (global):
+	#	$qpkg_backup_pathfile
+	#	$QPKG_PATH
 
 	if [[ ! -f $qpkg_backup_pathfile ]]; then
 		DisplayErrCommitAllLogs "unable to restore configuration: 'no backup file was found'"
@@ -955,6 +983,10 @@ RestoreConfig()
 ResetConfig()
 	{
 
+	# Inputs (global):
+	#	$qpkg_ini_default_pathfile
+	#	$QPKG_PATH
+
 	if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $QPKG_PATH; rm -rf $QPKG_PATH/config/*; mkdir -p $(/usr/bin/dirname "$qpkg_ini_default_pathfile"); mv $QPKG_PATH/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only; then
 		SetError; return 1
 	fi
@@ -963,6 +995,14 @@ ResetConfig()
 
 MakePaths()
 	{
+
+	# Inputs (global):
+	#	$BACKUP_PATH
+	#	$pip_cache_path
+	#	$QPKG_PATH
+	#	$qpkg_repo_path
+	#	$QPKG_TEMP_PATH
+	#	$venv_path
 
 	local a=''
 
@@ -979,7 +1019,23 @@ MakePaths()
 LoadPorts()
 	{
 
-	# If user changes ports via app UI, must first 'stop' application on old ports, then 'start' on new ports.
+	# If user changes ports via application UI, must first 'stop' application on old ports, then 'start' on new ports.
+
+	# Inputs (global):
+	#	$get_daemon_port_cmd
+	#	$get_ui_listening_address_cmd
+	#	$get_ui_port_cmd
+	#	$get_ui_port_secure_cmd
+	#	$QPKG_NAME
+
+	# Input:
+	#	$1 = source location of ports.
+
+	# Outputs (global):
+	#	$daemon_port
+	#	$ui_listening_address
+	#	$ui_port
+	#	$ui_port_secure
 
 	case $1 in
 		app)
@@ -1007,6 +1063,7 @@ LoadPorts()
 	[[ $get_ui_listening_address_cmd != undefined ]] && ui_listening_address=$(eval "$get_ui_listening_address_cmd")
 
 	# Validate port numbers.
+
 	ui_port=${ui_port//[!0-9]/}					# Strip all non-numerals.
 	[[ -z $ui_port || $ui_port -lt 0 || $ui_port -gt 65535 ]] && ui_port=0
 
@@ -1026,6 +1083,10 @@ GetAppVersion()
 
 	# Find the application's internal version number. This is the installed application version (not the QPKG version).
 
+	# Inputs (global):
+	#	$app_version_pathfile
+	#	$get_app_version_cmd
+
 	# Output (global):
 	#   $app_version
 
@@ -1041,6 +1102,9 @@ GetAppVersion()
 
 ShowQPKGStates()
 	{
+
+	# Input (global):
+	#	$qpkg_repo_path
 
 	DisplayWaitCommitToLog '- QPKG enabled:'
 
@@ -1069,6 +1133,9 @@ ShowQPKGStates()
 DisableOpkgDaemonStart()
 	{
 
+	# Input (global):
+	#	$orig_daemon_service_script
+
 	if [[ $orig_daemon_service_script != undefined && -x $orig_daemon_service_script ]]; then
 		$orig_daemon_service_script stop		# Stop default daemon,
 		chmod -x "$orig_daemon_service_script"	# ... and ensure Entware doesn't re-launch it on startup.
@@ -1088,9 +1155,9 @@ CloneGitRepo()
 
 	IsGitApp || return 0
 
+	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 	local branch_depth='--depth 1'
 	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
-	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 	local branch_switch=false
 	local new_branch=false
 
@@ -1187,7 +1254,7 @@ RefreshPidFile()
 	#   $daemon_pid_pathfile
 
 	# Output:
-	#   > $daemon_pid_pathfile
+	#   stdout > $daemon_pid_pathfile
 
 	local -i a=0
 
@@ -1208,7 +1275,7 @@ RefreshPidFile()
 FindPid()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = Process pathfilename to find.
 	#   $2 (optional) = additional string to match if there are multiple processes with identical pathfilenames.
 
