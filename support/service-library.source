@@ -487,7 +487,7 @@ CreateVirtualPythonEnv()
 	#	$qpkg_wheels_path
 	#	$venv_path
 
-	# Output: (global)
+	# Outputs: (global)
 	#   $new_env = true: new virtual environment was created.
 	#   		 = false: a virtual environment already exists.
 
@@ -568,7 +568,7 @@ StartDaemon()
 StopDaemon()
 	{
 
-	# Input: (global)
+	# Inputs: (global)
 	#	$daemon_pid_pathfile
 
 	[[ -e $daemon_pid_pathfile ]] || return
@@ -930,10 +930,10 @@ InstallPythonPackages()
 StripComments()
 	{
 
-	# Input: (local)
+	# Inputs: (local)
 	#   $1 = String to strip comment lines, empty lines, and so-on.
 
-	# Output: (local)
+	# Outputs: (local)
 	#   stdout
 
 	[[ -n $1 ]] || return
@@ -1022,7 +1022,7 @@ LoadPorts()
 
 	# If user changes ports via application UI, must first 'stop' application on old ports, then 'start' on new ports.
 
-	# Input: (local)
+	# Inputs: (local)
 	#	$1 = source location of ports.
 
 	# Inputs: (global)
@@ -1104,7 +1104,7 @@ GetAppVersion()
 ShowQPKGStates()
 	{
 
-	# Input: (global)
+	# Inputs: (global)
 	#	$qpkg_repo_path
 
 	DisplayWaitCommitToLog '- QPKG enabled:'
@@ -1134,7 +1134,7 @@ ShowQPKGStates()
 DisableOpkgDaemonStart()
 	{
 
-	# Input: (global)
+	# Inputs: (global)
 	#	$orig_daemon_service_script
 
 	if [[ $orig_daemon_service_script != undefined && -x $orig_daemon_service_script ]]; then
@@ -1221,10 +1221,10 @@ WaitForGit()
 	{
 
 	# Inputs: (global)
-	#   $PATH
 	#   $OPKG_PATH
+	#   $PATH
 
-	# Output: (global)
+	# Outputs: (global)
 	#   $PATH
 
 	if IsNotQPKGInstalled Entware; then
@@ -1254,7 +1254,7 @@ RefreshPidFile()
 	#   $daemon_exec_pathfile
 	#   $daemon_pid_pathfile
 
-	# Output:
+	# Outputs:
 	#   stdout > $daemon_pid_pathfile
 
 	local -i a=0
@@ -1346,7 +1346,7 @@ WaitForStartPid()
 WaitForKillPid()
 	{
 
-	# Input: (global)
+	# Inputs: (global)
 	#   $recheck_daemon_pid_after_kill
 
 	local -i a=$(CalcAdaptiveSeconds 10)
@@ -1370,13 +1370,13 @@ WaitForKillPid()
 WaitForDaemonPid()
 	{
 
-	# Input: (local)
+	# Inputs: (local)
 	#   $1 (optional) = Timeout in seconds - default 30
 
-	# Input: (global)
+	# Inputs: (global)
 	#   $daemon_pid_pathfile
 
-	# Output:
+	# Outputs:
 	#   $? = 0 (file was found) or 1 (file not found: timeout)
 
 	local -i a=0
@@ -1427,7 +1427,7 @@ WaitForFileToAppear()
 	#   $1 = pathfilename to watch-for.
 	#   $2 (optional) = timeout in seconds - default 30
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : file was found
 	#   $? = 1 : file not found/timeout
 
@@ -1567,7 +1567,7 @@ Executer()
 	#   $2 = log pathfile to record stdout and stderr for commandstring.
 	#   $3 (optional) = true/false - if true, run command in a `screen` session.
 
-	# Input: (global)
+	# Inputs: (global)
 	#	$debug
 
 	# Outputs:
@@ -1656,10 +1656,10 @@ DebugExtLogMinorSeparator()
 DebugBulletSeparatorWithText()
 	{
 
-	# Input: (global)
+	# Inputs: (global)
 	#	$DEBUG_LOG_DATAWIDTH
 
-	# Input:
+	# Inputs:
 	#   $1 = Text to center in separator line.
 
 	local a=''
@@ -1675,7 +1675,7 @@ DebugBulletSeparatorWithText()
 DebugMinorSeparator()
 	{
 
-	# Input: (global)
+	# Inputs: (global)
 	#	$DEBUG_LOG_DATAWIDTH
 
 	eval printf '%0.s-' "{1..$DEBUG_LOG_DATAWIDTH}"		# `seq` is unavailable in QTS, so must resort to `eval` trickery instead.
@@ -1694,7 +1694,7 @@ DebugAsLog()
 DebugThis()
 	{
 
-	# Input: (global)
+	# Inputs: (global)
 	#	$debug
 
 	[[ $debug = true ]] && Display "${1:-}"
@@ -1712,10 +1712,10 @@ WriteAsDebug()
 WriteToLog()
 	{
 
-	# Input: (global)
+	# Inputs: (global)
 	#	$SERVICE_LOG_PATHFILE
 
-	# Input:
+	# Inputs:
 	#   $1 = pass/fail
 	#   $2 = message
 
@@ -1925,7 +1925,7 @@ parse_yaml()
 	#   $1 = filename to parse.
 	#	$2 (optional) = key prefix.
 
-	# Output:
+	# Outputs:
 	#   stdout = parsed YAML
 
 	local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
@@ -1947,7 +1947,7 @@ parse_yaml()
 IsQNAP()
 	{
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : this is a QNAP NAS
 	#   $? = 1 : not a QNAP
 
@@ -1964,10 +1964,10 @@ IsQNAP()
 IsQPKGInstalled()
 	{
 
-	# Input: (local)
+	# Inputs: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : true
 	#   $? = 1 : false
 
@@ -1999,10 +1999,10 @@ IsNotQPKGActive()
 IsQPKGEnabled()
 	{
 
-	# Input: (local)
+	# Inputs: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : true
 	#   $? = 1 : false
 
@@ -2013,10 +2013,10 @@ IsQPKGEnabled()
 IsNotQPKGEnabled()
 	{
 
-	# Input: (local)
+	# Inputs: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : true
 	#   $? = 1 : false
 
@@ -2252,7 +2252,7 @@ IsDaemonProcessActive()
 	#   $daemon_exec_pathfile
 	#   $daemon_pid_pathfile
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : $daemon_exec_pathfile is in memory
 	#   $? = 1 : $daemon_exec_pathfile is not in memory
 
@@ -2271,7 +2271,7 @@ IsDaemonProcessActive()
 IsSysFilePresent()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = pathfilename to check.
 
 	if [[ -z ${1:?pathfilename null} ]]; then
@@ -2291,7 +2291,7 @@ IsSysFilePresent()
 IsNotSysFilePresent()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = pathfilename to check.
 
 	! IsSysFilePresent "${1:?pathfilename null}"
@@ -2301,10 +2301,10 @@ IsNotSysFilePresent()
 IsPortAvailable()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = port to check.
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : available.
 	#   $? = 1 : already used.
 
@@ -2320,10 +2320,10 @@ IsPortAvailable()
 IsNotPortAvailable()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = port to check.
 
-	# Output:
+	# Outputs:
 	#   $? = 1 : port available.
 	#   $? = 0 : already used.
 
@@ -2334,10 +2334,10 @@ IsNotPortAvailable()
 IsPortResponds()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = port to check.
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : response received.
 	#   $? = 1 : not OK.
 
@@ -2396,10 +2396,10 @@ IsPortResponds()
 IsPortSecureResponds()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = secure port to check.
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : response received.
 	#   $? = 1 : not OK or secure port unspecified.
 
@@ -2519,7 +2519,7 @@ IsSiteUp()
 
 	# Test if remote site is reachable.
 
-	# Input:
+	# Inputs:
 	#   $1 = URL to query.
 
 	[[ -n $1 && $1 != undefined ]] || return
@@ -2544,14 +2544,14 @@ RequestLatestReleaseFilename()
 
 	# Request latest release filename from remote site.
 
-	# Input: (global)
+	# Inputs: (global)
 	#	$curl_insecure_arg
 
 	# Inputs:
 	#   $1 = URL to check.
 	#   $2 (optional) = arch to match.
 
-	# Output:
+	# Outputs:
 	#   stdout = filename.
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
@@ -2571,14 +2571,14 @@ RequestLatestReleaseURL()
 
 	# Request latest release URL from remote site.
 
-	# Input: (global)
+	# Inputs: (global)
 	#	$curl_insecure_arg
 
 	# Inputs:
 	#   $1 = URL to check.
 	#   $2 (optional) = arch to match.
 
-	# Output:
+	# Outputs:
 	#   stdout = URL.
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
@@ -2997,10 +2997,10 @@ IsUnsupported()
 IsPathEmpty()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = directory to check if empty.
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : true
 	#   $? = 1 : false or $1 does not exist.
 
@@ -3237,7 +3237,7 @@ CommitToLogWait()
 CommitSysLog()
 	{
 
-	# Input: (global)
+	# Inputs: (global)
 	#   $QPKG_NAME
 
 	# Inputs:
@@ -3313,7 +3313,7 @@ CalcMilliDifference()
 	#	$1 = starttime in epoch nanoseconds
 	#	$2 = endtime in epoch nanoseconds
 
-	# Output: (local)
+	# Outputs: (local)
 	#	stdout = difference in milliseconds
 
 	local start=${1:-0}
@@ -3362,7 +3362,7 @@ FormatAsThous()
 FormatAsDuration()
 	{
 
-	# Input:
+	# Inputs:
 	#	$1 = Duration in milliseconds.
 
 	if [[ ${1:-0} -lt 10000 ]]; then
@@ -3378,7 +3378,7 @@ FormatSecsToHoursMinutesSecs()
 
 	# http://stackoverflow.com/questions/12199631/convert-seconds-to-hours-minutes-seconds
 
-	# Input:
+	# Inputs:
 	#	$1 = a time in seconds to convert to `HHh:MMm:SSs`
 
 	((h=${1:-0}/3600))
@@ -3475,10 +3475,10 @@ ShowUnsupportedAction()
 CalcAdaptiveSeconds()
 	{
 
-	# Input:
+	# Inputs:
 	# 	$1 = Integer of base seconds (to suit 1m load average of 1.0 on a single-core CPU).
 
-	# Output:
+	# Outputs:
 	#   stdout = Integer of adapted seconds based-on present 1 minute load average. Maximum of 1800.
 
 	local a=$(GetSysLoad1MinAverage); a=${a/./}		# Convert to hundreds.
