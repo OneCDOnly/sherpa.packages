@@ -13,9 +13,6 @@
 * Soulseek daemon?
 	- https://github.com/slskd/slskd
 
-* codex?
-	- https://github.com/ajslater/codex/
-
 * bitmagnet?
 	- https://bitmagnet.io
 
@@ -46,4 +43,7 @@
 	- See compatibility-notes.txt
 
 * FlexGet?
+	- See compatibility-notes.txt
+
+* codex?
 	- See compatibility-notes.txt

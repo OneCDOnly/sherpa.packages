@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240816'
+readonly SERVICE_LIB_VERSION='240818'
 InitLibrary()
 {
 IsQNAP || exit
@@ -108,6 +108,7 @@ get_ui_port_secure_enabled_test_cmd=undefined
 daemon_launch_cmd=undefined
 InitService
 OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
+new_env=false
 pyver=''
 service_action=unspecified
 service_result=undefined
@@ -122,9 +123,13 @@ fi
 }
 StartQPKG()
 {
+IsNotError || return
 if IsReinstall || IsUpgrade;then
 return
 fi
+IsNotStart && IsNotRestart && QPKGWasNotActive && return
+IsNotRestart && IsDaemon && IsDaemonActive && return
+IsStart && ShowQPKGStates
 if [[ $(type -t StartQPKGCustom) = function ]];then
 StartQPKGCustom
 else
@@ -133,14 +138,10 @@ fi
 }
 StartQPKGLibrary()
 {
-IsNotError || return
-ShowQPKGStates
-IsNotRestart && IsDaemon && IsDaemonActive && return
-IsNotStart && IsNotRestart && QPKGWasNotActive && return
 if IsGitApp;then
 CloneGitRepo || return
 fi
-if IsOnlinePackageArchive;then
+if IsOnlineReleasePackage;then
 RefreshReleasePackageFiles || return
 fi
 if IsVirtualPythonEnv && IsNotVirtualPythonEnvExist;then
@@ -159,6 +160,11 @@ return
 }
 StopQPKG()
 {
+IsNotError || return
+IsNotRestart && IsDaemon && IsNotDaemonActive && return
+if IsStop || IsRestart;then
+ShowQPKGStates
+fi
 if [[ $(type -t StopQPKGCustom) = function ]];then
 StopQPKGCustom
 else
@@ -167,8 +173,6 @@ fi
 }
 StopQPKGLibrary()
 {
-IsNotError || return
-ShowQPKGStates
 if IsNotDaemon;then
 RemoveUserlinkToExec
 return
@@ -182,6 +186,8 @@ return
 }
 StatusQPKG()
 {
+IsNotError || return
+ShowQPKGStates
 if [[ $(type -t StatusQPKGCustom) = function ]];then
 StatusQPKGCustom
 else
@@ -190,8 +196,6 @@ fi
 }
 StatusQPKGLibrary()
 {
-IsNotError || return
-ShowQPKGStates
 RefreshPidFile
 if IsDaemon && IsDaemonActive;then
 LoadPorts app
@@ -278,30 +282,32 @@ CommitInfoToSysLog "$msg: OK"
 }
 StopDaemon()
 {
-local acc=0
-local daemon_stop_check_timeout_seconds=$(CalcAdaptiveSeconds 120)
-local pid=0
-local msg='stop daemon'
-pid=$(<$daemon_pid_pathfile)
-DisplayWaitCommitToLog "> $msg PID '${pid}' with SIGTERM (no-more than $daemon_stop_check_timeout_seconds second$(Pluralise "$daemon_stop_check_timeout_seconds")):"
-kill "$pid"
+[[ -e $daemon_pid_pathfile ]] || return
+local a='stop daemon'
+local -i b=$(CalcAdaptiveSeconds 120)
+local -i c=0
+local -i d=0
+d=$(<$daemon_pid_pathfile)
+[[ $d -gt 1 ]] || return
+DisplayWaitCommitToLog "> $a PID '${d}' with SIGTERM (no-more than $b second$(Pluralise "$b")):"
+kill "$d"
 while true;do
-while [[ -d /proc/$pid ]];do
+while [[ -d /proc/$d ]];do
 /bin/sleep 1
-((acc++))
-DisplayWait "$acc,"
-if [[ $acc -ge $daemon_stop_check_timeout_seconds ]];then
+((c++))
+DisplayWait "$c,"
+if [[ $c -ge $b ]];then
 DisplayCommitToLog 'failed!'
-DisplayCommitToLog "> $msg PID '${pid}' with SIGKILL:"
-kill -9 "$pid" 2> /dev/null
+DisplayCommitToLog "> $a PID '${d}' with SIGKILL:"
+kill -9 "$d" 2> /dev/null
 [[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
 break 2
 fi
 done
 [[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
 Display OK
-CommitToLog "stopped in $acc second$(Pluralise "$acc")"
-CommitInfoToSysLog "$msg: OK"
+CommitToLog "stopped in $c second$(Pluralise "$c")"
+CommitInfoToSysLog "$a: OK"
 break
 done
 WaitForKillPid
@@ -323,7 +329,7 @@ refresh_release_package=true
 if IsSiteUp "$remote_url";then
 release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_arch")
 else
-DisplayErrCommitAllLogs "'unable to access remote site'"
+DisplayErrCommitAllLogs '! unable to access remote site'
 fi
 else
 release_package_url=$remote_url
@@ -335,11 +341,10 @@ release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_a
 if [[ -n $release_package_filename ]];then
 DisplayCommitToLog "'$release_package_filename'"
 else
-DisplayErrCommitAllLogs "'unable to get latest remote release package filename'"
+DisplayErrCommitAllLogs '! unable to get latest remote release package filename'
 fi
 else
-DisplayErrCommitAllLogs "'unable to access remote site'"
-fi
+DisplayErrCommitAllLogs '! unable to access remote site'
 fi
 if [[ -z $release_package_filename && -n $release_package_url && $release_package_url != undefined ]];then
 release_package_filename=$(/usr/bin/basename "$release_package_url")
@@ -348,25 +353,36 @@ if [[ -z $release_package_name_ref_pathfilename && -n $release_package_filename 
 release_package_name_ref_pathfilename=$(/usr/bin/dirname "$release_package_pathfile")/$release_package_filename
 fi
 if [[ -n $release_package_filename && -n $release_package_name_ref_pathfilename ]];then
-DisplayWaitCommitToLog '- release package exists locally:'
+DisplayWaitCommitToLog '- release package name reference exists locally:'
 if [[ -e $release_package_name_ref_pathfilename ]];then
 DisplayCommitToLog true
 else
 DisplayCommitToLog false
 refresh_release_package=true
+rm -f "$release_package_pathfile"
 fi
 fi
 fi
-if [[ $refresh_release_package = true && -n $release_package_url ]];then
+fi
+DisplayWaitCommitToLog '- release package exists locally:'
+if [[ -e $release_package_pathfile ]];then
+DisplayCommitToLog true
+else
+DisplayCommitToLog false
+refresh_release_package=true
+fi
+if [[ ! -e $release_package_pathfile && -n $release_package_url ]] || [[ $refresh_release_package = true ]];then
 DownloadReleasePackage "$release_package_url" "$release_package_pathfile"
 if [[ -e $release_package_pathfile ]] && [[ ! -e $daemon_exec_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$release_package_pathfile" -c %Y))) -lt 10 ]];then
 extract_release_package=true
 fi
 fi
+if IsPathEmpty "$qpkg_repo_path";then
+extract_release_package=true
+fi
 if [[ $extract_release_package = true && -e $release_package_pathfile ]];then
 ExtractReleasePackage "$release_package_pathfile" "$release_package_name_ref_pathfilename"
 fi
-if IsOnlinePackageArchive;then
 if [[ -d $qpkg_repo_path ]];then
 if IsPathEmpty "$qpkg_repo_path";then
 DisplayErrCommitAllLogs "'local repository files do not exist'"
@@ -376,28 +392,20 @@ else
 DisplayErrCommitAllLogs "'local repository path does not exist'"
 SetError;return 1
 fi
-fi
-return 0
-}
-CheckVirtualPythonEnv()
-{
-if IsVirtualPythonEnv && IsNotVirtualPythonEnvExist;then
-DisplayErrCommitAllLogs "unable to start daemon: 'virtual environment does not exist'"
-SetError;return 1
-fi
 return 0
 }
 CheckPortsAvailable()
 {
+local a=''
 if [[ $daemon_port -le 0 && $ui_port -le 0 && $ui_port_secure -le 0 ]];then
-DisplayErrCommitAllLogs "unable to start daemon: 'no port specified'"
+DisplayErrCommitAllLogs "'no port specified'"
 SetError;return 1
 elif IsNotPortAvailable $ui_port || IsNotPortAvailable $ui_port_secure;then
-DisplayErrCommitAllLogs "unable to start daemon: ports '$ui_port' or '$ui_port_secure' are already in-use"
-portpid=$(/usr/sbin/lsof -i :$ui_port -Fp)
-DisplayErrCommitAllLogs "- process details for port '$ui_port': '${portpid}': PID '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
-portpid=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
-DisplayErrCommitAllLogs "- process details for secure port '$ui_port_secure': PID '${portpid}': '$([[ -n ${portpid:-} ]] && /bin/tr '\000' ' ' </proc/"${portpid/p/}"/cmdline)'"
+DisplayErrCommitAllLogs "ports '$ui_port' or '$ui_port_secure' are already in-use"
+a=$(/usr/sbin/lsof -i :$ui_port -Fp)
+DisplayErrCommitAllLogs "- process details for port '$ui_port': '${a}': PID '$([[ -n ${a:-} ]] && /bin/tr '\000' ' ' </proc/"${a/p/}"/cmdline)'"
+a=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
+DisplayErrCommitAllLogs "- process details for secure port '$ui_port_secure': PID '${a}': '$([[ -n ${a:-} ]] && /bin/tr '\000' ' ' </proc/"${a/p/}"/cmdline)'"
 SetError;return 1
 fi
 }
@@ -424,43 +432,28 @@ DisplayAsHelp log 'display the service-script log'
 IsSupportAutoUpdate && DisplayAsHelp enable-auto-update "auto-update $(FormatAsPackageName $QPKG_NAME) before starting (default)"
 IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $QPKG_NAME) before starting it"
 DisplayAsHelp version 'display the package version numbers'
-Display
-DisplayWait 'QPKG enabled:'
-if IsQPKGEnabled;then
-Display true
-else
-Display false
-fi
-if IsSupportAutoUpdate;then
-DisplayWait 'application auto-update:'
-if IsAutoUpdate;then
-Display true
-else
-Display false
-fi
-fi
 }
 InstallPythonPackages()
 {
 IsVirtualPythonEnv || return 0
-local default_essential_modules_pathfile=$QPKG_PATH/pip-essential.txt
-local default_requirements_modules_pathfile=$QPKG_PATH/pip-requirements.txt
-local default_recommended_modules_pathfile=$QPKG_PATH/pip-recommended.txt
-local excluded_modules_pathfile=$QPKG_PATH/pip-exclusions.txt
-local rename_modules_pathfile=$QPKG_PATH/pip-rename.txt
-local essential_modules_pathfile=$qpkg_repo_path/pip-essential.txt
-local requirements_modules_pathfile=$qpkg_repo_path/requirements.txt
-local recommended_modules_pathfile=$qpkg_repo_path/recommended.txt
-local pyproject_pathfile=$qpkg_repo_path/pyproject.toml
-local no_pips_installed=true
-local no_pip_deps=' --no-deps'
-local module_exclusions=''
-local re=''
-local cmd=''
 local a=''
+local cmd=''
+local default_essential_modules_pathfile=$QPKG_PATH/pip-essential.txt
+local default_recommended_modules_pathfile=$QPKG_PATH/pip-recommended.txt
+local default_requirements_modules_pathfile=$QPKG_PATH/pip-requirements.txt
+local essential_modules_pathfile=$qpkg_repo_path/pip-essential.txt
+local excluded_modules_pathfile=$QPKG_PATH/pip-exclusions.txt
+local module_exclusions=''
+local no_pip_deps=' --no-deps'
+local no_pips_installed=true
+local pyproject_pathfile=$qpkg_repo_path/pyproject.toml
+local re=''
+local recommended_modules_pathfile=$qpkg_repo_path/recommended.txt
+local rename_modules_pathfile=$QPKG_PATH/pip-rename.txt
+local requirements_modules_pathfile=$qpkg_repo_path/requirements.txt
 [[ $install_pip_deps = true ]] && no_pip_deps=''
 if IsNotVirtualPythonEnvExist;then
-DisplayErrCommitAllLogs "unable to install addons: 'virtual environment does not exist'"
+DisplayErrCommitAllLogs "unable to install addons: 'virtual Python environment does not exist'"
 SetError;return 1
 fi
 IsNotAutoUpdate && [[ $new_env = false ]] && return 0
@@ -629,6 +622,9 @@ else
 DisplayCommitToLog false
 fi
 fi
+if IsGitApp;then
+DisplayCommitToLog "- active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
+fi
 }
 DisableOpkgDaemonStart()
 {
@@ -644,26 +640,25 @@ local branch_depth='--depth 1'
 [[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
 local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 local branch_switch=false
+local new_branch=false
 WaitForGit || return
 if [[ -d $qpkg_repo_path/.git ]];then
 if [[ $active_branch != "$source_git_branch" ]];then
+DisplayCommitToLog "- new git branch specified: '$source_git_branch'"
 branch_switch=true
-DisplayCommitToLog "- active git branch: '$active_branch', new git branch: '$source_git_branch'"
 [[ $QPKG_NAME = nzbToMedia ]] && BackupConfig
-DisplayCommitToLog '- new git branch has been specified, so must clean local repository'
 CleanLocalRepo
 fi
 fi
 if [[ ! -d $qpkg_repo_path/.git ]];then
-DisplayRunAndLog "clone $(FormatAsPackageName "$QPKG_NAME") from remote repository" "cd /tmp;/opt/bin/git clone --branch $source_git_branch $branch_depth -c advice.detachedHead=false $source_git_url $qpkg_repo_path" log:failure-only
+DisplayRunAndLog "create $(FormatAsPackageName "$QPKG_NAME") from remote repository" "cd /tmp;/opt/bin/git clone --branch $source_git_branch $branch_depth -c advice.detachedHead=false $source_git_url $qpkg_repo_path" log:failure-only
+new_branch=true
 else
 if IsAutoUpdate;then
 DisplayRunAndLog "update $(FormatAsPackageName "$QPKG_NAME") from remote repository" "cd /tmp;/opt/bin/git -C $qpkg_repo_path clean -f; /opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch; /opt/bin/git -C $qpkg_repo_path pull" log:failure-only
 fi
 fi
-if IsAutoUpdate;then
-DisplayCommitToLog "- active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
-fi
+IsAutoUpdate && [[ $new_branch = true || $branch_switch = true ]] && DisplayCommitToLog "- active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
 [[ $branch_switch = true && $QPKG_NAME = nzbToMedia ]] && RestoreConfig
 return 0
 }
@@ -672,8 +667,8 @@ CleanLocalRepo()
 if [[ -z $QPKG_PATH || -z $QPKG_NAME ]] || IsNotSourcedOnline;then
 SetError;return 1
 fi
-(IsGitApp || IsOnlinePackageArchive) && DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
-IsVirtualPythonEnv && [[ -d $venv_path ]] && DisplayRunAndLog 'clean virtual environment' "rm -rf \"$venv_path\"" log:failure-only
+(IsGitApp || IsOnlineReleasePackage) && DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
+IsVirtualPythonEnv && [[ -d $venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$venv_path\"" log:failure-only
 IsUsePipCache && [[ -d $pip_cache_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$pip_cache_path\"" log:failure-only
 [[ -e $APP_VERSION_STORE_PATHFILE ]] && DisplayRunAndLog 'remove application version' "rm -f \"$APP_VERSION_STORE_PATHFILE\"" log:failure-only
 IsUseTemp && [[ -d $QPKG_TEMP_PATH ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$QPKG_TEMP_PATH\"" log:failure-only
@@ -697,42 +692,48 @@ SetError;return 1
 }
 RefreshPidFile()
 {
-local pid=0
+local -i a=0
 if [[ -e $daemon_pid_pathfile && ! -d /proc/"$(<$daemon_pid_pathfile)" ]];then
 rm -f "$daemon_pid_pathfile"
 fi
 if [[ $daemon_check_pathfile != undefined ]];then
-pid=$(FindPid "$daemon_check_pathfile")
+a=$(FindPid "$daemon_check_pathfile")
 else
-pid=$(FindPid "$daemon_exec_pathfile")
+a=$(FindPid "$daemon_exec_pathfile" "$daemon_script_pathfile")
 fi
-[[ -n $pid && $pid -gt 0 ]] && echo "$pid" > "$daemon_pid_pathfile"
+[[ -n $a && $a -gt 0 ]] && echo "$a" > "$daemon_pid_pathfile"
 }
 FindPid()
 {
 [[ -n ${1:-} ]] || return
-local pid=0
-for pid in $(/bin/pidof "$(/usr/bin/basename "$1")");do
-[[ -d /proc/$pid ]] || continue
-[[ -e /proc/$pid/cmdline && -L /proc/$pid/exe ]] || continue
-[[ $(</proc/$pid/cmdline) =~ $1 || $(/usr/bin/readlink /proc/$pid/exe) = "$1" ]] || continue
-printf '%s' "$pid"
+local -i a=0
+local b=''
+[[ -n ${2:-} && $2 != undefined ]] && b=$2
+for a in $(/bin/pidof "$(/usr/bin/basename "$1")");do
+[[ $a -gt 1 ]] || continue
+[[ -d /proc/$a ]] || continue
+[[ -e /proc/$a/cmdline && -L /proc/$a/exe ]] || continue
+[[ $(</proc/$a/cmdline) =~ $1 || $(/usr/bin/readlink /proc/$a/exe) = "$1" ]] || continue
+if [[ -n $b ]];then
+[[ $(</proc/$a/cmdline) =~ $b ]] || continue
+fi
+printf '%s' "$a"
 return
 done
 return 1
 }
 WaitForStartPid()
 {
+local -i a=$(CalcAdaptiveSeconds 10)
 local -i i=0
-local pid_start_recheck_wait_seconds=$(CalcAdaptiveSeconds 10)
 if [[ $daemon_pidfile_is_managed_by_app = true ]];then
 if WaitForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$pid_start_wait_seconds")";then
 /bin/sleep 1
 fi
 fi
 if [[ $recheck_daemon_pid_after_launch = true ]];then
-DisplayWaitCommitToLog "> wait $pid_start_recheck_wait_seconds second$(Pluralise "$pid_start_recheck_wait_seconds") to recheck PID:"
-for ((i=1;i<=pid_start_recheck_wait_seconds; i++)); do
+DisplayWaitCommitToLog "> wait $a second$(Pluralise "$a") to recheck PID:"
+for ((i=1;i<=a; i++)); do
 /bin/sleep 1
 DisplayWait "$i,"
 done
@@ -742,11 +743,11 @@ RefreshPidFile || return
 }
 WaitForKillPid()
 {
+local -i a=$(CalcAdaptiveSeconds 10)
 local -i i=0
-local pid_stop_recheck_wait_seconds=$(CalcAdaptiveSeconds 10)
 if [[ $recheck_daemon_pid_after_kill = true ]];then
-DisplayWaitCommitToLog "> wait $pid_stop_recheck_wait_seconds second$(Pluralise "$pid_stop_recheck_wait_seconds") to recheck PID:"
-for ((i=1;i<=pid_stop_recheck_wait_seconds; i++)); do
+DisplayWaitCommitToLog "> wait $a second$(Pluralise "$a") to recheck PID:"
+for ((i=1;i<=a; i++)); do
 /bin/sleep 1
 DisplayWait "$i,"
 done
@@ -756,17 +757,17 @@ fi
 }
 WaitForDaemonPid()
 {
+local -i a=0
 local -i i=0
-local -i max_seconds=0
 if [[ -n ${1:-} ]];then
-max_seconds=$1
+a=$1
 else
-max_seconds=$(CalcAdaptiveSeconds 120)
+a=$(CalcAdaptiveSeconds 120)
 fi
 if [[ ! -e $daemon_pid_pathfile ]];then
-DisplayWaitCommitToLog "> wait for daemon process name to appear (no-more than $max_seconds second$(Pluralise "$max_seconds")):"
+DisplayWaitCommitToLog "> wait for daemon process name to appear (no-more than $a second$(Pluralise "$a")):"
 (
-for ((i=1;i<=max_seconds; i++)); do
+for ((i=1;i<=a; i++)); do
 /bin/sleep 1
 DisplayWait "$i,"
 RefreshPidFile
@@ -780,7 +781,7 @@ done
 false
 )
 if [[ $? -ne 0 ]];then
-DisplayErrCommitAllLogs "process not found! (exceeded timeout: $max_seconds second$(Pluralise "$max_seconds"))"
+DisplayErrCommitAllLogs "process not found! (exceeded timeout: $a second$(Pluralise "$a"))"
 return 1
 fi
 fi
@@ -788,18 +789,18 @@ return 0
 }
 WaitForFileToAppear()
 {
-local -i i=0
-local -i max_seconds=0
 [[ -n $1 ]] || return
+local -i a=0
+local -i i=0
 if [[ -n $2 ]];then
-max_seconds=$2
+a=$2
 else
-max_seconds=30
+a=30
 fi
 if [[ ! -e $1 ]];then
-DisplayWaitCommitToLog "> wait for $1 to appear in filesystem (no-more than $max_seconds second$(Pluralise "$max_seconds")):"
+DisplayWaitCommitToLog "> wait for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a")):"
 (
-for ((i=1;i<=max_seconds; i++)); do
+for ((i=1;i<=a; i++)); do
 /bin/sleep 1
 DisplayWait "$i,"
 if [[ -e $1 ]];then
@@ -812,7 +813,7 @@ done
 false
 )
 if [[ $? -ne 0 ]];then
-DisplayErrCommitAllLogs "file $1 not found! (exceeded timeout: $max_seconds second$(Pluralise "$max_seconds"))"
+DisplayErrCommitAllLogs "file $1 not found! (exceeded timeout: $a second$(Pluralise "$a"))"
 return 1
 fi
 fi
@@ -914,16 +915,16 @@ return $z
 }
 AddFileToDebug()
 {
-local debug_was_set=$debug
-local linebuff=''
-debug=false
 [[ -e ${1:?no filename supplied} ]] || return
+local a=''
+local debug_was_set=$debug
+debug=false
 DebugAsLog ''
 DebugAsLog 'adding external log to main log ...'
 DebugExtLogMinorSeparator
 DebugAsLog "$(FormatAsLogFilename "$1")"
-while read -r linebuff;do
-DebugAsLog "$linebuff"
+while read -r a;do
+DebugAsLog "$a"
 done < "$1"
 DebugExtLogMinorSeparator
 debug=$debug_was_set
@@ -996,12 +997,12 @@ DisplayCommitToLog OK
 }
 CheckPorts()
 {
-local msg=''
+local a=''
 DisplayCommitToLog "- daemon listening address: '$ui_listening_address'"
 if [[ $daemon_port -ne 0 ]];then
 DisplayCommitToLog "- daemon port: '$daemon_port'"
 if IsPortResponds $daemon_port;then
-msg="daemon port '$daemon_port'"
+a="daemon port '$daemon_port'"
 fi
 else
 DisplayWaitCommitToLog '- HTTPS port enabled:'
@@ -1009,18 +1010,18 @@ if IsSSLEnabled;then
 DisplayCommitToLog true
 DisplayCommitToLog "- HTTPS port: '$ui_port_secure'"
 if IsPortSecureResponds $ui_port_secure;then
-msg="HTTPS port '$ui_port_secure'"
+a="HTTPS port '$ui_port_secure'"
 fi
 else
 DisplayCommitToLog false
 fi
 DisplayCommitToLog "- HTTP port: '$ui_port'"
 if IsPortResponds $ui_port;then
-[[ -n $msg ]] && msg+=' and '
-msg+="HTTP port '$ui_port'"
+[[ -n $a ]] && a+=' and '
+a+="HTTP port '$ui_port'"
 fi
 fi
-if [[ -z $msg ]];then
+if [[ -z $a ]];then
 DisplayErrCommitAllLogs 'no response on configured port(s)'
 SetError;return 1
 else
@@ -1030,9 +1031,9 @@ fi
 }
 GetPythonVer()
 {
-local v=''
-v=$(GetThisBinPath ${1:-python} &>/dev/null && ${1:-python} -V 2>&1 | /bin/sed 's|^Python ||;s|\.||g')
-[[ -n $v ]] && echo "${v:0:3}"
+local a=''
+a=$(GetThisBinPath ${1:-python} &>/dev/null && ${1:-python} -V 2>&1 | /bin/sed 's|^Python ||;s|\.||g')
+[[ -n $a ]] && echo "${a:0:3}"
 }
 GetThisBinPath()
 {
@@ -1174,13 +1175,13 @@ IsNotUsePipCache()
 {
 ! IsUsePipCache
 }
-IsOnlinePackageArchive()
+IsOnlineReleasePackage()
 {
 [[ $remote_url != undefined ]]
 }
 IsNotOnlinePackageArchive()
 {
-! IsOnlinePackageArchive
+! IsOnlineReleasePackage
 }
 IsSupportAutoUpdate()
 {
@@ -1192,7 +1193,7 @@ IsNotSupportAutoUpdate()
 }
 IsSourcedOnline()
 {
-IsGitApp || IsUsePipCache || IsOnlinePackageArchive
+IsGitApp || IsUsePipCache || IsOnlineReleasePackage
 }
 IsNotSourcedOnline()
 {
@@ -1283,27 +1284,27 @@ IsNotPortAvailable()
 }
 IsPortResponds()
 {
-local port=${1//[!0-9]/}
-local local_port_check_timeout_seconds=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
-if [[ -z $port ]];then
+local -i a=${1//[!0-9]/}
+local -i b=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
+local -i c=0
+if [[ -z $a ]];then
 Display 'empty port: not testing for response'
 return 1
-elif [[ $port -eq 0 ]];then
+elif [[ $a -eq 0 ]];then
 Display "port '0': not testing for response"
 return 1
 fi
-local acc=0
-DisplayWaitCommitToLog "> test for port '$port' response (no-more than $local_port_check_timeout_seconds second$(Pluralise "$local_port_check_timeout_seconds")):"
+DisplayWaitCommitToLog "> test for port '$a' response (no-more than $b second$(Pluralise "$b")):"
 while true;do
 if ! IsDaemonProcessActive;then
 DisplayCommitToLog 'process not active'
 break
 fi
-/sbin/curl --silent --fail --max-time 1 http://localhost:"$port" &>/dev/null
+/sbin/curl --silent --fail --max-time 1 http://localhost:"$a" &>/dev/null
 case $? in
 0|22|52)
 Display OK
-CommitToLog "responded in $acc second$(Pluralise "$acc")"
+CommitToLog "responded in $c second$(Pluralise "$c")"
 return 0
 ;;
 28)
@@ -1315,11 +1316,11 @@ return 0
 *)
 :
 esac
-((acc+=1))
-DisplayWait "$acc,"
-if [[ $acc -ge $local_port_check_timeout_seconds ]];then
+((c++))
+DisplayWait "$c,"
+if [[ $c -ge $b ]];then
 DisplayCommitToLog 'failed!'
-CommitErrToSysLog "port '$port' failed to respond after $acc second$(Pluralise "$acc")!"
+CommitErrToSysLog "port '$a' failed to respond after $c second$(Pluralise "$c")!"
 break
 fi
 done
@@ -1327,28 +1328,27 @@ return 1
 }
 IsPortSecureResponds()
 {
-local port=${1//[!0-9]/}
-local local_port_check_timeout_seconds=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
-if [[ -z $port ]];then
+local -i a=${1//[!0-9]/}
+local -i b=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
+local -i c=0
+if [[ -z $a ]];then
 Display 'empty port: not testing for response'
 return 1
-elif [[ $port -eq 0 ]];then
+elif [[ $a -eq 0 ]];then
 Display "port '0': not testing for response"
 return 1
 fi
-local acc=0
-DisplayWaitCommitToLog "> test for secure port '$port' response:"
-DisplayWait "(no-more than $local_port_check_timeout_seconds second$(Pluralise "$local_port_check_timeout_seconds")):"
+DisplayWaitCommitToLog "> test for secure port '$a' response (no-more than $b second$(Pluralise "$b")):"
 while true;do
 if ! IsDaemonProcessActive;then
 DisplayCommitToLog 'process not active'
 break
 fi
-/sbin/curl --silent --insecure --fail --max-time 1 https://localhost:"$port" &>/dev/null
+/sbin/curl --silent --insecure --fail --max-time 1 https://localhost:"$a" &>/dev/null
 case $? in
 0|22|52)
 Display OK
-CommitToLog "port responded after $acc second$(Pluralise "$acc")"
+CommitToLog "port responded after $c second$(Pluralise "$c")"
 return 0
 ;;
 35)
@@ -1364,11 +1364,11 @@ break
 *)
 :
 esac
-((acc+=1))
-DisplayWait "$acc,"
-if [[ $acc -ge $local_port_check_timeout_seconds ]];then
+((c++))
+DisplayWait "$c,"
+if [[ $c -ge $b ]];then
 DisplayCommitToLog 'failed'
-CommitErrToSysLog "secure port '$port' failed to respond after $acc second$(Pluralise "$acc")!"
+CommitErrToSysLog "secure port '$a' failed to respond after $c second$(Pluralise "$c")!"
 break
 fi
 done
@@ -1405,10 +1405,11 @@ OSIsSupportSecureDownload()
 IsSiteUp()
 {
 [[ -n $1 && $1 != undefined ]] || return
-local site=$(cut -d'/' -f3 <<< "$1" | cut -d':' -f1)
-[[ -n $site && $site != undefined ]] || return
+local a=$(cut -d'/' -f3 <<< "$1" | cut -d':' -f1)
+[[ -n $a && $a != undefined ]] || return
+local -i n=0
 for ((n=0;n<20; n++)); do
-/bin/ping -c 1 -w 1 "$site" && return 0
+/bin/ping -c 1 -w 1 "$a" && return 0
 /bin/sleep 5
 done
 return 1
@@ -1417,9 +1418,8 @@ RequestLatestReleaseFilename()
 {
 [[ -n ${1:-} && ${1:-} != undefined ]] || return
 local a=''
-local curl_opts="$curl_insecure_arg --silent --max-time 5 --location -D -"
-local source_url=$1
-a=$(/sbin/curl${curl_opts} "$source_url" | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2)
+local b="$curl_insecure_arg --silent --max-time 5 --location -D -"
+a=$(/sbin/curl${b} "$1" | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
 [[ -n ${2:-} && ${2:-} != undefined ]] && a=$(/bin/grep "$2" <<< "$a")
 printf '%s' "$a"
 } 2>/dev/null
@@ -1427,9 +1427,8 @@ RequestLatestReleaseURL()
 {
 [[ -n ${1:-} && ${1:-} != undefined ]] || return
 local a=''
-local curl_opts="$curl_insecure_arg --silent --max-time 5 --location"
-local source_url=$1
-a=$(/sbin/curl${curl_opts} "$source_url" | /bin/grep browser_download_url | cut -d\" -f4)
+local b="$curl_insecure_arg --silent --max-time 5 --location"
+a=$(/sbin/curl${b} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
 [[ -n ${2:-} && ${2:-} != undefined ]] && a=$(/bin/grep "$2" <<< "$a")
 printf '%s' "$a"
 } 2>/dev/null
@@ -1437,24 +1436,29 @@ DownloadReleasePackage()
 {
 [[ -n ${1:-} && ${1:-} != undefined ]] || return
 [[ -n ${2:-} && ${2:-} != undefined ]] || return
-local curl_opts=$curl_insecure_arg
-local release_package_pathfile=$2
-local source_url=$1
-[[ $debug = false ]] && curl_opts+=' --silent'
-[[ -e $release_package_pathfile ]] && curl_opts+=" --time-cond $release_package_pathfile"
-curl_opts+=" --show-error --max-time 300 --location --output $release_package_pathfile"
-DisplayRunAndLog 'download latest release package' "/sbin/curl${curl_opts} '$source_url'" log:failure-only
+local a=''
+local b=$curl_insecure_arg
+local c=$2
+[[ $debug = false ]] && b+=' --silent'
+if [[ -e $c ]];then
+a='refresh existing release package (only-if-newer)'
+b+=" --time-cond $c"
+else
+a='download latest release package'
+fi
+b+=" --show-error --max-time 300 --location --output $c"
+DisplayRunAndLog "$a" "/sbin/curl${b} '$1'" log:failure-only
 }
 ExtractReleasePackage()
 {
 [[ -n ${1:-} && ${1:-} != undefined ]] || return
-[[ -n ${2:-} && ${2:-} != undefined ]] || return
-local release_package_name_ref_pathfilename=$2
+local release_package_name_ref_pathfilename=''
 local release_package_pathfile=$1
 local tar_extract_opts=''
 local tar_extract_verbose=''
 local unzip_extract_opts=''
 local unzip_extract_verbose=''
+[[ -n ${2:-} && ${2:-} != undefined ]] && release_package_name_ref_pathfilename=$2
 if [[ $debug = true ]];then
 tar_extract_verbose=' --verbose'
 fi
@@ -1462,7 +1466,11 @@ if [[ -e $release_package_pathfile ]];then
 tar_extract_opts="$tar_extract_verbose --extract --gzip --file=$release_package_pathfile --directory=$qpkg_repo_path"
 unzip_extract_opts="$unzip_extract_verbose -o $release_package_pathfile -d $qpkg_repo_path"
 DisplayRunAndLog 'extract from release package' "/usr/bin/unzip${unzip_extract_opts} 2>/dev/null || /bin/tar${tar_extract_opts}" log:failure-only
-[[ -n $release_package_name_ref_pathfilename ]] && /bin/touch "$release_package_name_ref_pathfilename"
+if [[ $compare_release_filename = true && -n $release_package_name_ref_pathfilename ]];then
+if [[ ! -e $release_package_name_ref_pathfilename ]];then
+DisplayRunAndLog 'create release package name reference' "/bin/touch $release_package_name_ref_pathfilename" log:failure-only
+fi
+fi
 fi
 }
 ResetServiceAction()
@@ -1582,6 +1590,14 @@ IsStart()
 IsNotStart()
 {
 ! IsStart
+}
+IsStop()
+{
+[[ $service_action = stop ]]
+}
+IsNotStop()
+{
+! IsStop
 }
 IsRestart()
 {
