@@ -1549,7 +1549,7 @@ DisplayRunAndLog()
 	if [[ $z -eq 0 ]]; then
 		[[ ${3:-} != log:failure-only ]] && AddFileToDebug "$LOG_PATHFILE"
 	else
-		[[ $z -ne ${4:-} ]] && AddFileToDebug "$LOG_PATHFILE"
+		AddFileToDebug "$LOG_PATHFILE"
 	fi
 
 	[[ -e $LOG_PATHFILE ]] && rm -f "$LOG_PATHFILE"
