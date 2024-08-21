@@ -101,6 +101,16 @@
 #
 ######################################################################
 # Define any package specific operations that shall be performed when
+# the package is installed.
+######################################################################
+pkg_post_install()
+	{
+
+	$CMD_SETCFG $QPKG_NAME Dependency Entware -f $SYS_QPKG_CONFIG_FILE
+
+	}
+######################################################################
+# Define any package specific operations that shall be performed when
 # the package is removed.
 ######################################################################
 PKG_POST_REMOVE="{

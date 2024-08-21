@@ -101,10 +101,11 @@
 #
 ######################################################################
 # Define any package specific operations that shall be performed when
-# the package is removed.
+# the package is installed.
 ######################################################################
-PKG_PRE_REMOVE="{
+pkg_post_install()
+	{
 
-[[ -e /var/log/$QPKG_NAME.log ]] && rm /var/log/$QPKG_NAME.log
+	$CMD_SETCFG $QPKG_NAME Dependency Entware -f $SYS_QPKG_CONFIG_FILE
 
-}"
+	}
