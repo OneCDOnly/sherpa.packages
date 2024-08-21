@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240821'
+readonly SERVICE_LIB_VERSION='240822'
 InitLibrary()
 {
 IsQNAP || exit
@@ -253,14 +253,14 @@ return 0
 StartDaemon()
 {
 local a='start daemon'
-local b=''
+local b=$daemon_launch_cmd
 if [[ $run_daemon_in_screen_session = true ]];then
 a+=' (in screen session)'
 rm -f "${SERVICE_SCREEN_LOG_PATHFILE:?}"
 fi
 if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]];then
 b="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
-DisplayCommitToLog "> nice daemon to: $nice_daemon_to"
+DisplayCommitToLog "- nice daemon to: $nice_daemon_to"
 fi
 if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";then
 [[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
