@@ -113,26 +113,26 @@ pkg_post_install()
 	# if NAS arch is armv5, x86 						:Par2
 	# if NAS arch is arm64, armv7 (x31 & x41), x86-64 	:Par2turbo
 
-	local a=''
+	local -a a=()
 
-	a+=Entware
+	a+=(Entware)
 
 	case $(QpkgGetArch) in
 		a64|a41|i64)
-			a+=':Unrar'
+			a+=(Unrar)
 	esac
 
 	case $(QpkgGetArch) in
 		a19|i86)
-			a+=':Par2'
+			a+=(Par2)
 	esac
 
 	case $(QpkgGetArch) in
 		a64|a31|a41|i64)
-			a+=':Par2turbo'
+			a+=(Par2turbo)
 	esac
 
-	[[ -n $a ]] && $CMD_SETCFG $QPKG_NAME Dependency "$a" -f $SYS_QPKG_CONFIG_FILE
+	[[ ${#a[@]} -gt 0 ]] && $CMD_SETCFG $QPKG_NAME Dependency "$(/bin/tr ' ' ':' <<< ${a[*]})" -f $SYS_QPKG_CONFIG_FILE
 
 	}
 QpkgGetArch()
