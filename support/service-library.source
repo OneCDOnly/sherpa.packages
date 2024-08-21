@@ -303,7 +303,7 @@ InitLibrary()
 
 # --- end of template for service-script ---
 
-	InitService											# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
+	InitService					# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
 	OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
 	new_env=false
 	pyver=''
@@ -326,7 +326,7 @@ StartQPKG()
 
 	IsNotError || return
 
-	if IsReinstall || IsUpgrade; then			# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is techically correct as the last action after upgrade is 'start', but probably better to see the upgrade or reinstall result instead).
+	if IsReinstall || IsUpgrade; then		# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is techically correct as the last action after upgrade is 'start', but probably better to see the upgrade or reinstall result instead).
 		return
 	fi
 
@@ -480,23 +480,33 @@ RemoveUserlinkToExec()
 CreateVirtualPythonEnv()
 	{
 
-	new_env=false
-	local allow_sys_packages=' --system-site-packages'
-	local pip_conf_pathfile=$venv_path/pip.conf
+	# Inputs: (global)
+	#	$allow_access_to_sys_packages
+	#	$interpreter
+	#	$pip_cache_path
+	#	$qpkg_wheels_path
+	#	$venv_path
 
-	[[ $allow_access_to_sys_packages != true ]] && allow_sys_packages=''
+	# Outputs: (global)
+	#   $new_env = true: new virtual environment was created.
+	#   		 = false: a virtual environment already exists.
+
+	new_env=false
+	local a=''
+	local b=$venv_path/pip.conf
+
+	[[ $allow_access_to_sys_packages = true ]] && a=' --system-site-packages'
 
 	if IsNotVirtualPythonEnvExist; then
-		DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$pip_cache_path VIRTUALENV_OVERRIDE_APP_DATA=$pip_cache_path; $interpreter -m virtualenv ${venv_path}${allow_sys_packages}" log:failure-only
+		DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$pip_cache_path VIRTUALENV_OVERRIDE_APP_DATA=$pip_cache_path; $interpreter -m virtualenv ${venv_path}${a}" log:failure-only
 		new_env=true
 
-		if [[ ! -e $pip_conf_pathfile ]]; then
-			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $pip_conf_pathfile" log:failure-only
-
-			DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $pip_conf_pathfile" log:failure-only
+		if [[ ! -e $b ]]; then
+			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $b" log:failure-only
+			DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $b" log:failure-only
 
 			if [[ -d $qpkg_wheels_path ]]; then
-				DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $pip_conf_pathfile" log:failure-only
+				DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
 			fi
 		fi
 	fi
@@ -508,19 +518,26 @@ CreateVirtualPythonEnv()
 StartDaemon()
 	{
 
-	local msg='start daemon'
+	# Inputs: (global)
+	#	$daemon_launch_cmd
+	#	$nice_daemon_to
+	#	$run_daemon_in_screen_session
+	#	$SERVICE_SCREEN_LOG_PATHFILE
+
+	local a='start daemon'
+	local b=''
 
 	if [[ $run_daemon_in_screen_session = true ]]; then
-		msg+=' (in screen session)'
+		a+=' (in screen session)'
 		rm -f "${SERVICE_SCREEN_LOG_PATHFILE:?}"
 	fi
 
 	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
-		daemon_launch_cmd="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
+		b="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
 		DisplayCommitToLog "> nice daemon to: $nice_daemon_to"
 	fi
 
-	if ! DisplayRunAndLog "$msg" "$daemon_launch_cmd" log:failure-only "$run_daemon_in_screen_session"; then
+	if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; then
 		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$SERVICE_SCREEN_LOG_PATHFILE"
 
 		SetError; return 1
@@ -544,14 +561,14 @@ StartDaemon()
 		SetError; return 1
 	fi
 
-	CommitInfoToSysLog "$msg: OK"
+	CommitInfoToSysLog "$a: OK"
 
 	}
 
 StopDaemon()
 	{
 
-	# Input (global):
+	# Inputs: (global)
 	#	$daemon_pid_pathfile
 
 	[[ -e $daemon_pid_pathfile ]] || return
@@ -606,7 +623,7 @@ StopDaemon()
 RefreshReleasePackageFiles()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$compare_release_filename
 	#	$QPKG_TEMP_PATH
 	#	$remote_arch
@@ -714,7 +731,7 @@ RefreshReleasePackageFiles()
 CheckPortsAvailable()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$daemon_port
 	#	$ui_port
 	#	$ui_port_secure
@@ -741,6 +758,10 @@ CheckPortsAvailable()
 
 ShowHelp()
 	{
+
+	# Inputs: (global)
+	#	$QPKG_NAME
+	#	$SERVICE_SCRIPT_VERSION
 
 	Display "$(TextBrightWhite "$(/usr/bin/basename "$0")") $SERVICE_SCRIPT_VERSION • a service control script for the $(FormatAsPackageName $QPKG_NAME) QPKG"
 	Display
@@ -909,15 +930,15 @@ InstallPythonPackages()
 StripComments()
 	{
 
-	# Input:
+	# Inputs: (local)
 	#   $1 = String to strip comment lines, empty lines, and so-on.
 
-	# Output:
-	#   stdout = string.
+	# Outputs: (local)
+	#   stdout
 
 	[[ -n $1 ]] || return
 
-	local a="$1"
+	local a=$1
 
 	a=$(/bin/sed -e '/^#[[:space:]].*/d;/#$/d;s/[[:space:]]#[[:space:]].*//' <<< "$a")		# Remove comment lines and line comments.
 	a=$(/bin/sed -e 's/^[[:space:]]*//' <<< "$a")											# Remove leading whitespace.
@@ -931,6 +952,10 @@ StripComments()
 BackupConfig()
 	{
 
+	# Inputs: (global)
+	#	$qpkg_backup_pathfile
+	#	$QPKG_PATH
+
 	if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=$qpkg_backup_pathfile --directory=$QPKG_PATH/config ." log:failure-only; then
 		SetError; return 1
 	fi
@@ -939,6 +964,10 @@ BackupConfig()
 
 RestoreConfig()
 	{
+
+	# Inputs: (global)
+	#	$qpkg_backup_pathfile
+	#	$QPKG_PATH
 
 	if [[ ! -f $qpkg_backup_pathfile ]]; then
 		DisplayErrCommitAllLogs "unable to restore configuration: 'no backup file was found'"
@@ -955,6 +984,10 @@ RestoreConfig()
 ResetConfig()
 	{
 
+	# Inputs: (global)
+	#	$qpkg_ini_default_pathfile
+	#	$QPKG_PATH
+
 	if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $QPKG_PATH; rm -rf $QPKG_PATH/config/*; mkdir -p $(/usr/bin/dirname "$qpkg_ini_default_pathfile"); mv $QPKG_PATH/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only; then
 		SetError; return 1
 	fi
@@ -963,6 +996,14 @@ ResetConfig()
 
 MakePaths()
 	{
+
+	# Inputs: (global)
+	#	$BACKUP_PATH
+	#	$pip_cache_path
+	#	$QPKG_PATH
+	#	$qpkg_repo_path
+	#	$QPKG_TEMP_PATH
+	#	$venv_path
 
 	local a=''
 
@@ -979,7 +1020,23 @@ MakePaths()
 LoadPorts()
 	{
 
-	# If user changes ports via app UI, must first 'stop' application on old ports, then 'start' on new ports.
+	# If user changes ports via application UI, must first 'stop' application on old ports, then 'start' on new ports.
+
+	# Inputs: (local)
+	#	$1 = source location of ports.
+
+	# Inputs: (global)
+	#	$get_daemon_port_cmd
+	#	$get_ui_listening_address_cmd
+	#	$get_ui_port_cmd
+	#	$get_ui_port_secure_cmd
+	#	$QPKG_NAME
+
+	# Outputs: (global)
+	#	$daemon_port
+	#	$ui_listening_address
+	#	$ui_port
+	#	$ui_port_secure
 
 	case $1 in
 		app)
@@ -1007,6 +1064,7 @@ LoadPorts()
 	[[ $get_ui_listening_address_cmd != undefined ]] && ui_listening_address=$(eval "$get_ui_listening_address_cmd")
 
 	# Validate port numbers.
+
 	ui_port=${ui_port//[!0-9]/}					# Strip all non-numerals.
 	[[ -z $ui_port || $ui_port -lt 0 || $ui_port -gt 65535 ]] && ui_port=0
 
@@ -1026,6 +1084,10 @@ GetAppVersion()
 
 	# Find the application's internal version number. This is the installed application version (not the QPKG version).
 
+	# Inputs: (global)
+	#	$app_version_pathfile
+	#	$get_app_version_cmd
+
 	# Output (global):
 	#   $app_version
 
@@ -1041,6 +1103,9 @@ GetAppVersion()
 
 ShowQPKGStates()
 	{
+
+	# Inputs: (global)
+	#	$qpkg_repo_path
 
 	DisplayWaitCommitToLog '- QPKG enabled:'
 
@@ -1069,6 +1134,9 @@ ShowQPKGStates()
 DisableOpkgDaemonStart()
 	{
 
+	# Inputs: (global)
+	#	$orig_daemon_service_script
+
 	if [[ $orig_daemon_service_script != undefined && -x $orig_daemon_service_script ]]; then
 		$orig_daemon_service_script stop		# Stop default daemon,
 		chmod -x "$orig_daemon_service_script"	# ... and ensure Entware doesn't re-launch it on startup.
@@ -1079,7 +1147,7 @@ DisableOpkgDaemonStart()
 CloneGitRepo()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#   $QPKG_NAME
 	#   $qpkg_repo_path
 	#   $source_git_branch
@@ -1088,9 +1156,9 @@ CloneGitRepo()
 
 	IsGitApp || return 0
 
+	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 	local branch_depth='--depth 1'
 	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
-	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 	local branch_switch=false
 	local new_branch=false
 
@@ -1127,7 +1195,7 @@ CleanLocalRepo()
 
 	# For occasions where the local repo needs to be deleted and cloned again from source.
 
-	# Inputs (global):
+	# Inputs: (global)
 	#   $APP_VERSION_STORE_PATHFILE
 	#   $pip_cache_path
 	#   $QPKG_NAME
@@ -1152,11 +1220,11 @@ CleanLocalRepo()
 WaitForGit()
 	{
 
-	# Inputs (global):
-	#   $PATH
+	# Inputs: (global)
 	#   $OPKG_PATH
+	#   $PATH
 
-	# Output:
+	# Outputs: (global)
 	#   $PATH
 
 	if IsNotQPKGInstalled Entware; then
@@ -1181,13 +1249,13 @@ WaitForGit()
 RefreshPidFile()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#   $daemon_check_pathfile
 	#   $daemon_exec_pathfile
 	#   $daemon_pid_pathfile
 
-	# Output:
-	#   > $daemon_pid_pathfile
+	# Outputs:
+	#   stdout > $daemon_pid_pathfile
 
 	local -i a=0
 
@@ -1208,7 +1276,7 @@ RefreshPidFile()
 FindPid()
 	{
 
-	# Input:
+	# Inputs: (local)
 	#   $1 = Process pathfilename to find.
 	#   $2 (optional) = additional string to match if there are multiple processes with identical pathfilenames.
 
@@ -1245,7 +1313,7 @@ FindPid()
 WaitForStartPid()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#   $daemon_pid_pathfile
 	#   $daemon_pidfile_is_managed_by_app
 	#   $pid_start_wait_seconds
@@ -1278,7 +1346,7 @@ WaitForStartPid()
 WaitForKillPid()
 	{
 
-	# Input (global):
+	# Inputs: (global)
 	#   $recheck_daemon_pid_after_kill
 
 	local -i a=$(CalcAdaptiveSeconds 10)
@@ -1302,13 +1370,13 @@ WaitForKillPid()
 WaitForDaemonPid()
 	{
 
-	# Input (global):
-	#   $daemon_pid_pathfile
-
-	# Input:
+	# Inputs: (local)
 	#   $1 (optional) = Timeout in seconds - default 30
 
-	# Output:
+	# Inputs: (global)
+	#   $daemon_pid_pathfile
+
+	# Outputs:
 	#   $? = 0 (file was found) or 1 (file not found: timeout)
 
 	local -i a=0
@@ -1355,11 +1423,11 @@ WaitForDaemonPid()
 WaitForFileToAppear()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = pathfilename to watch-for.
 	#   $2 (optional) = timeout in seconds - default 30
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : file was found
 	#   $? = 1 : file not found/timeout
 
@@ -1481,7 +1549,7 @@ DisplayRunAndLog()
 	if [[ $z -eq 0 ]]; then
 		[[ ${3:-} != log:failure-only ]] && AddFileToDebug "$LOG_PATHFILE"
 	else
-		[[ $z -ne ${4:-} ]] && AddFileToDebug "$LOG_PATHFILE"
+		AddFileToDebug "$LOG_PATHFILE"
 	fi
 
 	[[ -e $LOG_PATHFILE ]] && rm -f "$LOG_PATHFILE"
@@ -1494,13 +1562,13 @@ Executer()
 
 	# Run a commandstring, log the results, and show onscreen if-requested.
 
-	# Input (global):
-	#	$debug
-
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = commandstring to execute.
 	#   $2 = log pathfile to record stdout and stderr for commandstring.
 	#   $3 (optional) = true/false - if true, run command in a `screen` session.
+
+	# Inputs: (global)
+	#	$debug
 
 	# Outputs:
 	#   stdout : commandstring stdout and stderr if script is in 'debug' mode.
@@ -1588,10 +1656,10 @@ DebugExtLogMinorSeparator()
 DebugBulletSeparatorWithText()
 	{
 
-	# Input (global):
+	# Inputs: (global)
 	#	$DEBUG_LOG_DATAWIDTH
 
-	# Input:
+	# Inputs:
 	#   $1 = Text to center in separator line.
 
 	local a=''
@@ -1607,7 +1675,7 @@ DebugBulletSeparatorWithText()
 DebugMinorSeparator()
 	{
 
-	# Input (global):
+	# Inputs: (global)
 	#	$DEBUG_LOG_DATAWIDTH
 
 	eval printf '%0.s-' "{1..$DEBUG_LOG_DATAWIDTH}"		# `seq` is unavailable in QTS, so must resort to `eval` trickery instead.
@@ -1626,7 +1694,7 @@ DebugAsLog()
 DebugThis()
 	{
 
-	# Input (global):
+	# Inputs: (global)
 	#	$debug
 
 	[[ $debug = true ]] && Display "${1:-}"
@@ -1644,10 +1712,10 @@ WriteAsDebug()
 WriteToLog()
 	{
 
-	# Input (global):
+	# Inputs: (global)
 	#	$SERVICE_LOG_PATHFILE
 
-	# Input:
+	# Inputs:
 	#   $1 = pass/fail
 	#   $2 = message
 
@@ -1707,7 +1775,7 @@ ReWriteUIPorts()
 
 	# If SSL is enabled, attempting to access with non-SSL via 'Web_Port' results in "connection was reset".
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$get_daemon_port_cmd
 	#	$QPKG_NAME
 	#	$ui_port
@@ -1731,7 +1799,7 @@ ReWriteUIPorts()
 CheckPorts()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$daemon_port
 	#	$ui_listening_address
 	#	$ui_port
@@ -1853,11 +1921,11 @@ parse_yaml()
 
 	# a nice bit of coding! https://stackoverflow.com/a/21189044
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = filename to parse.
 	#	$2 (optional) = key prefix.
 
-	# Output:
+	# Outputs:
 	#   stdout = parsed YAML
 
 	local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
@@ -1879,7 +1947,7 @@ parse_yaml()
 IsQNAP()
 	{
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : this is a QNAP NAS
 	#   $? = 1 : not a QNAP
 
@@ -1896,10 +1964,10 @@ IsQNAP()
 IsQPKGInstalled()
 	{
 
-	# Input:
+	# Inputs: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : true
 	#   $? = 1 : false
 
@@ -1931,10 +1999,10 @@ IsNotQPKGActive()
 IsQPKGEnabled()
 	{
 
-	# Input:
+	# Inputs: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : true
 	#   $? = 1 : false
 
@@ -1945,10 +2013,10 @@ IsQPKGEnabled()
 IsNotQPKGEnabled()
 	{
 
-	# Input:
+	# Inputs: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : true
 	#   $? = 1 : false
 
@@ -2180,11 +2248,11 @@ IsNotDaemonActive()
 IsDaemonProcessActive()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#   $daemon_exec_pathfile
 	#   $daemon_pid_pathfile
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : $daemon_exec_pathfile is in memory
 	#   $? = 1 : $daemon_exec_pathfile is not in memory
 
@@ -2203,7 +2271,7 @@ IsDaemonProcessActive()
 IsSysFilePresent()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = pathfilename to check.
 
 	if [[ -z ${1:?pathfilename null} ]]; then
@@ -2223,7 +2291,7 @@ IsSysFilePresent()
 IsNotSysFilePresent()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = pathfilename to check.
 
 	! IsSysFilePresent "${1:?pathfilename null}"
@@ -2233,10 +2301,10 @@ IsNotSysFilePresent()
 IsPortAvailable()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = port to check.
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : available.
 	#   $? = 1 : already used.
 
@@ -2252,10 +2320,10 @@ IsPortAvailable()
 IsNotPortAvailable()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = port to check.
 
-	# Output:
+	# Outputs:
 	#   $? = 1 : port available.
 	#   $? = 0 : already used.
 
@@ -2266,10 +2334,10 @@ IsNotPortAvailable()
 IsPortResponds()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = port to check.
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : response received.
 	#   $? = 1 : not OK.
 
@@ -2328,10 +2396,10 @@ IsPortResponds()
 IsPortSecureResponds()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = secure port to check.
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : response received.
 	#   $? = 1 : not OK or secure port unspecified.
 
@@ -2451,7 +2519,7 @@ IsSiteUp()
 
 	# Test if remote site is reachable.
 
-	# Input:
+	# Inputs:
 	#   $1 = URL to query.
 
 	[[ -n $1 && $1 != undefined ]] || return
@@ -2476,14 +2544,14 @@ RequestLatestReleaseFilename()
 
 	# Request latest release filename from remote site.
 
-	# Input (global):
+	# Inputs: (global)
 	#	$curl_insecure_arg
 
 	# Inputs:
 	#   $1 = URL to check.
 	#   $2 (optional) = arch to match.
 
-	# Output:
+	# Outputs:
 	#   stdout = filename.
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
@@ -2503,14 +2571,14 @@ RequestLatestReleaseURL()
 
 	# Request latest release URL from remote site.
 
-	# Input (global):
+	# Inputs: (global)
 	#	$curl_insecure_arg
 
 	# Inputs:
 	#   $1 = URL to check.
 	#   $2 (optional) = arch to match.
 
-	# Output:
+	# Outputs:
 	#   stdout = URL.
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
@@ -2530,7 +2598,7 @@ DownloadReleasePackage()
 
 	# Request specific release filename from remote site.
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$curl_insecure_arg
 	#	$debug
 
@@ -2563,7 +2631,7 @@ DownloadReleasePackage()
 ExtractReleasePackage()
 	{
 
-	# Inputs (global):
+	# Inputs: (global)
 	#	$compare_release_filename
 	#	$debug
 	#	$qpkg_repo_path
@@ -2929,10 +2997,10 @@ IsUnsupported()
 IsPathEmpty()
 	{
 
-	# Input:
+	# Inputs:
 	#   $1 = directory to check if empty.
 
-	# Output:
+	# Outputs:
 	#   $? = 0 : true
 	#   $? = 1 : false or $1 does not exist.
 
@@ -3169,7 +3237,7 @@ CommitToLogWait()
 CommitSysLog()
 	{
 
-	# Input (global):
+	# Inputs: (global)
 	#   $QPKG_NAME
 
 	# Inputs:
@@ -3241,11 +3309,11 @@ Pluralise()
 CalcMilliDifference()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#	$1 = starttime in epoch nanoseconds
 	#	$2 = endtime in epoch nanoseconds
 
-	# Output:
+	# Outputs: (local)
 	#	stdout = difference in milliseconds
 
 	local start=${1:-0}
@@ -3294,7 +3362,7 @@ FormatAsThous()
 FormatAsDuration()
 	{
 
-	# Input:
+	# Inputs:
 	#	$1 = Duration in milliseconds.
 
 	if [[ ${1:-0} -lt 10000 ]]; then
@@ -3310,7 +3378,7 @@ FormatSecsToHoursMinutesSecs()
 
 	# http://stackoverflow.com/questions/12199631/convert-seconds-to-hours-minutes-seconds
 
-	# Input:
+	# Inputs:
 	#	$1 = a time in seconds to convert to `HHh:MMm:SSs`
 
 	((h=${1:-0}/3600))
@@ -3407,10 +3475,10 @@ ShowUnsupportedAction()
 CalcAdaptiveSeconds()
 	{
 
-	# Input:
+	# Inputs:
 	# 	$1 = Integer of base seconds (to suit 1m load average of 1.0 on a single-core CPU).
 
-	# Output:
+	# Outputs:
 	#   stdout = Integer of adapted seconds based-on present 1 minute load average. Maximum of 1800.
 
 	local a=$(GetSysLoad1MinAverage); a=${a/./}		# Convert to hundreds.
