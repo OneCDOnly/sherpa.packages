@@ -1619,6 +1619,41 @@ Executer()
 
 	}
 
+ShowEnabled()
+	{
+
+	DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is enabled."
+
+	}
+
+ShowDisabled()
+	{
+
+	DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled."
+
+	}
+
+ShowDisabledPrompt()
+	{
+
+	DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled. Please enable it first with: $0 enable"
+
+	}
+
+ShowEnableFailed()
+	{
+
+	DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG enable failed."
+
+	}
+
+ShowDisableFailed()
+	{
+
+	DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG disable failed."
+
+	}
+
 AddFileToDebug()
 	{
 
@@ -3618,9 +3653,9 @@ ProcessArgs()
 				/sbin/qpkg_service disable "$QPKG_NAME"
 
 				if IsNotQPKGEnabled; then
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") is disabled."
+					ShowDisabled
 				else
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") disable failed."
+					ShowDisableFailed
 					SetError
 				fi
 				;;
@@ -3644,9 +3679,9 @@ ProcessArgs()
 				/sbin/qpkg_service enable "$QPKG_NAME"
 
 				if IsQPKGEnabled; then
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") is enabled."
+					ShowEnabled
 				else
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") enable failed."
+					ShowEnableFailed
 					SetError
 				fi
 				;;
@@ -3702,12 +3737,12 @@ ProcessArgs()
 
 				SetServiceAction restart
 
-				if IsNotQPKGEnabled; then
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled. Please enable it first with: $0 enable"
-					SetError
-				else
+				if IsQPKGEnabled; then
 					SetTraps
 					StopQPKG && StartQPKG
+				else
+					ShowDisabledPrompt
+					SetError
 				fi
 				;;
 			?(--)restore?(-config))
@@ -3729,12 +3764,12 @@ ProcessArgs()
 
 				SetServiceAction start
 
-				if IsNotQPKGEnabled; then
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled. Please enable it first with: $0 enable"
-					SetError
-				else
+				if IsQPKGEnabled; then
 					SetTraps
 					StartQPKG
+				else
+					ShowDisabledPrompt
+					SetError
 				fi
 				;;
 			?(-)s|?(--)status)
