@@ -2994,6 +2994,13 @@ IsUnsupported()
 
 	}
 
+IsServiceResultInProgress()
+	{
+
+	[[ $service_result = in-progress ]]
+
+	}
+
 IsPathEmpty()
 	{
 
@@ -3511,6 +3518,15 @@ GetCPUCores()
 
 	}
 
+SetTraps()
+	{
+
+	trap CaughtSIGHUP SIGHUP
+	trap CaughtSIGINT SIGINT
+	trap CaughtEXIT EXIT
+
+	}
+
 CaughtSIGHUP()
 	{
 
@@ -3532,6 +3548,18 @@ CaughtSIGINT()
 	SetServiceResultAsAborted
 
 	exit
+
+	}
+
+CaughtEXIT()
+	{
+
+	trap - EXIT
+
+	if IsServiceResultInProgress; then
+		DisplayCommitToLog '* caught EXIT: abort.'
+		SetServiceResultAsAborted
+	fi
 
 	}
 
@@ -3557,6 +3585,7 @@ ProcessArgs()
 
 				if IsSupportBackup; then
 					SetServiceAction backup
+					SetTraps
 					StopQPKG
 					BackupConfig
 					IsQPKGEnabled && StartQPKG
@@ -3570,6 +3599,7 @@ ProcessArgs()
 
 				if IsSourcedOnline; then
 					SetServiceAction clean
+					SetTraps
 					StopQPKG
 					[[ $QPKG_NAME = nzbToMedia ]] && BackupConfig
 					CleanLocalRepo
@@ -3584,6 +3614,7 @@ ProcessArgs()
 				IsSU ||	exit
 
 				SetServiceAction disable
+				SetTraps
 				/sbin/qpkg_service disable "$QPKG_NAME"
 
 				if IsNotQPKGEnabled; then
@@ -3598,6 +3629,7 @@ ProcessArgs()
 
 				if IsSupportAutoUpdate; then
 					SetServiceAction disable-auto-update
+					SetTraps
 					DisableAutoUpdate
 				else
 					SetServiceAction unsupported
@@ -3608,6 +3640,7 @@ ProcessArgs()
 				IsSU ||	exit
 
 				SetServiceAction enable
+				SetTraps
 				/sbin/qpkg_service enable "$QPKG_NAME"
 
 				if IsQPKGEnabled; then
@@ -3622,6 +3655,7 @@ ProcessArgs()
 
 				if IsSupportAutoUpdate; then
 					SetServiceAction enable-auto-update
+					SetTraps
 					EnableAutoUpdate
 				else
 					SetServiceAction unsupported
@@ -3654,6 +3688,7 @@ ProcessArgs()
 
 				if IsSupportReset; then
 					SetServiceAction reset
+					SetTraps
 					StopQPKG
 					ResetConfig
 					IsQPKGEnabled && StartQPKG
@@ -3671,6 +3706,7 @@ ProcessArgs()
 					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled. Please enable it first with: $0 enable"
 					SetError
 				else
+					SetTraps
 					StopQPKG && StartQPKG
 				fi
 				;;
@@ -3679,6 +3715,7 @@ ProcessArgs()
 
 				if IsSupportBackup; then
 					SetServiceAction restore
+					SetTraps
 					StopQPKG
 					RestoreConfig
 					IsQPKGEnabled && StartQPKG
@@ -3696,6 +3733,7 @@ ProcessArgs()
 					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled. Please enable it first with: $0 enable"
 					SetError
 				else
+					SetTraps
 					StartQPKG
 				fi
 				;;
@@ -3707,6 +3745,7 @@ ProcessArgs()
 				IsSU ||	exit
 
 				SetServiceAction stop
+				SetTraps
 				StopQPKG
 				;;
 			uninstall)
@@ -3740,8 +3779,5 @@ ProcessArgs()
 	exit 0
 
 	}
-
-trap CaughtSIGHUP SIGHUP
-trap CaughtSIGINT SIGINT
 
 InitLibrary
