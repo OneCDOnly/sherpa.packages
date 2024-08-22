@@ -106,6 +106,68 @@
 pkg_post_install()
 	{
 
-	$CMD_SETCFG $QPKG_NAME Dependency Entware -f $SYS_QPKG_CONFIG_FILE
+	# Add 'Dependency' key to /etc/config/qpkg.conf for startup compatibility with QTS 5.2.0
+
+	# all arches										:Entware
+	# if NAS arch is arm64, armv7 (x41), x86-64 		:Unrar
+	# if NAS arch is armv5, x86 						:Par2
+	# if NAS arch is arm64, armv7 (x31 & x41), x86-64 	:Par2turbo
+
+	local -a a=(Entware)
+	local b=$(QpkgGetArch)
+
+	case $b in
+		a64|a41|i64)
+			a+=(Unrar)
+	esac
+
+	case $b in
+		a19|i86)
+			a+=(Par2)
+	esac
+
+	case $b in
+		a64|a31|a41|i64)
+			a+=(Par2turbo)
+	esac
+
+	[[ ${#a[@]} -gt 0 ]] && $CMD_SETCFG $QPKG_NAME Dependency "$(/bin/tr ' ' ':' <<< ${a[*]})" -f $SYS_QPKG_CONFIG_FILE
+
+	}
+QpkgGetArch()
+	{
+
+	# Translate arch from local NAS (QTS/QuTS) to sherpa notation.
+
+	local NAS_FIRMWARE_VER=$(/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf)
+
+	case $(/bin/uname -m) in
+		x86_64)
+			[[ ${NAS_FIRMWARE_VER//.} -ge 430 ]] && printf i64 || printf i86
+			;;
+		i686|x86)
+			printf i86
+			;;
+		armv5tel)
+			printf a19
+			;;
+		armv7l)
+			case $(/sbin/getcfg '' Platform -d undefined -f /etc/platform.conf) in
+				ARM_MS)
+					printf a31
+					;;
+				ARM_AL)
+					printf a41
+					;;
+				*)
+					printf none
+			esac
+			;;
+		aarch64)
+			printf a64
+			;;
+		*)
+			printf none
+	esac
 
 	}

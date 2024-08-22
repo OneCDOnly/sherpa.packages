@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240822'
+readonly SERVICE_LIB_VERSION='240823'
 InitLibrary()
 {
 IsQNAP || exit
@@ -477,39 +477,30 @@ if [[ -n $module_exclusions ]];then
 re="^${module_exclusions// /\$\|^}$"
 fi
 if [[ -n $re ]];then
-for target in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile;do
-if [[ -e $target ]];then
+for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile;do
+if [[ -e $a ]];then
 if [[ -e /opt/bin/sed ]];then
-cmd="/opt/bin/sed -i '/${re}/Id' $target"
+cmd="/opt/bin/sed -i '/${re}/Id' $a"
 else
-cmd="/bin/sed -i '/${re}/d' $target"
+cmd="/bin/sed -i '/${re}/d' $a"
 fi
-DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$target")'" "$cmd" log:failure-only
+DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only
 fi
 done
 fi
 fi
-for target in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile;do
-if [[ -e $target ]];then
-DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$target")'" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip -r $target" log:failure-only
+for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile;do
+if [[ -e $a ]];then
+DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$a")'" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip -r $a" log:failure-only
 if [[ $? -gt 0 && $silence_pypi_errors = false ]];then
 CommitWarnToSysLog '= PyPI module installation failed.'
 fi
 no_pips_installed=false
 fi
 done
-if [[ $no_pips_installed = true ]];then
-if [[ -e $qpkg_repo_path/setup.py || -e $pyproject_pathfile ]];then
-DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$target")'" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip $qpkg_repo_path" log:failure-only
-if [[ $? -gt 0 && $silence_pypi_errors = false ]];then
-CommitWarnToSysLog 'PyPI module installation failed.'
-fi
-no_pips_installed=false
-fi
-fi
 if [[ -e $rename_modules_pathfile ]];then
-for module in $(StripComments "$(<"$rename_modules_pathfile")");do
-RenameSharedObjectFile "$module"
+for a in $(StripComments "$(<"$rename_modules_pathfile")");do
+RenameSharedObjectFile "$a"
 done
 fi
 if IsSupportGetAppVersion;then
@@ -913,6 +904,26 @@ fi
 fi
 [[ -e $LOG_PATHFILE ]] && rm -f "$LOG_PATHFILE"
 return $z
+}
+ShowEnabled()
+{
+DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is enabled."
+}
+ShowDisabled()
+{
+DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled."
+}
+ShowDisabledPrompt()
+{
+DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled. Please enable it first with: $0 enable"
+}
+ShowEnableFailed()
+{
+DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG enable failed."
+}
+ShowDisableFailed()
+{
+DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG disable failed."
 }
 AddFileToDebug()
 {
@@ -1660,6 +1671,10 @@ IsUnsupported()
 {
 [[ $service_action = unsupported ]]
 }
+IsServiceResultInProgress()
+{
+[[ $service_result = in-progress ]]
+}
 IsPathEmpty()
 {
 local a=${1:-}
@@ -1672,8 +1687,8 @@ IsNotPathEmpty()
 }
 ShowAsError()
 {
-local capitalised=$(Capitalise "${1:-}")
-Display "$(TextBrightRed derp): $capitalised"
+local a=$(Capitalise "${1:-}")
+Display "$(TextBrightRed derp): $a"
 } >&2
 DisplayCommitToLog()
 {
@@ -1754,12 +1769,12 @@ DisplayAndCommitActionToLog()
 starttime=$(/bin/date +%s%N)
 local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date)"
 msg="$(/bin/tr -s ' ' <<< "$msg") "
-local target=DisplayCommitToLog
+local a=DisplayCommitToLog
 if IsNotStatus && IsNotLog && IsNotNone;then
-IsUnsupported && target=CommitToLog
+IsUnsupported && a=CommitToLog
 CommitToLog '•'
-$target "$(TextInverse "$msg")"
-$target "- package: $QPKG_VERSION, service: $SERVICE_SCRIPT_VERSION, library: $SERVICE_LIB_VERSION"
+$a "$(TextInverse "$msg")"
+$a "- package: $QPKG_VERSION, service: $SERVICE_SCRIPT_VERSION, library: $SERVICE_LIB_VERSION"
 fi
 }
 DisplayAndCommitResultToLog()
@@ -1767,18 +1782,18 @@ DisplayAndCommitResultToLog()
 [[ $service_action = unspecified ]] && return
 local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date), result: $service_result, elapsed time: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(/bin/date +%s%N)")")"
 msg="$(/bin/tr -s ' ' <<< "$msg") "
-local target=DisplayCommitToLog
+local a=DisplayCommitToLog
 if IsNotStatus && IsNotLog && IsNotNone;then
-IsUnsupported && target=CommitToLog
+IsUnsupported && a=CommitToLog
 case $service_result in
 ok)
-$target "$(TextBlackOnGreen "$msg")"
+$a "$(TextBlackOnGreen "$msg")"
 ;;
 failed)
-$target "$(TextBlackOnRed "$msg")"
+$a "$(TextBlackOnRed "$msg")"
 ;;
 *)
-$target "$(TextBlackOnYellow "$msg")"
+$a "$(TextBlackOnYellow "$msg")"
 esac
 fi
 }
@@ -1956,6 +1971,12 @@ local a=$(/bin/grep -c '^processor' /proc/cpuinfo)
 [[ $a -eq 0 ]] && a=$(/bin/grep -c '^Processor' /proc/cpuinfo)
 printf '%s' "$a"
 }
+SetTraps()
+{
+trap CaughtSIGHUP SIGHUP
+trap CaughtSIGINT SIGINT
+trap CaughtEXIT EXIT
+}
 CaughtSIGHUP()
 {
 trap - SIGHUP
@@ -1969,6 +1990,14 @@ trap - SIGINT
 DisplayCommitToLog '* caught SIGINT: abort.'
 SetServiceResultAsAborted
 exit
+}
+CaughtEXIT()
+{
+trap - EXIT
+if IsServiceResultInProgress;then
+DisplayCommitToLog '* caught EXIT: abort.'
+SetServiceResultAsAborted
+fi
 }
 ProcessArgs()
 {
@@ -1987,6 +2016,7 @@ case $user_arg in
 IsSU ||	exit
 if IsSupportBackup;then
 SetServiceAction backup
+SetTraps
 StopQPKG
 BackupConfig
 IsQPKGEnabled && StartQPKG
@@ -1999,6 +2029,7 @@ fi
 IsSU ||	exit
 if IsSourcedOnline;then
 SetServiceAction clean
+SetTraps
 StopQPKG
 [[ $QPKG_NAME = nzbToMedia ]] && BackupConfig
 CleanLocalRepo
@@ -2012,11 +2043,12 @@ fi
 ?(--)disable)
 IsSU ||	exit
 SetServiceAction disable
+SetTraps
 /sbin/qpkg_service disable "$QPKG_NAME"
 if IsNotQPKGEnabled;then
-DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") is disabled."
+ShowDisabled
 else
-DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") disable failed."
+ShowDisableFailed
 SetError
 fi
 ;;
@@ -2024,6 +2056,7 @@ fi
 IsSU ||	exit
 if IsSupportAutoUpdate;then
 SetServiceAction disable-auto-update
+SetTraps
 DisableAutoUpdate
 else
 SetServiceAction unsupported
@@ -2033,11 +2066,12 @@ fi
 ?(--)enable)
 IsSU ||	exit
 SetServiceAction enable
+SetTraps
 /sbin/qpkg_service enable "$QPKG_NAME"
 if IsQPKGEnabled;then
-DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") is enabled."
+ShowEnabled
 else
-DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") enable failed."
+ShowEnableFailed
 SetError
 fi
 ;;
@@ -2045,6 +2079,7 @@ fi
 IsSU ||	exit
 if IsSupportAutoUpdate;then
 SetServiceAction enable-auto-update
+SetTraps
 EnableAutoUpdate
 else
 SetServiceAction unsupported
@@ -2075,6 +2110,7 @@ fi
 IsSU ||	exit
 if IsSupportReset;then
 SetServiceAction reset
+SetTraps
 StopQPKG
 ResetConfig
 IsQPKGEnabled && StartQPKG
@@ -2086,17 +2122,19 @@ fi
 ?(-)r|?(--)restart)
 IsSU ||	exit
 SetServiceAction restart
-if IsNotQPKGEnabled;then
-DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled. Please enable it first with: $0 enable"
-SetError
-else
+if IsQPKGEnabled;then
+SetTraps
 StopQPKG && StartQPKG
+else
+ShowDisabledPrompt
+SetError
 fi
 ;;
 ?(--)restore?(-config))
 IsSU ||	exit
 if IsSupportBackup;then
 SetServiceAction restore
+SetTraps
 StopQPKG
 RestoreConfig
 IsQPKGEnabled && StartQPKG
@@ -2108,11 +2146,12 @@ fi
 ?(--)start)
 IsSU ||	exit
 SetServiceAction start
-if IsNotQPKGEnabled;then
-DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled. Please enable it first with: $0 enable"
-SetError
-else
+if IsQPKGEnabled;then
+SetTraps
 StartQPKG
+else
+ShowDisabledPrompt
+SetError
 fi
 ;;
 ?(-)s|?(--)status)
@@ -2122,6 +2161,7 @@ StatusQPKG
 ?(--)stop)
 IsSU ||	exit
 SetServiceAction stop
+SetTraps
 StopQPKG
 ;;
 uninstall)
@@ -2151,6 +2191,4 @@ fi
 fi
 exit 0
 }
-trap CaughtSIGHUP SIGHUP
-trap CaughtSIGINT SIGINT
 InitLibrary

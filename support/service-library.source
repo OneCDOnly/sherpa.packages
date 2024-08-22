@@ -445,6 +445,11 @@ StatusQPKGLibrary()
 CreateUserlinkToExec()
 	{
 
+	# Inputs: (global)
+	#	$launcher_pathfile
+	#	$QPKG_NAME
+	#	$userlink_pathfile
+
 	if [[ $userlink_pathfile != undefined ]]; then
 		if [[ ! -L $userlink_pathfile && -e $launcher_pathfile ]]; then
 			ln -s "$launcher_pathfile" "$userlink_pathfile"
@@ -467,6 +472,9 @@ CreateUserlinkToExec()
 
 RemoveUserlinkToExec()
 	{
+
+	# Inputs: (global)
+	#	$userlink_pathfile
 
 	if [[ $userlink_pathfile != undefined ]]; then
 		if [[ -L $userlink_pathfile ]]; then
@@ -625,6 +633,7 @@ RefreshReleasePackageFiles()
 
 	# Inputs: (global)
 	#	$compare_release_filename
+	#	$qpkg_repo_path
 	#	$QPKG_TEMP_PATH
 	#	$remote_arch
 	#	$remote_url
@@ -790,6 +799,16 @@ ShowHelp()
 InstallPythonPackages()
 	{
 
+	# Inputs: (global)
+	#	$app_version
+	#	$APP_VERSION_STORE_PATHFILE
+	#	$install_pip_deps
+	#	$new_env
+	#	$QPKG_NAME
+	#	$qpkg_repo_path
+	#	$silence_pypi_errors
+	#	$venv_pip_pathfile
+
 	IsVirtualPythonEnv || return 0
 
 	local a=''
@@ -840,7 +859,7 @@ InstallPythonPackages()
 	[[ -e $default_recommended_modules_pathfile ]] && recommended_modules_pathfile=$default_recommended_modules_pathfile
 
 	# Must remove these modules from repo txt files, and use the ones installed via `opkg` instead (if-available).
-	# If not, `pip` will attempt to compile these, which fails on various CPUs.
+	# If not, `pip` will attempt to compile these, which fails on various arches.
 
 	if [[ -e $excluded_modules_pathfile ]]; then
 		module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$excluded_modules_pathfile")")")
@@ -856,15 +875,15 @@ InstallPythonPackages()
 		fi
 
 		if [[ -n $re ]]; then
-			for target in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile; do
-				if [[ -e $target ]]; then
+			for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile; do
+				if [[ -e $a ]]; then
 					if [[ -e /opt/bin/sed ]]; then
-						cmd="/opt/bin/sed -i '/${re}/Id' $target"		# Perform case-insensitive matching only if GNU `sed` exists.
+						cmd="/opt/bin/sed -i '/${re}/Id' $a"	# Perform case-insensitive matching only if GNU `sed` exists.
 					else
-						cmd="/bin/sed -i '/${re}/d' $target"			# Eh, hope for the best.
+						cmd="/bin/sed -i '/${re}/d' $a"			# Eh, hope for the best.
 					fi
 
-					DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$target")'" "$cmd" log:failure-only
+					DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only
 				fi
 			done
 		fi
@@ -872,9 +891,9 @@ InstallPythonPackages()
 
 	# Install PyPI modules.
 
-	for target in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile; do
-		if [[ -e $target ]]; then
-			DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$target")'" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip -r $target" log:failure-only
+	for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile; do
+		if [[ -e $a ]]; then
+			DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$a")'" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip -r $a" log:failure-only
 
 			if [[ $? -gt 0 && $silence_pypi_errors = false ]]; then
 				CommitWarnToSysLog '= PyPI module installation failed.'
@@ -884,25 +903,25 @@ InstallPythonPackages()
 		fi
 	done
 
-	# Fallback to general installation method.
+	# Fallback to general installation method. TASK: this bit needs review, not sure it ever executes.
 
-	if [[ $no_pips_installed = true ]]; then
-		if [[ -e $qpkg_repo_path/setup.py || -e $pyproject_pathfile ]]; then
-			DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$target")'" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip $qpkg_repo_path" log:failure-only
-
-			if [[ $? -gt 0 && $silence_pypi_errors = false ]]; then
-				CommitWarnToSysLog 'PyPI module installation failed.'
-			fi
-
-			no_pips_installed=false
-		fi
-	fi
+# 	if [[ $no_pips_installed = true ]]; then
+# 		if [[ -e $qpkg_repo_path/setup.py || -e $pyproject_pathfile ]]; then
+# 			DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$a")'" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip $qpkg_repo_path" log:failure-only
+#
+# 			if [[ $? -gt 0 && $silence_pypi_errors = false ]]; then
+# 				CommitWarnToSysLog 'PyPI module installation failed.'
+# 			fi
+#
+# 			no_pips_installed=false
+# 		fi
+# 	fi
 
 	# KLUDGE: `manytolinux2014` builds are problematic in QTS, so rename these locally.
 
 	if [[ -e $rename_modules_pathfile ]]; then
-		for module in $(StripComments "$(<"$rename_modules_pathfile")"); do
-			RenameSharedObjectFile "$module"
+		for a in $(StripComments "$(<"$rename_modules_pathfile")"); do
+			RenameSharedObjectFile "$a"
 		done
 	fi
 
@@ -1199,6 +1218,7 @@ CleanLocalRepo()
 	#   $APP_VERSION_STORE_PATHFILE
 	#   $pip_cache_path
 	#   $QPKG_NAME
+	#	$QPKG_PATH
 	#   $qpkg_repo_path
 	#   $QPKG_TEMP_PATH
 	#   $venv_path
@@ -1253,6 +1273,7 @@ RefreshPidFile()
 	#   $daemon_check_pathfile
 	#   $daemon_exec_pathfile
 	#   $daemon_pid_pathfile
+	#	$daemon_script_pathfile
 
 	# Outputs:
 	#   stdout > $daemon_pid_pathfile
@@ -1376,7 +1397,7 @@ WaitForDaemonPid()
 	# Inputs: (global)
 	#   $daemon_pid_pathfile
 
-	# Outputs:
+	# Outputs: (local)
 	#   $? = 0 (file was found) or 1 (file not found: timeout)
 
 	local -i a=0
@@ -1427,7 +1448,7 @@ WaitForFileToAppear()
 	#   $1 = pathfilename to watch-for.
 	#   $2 (optional) = timeout in seconds - default 30
 
-	# Outputs:
+	# Outputs: (local)
 	#   $? = 0 : file was found
 	#   $? = 1 : file not found/timeout
 
@@ -1476,6 +1497,9 @@ WaitForFileToAppear()
 ViewLog()
 	{
 
+	# Inputs: (global)
+	#   $SERVICE_LOG_PATHFILE
+
 	if [[ -e $SERVICE_LOG_PATHFILE ]]; then
 		if [[ -e /opt/bin/less ]]; then
 			LESSSECURE=1 /opt/bin/less +G --quit-on-intr --tilde --LINE-NUMBERS --RAW-CONTROL-CHARS --prompt ' use arrow-keys to scroll up-down left-right, press Q to quit' "$SERVICE_LOG_PATHFILE"
@@ -1495,6 +1519,10 @@ ViewLog()
 EnsureConfigFileExists()
 	{
 
+	# Inputs: (global)
+	#   $qpkg_ini_default_pathfile
+	#   $qpkg_ini_pathfile
+
 	IsNotSupportReset && return
 
 	if IsNotConfigFound && IsDefaultConfigFound; then
@@ -1507,6 +1535,10 @@ EnsureConfigFileExists()
 SaveAppVersion()
 	{
 
+	# Inputs: (global)
+	#   $app_version
+	#   $APP_VERSION_STORE_PATHFILE
+
 	[[ $APP_VERSION_STORE_PATHFILE != undefined ]] && echo "$app_version" > "$APP_VERSION_STORE_PATHFILE"
 
 	}
@@ -1517,11 +1549,14 @@ DisplayRunAndLog()
 	# Run a commandstring with a summarised description, log the results, and show onscreen if required.
 	# This function is just a fancy wrapper for Executer()
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = Processing message.
 	#   $2 = Commandstring to execute.
 	#   $3 (optional) = 'log:failure-only' - if specified, stdout & stderr are only recorded in the specified log if the command failed. Default is to always record stdout & stderr.
 	#   $4 (optional) = true/false - if true, run command in a `screen` session.
+
+	# Inputs: (global)
+	#   $debug
 
 	local -r LOG_PATHFILE=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 	local -i z=0
@@ -1569,6 +1604,9 @@ Executer()
 
 	# Inputs: (global)
 	#	$debug
+	#	$QPKG_NAME
+	#	$SCREEN_CONF_PATHFILE
+	#	$SERVICE_SCREEN_LOG_PATHFILE
 
 	# Outputs:
 	#   stdout : commandstring stdout and stderr if script is in 'debug' mode.
@@ -1594,7 +1632,7 @@ Executer()
 		Display
 		Display "{ exec: '$1'"
 		eval "$1 > >(/usr/bin/tee $LOG_PATHFILE) 2>&1"		# NOTE: 'tee' buffers stdout here.
-		z=${PIPESTATUS[0]}									# must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
+		z=${PIPESTATUS[0]}									# Must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
 	else
 		(eval "$1" > "$LOG_PATHFILE" 2>&1)					# Run in a subshell to suppress "Terminated" message later.
 		z=$?
@@ -1619,17 +1657,61 @@ Executer()
 
 	}
 
+ShowEnabled()
+	{
+
+	DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is enabled."
+
+	}
+
+ShowDisabled()
+	{
+
+	DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled."
+
+	}
+
+ShowDisabledPrompt()
+	{
+
+	DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled. Please enable it first with: $0 enable"
+
+	}
+
+ShowEnableFailed()
+	{
+
+	DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG enable failed."
+
+	}
+
+ShowDisableFailed()
+	{
+
+	DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG disable failed."
+
+	}
+
 AddFileToDebug()
 	{
 
 	# Add the contents of specified pathfile $1 to the runtime log.
+
+	# Inputs: (local)
+	#   $1 = pathfilename of log to add.
+
+	# Inputs: (global)
+	#   $debug
+
+	# Outputs: (global)
+	#   $debug
 
 	[[ -e ${1:?no filename supplied} ]] || return
 
 	local a=''
 	local debug_was_set=$debug
 
-	# Prevent external log contents appearing onscreen again, as they have already been seen "live".
+	# Prevent external log contents appearing on-screen again, as they have already been seen "live".
 	debug=false
 
 	DebugAsLog ''
@@ -1715,7 +1797,7 @@ WriteToLog()
 	# Inputs: (global)
 	#	$SERVICE_LOG_PATHFILE
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = pass/fail
 	#   $2 = message
 
@@ -1895,6 +1977,18 @@ RenameSharedObjectFile()
 GetOriginalModuleSOFilename()
 	{
 
+	# Inputs: (local)
+	#	$1 = Python module name
+
+	# Inputs: (global)
+	#	$pyver
+
+	# Outputs: (local)
+	#	stdout = filename
+
+	# Outputs: (global)
+	#	$pyver
+
 	[[ -z $pyver ]] && pyver=$(GetPythonVer)
 	[[ -n ${1:-} ]] && echo "$1.cpython-$pyver-$(/bin/uname -m)-linux-gnu.so"
 
@@ -1903,6 +1997,18 @@ GetOriginalModuleSOFilename()
 GetFixedModuleSOFilename()
 	{
 
+	# Inputs: (local)
+	#	$1 = Python module name
+
+	# Inputs: (global)
+	#	$pyver
+
+	# Outputs: (local)
+	#	stdout = filename
+
+	# Outputs: (global)
+	#	$pyver
+
 	[[ -z $pyver ]] && pyver=$(GetPythonVer)
 	[[ -n ${1:-} ]] && echo "$1.cpython-$pyver.so"
 
@@ -1910,6 +2016,19 @@ GetFixedModuleSOFilename()
 
 GetModulePath()
 	{
+
+	# Inputs: (local)
+	#	$1 = Python module name
+
+	# Inputs: (global)
+	#	$pyver
+	#	$venv_path
+
+	# Outputs: (local)
+	#	stdout = path
+
+	# Outputs: (global)
+	#	$pyver
 
 	[[ -z $pyver ]] && pyver=$(GetPythonVer)
 	echo "$venv_path/lib/python${pyver:0:1}.${pyver:1:2}/site-packages"
@@ -1947,7 +2066,7 @@ parse_yaml()
 IsQNAP()
 	{
 
-	# Outputs:
+	# Outputs: (local)
 	#   $? = 0 : this is a QNAP NAS
 	#   $? = 1 : not a QNAP
 
@@ -1967,7 +2086,10 @@ IsQPKGInstalled()
 	# Inputs: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
-	# Outputs:
+	# Inputs: (global)
+	#   $QPKG_NAME
+
+	# Outputs: (local)
 	#   $? = 0 : true
 	#   $? = 1 : false
 
@@ -1977,6 +2099,16 @@ IsQPKGInstalled()
 
 IsNotQPKGInstalled()
 	{
+
+	# Inputs: (local)
+	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
+
+	# Inputs: (global)
+	#   $QPKG_NAME
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	! IsQPKGInstalled "${1:-$QPKG_NAME}"
 
@@ -2002,7 +2134,10 @@ IsQPKGEnabled()
 	# Inputs: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
-	# Outputs:
+	# Inputs: (global)
+	#   $QPKG_NAME
+
+	# Outputs: (local)
 	#   $? = 0 : true
 	#   $? = 1 : false
 
@@ -2016,7 +2151,10 @@ IsNotQPKGEnabled()
 	# Inputs: (local)
 	#   $1 (optional) = package name to check. If unspecified, default is $QPKG_NAME
 
-	# Outputs:
+	# Inputs: (global)
+	#   $QPKG_NAME
+
+	# Outputs: (local)
 	#   $? = 0 : true
 	#   $? = 1 : false
 
@@ -2026,6 +2164,13 @@ IsNotQPKGEnabled()
 
 IsSupportBackup()
 	{
+
+	# Inputs: (global)
+	#   $qpkg_backup_pathfile
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	[[ $qpkg_backup_pathfile != undefined ]]
 
@@ -2041,6 +2186,13 @@ IsNotSupportBackup()
 IsSupportReset()
 	{
 
+	# Inputs: (global)
+	#   $qpkg_ini_pathfile
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
+
 	[[ $qpkg_ini_pathfile != undefined ]]
 
 	}
@@ -2054,6 +2206,14 @@ IsNotSupportReset()
 
 IsSupportActions()
 	{
+
+	# Inputs: (global)
+	#   $SERVICE_ACTION_PATHFILE
+	#   $SERVICE_RESULT_PATHFILE
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	[[ -e $SERVICE_ACTION_PATHFILE || -e $SERVICE_RESULT_PATHFILE ]]
 
@@ -2069,6 +2229,14 @@ IsNotSupportActions()
 IsSupportGetAppVersion()
 	{
 
+	# Inputs: (global)
+	#   $get_app_version_cmd
+	#   $app_version_pathfile
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
+
 	[[ $get_app_version_cmd != undefined && $app_version_pathfile != undefined ]]
 
 	}
@@ -2082,6 +2250,13 @@ IsNotSupportGetAppVersion()
 
 IsVirtualPythonEnv()
 	{
+
+	# Inputs: (global)
+	#   $venv_path
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	[[ $venv_path != undefined ]]
 
@@ -2099,6 +2274,15 @@ IsGitApp()
 
 	# Is this application pulled from an online source with `git`?
 
+	# Inputs: (global)
+	#   $source_git_url
+	#   $source_git_branch
+	#   $qpkg_repo_path
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
+
 	[[ $source_git_url != undefined && $source_git_branch != undefined && $qpkg_repo_path != undefined ]]
 
 	}
@@ -2112,6 +2296,13 @@ IsNotGitApp()
 
 IsUsePipCache()
 	{
+
+	# Inputs: (global)
+	#   $pip_cache_path
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	[[ $pip_cache_path != undefined ]]
 
@@ -2127,6 +2318,13 @@ IsNotUsePipCache()
 IsOnlineReleasePackage()
 	{
 
+	# Inputs: (global)
+	#   $remote_url
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
+
 	[[ $remote_url != undefined ]]
 
 	}
@@ -2140,6 +2338,13 @@ IsNotOnlinePackageArchive()
 
 IsSupportAutoUpdate()
 	{
+
+	# Inputs: (global)
+	#   $can_restart_to_update
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	[[ $can_restart_to_update = true ]]
 
@@ -2169,6 +2374,13 @@ IsNotSourcedOnline()
 IsUseTemp()
 	{
 
+	# Inputs: (global)
+	#   $QPKG_TEMP_PATH
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
+
 	[[ $QPKG_TEMP_PATH != undefined ]]
 
 	}
@@ -2182,6 +2394,13 @@ IsNotUseTemp()
 
 IsSSLEnabled()
 	{
+
+	# Inputs: (global)
+	#   $get_ui_port_secure_enabled_test_cmd
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	eval "$get_ui_port_secure_enabled_test_cmd"
 
@@ -2197,6 +2416,13 @@ IsNotSSLEnabled()
 IsDaemon()
 	{
 
+	# Inputs: (global)
+	#   $daemon_exec_pathfile
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
+
 	[[ $daemon_exec_pathfile != undefined ]]
 
 	}
@@ -2210,6 +2436,13 @@ IsNotDaemon()
 
 IsDaemonCheck()
 	{
+
+	# Inputs: (global)
+	#   $daemon_check_pathfile
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	[[ $daemon_check_pathfile != undefined ]]
 
@@ -2225,8 +2458,12 @@ IsNotDaemonCheck()
 IsDaemonActive()
 	{
 
-	# $? = 0 : $daemon_exec_pathfile is in memory
-	# $? = 1 : $daemon_exec_pathfile is not in memory
+	# Inputs: (global)
+	#   $daemon_pid_pathfile
+
+	# Outputs: (local)
+	# 	$? = 0 : daemon is in memory
+	# 	$? = 1 : daemon is not in memory
 
 	if IsDaemonProcessActive; then
 		DisplayCommitToLog "- daemon PID: '$(<"$daemon_pid_pathfile")'"
@@ -2249,10 +2486,11 @@ IsDaemonProcessActive()
 	{
 
 	# Inputs: (global)
+	#   $daemon_check_pathfile
 	#   $daemon_exec_pathfile
 	#   $daemon_pid_pathfile
 
-	# Outputs:
+	# Outputs: (local)
 	#   $? = 0 : $daemon_exec_pathfile is in memory
 	#   $? = 1 : $daemon_exec_pathfile is not in memory
 
@@ -2271,8 +2509,12 @@ IsDaemonProcessActive()
 IsSysFilePresent()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = pathfilename to check.
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	if [[ -z ${1:?pathfilename null} ]]; then
 		SetError; return 1
@@ -2291,8 +2533,12 @@ IsSysFilePresent()
 IsNotSysFilePresent()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = pathfilename to check.
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	! IsSysFilePresent "${1:?pathfilename null}"
 
@@ -2301,10 +2547,10 @@ IsNotSysFilePresent()
 IsPortAvailable()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = port to check.
 
-	# Outputs:
+	# Outputs: (local)
 	#   $? = 0 : available.
 	#   $? = 1 : already used.
 
@@ -2320,10 +2566,10 @@ IsPortAvailable()
 IsNotPortAvailable()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = port to check.
 
-	# Outputs:
+	# Outputs: (local)
 	#   $? = 1 : port available.
 	#   $? = 0 : already used.
 
@@ -2334,10 +2580,13 @@ IsNotPortAvailable()
 IsPortResponds()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = port to check.
 
-	# Outputs:
+	# Inputs: (global)
+	#   $port_check_timeout_seconds
+
+	# Outputs: (local)
 	#   $? = 0 : response received.
 	#   $? = 1 : not OK.
 
@@ -2396,10 +2645,13 @@ IsPortResponds()
 IsPortSecureResponds()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = secure port to check.
 
-	# Outputs:
+	# Inputs: (global)
+	#   $port_check_timeout_seconds
+
+	# Outputs: (local)
 	#   $? = 0 : response received.
 	#   $? = 1 : not OK or secure port unspecified.
 
@@ -2464,6 +2716,13 @@ IsConfigFound()
 
 	# Is there an application configuration file?
 
+	# Inputs: (global)
+	#   $qpkg_ini_pathfile
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
+
 	[[ $qpkg_ini_pathfile != undefined && -e $qpkg_ini_pathfile ]]
 
 	}
@@ -2479,6 +2738,13 @@ IsDefaultConfigFound()
 	{
 
 	# Is there a default application configuration file?
+
+	# Inputs: (global)
+	#   $qpkg_ini_default_pathfile
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	[[ $qpkg_ini_default_pathfile != undefined && -e $qpkg_ini_default_pathfile ]]
 
@@ -2496,6 +2762,13 @@ IsVirtualPythonEnvExist()
 
 	# Is there a virtual Python environment?
 
+	# Inputs: (global)
+	#   $venv_path
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
+
 	[[ -e $venv_path/bin/activate ]]
 
 	}
@@ -2510,6 +2783,13 @@ IsNotVirtualPythonEnvExist()
 OSIsSupportSecureDownload()
 	{
 
+	# Inputs: (global)
+	#   $NAS_FIRMWARE_VERSION
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
+
 	[[ ${NAS_FIRMWARE_VERSION//.} -ge 500 ]]
 
 	}
@@ -2519,8 +2799,12 @@ IsSiteUp()
 
 	# Test if remote site is reachable.
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = URL to query.
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	[[ -n $1 && $1 != undefined ]] || return
 
@@ -2544,14 +2828,14 @@ RequestLatestReleaseFilename()
 
 	# Request latest release filename from remote site.
 
-	# Inputs: (global)
-	#	$curl_insecure_arg
-
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = URL to check.
 	#   $2 (optional) = arch to match.
 
-	# Outputs:
+	# Inputs: (global)
+	#	$curl_insecure_arg
+
+	# Outputs: (local)
 	#   stdout = filename.
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
@@ -2571,14 +2855,14 @@ RequestLatestReleaseURL()
 
 	# Request latest release URL from remote site.
 
-	# Inputs: (global)
-	#	$curl_insecure_arg
-
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = URL to check.
 	#   $2 (optional) = arch to match.
 
-	# Outputs:
+	# Inputs: (global)
+	#	$curl_insecure_arg
+
+	# Outputs: (local)
 	#   stdout = URL.
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
@@ -2598,13 +2882,13 @@ DownloadReleasePackage()
 
 	# Request specific release filename from remote site.
 
+	# Inputs: (local)
+	#   $1 = URL of the source release package.
+	#	$2 = pathfilename to save the release package to.
+
 	# Inputs: (global)
 	#	$curl_insecure_arg
 	#	$debug
-
-	# Inputs:
-	#   $1 = URL of the source release package.
-	#	$2 = pathfilename to save the release package to.
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 	[[ -n ${2:-} && ${2:-} != undefined ]] || return
@@ -2631,14 +2915,14 @@ DownloadReleasePackage()
 ExtractReleasePackage()
 	{
 
+	# Inputs: (local)
+	#	$1 = pathfilename of the release package to process.
+	#   $2 (optional) = release package name ref pathfilename.
+
 	# Inputs: (global)
 	#	$compare_release_filename
 	#	$debug
 	#	$qpkg_repo_path
-
-	# Inputs:
-	#	$1 = pathfilename of the release package to process.
-	#   $2 (optional) = release package name ref pathfilename.
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 
@@ -2994,13 +3278,20 @@ IsUnsupported()
 
 	}
 
+IsServiceResultInProgress()
+	{
+
+	[[ $service_result = in-progress ]]
+
+	}
+
 IsPathEmpty()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = directory to check if empty.
 
-	# Outputs:
+	# Outputs: (local)
 	#   $? = 0 : true
 	#   $? = 1 : false or $1 does not exist.
 
@@ -3024,9 +3315,9 @@ ShowAsError()
 
 	# fatal error
 
-	local capitalised=$(Capitalise "${1:-}")
+	local a=$(Capitalise "${1:-}")
 
-	Display "$(TextBrightRed derp): $capitalised"
+	Display "$(TextBrightRed derp): $a"
 
 	} >&2
 
@@ -3152,19 +3443,28 @@ DisplayWait()
 DisplayAndCommitActionToLog()
 	{
 
+	# Inputs: (global)
+	#   $QPKG_VERSION
+	#   $service_action
+	#   $SERVICE_LIB_VERSION
+	#   $SERVICE_SCRIPT_VERSION
+
+	# Outputs: (global)
+	#   $starttime
+
 	[[ $service_action = unspecified ]] && return
 
 	starttime=$(/bin/date +%s%N)
 	local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date)"
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
-	local target=DisplayCommitToLog
+	local a=DisplayCommitToLog
 
 	if IsNotStatus && IsNotLog && IsNotNone; then
-		IsUnsupported && target=CommitToLog
+		IsUnsupported && a=CommitToLog
 		CommitToLog '•'
 
-		$target "$(TextInverse "$msg")"
-		$target "- package: $QPKG_VERSION, service: $SERVICE_SCRIPT_VERSION, library: $SERVICE_LIB_VERSION"
+		$a "$(TextInverse "$msg")"
+		$a "- package: $QPKG_VERSION, service: $SERVICE_SCRIPT_VERSION, library: $SERVICE_LIB_VERSION"
 	fi
 
 	}
@@ -3172,24 +3472,29 @@ DisplayAndCommitActionToLog()
 DisplayAndCommitResultToLog()
 	{
 
+	# Inputs: (global)
+	#   $service_action
+	#   $service_result
+	#   $starttime
+
 	[[ $service_action = unspecified ]] && return
 
 	local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date), result: $service_result, elapsed time: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(/bin/date +%s%N)")")"
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
-	local target=DisplayCommitToLog
+	local a=DisplayCommitToLog
 
 	if IsNotStatus && IsNotLog && IsNotNone; then
-		IsUnsupported && target=CommitToLog
+		IsUnsupported && a=CommitToLog
 
 		case $service_result in
 			ok)
-				$target "$(TextBlackOnGreen "$msg")"
+				$a "$(TextBlackOnGreen "$msg")"
 				;;
 			failed)
-				$target "$(TextBlackOnRed "$msg")"
+				$a "$(TextBlackOnRed "$msg")"
 				;;
 			*)
-				$target "$(TextBlackOnYellow "$msg")"
+				$a "$(TextBlackOnYellow "$msg")"
 		esac
 	fi
 
@@ -3240,12 +3545,12 @@ CommitSysLog()
 	# Inputs: (global)
 	#   $QPKG_NAME
 
-	# Inputs:
+	# Inputs: (local)
 	#   $1 = message to append to QTS system log
 	#   $2 = event type:
-	#	 1 : Error
-	#	 2 : Warning
-	#	 4 : Information
+	#	 	1 : Error
+	#	 	2 : Warning
+	#		4 : Information
 
 	if IsNotStatus && IsNotLog && IsNotNone; then
 		if [[ -z ${1:-} || -z ${2:-} ]]; then
@@ -3331,7 +3636,11 @@ FormatAsThous()
 	# A string-based thousands-group formatter totally unreliant on locale.
 	# Why? Because builtin `printf` in 32b ARM QTS versions doesn't follow locale. ¯\_(ツ)_/¯
 
-	# $1 = Integer value.
+	# Inputs: (local)
+	# 	$1 = Integer value.
+
+	# Outputs: (local)
+	#	stdout = formatted number string
 
 	local rightside_group=''
 	local foutput=''
@@ -3362,7 +3671,7 @@ FormatAsThous()
 FormatAsDuration()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	#	$1 = Duration in milliseconds.
 
 	if [[ ${1:-0} -lt 10000 ]]; then
@@ -3378,8 +3687,11 @@ FormatSecsToHoursMinutesSecs()
 
 	# http://stackoverflow.com/questions/12199631/convert-seconds-to-hours-minutes-seconds
 
-	# Inputs:
+	# Inputs: (local)
 	#	$1 = a time in seconds to convert to `HHh:MMm:SSs`
+
+	# Outputs: (local)
+	#	stdout = formatted time string
 
 	((h=${1:-0}/3600))
 	((m=(${1:-0}%3600)/60))
@@ -3392,12 +3704,26 @@ FormatSecsToHoursMinutesSecs()
 IsAutoUpdateMissing()
 	{
 
+	# Inputs: (global)
+	#	$QPKG_NAME
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
+
 	[[ $(/sbin/getcfg $QPKG_NAME Auto_Update -f /etc/config/qpkg.conf) = '' ]]
 
 	}
 
 IsAutoUpdate()
 	{
+
+	# Inputs: (global)
+	#	$QPKG_NAME
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
 
 	IsSupportAutoUpdate && [[ $(Lowercase "$(/sbin/getcfg $QPKG_NAME Auto_Update -f /etc/config/qpkg.conf)") = true ]]
 
@@ -3427,6 +3753,12 @@ DisableAutoUpdate()
 StoreAutoUpdateSelection()
 	{
 
+	# Inputs: (local)
+	#	$1 = 'true', 'false'
+
+	# Inputs: (global)
+	#	$QPKG_NAME
+
 	/sbin/setcfg $QPKG_NAME Auto_Update "$(Uppercase "$1")" -f /etc/config/qpkg.conf
 	DisplayCommitToLog "- application auto-update: $1"
 
@@ -3434,6 +3766,12 @@ StoreAutoUpdateSelection()
 
 GetPathGitBranch()
 	{
+
+	# Inputs: (local)
+	#	$1 = path to git repo
+
+	# Outputs: (local)
+	#   stdout = branch name
 
 	[[ -n $1 ]] || return
 
@@ -3475,10 +3813,10 @@ ShowUnsupportedAction()
 CalcAdaptiveSeconds()
 	{
 
-	# Inputs:
+	# Inputs: (local)
 	# 	$1 = Integer of base seconds (to suit 1m load average of 1.0 on a single-core CPU).
 
-	# Outputs:
+	# Outputs: (local)
 	#   stdout = Integer of adapted seconds based-on present 1 minute load average. Maximum of 1800.
 
 	local a=$(GetSysLoad1MinAverage); a=${a/./}		# Convert to hundreds.
@@ -3511,6 +3849,15 @@ GetCPUCores()
 
 	}
 
+SetTraps()
+	{
+
+	trap CaughtSIGHUP SIGHUP
+	trap CaughtSIGINT SIGINT
+	trap CaughtEXIT EXIT
+
+	}
+
 CaughtSIGHUP()
 	{
 
@@ -3532,6 +3879,18 @@ CaughtSIGINT()
 	SetServiceResultAsAborted
 
 	exit
+
+	}
+
+CaughtEXIT()
+	{
+
+	trap - EXIT
+
+	if IsServiceResultInProgress; then
+		DisplayCommitToLog '* caught EXIT: abort.'
+		SetServiceResultAsAborted
+	fi
 
 	}
 
@@ -3557,6 +3916,7 @@ ProcessArgs()
 
 				if IsSupportBackup; then
 					SetServiceAction backup
+					SetTraps
 					StopQPKG
 					BackupConfig
 					IsQPKGEnabled && StartQPKG
@@ -3570,6 +3930,7 @@ ProcessArgs()
 
 				if IsSourcedOnline; then
 					SetServiceAction clean
+					SetTraps
 					StopQPKG
 					[[ $QPKG_NAME = nzbToMedia ]] && BackupConfig
 					CleanLocalRepo
@@ -3584,12 +3945,13 @@ ProcessArgs()
 				IsSU ||	exit
 
 				SetServiceAction disable
+				SetTraps
 				/sbin/qpkg_service disable "$QPKG_NAME"
 
 				if IsNotQPKGEnabled; then
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") is disabled."
+					ShowDisabled
 				else
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") disable failed."
+					ShowDisableFailed
 					SetError
 				fi
 				;;
@@ -3598,6 +3960,7 @@ ProcessArgs()
 
 				if IsSupportAutoUpdate; then
 					SetServiceAction disable-auto-update
+					SetTraps
 					DisableAutoUpdate
 				else
 					SetServiceAction unsupported
@@ -3608,12 +3971,13 @@ ProcessArgs()
 				IsSU ||	exit
 
 				SetServiceAction enable
+				SetTraps
 				/sbin/qpkg_service enable "$QPKG_NAME"
 
 				if IsQPKGEnabled; then
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") is enabled."
+					ShowEnabled
 				else
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") enable failed."
+					ShowEnableFailed
 					SetError
 				fi
 				;;
@@ -3622,6 +3986,7 @@ ProcessArgs()
 
 				if IsSupportAutoUpdate; then
 					SetServiceAction enable-auto-update
+					SetTraps
 					EnableAutoUpdate
 				else
 					SetServiceAction unsupported
@@ -3654,6 +4019,7 @@ ProcessArgs()
 
 				if IsSupportReset; then
 					SetServiceAction reset
+					SetTraps
 					StopQPKG
 					ResetConfig
 					IsQPKGEnabled && StartQPKG
@@ -3667,11 +4033,12 @@ ProcessArgs()
 
 				SetServiceAction restart
 
-				if IsNotQPKGEnabled; then
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled. Please enable it first with: $0 enable"
-					SetError
-				else
+				if IsQPKGEnabled; then
+					SetTraps
 					StopQPKG && StartQPKG
+				else
+					ShowDisabledPrompt
+					SetError
 				fi
 				;;
 			?(--)restore?(-config))
@@ -3679,6 +4046,7 @@ ProcessArgs()
 
 				if IsSupportBackup; then
 					SetServiceAction restore
+					SetTraps
 					StopQPKG
 					RestoreConfig
 					IsQPKGEnabled && StartQPKG
@@ -3692,11 +4060,12 @@ ProcessArgs()
 
 				SetServiceAction start
 
-				if IsNotQPKGEnabled; then
-					DisplayCommitToLog "= $(FormatAsPackageName "$QPKG_NAME") QPKG is disabled. Please enable it first with: $0 enable"
-					SetError
-				else
+				if IsQPKGEnabled; then
+					SetTraps
 					StartQPKG
+				else
+					ShowDisabledPrompt
+					SetError
 				fi
 				;;
 			?(-)s|?(--)status)
@@ -3707,6 +4076,7 @@ ProcessArgs()
 				IsSU ||	exit
 
 				SetServiceAction stop
+				SetTraps
 				StopQPKG
 				;;
 			uninstall)
@@ -3740,8 +4110,5 @@ ProcessArgs()
 	exit 0
 
 	}
-
-trap CaughtSIGHUP SIGHUP
-trap CaughtSIGINT SIGINT
 
 InitLibrary
