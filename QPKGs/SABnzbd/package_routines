@@ -113,21 +113,20 @@ pkg_post_install()
 	# if NAS arch is armv5, x86 						:Par2
 	# if NAS arch is arm64, armv7 (x31 & x41), x86-64 	:Par2turbo
 
-	local -a a=()
+	local -a a=(Entware)
+	local b=$(QpkgGetArch)
 
-	a+=(Entware)
-
-	case $(QpkgGetArch) in
+	case $b in
 		a64|a41|i64)
 			a+=(Unrar)
 	esac
 
-	case $(QpkgGetArch) in
+	case $b in
 		a19|i86)
 			a+=(Par2)
 	esac
 
-	case $(QpkgGetArch) in
+	case $b in
 		a64|a31|a41|i64)
 			a+=(Par2turbo)
 	esac
