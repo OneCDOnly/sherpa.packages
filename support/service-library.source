@@ -903,20 +903,6 @@ InstallPythonPackages()
 		fi
 	done
 
-	# Fallback to general installation method. TASK: this bit needs review, not sure it ever executes.
-
-# 	if [[ $no_pips_installed = true ]]; then
-# 		if [[ -e $qpkg_repo_path/setup.py || -e $pyproject_pathfile ]]; then
-# 			DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$a")'" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip $qpkg_repo_path" log:failure-only
-#
-# 			if [[ $? -gt 0 && $silence_pypi_errors = false ]]; then
-# 				CommitWarnToSysLog 'PyPI module installation failed.'
-# 			fi
-#
-# 			no_pips_installed=false
-# 		fi
-# 	fi
-
 	# KLUDGE: `manytolinux2014` builds are problematic in QTS, so rename these locally.
 
 	if [[ -e $rename_modules_pathfile ]]; then
