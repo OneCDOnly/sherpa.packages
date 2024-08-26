@@ -305,6 +305,7 @@ InitLibrary()
 
 	InitService					# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
 	OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
+	get_remote_filename_timeout_seconds=5
 	new_env=false
 	pyver=''
 	service_action=unspecified
@@ -660,7 +661,7 @@ RefreshReleasePackageFiles()
 		fi
 
 		if [[ $compare_release_filename = true ]]; then
-			DisplayWaitCommitToLog '> get latest remote release package filename:'
+			DisplayWaitCommitToLog "> get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds):"
 
 			if IsSiteUp "$remote_url"; then
 				release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
@@ -2814,25 +2815,27 @@ RequestLatestReleaseFilename()
 
 	# Request latest release filename from remote site.
 
+	# NOTE: *arr servers don't permit HEAD request, so must issue a GET and follow 304 URL to get final filename.
+	# Issuing a GET will also attempt to download file, so rate-limit the file download to 1KB/s as the file isn't actually wanted anyway.
+
 	# Inputs: (local)
 	#   $1 = URL to check.
 	#   $2 (optional) = arch to match.
 
 	# Inputs: (global)
 	#	$curl_insecure_arg
+	#	$get_remote_filename_timeout_seconds
 
 	# Outputs: (local)
 	#   stdout = filename.
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 
-	local a=''
-	local b="$curl_insecure_arg --silent --max-time 5 --location -D -"	# https://stackoverflow.com/a/26644485
+	local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
+	local b=$(/sbin/curl${a} "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
+	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b")
 
-	a=$(/sbin/curl${b} "$1" | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
-	[[ -n ${2:-} && ${2:-} != undefined ]] && a=$(/bin/grep "$2" <<< "$a")
-
-	printf '%s' "$a"
+	printf '%s' "$b"
 
 	} 2>/dev/null
 
@@ -2847,19 +2850,18 @@ RequestLatestReleaseURL()
 
 	# Inputs: (global)
 	#	$curl_insecure_arg
+	#	$get_remote_filename_timeout_seconds
 
 	# Outputs: (local)
 	#   stdout = URL.
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 
-	local a=''
-	local b="$curl_insecure_arg --silent --max-time 5 --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
+	local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
+	local b=$(/sbin/curl${a} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
+	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b")
 
-	a=$(/sbin/curl${b} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
-	[[ -n ${2:-} && ${2:-} != undefined ]] && a=$(/bin/grep "$2" <<< "$a")
-
-	printf '%s' "$a"
+	printf '%s' "$b"
 
 	} 2>/dev/null
 

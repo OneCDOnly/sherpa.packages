@@ -75,6 +75,9 @@ InitService()
 		# can_restart_to_update=false								# If 'true', application can be updated by restarting service-script.
 		can_restart_to_update=true
 
+		# compare_release_filename=false							# If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
+		compare_release_filename=true
+
 		# daemon_pidfile_is_managed_by_app=false
 
 		# install_pip_deps=false
