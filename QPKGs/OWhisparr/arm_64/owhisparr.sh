@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=OWhisparr
-readonly SERVICE_SCRIPT_VERSION='240823'
+readonly SERVICE_SCRIPT_VERSION='240827'
 InitService()
 {
 qpkg_repo_path=$QPKG_PATH/repo-cache
@@ -35,7 +35,7 @@ compare_release_filename=true
 run_daemon_in_screen_session=true
 remote_arch=arm64
 ui_listening_address=0.0.0.0
-remote_url='http://whisparr.servarr.com/v1/update/nightly/updatefile?os=linux&runtime=netcore&arch='$remote_arch
+remote_url='https://whisparr.servarr.com/v1/update/nightly/updatefile?os=linux&runtime=netcore&arch='$remote_arch
 get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd='grep "<Port>" $qpkg_ini_pathfile | sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
 get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_ini_pathfile | sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'
