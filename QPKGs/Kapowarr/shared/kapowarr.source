@@ -77,6 +77,8 @@ InitService()
 		# can_restart_to_update=false								# If 'true', application can be updated by restarting service-script.
 		can_restart_to_update=true
 
+		# compare_release_filename=false							# If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
+
 		# daemon_pidfile_is_managed_by_app=false
 		daemon_pidfile_is_managed_by_app=true
 
@@ -84,9 +86,9 @@ InitService()
 		install_pip_deps=true
 
 		# recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		recheck_daemon_pid_after_kill=true
 
 		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
-# 		recheck_daemon_pid_after_launch=true
 
 		# resolve_remote_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
