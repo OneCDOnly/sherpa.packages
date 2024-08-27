@@ -20,9 +20,9 @@ Headphones_240827.qpkg.md5           Headphones_240827.qpkg           Headphones
 HideThatBanner_240807.qpkg.md5       HideThatBanner_240807.qpkg       HideThatBanner       240807       all    629cd406d0ccf298602001bae7d120ce
 IncreaseTimeouts_240808.qpkg.md5     IncreaseTimeouts_240808.qpkg     IncreaseTimeouts     240808       all    0c76a11a0db6d43c75125e68faef04ae
 inxi_240813.qpkg.md5                 inxi_240813.qpkg                 inxi                 240813       all    91b0a77dbde5efb1a06093399c53310f
-Kapowarr_240827_arm_64.qpkg.md5      Kapowarr_240827_arm_64.qpkg      Kapowarr             240827       a64    6f7404aee6eaa7c6c97ff3dc8e658017
-Kapowarr_240827_x86_64.qpkg.md5      Kapowarr_240827_x86_64.qpkg      Kapowarr             240827       i64    6b1fff3241f076fb14bad80a80251290
-Kapowarr_240827_x86.qpkg.md5         Kapowarr_240827_x86.qpkg         Kapowarr             240827       i86    d833ab206e2e10f35a45154561be018b
+Kapowarr_240827_arm_64.qpkg.md5      Kapowarr_240827_arm_64.qpkg      Kapowarr             240827       a64    d166f8eed73baa5814212b4540fceb5d
+Kapowarr_240827_x86_64.qpkg.md5      Kapowarr_240827_x86_64.qpkg      Kapowarr             240827       i64    5f6793832de324a2887f5b4656a44d4a
+Kapowarr_240827_x86.qpkg.md5         Kapowarr_240827_x86.qpkg         Kapowarr             240827       i86    f0f3c7c8ca6c66ca0941396637cd277a
 LazyLibrarian_240827.qpkg.md5        LazyLibrarian_240827.qpkg        LazyLibrarian        240827       all    6624ad578fc671411630e1240247bc8f
 Mylar3_240827.qpkg.md5               Mylar3_240827.qpkg               Mylar3               240827       all    1a95afe183725bf715f1b188cd7f22c6
 nzbget_24.2_arm_64.qpkg.md5          nzbget_24.2_arm_64.qpkg          nzbget               24.2         a64    c63fd52dc2a56e3fe1960452d910a78e
@@ -95,7 +95,7 @@ SABnzbd_240827_x86_64.qpkg.md5       SABnzbd_240827_x86_64.qpkg       SABnzbd   
 SABnzbd_240827_x86.qpkg.md5          SABnzbd_240827_x86.qpkg          SABnzbd              240827       i86    204a64e359f2e30364fa3f7dc689e83e
 sha3sum_240808_x86_64.qpkg.md5       sha3sum_240808_x86_64.qpkg       sha3sum              240808       i64    2933e3f0aaa4b5261408b230d1a90df1
 sha3sum_240808_x86.qpkg.md5          sha3sum_240808_x86.qpkg          sha3sum              240808       i86    788c070aab5a3b96006b6a963532a284
-sherpa_240827.qpkg.md5               sherpa_240827.qpkg               sherpa               240827       all    e58919bbb3048c2a543c29c5b7d9431d
+sherpa_240827.qpkg.md5               sherpa_240827.qpkg               sherpa               240827       all    a96b002f48ffa1fb1a653d38b6f38b5a
 SortMyQPKGs_240801.qpkg.md5          SortMyQPKGs_240801.qpkg          SortMyQPKGs          240801       all    111031554f2417fd5bdc4c472fd34229
 Unmanic_240827_arm_64.qpkg.md5       Unmanic_240827_arm_64.qpkg       Unmanic              240827       a64    ba17129aaa8c33cdfec31f410e9fdc5e
 Unmanic_240827_arm-x19.qpkg.md5      Unmanic_240827_arm-x19.qpkg      Unmanic              240827       a19    f4528bcdf96236460b5bc2de6c5e9b00

@@ -35,6 +35,7 @@ venv_python_pathfile=$venv_path/bin/python3
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true
 install_pip_deps=true
+recheck_daemon_pid_after_kill=true
 run_daemon_in_screen_session=true
 interpreter=/opt/bin/python3
 source_git_branch=development
