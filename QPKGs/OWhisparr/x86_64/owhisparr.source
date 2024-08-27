@@ -122,7 +122,7 @@ InitService()
 	# >>> URLs <<<
 
 		# remote_url=undefined
-		remote_url='http://whisparr.servarr.com/v1/update/nightly/updatefile?os=linux&runtime=netcore&arch='$remote_arch
+		remote_url='https://whisparr.servarr.com/v1/update/nightly/updatefile?os=linux&runtime=netcore&arch='$remote_arch
 
 		# source_git_url=undefined
 

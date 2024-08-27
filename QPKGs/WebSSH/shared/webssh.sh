@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly USER_ARGS_RAW=$*
 readonly QPKG_NAME=WebSSH
-readonly SERVICE_SCRIPT_VERSION='240823'
+readonly SERVICE_SCRIPT_VERSION='240827'
 InitService()
 {
 pip_cache_path=$QPKG_PATH/pip-cache

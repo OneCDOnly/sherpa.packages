@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240823'
+readonly SERVICE_LIB_VERSION='240827'
 InitLibrary()
 {
 IsQNAP || exit
@@ -108,6 +108,7 @@ get_ui_port_secure_enabled_test_cmd=undefined
 daemon_launch_cmd=undefined
 InitService
 OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
+get_remote_filename_timeout_seconds=5
 new_env=false
 pyver=''
 service_action=unspecified
@@ -336,7 +337,7 @@ else
 release_package_url=$remote_url
 fi
 if [[ $compare_release_filename = true ]];then
-DisplayWaitCommitToLog '> get latest remote release package filename:'
+DisplayWaitCommitToLog "> get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds):"
 if IsSiteUp "$remote_url";then
 release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
 if [[ -n $release_package_filename ]];then
@@ -1429,20 +1430,18 @@ return 1
 RequestLatestReleaseFilename()
 {
 [[ -n ${1:-} && ${1:-} != undefined ]] || return
-local a=''
-local b="$curl_insecure_arg --silent --max-time 5 --location -D -"
-a=$(/sbin/curl${b} "$1" | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
-[[ -n ${2:-} && ${2:-} != undefined ]] && a=$(/bin/grep "$2" <<< "$a")
-printf '%s' "$a"
+local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"
+local b=$(/sbin/curl${a} "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
+[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b")
+printf '%s' "$b"
 } 2>/dev/null
 RequestLatestReleaseURL()
 {
 [[ -n ${1:-} && ${1:-} != undefined ]] || return
-local a=''
-local b="$curl_insecure_arg --silent --max-time 5 --location"
-a=$(/sbin/curl${b} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
-[[ -n ${2:-} && ${2:-} != undefined ]] && a=$(/bin/grep "$2" <<< "$a")
-printf '%s' "$a"
+local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --location"
+local b=$(/sbin/curl${a} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
+[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b")
+printf '%s' "$b"
 } 2>/dev/null
 DownloadReleasePackage()
 {
