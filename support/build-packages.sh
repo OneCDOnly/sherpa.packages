@@ -26,6 +26,9 @@ TranslateQPKGArch()
 	# Translate arch from QPKG filename to sherpa.
 
 	case $1 in
+		x86_ce53xx)
+			printf i53
+			;;
 		i686|x86)
 			printf i86
 			;;
