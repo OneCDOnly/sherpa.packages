@@ -108,10 +108,10 @@ pkg_post_install()
 
 	# Add 'Dependency' key to /etc/config/qpkg.conf for startup compatibility with QTS 5.2.0
 
-	# all arches										:Entware
-	# if NAS arch is arm64, armv7 (x41), x86-64 		:Unrar
-	# if NAS arch is armv5, x86 						:Par2
-	# if NAS arch is arm64, armv7 (x31 & x41), x86-64 	:Par2turbo
+	# All arches										Entware
+	# If NAS arch is arm64, armv7 (x41), x86-64 		Unrar
+	# If NAS arch is armv5, x86 						Par2
+	# If NAS arch is arm64, armv7 (x31 & x41), x86-64 	Par2turbo
 
 	local -a a=(Entware)
 	local b=$(QpkgGetArch)
@@ -132,6 +132,13 @@ pkg_post_install()
 	esac
 
 	[[ ${#a[@]} -gt 0 ]] && $CMD_SETCFG $QPKG_NAME Dependency "$(/bin/tr ' ' ':' <<< ${a[*]})" -f $SYS_QPKG_CONFIG_FILE
+
+	# Force 'sabctools' wheel to be built locally when pagesize != 4kiB
+	# NOTE: requires 'binutils' v2.38
+
+	if [[ $b = a41 && -e /sbin/hal_app && $(/sbin/hal_app --get_pagesize) -ne 4096 ]]; then
+		rm -f $($CMD_GETCFG $QPKG_NAME Install_Path -f $SYS_QPKG_CONFIG_FILE)/qpkg-wheels/sabctools*.whl
+	fi
 
 	}
 QpkgGetArch()

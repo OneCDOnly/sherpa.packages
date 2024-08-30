@@ -1,8 +1,8 @@
-* spacedrive?
-	- https://github.com/spacedriveapp/spacedrive
+* ftpgrab?
+	- https://github.com/crazy-max/ftpgrab
 
-* metube?
-	- https://github.com/alexta69/metube
+* TorrServer?
+	- https://github.com/YouROK/TorrServer
 
 * nix package manager?
 	- https://nixos.org/download/
@@ -12,9 +12,12 @@
 
 * Soulseek daemon?
 	- https://github.com/slskd/slskd
-
-* bitmagnet?
-	- https://bitmagnet.io
+	- incompatible with QTS 5.1.8 on ARMv7:
+	------------------------------------------------------------------------------------------------------
+		[/share/Public] # ./slskd
+		./slskd: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.20' not found (required by ./slskd)
+		./slskd: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by ./slskd)
+	------------------------------------------------------------------------------------------------------
 
 * Tdarr?
 	- https://docs.tdarr.io/docs/installation/windows-linux-macos

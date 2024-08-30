@@ -23,9 +23,14 @@ packages_epoch=$(date +%s)
 TranslateQPKGArch()
 	{
 
-	# Translate arch from QPKG filename to sherpa.
+	# Translate arch from QPKG filename to sherpa arch.
+	# sherpa arch for target NAS is a single 3 character-code.
+	# 'a' for ARM, 'i' for Intel.
 
 	case $1 in
+		x86_ce53xx)
+			printf i53			# For TS-269H only.
+			;;
 		i686|x86)
 			printf i86
 			;;
@@ -48,7 +53,7 @@ TranslateQPKGArch()
 			printf all
 			;;
 		*)
-			echo "$1"		# passthru
+			echo "${1::3}"		# passthru first 3 characters only.
 	esac
 
 	}

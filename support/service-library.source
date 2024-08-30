@@ -2816,7 +2816,7 @@ RequestLatestReleaseFilename()
 	# Request latest release filename from remote site.
 
 	# NOTE: *arr servers don't permit HEAD request, so must issue a GET and follow 304 URL to get final filename.
-	# Issuing a GET will also attempt to download file, so rate-limit the file download to 1KB/s as the file isn't actually wanted anyway.
+	# Issuing a GET will also attempt to download the target file, so rate-limit the download speed to 1KB/s as the file isn't actually wanted anyway, and let file download time-out.
 
 	# Inputs: (local)
 	#   $1 = URL to check.
