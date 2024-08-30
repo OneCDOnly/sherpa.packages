@@ -109,25 +109,25 @@ pkg_post_install()
 	# Add 'Dependency' key to /etc/config/qpkg.conf for startup compatibility with QTS 5.2.0
 
 	# All arches										Entware
-	# If NAS arch is arm64, armv7 (x41), x86-64 		Unrar
-	# If NAS arch is armv5, x86 						Par2
-	# If NAS arch is arm64, armv7 (x31 & x41), x86-64 	Par2turbo
+	# If NAS arch is armv7 (x41), arm64, x86-64 		Unrar
+	# If NAS arch is armv5, x86_ce53xx, x86				Par2
+	# If NAS arch is armv7 (x31 & x41), arm64, x86-64 	Par2turbo
 
 	local -a a=(Entware)
 	local b=$(QpkgGetArch)
 
 	case $b in
-		a64|a41|i64)
+		a41|a64|i64)
 			a+=(Unrar)
 	esac
 
 	case $b in
-		a19|i86)
+		a19|i53|i86)
 			a+=(Par2)
 	esac
 
 	case $b in
-		a64|a31|a41|i64)
+		a31|a41|a64|i64)
 			a+=(Par2turbo)
 	esac
 
@@ -145,8 +145,16 @@ QpkgGetArch()
 	{
 
 	# Translate arch from local NAS (QTS/QuTS) to sherpa notation.
+	# sherpa arch for target NAS is a single 3 character-code.
+	# 'a' for ARM, 'i' for Intel.
+
+	if [[ $(get_display_name) = 'TS-269H' ]]; then
+		printf i53
+		return
+	fi
 
 	local NAS_FIRMWARE_VER=$(/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf)
+	local NAS_PLATFORM=$(/sbin/getcfg '' Platform -d undefined -f /etc/platform.conf)
 
 	case $(/bin/uname -m) in
 		x86_64)
@@ -159,7 +167,7 @@ QpkgGetArch()
 			printf a19
 			;;
 		armv7l)
-			case $(/sbin/getcfg '' Platform -d undefined -f /etc/platform.conf) in
+			case $NAS_PLATFORM in
 				ARM_MS)
 					printf a31
 					;;
