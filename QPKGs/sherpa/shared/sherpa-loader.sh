@@ -24,7 +24,7 @@
 readonly USER_ARGS_RAW=$*
 Init()
 {
-export LOADER_SCRIPT_VER='240831'
+export LOADER_SCRIPT_VER='240901'
 export LOADER_SCRIPT_PPID=$PPID
 readonly QPKG_NAME=sherpa
 readonly CHARS_REGULAR_PROMPT='$ '

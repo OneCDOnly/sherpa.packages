@@ -204,6 +204,11 @@ else
 	ShowDone
 fi
 
+if grep -q '<?\|?>' "$target"; then
+	ColourTextBrightRed "'$target' contains illegal characters, can't continue"; echo
+	exit 1
+fi
+
 Squeeze "$target" "$target"
 [[ -f $target ]] && chmod 444 "$target"
 
