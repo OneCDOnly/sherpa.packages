@@ -113,7 +113,7 @@ InitService()
 		# source_arch=undefined
 
 		# source_git_branch=undefined
-		source_git_branch=development
+		source_git_branch=main
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 		source_git_branch_depth=shallow
