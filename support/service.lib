@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly SERVICE_LIB_VERSION='240901'
+readonly SERVICE_LIB_VERSION='240908'
 InitLibrary()
 {
 IsQNAP || exit
@@ -1766,7 +1766,7 @@ DisplayAndCommitActionToLog()
 {
 [[ $service_action = unspecified ]] && return
 starttime=$(/bin/date +%s%N)
-local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date)"
+local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, time: $(date), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' ' <<< "$msg") "
 local a=DisplayCommitToLog
 if IsNotStatus && IsNotLog && IsNotNone;then
@@ -1779,7 +1779,7 @@ fi
 DisplayAndCommitResultToLog()
 {
 [[ $service_action = unspecified ]] && return
-local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, datetime: $(date), result: $service_result, elapsed time: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(/bin/date +%s%N)")")"
+local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(date), result: $service_result, elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(/bin/date +%s%N)")"), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' ' <<< "$msg") "
 local a=DisplayCommitToLog
 if IsNotStatus && IsNotLog && IsNotNone;then
