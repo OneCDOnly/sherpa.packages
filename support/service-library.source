@@ -783,7 +783,7 @@ ShowHelp()
 	DisplayAsHelp stop "stop $(FormatAsPackageName $r_qpkg_name) if active"
 	DisplayAsHelp restart "stop, then start $(FormatAsPackageName $r_qpkg_name)"
 	DisplayAsHelp enable "enable $(FormatAsPackageName $r_qpkg_name) so it can be started"
-	DisplayAsHelp disable "disable $(FormatAsPackageName $r_qpkg_name) to prevent it starting (on bootup)"
+	DisplayAsHelp disable "disable $(FormatAsPackageName $r_qpkg_name) to prevent it starting (on NAS bootup)"
 	DisplayAsHelp status "check if $(FormatAsPackageName $r_qpkg_name) application is active. Returns \$? = 0 if active, 1 if not"
 	IsSupportBackup && DisplayAsHelp backup "backup current $(FormatAsPackageName $r_qpkg_name) configuration to persistent storage"
 	IsSupportBackup && DisplayAsHelp restore 'restore a previously saved configuration from persistent storage'
@@ -794,6 +794,7 @@ ShowHelp()
 	IsSupportAutoUpdate && DisplayAsHelp enable-auto-update "auto-update $(FormatAsPackageName $r_qpkg_name) before starting (default)"
 	IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $r_qpkg_name) before starting it"
 	DisplayAsHelp version 'display the package version numbers'
+	Display
 
 	}
 
