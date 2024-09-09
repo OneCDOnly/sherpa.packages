@@ -11,9 +11,9 @@
 #
 #* <?license?>
 
-readonly USER_ARGS_RAW=$*
-readonly QPKG_NAME=OqBittorrent
-readonly SERVICE_SCRIPT_VERSION='<?build_date?>'
+readonly r_user_args_raw=$*
+readonly r_qpkg_name=OqBittorrent
+readonly r_service_script_version='<?build_date?>'
 
 InitService()
 	{
@@ -46,16 +46,16 @@ InitService()
 		# daemon_exec_pathfile=undefined							# The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this will be the interpreter to launch.
 		daemon_exec_pathfile=/opt/bin/qbittorrent-nox
 
-		# daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+		# daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 
 		# daemon_script_pathfile=undefined							# When an interpreter is to be used, interpret this script.
 
 		# launcher_pathfile=undefined								# On-demand executables only.
 
-		# qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
+		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 
-		# qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
-		qpkg_ini_pathfile=$QPKG_CONFIG_PATH/qBittorrent/config/$qpkg_ini_file
+		# qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
+		qpkg_ini_pathfile=$r_qpkg_config_path/qBittorrent/config/$qpkg_ini_file
 
 		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
@@ -139,16 +139,16 @@ InitService()
 		get_ui_port_secure_enabled_test_cmd='false'
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="$daemon_exec_pathfile --profile=$QPKG_PATH/config --daemon"
+		daemon_launch_cmd="$daemon_exec_pathfile --profile=$r_qpkg_path/config --daemon"
 
 	}
 
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
-readonly SERVICE_LIBRARY_PATHFILE=$(/usr/bin/dirname "$library_path")/service.lib
+readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
 
-if [[ -e $SERVICE_LIBRARY_PATHFILE ]]; then
-	. $SERVICE_LIBRARY_PATHFILE
+if [[ -e $r_service_library_pathfile ]]; then
+	. $r_service_library_pathfile
 else
 	printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
 	exit 1
