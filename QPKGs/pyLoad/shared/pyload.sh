@@ -19,18 +19,18 @@
 #*   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 #*	 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
-readonly USER_ARGS_RAW=$*
-readonly QPKG_NAME=pyLoad
-readonly SERVICE_SCRIPT_VERSION='240908'
+readonly r_user_args_raw=$*
+readonly r_qpkg_name=pyLoad
+readonly r_service_script_version='240909'
 InitService()
 {
-pip_cache_path=$QPKG_PATH/pip-cache
-qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
-venv_path=$QPKG_PATH/venv
+pip_cache_path=$r_qpkg_path/pip-cache
+qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
+venv_path=$r_qpkg_path/venv
 qpkg_ini_file=pyload.cfg
 daemon_exec_pathfile=$venv_path/bin/python3
 daemon_script_pathfile=$venv_path/bin/pyload
-qpkg_ini_pathfile=$QPKG_CONFIG_PATH/settings/$qpkg_ini_file
+qpkg_ini_pathfile=$r_qpkg_config_path/settings/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
@@ -40,7 +40,7 @@ get_ui_listening_address_cmd="GetPyloadConfig $qpkg_ini_pathfile webui host"
 get_ui_port_cmd="GetPyloadConfig $qpkg_ini_pathfile webui port"
 get_ui_port_secure_cmd="GetPyloadConfig $qpkg_ini_pathfile webui port"
 get_ui_port_secure_enabled_test_cmd="[[ $(GetPyloadConfig "$qpkg_ini_pathfile" webui use_ssl) = True ]]"
-daemon_launch_cmd="export TEMP=$QPKG_TEMP_PATH;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $QPKG_PATH/config"
+daemon_launch_cmd="export TEMP=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $r_qpkg_path/config"
 }
 GetPyloadConfig()
 {
@@ -101,9 +101,9 @@ echo "$value"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
-readonly SERVICE_LIBRARY_PATHFILE=$(/usr/bin/dirname "$library_path")/service.lib
-if [[ -e $SERVICE_LIBRARY_PATHFILE ]];then
-. $SERVICE_LIBRARY_PATHFILE
+readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
+if [[ -e $r_service_library_pathfile ]];then
+. $r_service_library_pathfile
 else
 printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
 exit 1
