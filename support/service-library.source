@@ -3119,18 +3119,18 @@ IsNotError()
 IsReinstall()
 	{
 
-	# `QPKG_REINSTALL=true` in sherpa management script when action 'reinstall' is run.
+	# `REINSTALL_QPKG=true` is set in sherpa management script when action 'reinstall' is run.
 
-	[[ ${QPKG_REINSTALL:=false} = true ]]
+	[[ ${REINSTALL_QPKG:=false} = true ]]
 
 	}
 
 IsUpgrade()
 	{
 
-	# `QPKG_UPGRADE=true` in sherpa management script when action 'upgrade' is run.
+	# `UPGRADE_QPKG=true` is set in sherpa management script when action 'upgrade' is run.
 
-	[[ ${QPKG_UPGRADE:=false} = true ]]
+	[[ ${UPGRADE_QPKG:=false} = true ]]
 
 	}
 
