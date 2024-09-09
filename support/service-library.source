@@ -786,8 +786,8 @@ ShowHelp()
 	DisplayAsHelp disable "disable $(FormatAsPackageName $r_qpkg_name) to prevent it starting (on bootup)"
 	DisplayAsHelp status "check if $(FormatAsPackageName $r_qpkg_name) application is active. Returns \$? = 0 if active, 1 if not"
 	IsSupportBackup && DisplayAsHelp backup "backup current $(FormatAsPackageName $r_qpkg_name) configuration to persistent storage"
-	IsSupportBackup && DisplayAsHelp restore "restore a previously saved configuration from persistent storage"
-	IsSupportActions && DisplayAsHelp reset-action "clear the current service-script action and action result"
+	IsSupportBackup && DisplayAsHelp restore 'restore a previously saved configuration from persistent storage'
+	IsSupportActions && DisplayAsHelp reset-action 'clear the current service-script action and action result'
 	IsSupportReset && DisplayAsHelp reset-config "delete $(FormatAsPackageName $r_qpkg_name) configuration, databases and history"
 	IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) from remote source. Configuration will be retained"
 	DisplayAsHelp log 'display the service-script log'
@@ -2619,7 +2619,7 @@ IsPortResponds()
 		DisplayWait "$c,"
 
 		if [[ $c -ge $b ]]; then
-			DisplayCommitToLog 'failed!'
+			DisplayCommitToLog failed
 			CommitErrToSysLog "port '$a' failed to respond after $c second$(Pluralise "$c")!"
 			break
 		fi
@@ -2688,7 +2688,7 @@ IsPortSecureResponds()
 		DisplayWait "$c,"
 
 		if [[ $c -ge $b ]]; then
-			DisplayCommitToLog 'failed'
+			DisplayCommitToLog failed
 			CommitErrToSysLog "secure port '$a' failed to respond after $c second$(Pluralise "$c")!"
 			break
 		fi
@@ -2916,24 +2916,24 @@ ExtractReleasePackage()
 
 	local release_package_name_ref_pathfilename=''
 	local release_package_pathfile=$1
-	local tar_extract_opts=''
-	local tar_extract_verbose=''
-	local unzip_extract_opts=''
-	local unzip_extract_verbose=''
+	local tar_opts=''
+	local tar_verbose=''
+	local unzip_opts=''
+	local unzip_verbose=''
 
 	[[ -n ${2:-} && ${2:-} != undefined ]] && release_package_name_ref_pathfilename=$2
 
 	if [[ $debug = true ]]; then
-		tar_extract_verbose=' --verbose'
-# 			unzip_extract_verbose=' -v'			# Don't enable this, seems to prevent actual file extraction from occurring.
+		tar_verbose=' --verbose'
+# 			unzip_verbose=' -v'			# Don't enable this, seems to prevent file extraction.
 	fi
 
 	if [[ -e $release_package_pathfile ]]; then
-		tar_extract_opts="$tar_extract_verbose --extract --gzip --file=$release_package_pathfile --directory=$qpkg_repo_path"
-		unzip_extract_opts="$unzip_extract_verbose -o $release_package_pathfile -d $qpkg_repo_path"
+		tar_opts="$tar_verbose --extract --gzip --file=$release_package_pathfile --directory=$qpkg_repo_path"
+		unzip_opts="$unzip_verbose -o $release_package_pathfile -d $qpkg_repo_path"
 
 		# Try as '.zip' first, then '.tar.gz'
-		DisplayRunAndLog 'extract from release package' "/usr/bin/unzip${unzip_extract_opts} 2>/dev/null || /bin/tar${tar_extract_opts}" log:failure-only
+		DisplayRunAndLog 'extract from release package' "/usr/bin/unzip${unzip_opts} 2>/dev/null || /bin/tar${tar_opts}" log:failure-only
 
 		if [[ $compare_release_filename = true && -n $release_package_name_ref_pathfilename ]]; then
 			if [[ ! -e $release_package_name_ref_pathfilename ]]; then
@@ -3303,9 +3303,7 @@ ShowAsError()
 
 	# fatal error
 
-	local a=$(Capitalise "${1:-}")
-
-	Display "$(TextBrightRed derp): $a"
+	Display "$(TextBrightRed derp): $(Capitalise "${1:-}")"
 
 	} >&2
 
@@ -3410,7 +3408,7 @@ FormatAsPackageName()
 DisplayAsHelp()
 	{
 
-	printf "  --%-19s  %s\n" "${1:-}" "${2:-}."
+	printf '  --%-19s  %s\n' "${1:-}" "${2:-}."
 
 	}
 
