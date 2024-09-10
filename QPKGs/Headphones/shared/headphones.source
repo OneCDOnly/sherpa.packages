@@ -11,9 +11,9 @@
 #
 #* <?license?>
 
-readonly USER_ARGS_RAW=$*
-readonly QPKG_NAME=Headphones
-readonly SERVICE_SCRIPT_VERSION='<?build_date?>'
+readonly r_user_args_raw=$*
+readonly r_qpkg_name=Headphones
+readonly r_service_script_version='<?build_date?>'
 
 InitService()
 	{
@@ -25,16 +25,16 @@ InitService()
 	# >>> Paths <<<
 
 		# pip_cache_path=undefined
-		pip_cache_path=$QPKG_PATH/pip-cache
+		pip_cache_path=$r_qpkg_path/pip-cache
 
 		# qpkg_repo_path=undefined
-		qpkg_repo_path=$QPKG_PATH/repo-cache
+		qpkg_repo_path=$r_qpkg_path/repo-cache
 
 		# qpkg_wheels_path=undefined
-		qpkg_wheels_path=$QPKG_PATH/qpkg-wheels
+		qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
 
 		# venv_path=undefined
-		venv_path=$QPKG_PATH/venv
+		venv_path=$r_qpkg_path/venv
 
 	# >>> Filenames <<<
 
@@ -49,16 +49,16 @@ InitService()
 		# daemon_exec_pathfile=undefined							# The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this will be the interpreter to launch.
 		daemon_exec_pathfile=$venv_path/bin/python3
 
-		# daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+		# daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 
 		# daemon_script_pathfile=undefined							# When an interpreter is to be used, interpret this script.
 		daemon_script_pathfile=$qpkg_repo_path/Headphones.py
 
 		# launcher_pathfile=undefined								# On-demand executables only.
 
-		# qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
+		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 
-		# qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
+		# qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
 
 		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 
@@ -149,23 +149,23 @@ InitService()
 		daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_ini_pathfile") --config $qpkg_ini_pathfile"
 
 	if [[ -e $qpkg_ini_default_pathfile ]]; then
-		/sbin/setcfg General log_dir "$QPKG_CONFIG_PATH"/logs -f "$qpkg_ini_default_pathfile"
-		/sbin/setcfg General cache_dir "$QPKG_CONFIG_PATH"/cache -f "$qpkg_ini_default_pathfile"
+		/sbin/setcfg General log_dir "$r_qpkg_config_path"/logs -f "$qpkg_ini_default_pathfile"
+		/sbin/setcfg General cache_dir "$r_qpkg_config_path"/cache -f "$qpkg_ini_default_pathfile"
 	fi
 
 	if [[ -e $qpkg_ini_pathfile ]]; then
-		/sbin/setcfg General log_dir "$QPKG_CONFIG_PATH"/logs -f "$qpkg_ini_pathfile"
-		/sbin/setcfg General cache_dir "$QPKG_CONFIG_PATH"/cache -f "$qpkg_ini_pathfile"
+		/sbin/setcfg General log_dir "$r_qpkg_config_path"/logs -f "$qpkg_ini_pathfile"
+		/sbin/setcfg General cache_dir "$r_qpkg_config_path"/cache -f "$qpkg_ini_pathfile"
 	fi
 
 	}
 
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
-readonly SERVICE_LIBRARY_PATHFILE=$(/usr/bin/dirname "$library_path")/service.lib
+readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
 
-if [[ -e $SERVICE_LIBRARY_PATHFILE ]]; then
-	. $SERVICE_LIBRARY_PATHFILE
+if [[ -e $r_service_library_pathfile ]]; then
+	. $r_service_library_pathfile
 else
 	printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
 	exit 1

@@ -24,36 +24,36 @@
 set -o nounset -o pipefail
 shopt -s extglob
 ln -fns /proc/self/fd /dev/fd
-readonly USER_ARGS_RAW=$*
+readonly r_user_args_raw=$*
 Init()
 {
-readonly QPKG_NAME=sherpa
-local -r QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
-readonly REAL_LOG_PATHFILE=$QPKG_PATH/logs/session.archive.log
-readonly REAL_LOADER_SCRIPT_PATHNAME=$QPKG_PATH/sherpa-loader.sh
-readonly APPARENT_LOADER_SCRIPT_PATHNAME=/usr/sbin/sherpa
-readonly GUI_LOG_PATHFILE=/home/httpd/sherpa.debug.log
-readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -f /etc/config/qpkg.conf)
-readonly SERVICE_ACTION_PATHFILE=/var/log/$QPKG_NAME.action
-readonly SERVICE_RESULT_PATHFILE=/var/log/$QPKG_NAME.result
-[[ ! -d $(/usr/bin/dirname "$REAL_LOG_PATHFILE") ]] && mkdir -p "$(/usr/bin/dirname "$REAL_LOG_PATHFILE")"
-[[ ! -e $REAL_LOG_PATHFILE ]] && /bin/touch "$REAL_LOG_PATHFILE"
+readonly r_qpkg_name=sherpa
+local -r r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
+readonly r_real_log_pathfile=$r_qpkg_path/logs/session.archive.log
+readonly r_real_loader_script_pathname=$r_qpkg_path/sherpa-loader.sh
+readonly r_apparent_loader_script_pathname=/usr/sbin/sherpa
+readonly r_gui_log_pathfile=/home/httpd/sherpa.debug.log
+readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -f /etc/config/qpkg.conf)
+readonly r_service_action_pathfile=/var/log/$r_qpkg_name.action
+readonly r_service_result_pathfile=/var/log/$r_qpkg_name.result
+[[ ! -d $(/usr/bin/dirname "$r_real_log_pathfile") ]] && mkdir -p "$(/usr/bin/dirname "$r_real_log_pathfile")"
+[[ ! -e $r_real_log_pathfile ]] && /bin/touch "$r_real_log_pathfile"
 }
 StartQPKG()
 {
-[[ ! -L $APPARENT_LOADER_SCRIPT_PATHNAME ]] && /bin/ln -s "$REAL_LOADER_SCRIPT_PATHNAME" "$APPARENT_LOADER_SCRIPT_PATHNAME"
-[[ ! -L $GUI_LOG_PATHFILE ]] && /bin/ln -s "$REAL_LOG_PATHFILE" "$GUI_LOG_PATHFILE"
+[[ ! -L $r_apparent_loader_script_pathname ]] && /bin/ln -s "$r_real_loader_script_pathname" "$r_apparent_loader_script_pathname"
+[[ ! -L $r_gui_log_pathfile ]] && /bin/ln -s "$r_real_log_pathfile" "$r_gui_log_pathfile"
 echo 'symlinks created'
 }
 StopQPKG()
 {
-[[ -L $APPARENT_LOADER_SCRIPT_PATHNAME ]] && rm -f "$APPARENT_LOADER_SCRIPT_PATHNAME"
-[[ -L $GUI_LOG_PATHFILE ]] && rm -f "$GUI_LOG_PATHFILE"
+[[ -L $r_apparent_loader_script_pathname ]] && rm -f "$r_apparent_loader_script_pathname"
+[[ -L $r_gui_log_pathfile ]] && rm -f "$r_gui_log_pathfile"
 echo 'symlinks removed'
 }
 StatusQPKG()
 {
-if [[ -L $APPARENT_LOADER_SCRIPT_PATHNAME ]];then
+if [[ -L $r_apparent_loader_script_pathname ]];then
 echo active
 exit 0
 else
@@ -67,11 +67,11 @@ echo "$(ShowAsTitleName) $(ShowAsVersion)"
 }
 ShowAsTitleName()
 {
-TextBrightWhite $QPKG_NAME
+TextBrightWhite $r_qpkg_name
 }
 ShowAsVersion()
 {
-printf '%s' "v$QPKG_VERSION"
+printf '%s' "v$r_qpkg_version"
 }
 ShowAsUsage()
 {
@@ -100,11 +100,11 @@ CommitServiceResult
 }
 CommitServiceAction()
 {
-echo "$service_action" > "$SERVICE_ACTION_PATHFILE"
+echo "$service_action" > "$r_service_action_pathfile"
 }
 CommitServiceResult()
 {
-echo "$service_result" > "$SERVICE_RESULT_PATHFILE"
+echo "$service_result" > "$r_service_result_pathfile"
 }
 TextBrightWhite()
 {
@@ -112,7 +112,7 @@ TextBrightWhite()
 printf '\033[1;97m%s\033[0m' "$1"
 }
 Init
-user_arg=${USER_ARGS_RAW%% *}
+user_arg=${r_user_args_raw%% *}
 case $user_arg in
 ?(--)start)
 SetServiceAction start

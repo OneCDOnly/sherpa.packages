@@ -174,20 +174,25 @@ buffer=$(<"$target")
 
 echo -n 'updating QPKG fields ... '
 
+# multi-line regex: https://superuser.com/questions/1766993/find-and-replace-text-in-a-file-only-after-2-different-patterns-match-using-sed
+
 while read -r checksum_filename qpkg_filename package_name version arch hash; do
 	for property in version package_name qpkg_filename hash; do
-		buffer=$(sed "/QPKG_NAME+=(${package_name})/,/^$/{/QPKG_ARCH+=(${arch})/,/${property}.*/s/<?${property}?>/${!property}/}" <<< "$buffer")
+		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/^$/{/r_qpkg_arch+=(${arch})/,/r_qpkg_url+=/s/<?${property}?>/${!property}/}" <<< "$buffer")
 
 		case $package_name in
 			nzbget|QDK)
 				if [[ $property = version ]]; then
 					# Run this a second time as there are 2 version placeholders in 'packages.source' for nzbget and QDK.
-					buffer=$(sed "/QPKG_NAME+=($package_name)/,/^$/{/QPKG_ARCH+=($arch)/,/$property.*/s/<?$property?>/${!property}/}" <<< "$buffer")
+
+					# echo "running a second swap: QPKG '$package_name', arch '$arch', property '$property', value '${!property}'"
+					buffer=$(sed "/r_qpkg_name+=(${package_name})/,/^$/{/r_qpkg_arch+=(${arch})/,/r_qpkg_url+=/s/<?${property}?>/${!property}/}" <<< "$buffer")
 				fi
 		esac
 
-		# If arch = 'none' then package will not be installable, so write 'none' to all fields.
-		buffer=$(sed "/QPKG_NAME+=(${package_name})/,/^$/{/QPKG_ARCH+=(none)/,/${property}.*/s/<?${property}?>/none/}" <<< "$buffer")
+		# If arch = 'none' then package is not installable, so write 'none' to all fields.
+
+		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/^$/{/r_qpkg_arch+=(none)/,/r_qpkg_url+=/s/<?${property}?>/none/}" <<< "$buffer")
 	done
 done <<< "$(sort "$highest_package_versions_found_pathfile")"
 
@@ -205,7 +210,7 @@ else
 fi
 
 if grep -q '<?\|?>' "$target"; then
-	ColourTextBrightRed "'$target' contains illegal characters, can't continue"; echo
+	ColourTextBrightRed "'$target' contains unswapped tags, can't continue"; echo
 	exit 1
 fi
 

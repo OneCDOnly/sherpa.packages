@@ -11,9 +11,9 @@
 #
 #* <?license?>
 
-readonly USER_ARGS_RAW=$*
-readonly QPKG_NAME=ClamAV
-readonly SERVICE_SCRIPT_VERSION='<?build_date?>'
+readonly r_user_args_raw=$*
+readonly r_qpkg_name=ClamAV
+readonly r_service_script_version='<?build_date?>'
 
 InitService()
 	{
@@ -45,16 +45,16 @@ InitService()
 
 		# daemon_exec_pathfile=undefined							# The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this will be the interpreter to launch.
 
-		# daemon_pid_pathfile=/var/run/$QPKG_NAME.pid
+		# daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 
 		# daemon_script_pathfile=undefined							# When an interpreter is to be used, interpret this script.
 
 		# launcher_pathfile=undefined								# On-demand executables only.
 
-		# qpkg_backup_pathfile=$BACKUP_PATH/$QPKG_NAME.config.tar.gz
+		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 		qpkg_backup_pathfile=undefined
 
-		# qpkg_ini_pathfile=$QPKG_CONFIG_PATH/$qpkg_ini_file
+		# qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
 		qpkg_ini_pathfile=undefined
 
 		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
@@ -133,8 +133,8 @@ InitService()
 
 		# daemon_launch_cmd=undefined
 
-	readonly TARGET_SERVICE_PATHFILE=/etc/init.d/antivirus.sh
-	readonly BACKUP_SERVICE_PATHFILE=$TARGET_SERVICE_PATHFILE.bak
+	readonly r_target_service_pathfile=/etc/init.d/antivirus.sh
+	readonly r_backup_service_pathfile=$r_target_service_pathfile.bak
 
 	}
 
@@ -145,25 +145,25 @@ StartQPKGCustom()
 	MakePaths
 	WaitForGit || { SetError; return 1 ;}
 
-	if [[ ! -e $BACKUP_SERVICE_PATHFILE ]]; then
-		cp "$TARGET_SERVICE_PATHFILE" "$BACKUP_SERVICE_PATHFILE"
+	if [[ ! -e $r_backup_service_pathfile ]]; then
+		cp "$r_target_service_pathfile" "$r_backup_service_pathfile"
 
 		# mod base references
-		/bin/sed -i 's|/usr/local/bin/clamscan|/opt/sbin/clamscan|' "$TARGET_SERVICE_PATHFILE"
-		/bin/sed -i 's|/usr/local/bin/freshclam|/opt/sbin/freshclam|' "$TARGET_SERVICE_PATHFILE"
+		/bin/sed -i 's|/usr/local/bin/clamscan|/opt/sbin/clamscan|' "$r_target_service_pathfile"
+		/bin/sed -i 's|/usr/local/bin/freshclam|/opt/sbin/freshclam|' "$r_target_service_pathfile"
 
 		# disable dryrun. The new ClamAV engine (0.102.4) doesn't support the '--dryrun' or '--countfile=' options.
 		# match second occurrence only. First one is used by McAfee. Solution here: https://unix.stackexchange.com/a/403272
-		/bin/sed -i ':a;N;$!ba; s|/bin/sh -c "$AV_SCAN_PATH $DRY_RUN_OPTIONS --dryrun|#/bin/sh -c "$AV_SCAN_PATH $DRY_RUN_OPTIONS --dryrun|2' "$TARGET_SERVICE_PATHFILE"
+		/bin/sed -i ':a;N;$!ba; s|/bin/sh -c "$AV_SCAN_PATH $DRY_RUN_OPTIONS --dryrun|#/bin/sh -c "$AV_SCAN_PATH $DRY_RUN_OPTIONS --dryrun|2' "$r_target_service_pathfile"
 
 		# mod 'clamscan' runtime options
 		# match second occurrence only. First one is used by McAfee.
-		/bin/sed -i ':a;N;$!ba; s|OPTIONS="$OPTIONS --countfile=/tmp/antivirous.job.$job_id.scanning"|OPTIONS="$OPTIONS --database=$ANTIVIRUS_CLAMAV"|2' "$TARGET_SERVICE_PATHFILE"
+		/bin/sed -i ':a;N;$!ba; s|OPTIONS="$OPTIONS --countfile=/tmp/antivirous.job.$job_id.scanning"|OPTIONS="$OPTIONS --database=$ANTIVIRUS_CLAMAV"|2' "$r_target_service_pathfile"
 
 		# mod 'freshclam' runtime options
-		/bin/sed -i 's|$FRESHCLAM -u admin -l /tmp/.freshclam.log|$FRESHCLAM -u admin --config-file=$FRESHCLAM_CONFIG --datadir=$ANTIVIRUS_CLAMAV -l /tmp/.freshclam.log|' "$TARGET_SERVICE_PATHFILE"
+		/bin/sed -i 's|$FRESHCLAM -u admin -l /tmp/.freshclam.log|$FRESHCLAM -u admin --config-file=$FRESHCLAM_CONFIG --datadir=$ANTIVIRUS_CLAMAV -l /tmp/.freshclam.log|' "$r_target_service_pathfile"
 
-		eval "$TARGET_SERVICE_PATHFILE" restart &>/dev/null
+		eval "$r_target_service_pathfile" restart &>/dev/null
 	fi
 
 	/bin/grep -q freshclam /etc/profile || echo "alias freshclam='/opt/sbin/freshclam -u admin --config-file=/etc/config/freshclam.conf --datadir=/share/$(/sbin/getcfg Public path -f /etc/config/smb.conf | cut -d '/' -f 3)/.antivirus/usr/share/clamav -l /tmp/.freshclam.log'" >> /etc/profile
@@ -179,10 +179,10 @@ StopQPKGCustom()
 
 	IsError && return
 
-	if [[ -e $BACKUP_SERVICE_PATHFILE ]]; then
-		mv "$BACKUP_SERVICE_PATHFILE" "$TARGET_SERVICE_PATHFILE"
+	if [[ -e $r_backup_service_pathfile ]]; then
+		mv "$r_backup_service_pathfile" "$r_target_service_pathfile"
 
-		eval "$TARGET_SERVICE_PATHFILE" restart &>/dev/null
+		eval "$r_target_service_pathfile" restart &>/dev/null
 	fi
 
 	/bin/sed -i '/freshclam/d' /etc/profile
@@ -197,7 +197,7 @@ StatusQPKGCustom()
 
 	IsNotError || return
 
-	if [[ -e $BACKUP_SERVICE_PATHFILE ]]; then
+	if [[ -e $r_backup_service_pathfile ]]; then
 		printf active
 
 		exit 0
@@ -211,10 +211,10 @@ StatusQPKGCustom()
 
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
-readonly SERVICE_LIBRARY_PATHFILE=$(/usr/bin/dirname "$library_path")/service.lib
+readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
 
-if [[ -e $SERVICE_LIBRARY_PATHFILE ]]; then
-	. $SERVICE_LIBRARY_PATHFILE
+if [[ -e $r_service_library_pathfile ]]; then
+	. $r_service_library_pathfile
 else
 	printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
 	exit 1
