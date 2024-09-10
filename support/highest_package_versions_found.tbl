@@ -98,7 +98,7 @@ SABnzbd_240911_x86_ce53xx.qpkg.md5   SABnzbd_240911_x86_ce53xx.qpkg   SABnzbd   
 SABnzbd_240911_x86.qpkg.md5          SABnzbd_240911_x86.qpkg          SABnzbd              240911       i86    a30ad4a01069b672b2590e914427bd88
 sha3sum_240808_x86_64.qpkg.md5       sha3sum_240808_x86_64.qpkg       sha3sum              240808       i64    2933e3f0aaa4b5261408b230d1a90df1
 sha3sum_240808_x86.qpkg.md5          sha3sum_240808_x86.qpkg          sha3sum              240808       i86    788c070aab5a3b96006b6a963532a284
-sherpa_240911.qpkg.md5               sherpa_240911.qpkg               sherpa               240911       all    8f3a50221e60bde6466e7e0eda37f3da
+sherpa_240911.qpkg.md5               sherpa_240911.qpkg               sherpa               240911       all    39631c0c89e0ce8fc77768227c627764
 SortMyQPKGs_240801.qpkg.md5          SortMyQPKGs_240801.qpkg          SortMyQPKGs          240801       all    111031554f2417fd5bdc4c472fd34229
 Unmanic_240911_arm_64.qpkg.md5       Unmanic_240911_arm_64.qpkg       Unmanic              240911       a64    b0755b63c3aa82f371a430a2500b4e2a
 Unmanic_240911_arm-x19.qpkg.md5      Unmanic_240911_arm-x19.qpkg      Unmanic              240911       a19    75021730218efbb8d54c635be940a04d
