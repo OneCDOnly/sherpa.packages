@@ -169,6 +169,8 @@ InitLibrary()
 
 	# >>> CMDs <<<
 
+		daemon_launch_cmd=undefined
+
 		get_app_version_cmd=undefined
 
 		get_daemon_port_cmd=undefined
@@ -180,8 +182,6 @@ InitLibrary()
 		get_ui_port_secure_cmd=undefined
 
 		get_ui_port_secure_enabled_test_cmd=undefined
-
-		daemon_launch_cmd=undefined
 
 # --- start of template for service-script ---
 
@@ -287,6 +287,8 @@ InitLibrary()
 
 	# >>> CMDs <<<
 
+		# daemon_launch_cmd=undefined
+
 		# get_app_version_cmd=undefined
 
 		# get_daemon_port_cmd=undefined
@@ -299,11 +301,10 @@ InitLibrary()
 
 		# get_ui_port_secure_enabled_test_cmd=undefined
 
-		# daemon_launch_cmd=undefined
-
 # --- end of template for service-script ---
 
 	InitService					# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
+
 	OSIsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
 	get_remote_filename_timeout_seconds=5
 	new_env=false
