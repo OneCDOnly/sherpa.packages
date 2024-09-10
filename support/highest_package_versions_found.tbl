@@ -2,7 +2,6 @@
 Bazarr_240910_arm_64.qpkg.md5        Bazarr_240910_arm_64.qpkg        Bazarr               240910       a64    77d8688fe4a19b36a9f39561acdca2db
 Bazarr_240910_x86_64.qpkg.md5        Bazarr_240910_x86_64.qpkg        Bazarr               240910       i64    e24bf26868143d0e3edde31930c85c1b
 ClamAV_240910.qpkg.md5               ClamAV_240910.qpkg               ClamAV               240910       all    bc797b742357f1ce62bc7097d423dca4
-Codex_today.qpkg.md5                 Codex_today.qpkg                 Codex                today        all    4bd882602688d9a13e6dc21ca52745c7
 duf_240731_arm_64.qpkg.md5           duf_240731_arm_64.qpkg           duf                  240731       a64    f57d72a189ad9f49e42a2726e3eadc7c
 duf_240731_arm-x31.qpkg.md5          duf_240731_arm-x31.qpkg          duf                  240731       a31    79774fbe8dda0cf9d7431c88f66e5400
 duf_240731_arm-x41.qpkg.md5          duf_240731_arm-x41.qpkg          duf                  240731       a41    fdb790fc668345d593598453c3ce1cc0
@@ -16,7 +15,6 @@ Glances_240910_arm-x41.qpkg.md5      Glances_240910_arm-x41.qpkg      Glances   
 Glances_240910_x86_64.qpkg.md5       Glances_240910_x86_64.qpkg       Glances              240910       i64    69b6c75bdd792d1c630b239597ed4ffc
 Glances_240910_x86_ce53xx.qpkg.md5   Glances_240910_x86_ce53xx.qpkg   Glances              240910       i53    f912ba38812484872c77d17f5b276bb8
 Glances_240910_x86.qpkg.md5          Glances_240910_x86.qpkg          Glances              240910       i86    14b72604cae4c078b56e8313735e3ef5
-gpt-engineer_240202.qpkg.md5         gpt-engineer_240202.qpkg         gpt-engineer         240202       all    f04fde0d2eab15a4ff645f8d99ca9b2f
 Headphones_240910.qpkg.md5           Headphones_240910.qpkg           Headphones           240910       all    e6ec39e18fa3449850aadb26286e041c
 HideThatBanner_240807.qpkg.md5       HideThatBanner_240807.qpkg       HideThatBanner       240807       all    629cd406d0ccf298602001bae7d120ce
 IncreaseTimeouts_240808.qpkg.md5     IncreaseTimeouts_240808.qpkg     IncreaseTimeouts     240808       all    0c76a11a0db6d43c75125e68faef04ae
@@ -36,9 +34,6 @@ nzbget_24.2_x86.qpkg.md5             nzbget_24.2_x86.qpkg             nzbget    
 NZBHydra2_240910_arm_64.qpkg.md5     NZBHydra2_240910_arm_64.qpkg     NZBHydra2            240910       a64    1b73e501365852b23abf6b508d3b8b0e
 NZBHydra2_240910_x86_64.qpkg.md5     NZBHydra2_240910_x86_64.qpkg     NZBHydra2            240910       i64    10e40d8860349a6e5a9d2456a0fbee5e
 nzbToMedia_240205.qpkg.md5           nzbToMedia_240205.qpkg           nzbToMedia           240205       all    6a43a3e6a7b04762034a1ad7918addad
-OFlexGet_240722_arm_64.qpkg.md5      OFlexGet_240722_arm_64.qpkg      OFlexGet             240722       a64    2a55ea8df5b5b4a855795664259644f5
-OFlexGet_240722_x86_64.qpkg.md5      OFlexGet_240722_x86_64.qpkg      OFlexGet             240722       i64    801f72c21f00ffce1e95ea1fd137935b
-OFlexGet_240722_x86.qpkg.md5         OFlexGet_240722_x86.qpkg         OFlexGet             240722       i86    f0f6cdbc5a2ba4204319aedfaa0c2dd8
 OLidarr_240910_arm_64.qpkg.md5       OLidarr_240910_arm_64.qpkg       OLidarr              240910       a64    3e02240ebf121c66aaa21d6ec5c1b359
 OLidarr_240910_x86_64.qpkg.md5       OLidarr_240910_x86_64.qpkg       OLidarr              240910       i64    03fbd0668369155cea69d5aaa96a8466
 OliveTin_240910_arm_64.qpkg.md5      OliveTin_240910_arm_64.qpkg      OliveTin             240910       a64    99d06577e4199a39c6a0495e0866dde6
@@ -103,7 +98,7 @@ SABnzbd_240910_x86_ce53xx.qpkg.md5   SABnzbd_240910_x86_ce53xx.qpkg   SABnzbd   
 SABnzbd_240910_x86.qpkg.md5          SABnzbd_240910_x86.qpkg          SABnzbd              240910       i86    32f98d373b5c8a1c93474340df31d2a4
 sha3sum_240808_x86_64.qpkg.md5       sha3sum_240808_x86_64.qpkg       sha3sum              240808       i64    2933e3f0aaa4b5261408b230d1a90df1
 sha3sum_240808_x86.qpkg.md5          sha3sum_240808_x86.qpkg          sha3sum              240808       i86    788c070aab5a3b96006b6a963532a284
-sherpa_240910.qpkg.md5               sherpa_240910.qpkg               sherpa               240910       all    87144aaed5991dd9cc87a7c4e9c6d2c3
+sherpa_240910.qpkg.md5               sherpa_240910.qpkg               sherpa               240910       all    fa03bfbd3f055387f464426af36f1a50
 SortMyQPKGs_240801.qpkg.md5          SortMyQPKGs_240801.qpkg          SortMyQPKGs          240801       all    111031554f2417fd5bdc4c472fd34229
 Unmanic_240910_arm_64.qpkg.md5       Unmanic_240910_arm_64.qpkg       Unmanic              240910       a64    15045b88365022aaf71a50163352bace
 Unmanic_240910_arm-x19.qpkg.md5      Unmanic_240910_arm-x19.qpkg      Unmanic              240910       a19    a4273dd8eaf16cc22240960f13ca8925
