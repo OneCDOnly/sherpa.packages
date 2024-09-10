@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='240909'
+readonly r_service_library_version='240910'
 InitLibrary()
 {
 IsQNAP || exit
@@ -1589,11 +1589,11 @@ IsNotError()
 }
 IsReinstall()
 {
-[[ ${QPKG_REINSTALL:=false} = true ]]
+[[ ${REINSTALL_QPKG:=false} = true ]]
 }
 IsUpgrade()
 {
-[[ ${QPKG_UPGRADE:=false} = true ]]
+[[ ${UPGRADE_QPKG:=false} = true ]]
 }
 IsStart()
 {
