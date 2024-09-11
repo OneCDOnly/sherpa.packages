@@ -781,7 +781,7 @@ ShowHelp()
 	Display '[ACTION] must be one of the following:'
 	DisplayAsHelp 'activate, start' "start $(FormatAsPackageName $r_qpkg_name) if inactive"
 	IsSupportBackup && DisplayAsHelp 'b, backup' "backup current $(FormatAsPackageName $r_qpkg_name) configuration to persistent storage"
-	IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) from remote source. Configuration will be retained"
+	IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) files from source. Configuration will be retained"
 	DisplayAsHelp 'deactivate, stop' "stop $(FormatAsPackageName $r_qpkg_name) if active"
 	DisplayAsHelp disable "disable $(FormatAsPackageName $r_qpkg_name) to prevent it starting (on NAS bootup)"
 	IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $r_qpkg_name) before starting it"
