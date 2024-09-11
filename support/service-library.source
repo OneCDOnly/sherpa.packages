@@ -3665,7 +3665,7 @@ FormatAsDuration()
 	if [[ ${1:-0} -lt 10000 ]]; then
 		printf '%s' "$(FormatAsThous "${1:-0}")ms"
 	else
-		FormatSecsToHoursMinutesSecs "$((($1+500)/1000))"		# Add 0.5s to improve apparent rounding accuracy.
+		FormatSecsToHoursMinutesSecs "$(((${1:-0}+500)/1000))"		# Add 0.5s to improve apparent rounding accuracy.
 	fi
 
 	}
