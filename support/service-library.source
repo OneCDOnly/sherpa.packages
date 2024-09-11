@@ -31,7 +31,7 @@ InitLibrary()
 
 	local re=''
 
-	for re in \\bd\\b \\bdebug\\b \\bdbug\\b \\bverbose\\b; do
+	for re in \\bd\\b \\bD\\b \\bdebug\\b \\bdbug\\b \\bverbose\\b; do
 		[[ $r_user_args_raw =~ $re ]] || continue
 		debug=true
 		break
@@ -774,32 +774,29 @@ ShowHelp()
 	#	$r_qpkg_name
 	#	$r_service_script_version
 
-	Display "$(TextBrightWhite "$(/usr/bin/basename "$0")") $r_service_script_version • a service control script for the $(FormatAsPackageName $r_qpkg_name) QPKG"
+	Display "$(TextBrightWhite "$(/usr/bin/basename "$0")") v$r_service_script_version • a service control script for the $(FormatAsPackageName $r_qpkg_name) QPKG"
 	Display
 	Display "Usage: $0 [ACTION] [OPTION]"
 	Display
-	Display '[ACTION] may be any one of the following:'
-	Display
-	IsSupportBackup && DisplayAsHelp backup "backup current $(FormatAsPackageName $r_qpkg_name) configuration to persistent storage"
-	IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) from remote source. Configuration will be retained"
+	Display '[ACTION] must be one of the following:'
+	DisplayAsHelp 'activate, start' "start $(FormatAsPackageName $r_qpkg_name) if inactive"
+	IsSupportBackup && DisplayAsHelp 'b, backup' "backup current $(FormatAsPackageName $r_qpkg_name) configuration to persistent storage"
+	IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) files from source. Configuration will be retained"
+	DisplayAsHelp 'deactivate, stop' "stop $(FormatAsPackageName $r_qpkg_name) if active"
 	DisplayAsHelp disable "disable $(FormatAsPackageName $r_qpkg_name) to prevent it starting (on NAS bootup)"
 	IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $r_qpkg_name) before starting it"
 	DisplayAsHelp enable "enable $(FormatAsPackageName $r_qpkg_name) so it can be started"
 	IsSupportAutoUpdate && DisplayAsHelp enable-auto-update "auto-update $(FormatAsPackageName $r_qpkg_name) before starting (default)"
-	DisplayAsHelp log 'display the service-script log'
+	DisplayAsHelp 'l, L, log' 'display the service-script log'
+	DisplayAsHelp 'r, reactivate, restart' "stop, then start $(FormatAsPackageName $r_qpkg_name)"
 	IsSupportActions && DisplayAsHelp reset-action 'clear the current service-script action and action result'
-	IsSupportReset && DisplayAsHelp reset-config "delete $(FormatAsPackageName $r_qpkg_name) configuration, databases and history"
-	DisplayAsHelp restart "stop, then start $(FormatAsPackageName $r_qpkg_name)"
+	IsSupportReset && DisplayAsHelp reset-config "revert $(FormatAsPackageName $r_qpkg_name) configuration, databases and history to defaults"
 	IsSupportBackup && DisplayAsHelp restore 'restore a previously saved configuration from persistent storage'
-	DisplayAsHelp start "start $(FormatAsPackageName $r_qpkg_name) if not already active"
-	DisplayAsHelp status "check if $(FormatAsPackageName $r_qpkg_name) application is active. Returns \$? = 0 if active, 1 if not"
-	DisplayAsHelp stop "stop $(FormatAsPackageName $r_qpkg_name) if active"
-	DisplayAsHelp version 'display the package version numbers'
+	DisplayAsHelp 's, status' "check if $(FormatAsPackageName $r_qpkg_name) application is active. Returns \$? = 0 if active, 1 if not"
+	DisplayAsHelp 'v, V, version' 'display the package version numbers'
 	Display
-	Display '[OPTION] may be any one of the following:'
-	Display
-	DisplayAsHelp debug "run specified [ACTION] in debug mode"
-	DisplayAsHelp verbose "same as debug"
+	Display '[OPTION] may be one of the following:'
+	DisplayAsHelp 'd, D, debug, verbose' "execute the specified [ACTION] in debug mode"
 	Display
 
 	}
@@ -3415,7 +3412,7 @@ FormatAsPackageName()
 DisplayAsHelp()
 	{
 
-	printf '  --%-19s  %s\n' "${1:-}" "${2:-}."
+	printf '  %-22s  - %s\n' "${1:-}" "${2:-}."
 
 	}
 
@@ -3614,10 +3611,7 @@ CalcMilliDifference()
 	# Outputs: (local)
 	#	stdout = difference in milliseconds
 
-	local start=${1:-0}
-	local end=${2:-1}
-
-	echo "$(((end-start)/1000000))"
+	echo "$(((${2:-1}-${1:-0})/1000000))"
 
 	}
 
@@ -3670,7 +3664,7 @@ FormatAsDuration()
 	if [[ ${1:-0} -lt 10000 ]]; then
 		printf '%s' "$(FormatAsThous "${1:-0}")ms"
 	else
-		FormatSecsToHoursMinutesSecs "$(($1/1000))"
+		FormatSecsToHoursMinutesSecs "$(((${1:-0}+500)/1000))"		# Add 0.5s to improve apparent rounding accuracy.
 	fi
 
 	}
@@ -3904,6 +3898,19 @@ ProcessArgs()
 		local user_arg=${r_user_args_raw%% *}		# Only process first argument.
 
 		case $user_arg in
+			?(--)activate|?(--)start)
+				IsSU ||	exit
+
+				SetServiceAction start
+
+				if IsQPKGEnabled; then
+					SetTraps
+					StartQPKG
+				else
+					ShowDisabledPrompt
+					SetError
+				fi
+				;;
 			?(-)b|?(--)backup?(-config))
 				IsSU ||	exit
 
@@ -3933,6 +3940,13 @@ ProcessArgs()
 					SetServiceAction unsupported
 					ShowUnsupportedAction "$user_arg"
 				fi
+				;;
+			?(--)deactivate|?(--)stop)
+				IsSU ||	exit
+
+				SetServiceAction stop
+				SetTraps
+				StopQPKG
 				;;
 			?(--)disable)
 				IsSU ||	exit
@@ -3989,9 +4003,22 @@ ProcessArgs()
 			?(--)help)
 				ShowHelp
 				;;
-			?(-)l|?(--)log)
+			?(-)+(l|L)|?(--)log)
 				SetServiceAction log
 				ViewLog
+				;;
+			?(-)r|?(--)reactivate|?(--)restart)
+				IsSU ||	exit
+
+				SetServiceAction restart
+
+				if IsQPKGEnabled; then
+					SetTraps
+					StopQPKG && StartQPKG
+				else
+					ShowDisabledPrompt
+					SetError
+				fi
 				;;
 			remove)			# Only called by the QDK '.uninstall.sh' script.
 				SetServiceAction uninstall
@@ -4021,19 +4048,6 @@ ProcessArgs()
 					ShowUnsupportedAction "$user_arg"
 				fi
 				;;
-			?(-)r|?(--)restart)
-				IsSU ||	exit
-
-				SetServiceAction restart
-
-				if IsQPKGEnabled; then
-					SetTraps
-					StopQPKG && StartQPKG
-				else
-					ShowDisabledPrompt
-					SetError
-				fi
-				;;
 			?(--)restore?(-config))
 				IsSU ||	exit
 
@@ -4048,34 +4062,14 @@ ProcessArgs()
 					ShowUnsupportedAction "$user_arg"
 				fi
 				;;
-			?(--)start)
-				IsSU ||	exit
-
-				SetServiceAction start
-
-				if IsQPKGEnabled; then
-					SetTraps
-					StartQPKG
-				else
-					ShowDisabledPrompt
-					SetError
-				fi
-				;;
 			?(-)s|?(--)status)
 				SetStatusGet
 				StatusQPKG
 				;;
-			?(--)stop)
-				IsSU ||	exit
-
-				SetServiceAction stop
-				SetTraps
-				StopQPKG
-				;;
 			uninstall)
 				: # Ignore.
 				;;
-			?(-)v|?(--)version)
+			?(-)+(v|V)|?(--)version?(s))
 				Display "package: '$r_qpkg_version'"
 				Display "service: '$r_service_script_version'"
 				Display "library: '$r_service_library_version'"
