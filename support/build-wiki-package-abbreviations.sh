@@ -7,15 +7,15 @@ objects_built=false
 Objects:Load()
 	{
 
-	readonly OBJECTS_PATHFILE=$support_path/$objects_file
+	readonly r_objects_pathfile=$support_path/$objects_file
 
-	if [[ ! -e $OBJECTS_PATHFILE ]]; then
+	if [[ ! -e $r_objects_pathfile ]]; then
 		$support_path/build-objects.sh &>/dev/null
 		objects_built=true
 	fi
 
-	if [[ -e $OBJECTS_PATHFILE ]]; then
-		. "$OBJECTS_PATHFILE"
+	if [[ -e $r_objects_pathfile ]]; then
+		. "$r_objects_pathfile"
 	else
 		echo 'unable to load objects: file missing'
 		return 1
@@ -28,50 +28,52 @@ Objects:Load()
 Packages:Load()
 	{
 
-	readonly PACKAGES_PATHFILE=$qpkgs_support_path/$packages_source_file
+	readonly r_packages_pathfile=$qpkgs_support_path/$packages_source_file
 
-	if [[ ! -e $PACKAGES_PATHFILE ]]; then
+	if [[ ! -e $r_packages_pathfile ]]; then
 		echo 'package list missing'
 		exit 1
 	fi
 
-	. "$PACKAGES_PATHFILE"
+	. "$r_packages_pathfile"
 
-	readonly PACKAGES_VER
-	readonly BASE_QPKG_CONFLICTS_WITH
-	readonly BASE_QPKG_WARNINGS
-	readonly ESSENTIAL_IPKS
-	readonly ESSENTIAL_PIPS
-	readonly MIN_PYTHON_VER
-	readonly MIN_PERL_VER
+	readonly r_base_qpkg_conflicts_with
+	readonly r_base_qpkg_warnings
+	readonly r_essential_ipks
+	readonly r_essential_pips
+	readonly r_exclusion_pips
+	readonly r_min_perl_version
+	readonly r_min_python_version
+	readonly r_packages_epoch
 
 	# Package list arrays are now full, so lock them.
-	readonly QPKG_ABBRVS
-	readonly QPKG_APPLICATION_AUTHOR
-	readonly QPKG_APPLICATION_AUTHOR_EMAIL
-	readonly QPKG_APPLICATION_VERSION
-	readonly QPKG_ARCH
-	readonly QPKG_AUTHOR
-	readonly QPKG_AUTHOR_EMAIL
-	readonly QPKG_CAN_BACKUP
-	readonly QPKG_CAN_CLEAN
-	readonly QPKG_CAN_LOG_SERVICE_OPERATIONS
-	readonly QPKG_CAN_RESTART_TO_UPDATE
-	readonly QPKG_CONFLICTS_WITH
-	readonly QPKG_DEPENDS_ON
-	readonly QPKG_DESC
-	readonly QPKG_HASH
-	readonly QPKG_MAX_OS_VERSION
-	readonly QPKG_MIN_OS_VERSION
-	readonly QPKG_MIN_RAM_KB
-	readonly QPKG_NAME
-	readonly QPKG_NOTE
-	readonly QPKG_REQUIRES_IPKS
-	readonly QPKG_TEST_FOR_ACTIVE
-	readonly QPKG_URL
-	readonly QPKG_VERSION
+	readonly r_qpkg_abbrvs
+	readonly r_qpkg_appl_author
+	readonly r_qpkg_appl_author_email
+	readonly r_qpkg_appl_version
+	readonly r_qpkg_arch
+	readonly r_qpkg_author
+	readonly r_qpkg_author_email
+	readonly r_qpkg_can_backup
+	readonly r_qpkg_can_clean
+	readonly r_qpkg_can_log
+	readonly r_qpkg_can_restart_to_update
+	readonly r_qpkg_conflicts_with
+	readonly r_qpkg_depends_on
+	readonly r_qpkg_description
+	readonly r_qpkg_hash
+	readonly r_qpkg_is_sherpa_compatible
+	readonly r_qpkg_max_os_version
+	readonly r_qpkg_min_os_version
+	readonly r_qpkg_min_ram_kb
+	readonly r_qpkg_name
+	readonly r_qpkg_note
+	readonly r_qpkg_requires_ipks
+	readonly r_qpkg_test_for_active
+	readonly r_qpkg_url
+	readonly r_qpkg_version
 
-	QPKGs-GRall:Add "${QPKG_NAME[*]}"
+	QPKGs-GRall:Add "${r_qpkg_name[*]}"
 
 	}
 
@@ -96,7 +98,7 @@ for b in $(QPKGs-GRall:Array); do
 	echo "| $b | \`${abs// /\` \`}\` |" >> "$a"
 done
 
-[[ $objects_built = true ]] && rm -f "$OBJECTS_PATHFILE"
+[[ $objects_built = true ]] && rm -f "$r_objects_pathfile"
 
 ShowDone
 exit 0
