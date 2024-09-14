@@ -639,6 +639,7 @@ RefreshReleasePackageFiles()
 
 	# Inputs: (global)
 	#	$compare_release_filename
+	#	$get_remote_filename_timeout_seconds
 	#	$qpkg_repo_path
 	#	$r_qpkg_temp_path
 	#	$remote_arch
@@ -656,8 +657,17 @@ RefreshReleasePackageFiles()
 		if [[ $resolve_remote_url = true ]]; then
 			refresh_release_package=true
 
+			DisplayWaitCommitToLog '> get latest release package URL:'
+
 			if IsSiteUp "$remote_url"; then
 				release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_arch")
+
+				if [[ -n $release_package_url ]]; then
+					DisplayCommitToLog OK
+					DisplayCommitToLog "- release package URL: '$release_package_url'"
+				else
+					DisplayErrCommitAllLogs '! unable to get latest remote release package URL'
+				fi
 			else
 				DisplayErrCommitAllLogs '! unable to access remote site'
 			fi
@@ -672,7 +682,8 @@ RefreshReleasePackageFiles()
 				release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
 
 				if [[ -n $release_package_filename ]]; then
-					DisplayCommitToLog "'$release_package_filename'"
+					DisplayCommitToLog OK
+					DisplayCommitToLog "- release package filename: '$release_package_filename'"
 				else
 					DisplayErrCommitAllLogs '! unable to get latest remote release package filename'
 				fi
