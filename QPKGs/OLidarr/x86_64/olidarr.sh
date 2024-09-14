@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OLidarr
-readonly r_service_script_version='240912'
+readonly r_service_script_version='240914'
 InitService()
 {
 qpkg_repo_path=$r_qpkg_path/repo-cache
