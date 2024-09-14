@@ -39,7 +39,7 @@ resolve_remote_url=true
 run_daemon_in_screen_session=true
 interpreter=/opt/bin/python3
 nice_daemon_to=15
-port_check_timeout_seconds=240
+port_check_timeout_seconds=360
 remote_url='https://api.github.com/repos/morpheus65535/bazarr/releases/latest'
 get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep general_ip= | cut -d\" -f2'
 get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep general_port= | cut -d\" -f2'
