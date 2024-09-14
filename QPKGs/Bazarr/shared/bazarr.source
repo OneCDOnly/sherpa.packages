@@ -111,7 +111,7 @@ InitService()
 		# pid_start_wait_seconds=60									# This value is adaptive (changes depending on system load average).
 
 		# port_check_timeout_seconds=120							# This value is adaptive (changes depending on system load average).
-		port_check_timeout_seconds=240								# TS-230 responded in 140 seconds during 'restart'.
+		port_check_timeout_seconds=360								# TS-230 responded in 300 seconds during high-load 'restart'.
 
 		# remote_arch=undefined
 
