@@ -5,7 +5,7 @@
     "DisableDHT": false,
     "DisablePEX": false,
     "DisableTCP": false,
-    "DisableUPNP": false,
+    "DisableUPNP": true,
     "DisableUTP": false,
     "DisableUpload": false,
     "DownloadRateLimit": 0,
