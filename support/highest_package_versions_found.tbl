@@ -98,9 +98,13 @@ SABnzbd_240914_x86_ce53xx.qpkg.md5   SABnzbd_240914_x86_ce53xx.qpkg   SABnzbd   
 SABnzbd_240914_x86.qpkg.md5          SABnzbd_240914_x86.qpkg          SABnzbd              240914       i86    89eff9f90c709812f12134baa106f535
 sha3sum_240808_x86_64.qpkg.md5       sha3sum_240808_x86_64.qpkg       sha3sum              240808       i64    2933e3f0aaa4b5261408b230d1a90df1
 sha3sum_240808_x86.qpkg.md5          sha3sum_240808_x86.qpkg          sha3sum              240808       i86    788c070aab5a3b96006b6a963532a284
-sherpa_240914.qpkg.md5               sherpa_240914.qpkg               sherpa               240914       all    b7cb05ce617f72d5c95b77eb09b67fb7
+sherpa_240914.qpkg.md5               sherpa_240914.qpkg               sherpa               240914       all    7108c2c8e42705ea56ff4343e8c86112
 SortMyQPKGs_240801.qpkg.md5          SortMyQPKGs_240801.qpkg          SortMyQPKGs          240801       all    111031554f2417fd5bdc4c472fd34229
-TorrServer_240914_x86_64.qpkg.md5    TorrServer_240914_x86_64.qpkg    TorrServer           240914       i64    42b9a2993b68c1783401be94749cb213
+TorrServer_240914_arm_64.qpkg.md5    TorrServer_240914_arm_64.qpkg    TorrServer           240914       a64    ef0d0427df2b15bf694723903ea0fc8f
+TorrServer_240914_arm-x19.qpkg.md5   TorrServer_240914_arm-x19.qpkg   TorrServer           240914       a19    2ebccb6d3baac332b600933e72c190c6
+TorrServer_240914_arm-x31.qpkg.md5   TorrServer_240914_arm-x31.qpkg   TorrServer           240914       a31    777ff81bcfc73a48ecefdeb0628ff4c8
+TorrServer_240914_arm-x41.qpkg.md5   TorrServer_240914_arm-x41.qpkg   TorrServer           240914       a41    a67ce1658311aa1a2a5429cc6367e83c
+TorrServer_240914_x86_64.qpkg.md5    TorrServer_240914_x86_64.qpkg    TorrServer           240914       i64    9f912626d25f950f17a7e73e392d060f
 Unmanic_240914_arm_64.qpkg.md5       Unmanic_240914_arm_64.qpkg       Unmanic              240914       a64    6817fea945bc9a1c20f812165e08169f
 Unmanic_240914_arm-x19.qpkg.md5      Unmanic_240914_arm-x19.qpkg      Unmanic              240914       a19    831254e67bc3be613e0698cc064cf620
 Unmanic_240914_arm-x31.qpkg.md5      Unmanic_240914_arm-x31.qpkg      Unmanic              240914       a31    89b35e9c74318b9094c4f4ac91b593d1
