@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='240912'
+readonly r_service_library_version='240915'
 InitLibrary()
 {
 IsQNAP || exit
@@ -79,6 +79,7 @@ can_restart_to_update=false
 compare_release_filename=false
 daemon_pidfile_is_managed_by_app=false
 install_pip_deps=false
+package_is_exec=false
 recheck_daemon_pid_after_kill=false
 recheck_daemon_pid_after_launch=false
 resolve_remote_url=false
@@ -328,8 +329,15 @@ local release_package_url=''
 if IsAutoUpdate || [[ ! -e $release_package_pathfile ]];then
 if [[ $resolve_remote_url = true ]];then
 refresh_release_package=true
+DisplayWaitCommitToLog '> get latest release package URL:'
 if IsSiteUp "$remote_url";then
 release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_arch")
+if [[ -n $release_package_url ]];then
+DisplayCommitToLog OK
+DisplayCommitToLog "- release package URL: '$release_package_url'"
+else
+DisplayErrCommitAllLogs '! unable to get latest remote release package URL'
+fi
 else
 DisplayErrCommitAllLogs '! unable to access remote site'
 fi
@@ -341,7 +349,8 @@ DisplayWaitCommitToLog "> get latest remote release package filename (no-more th
 if IsSiteUp "$remote_url";then
 release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
 if [[ -n $release_package_filename ]];then
-DisplayCommitToLog "'$release_package_filename'"
+DisplayCommitToLog OK
+DisplayCommitToLog "- release package filename: '$release_package_filename'"
 else
 DisplayErrCommitAllLogs '! unable to get latest remote release package filename'
 fi
@@ -383,7 +392,11 @@ if IsPathEmpty "$qpkg_repo_path";then
 extract_release_package=true
 fi
 if [[ $extract_release_package = true && -e $release_package_pathfile ]];then
+if IsReleaseAnArchive;then
 ExtractReleasePackage "$release_package_pathfile" "$release_package_name_ref_pathfilename"
+else
+MakeExecReleasePackage "$release_package_pathfile" "$release_package_name_ref_pathfilename"
+fi
 fi
 if [[ -d $qpkg_repo_path ]];then
 if IsPathEmpty "$qpkg_repo_path";then
@@ -1195,9 +1208,17 @@ IsOnlineReleasePackage()
 {
 [[ $remote_url != undefined ]]
 }
-IsNotOnlinePackageArchive()
+IsNotOnlineReleasePackage()
 {
 ! IsOnlineReleasePackage
+}
+IsReleaseAnArchive()
+{
+[[ $package_is_exec != undefined && $package_is_exec = false ]]
+}
+IsNotReleaseAnArchive()
+{
+! IsReleaseAnArchive
 }
 IsSupportAutoUpdate()
 {
@@ -1480,6 +1501,22 @@ if [[ -e $release_package_pathfile ]];then
 tar_opts="$tar_verbose --extract --gzip --file=$release_package_pathfile --directory=$qpkg_repo_path"
 unzip_opts="$unzip_verbose -o $release_package_pathfile -d $qpkg_repo_path"
 DisplayRunAndLog 'extract from release package' "/usr/bin/unzip${unzip_opts} 2>/dev/null || /bin/tar${tar_opts}" log:failure-only
+if [[ $compare_release_filename = true && -n $release_package_name_ref_pathfilename ]];then
+if [[ ! -e $release_package_name_ref_pathfilename ]];then
+DisplayRunAndLog 'create release package name reference' "/bin/touch $release_package_name_ref_pathfilename" log:failure-only
+fi
+fi
+fi
+}
+MakeExecReleasePackage()
+{
+[[ -n ${1:-} && ${1:-} != undefined ]] || return
+local release_package_name_ref_pathfilename=''
+local release_package_pathfile=$1
+[[ -n ${2:-} && ${2:-} != undefined ]] && release_package_name_ref_pathfilename=$2
+if [[ -e $release_package_pathfile ]];then
+DisplayRunAndLog 'copy release package' "cp -f $release_package_pathfile $daemon_exec_pathfile" log:failure-only
+[[ ! -x $daemon_exec_pathfile ]] && DisplayRunAndLog 'make release package executable' "chmod +x $daemon_exec_pathfile" log:failure-only
 if [[ $compare_release_filename = true && -n $release_package_name_ref_pathfilename ]];then
 if [[ ! -e $release_package_name_ref_pathfilename ]];then
 DisplayRunAndLog 'create release package name reference' "/bin/touch $release_package_name_ref_pathfilename" log:failure-only

@@ -91,13 +91,13 @@ InitLibrary()
 
 		daemon_check_pathfile=undefined							# If set, look for this process name in RAM instead of $daemon_exec_pathfile.
 
-		daemon_exec_pathfile=undefined							# The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this will be the interpreter to launch.
+		daemon_exec_pathfile=undefined							# The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this will be the interpreter used to run the script.
 
 		daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 
 		daemon_script_pathfile=undefined						# When an interpreter is to be used, interpret this script.
 
-		launcher_pathfile=undefined								# On-demand executables only.
+		launcher_pathfile=undefined								# On-demand executables only (no daemon).
 
 		qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 
@@ -105,7 +105,7 @@ InitLibrary()
 
 		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 
-		userlink_pathfile=undefined								# On-demand executables only.
+		userlink_pathfile=undefined								# Applies to on-demand executables only.
 
 		venv_pip_pathfile=undefined
 
@@ -123,7 +123,9 @@ InitLibrary()
 
 		install_pip_deps=false
 
-		recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		package_is_exec=false									# If 'true', downloadable package is an executable file. If 'false', downloadable package is an archive that must be extracted-from.
+
+		recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill. Some applications switch to another PID during shutdown, then kill their main PID.
 
 		recheck_daemon_pid_after_launch=false					# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another. Some just take a while to start.
 
@@ -209,13 +211,13 @@ InitLibrary()
 
 		# daemon_check_pathfile=undefined							# If set, look for this process name in RAM instead of $daemon_exec_pathfile.
 
-		# daemon_exec_pathfile=undefined							# The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this will be the interpreter to launch.
+		# daemon_exec_pathfile=undefined							# The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this will be the interpreter used to run the script.
 
 		# daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 
 		# daemon_script_pathfile=undefined							# When an interpreter is to be used, interpret this script.
 
-		# launcher_pathfile=undefined								# On-demand executables only.
+		# launcher_pathfile=undefined								# On-demand executables only (no daemon).
 
 		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 
@@ -223,7 +225,7 @@ InitLibrary()
 
 		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 
-		# userlink_pathfile=undefined								# On-demand executables only.
+		# userlink_pathfile=undefined								# Applies to on-demand executables only.
 
 		# venv_pip_pathfile=undefined
 
@@ -241,9 +243,11 @@ InitLibrary()
 
 		# install_pip_deps=false
 
-		# recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		# package_is_exec=false										# If 'true', downloadable package is an executable file. If 'false', downloadable package is an archive that must be extracted-from.
 
-		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		# recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill. Some applications switch to another PID during shutdown, then kill their main PID.
+
+		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another. Some just take a while to start.
 
 		# resolve_remote_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
@@ -635,6 +639,7 @@ RefreshReleasePackageFiles()
 
 	# Inputs: (global)
 	#	$compare_release_filename
+	#	$get_remote_filename_timeout_seconds
 	#	$qpkg_repo_path
 	#	$r_qpkg_temp_path
 	#	$remote_arch
@@ -652,8 +657,17 @@ RefreshReleasePackageFiles()
 		if [[ $resolve_remote_url = true ]]; then
 			refresh_release_package=true
 
+			DisplayWaitCommitToLog '> get latest release package URL:'
+
 			if IsSiteUp "$remote_url"; then
 				release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_arch")
+
+				if [[ -n $release_package_url ]]; then
+					DisplayCommitToLog OK
+					DisplayCommitToLog "- release package URL: '$release_package_url'"
+				else
+					DisplayErrCommitAllLogs '! unable to get latest remote release package URL'
+				fi
 			else
 				DisplayErrCommitAllLogs '! unable to access remote site'
 			fi
@@ -668,7 +682,8 @@ RefreshReleasePackageFiles()
 				release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
 
 				if [[ -n $release_package_filename ]]; then
-					DisplayCommitToLog "'$release_package_filename'"
+					DisplayCommitToLog OK
+					DisplayCommitToLog "- release package filename: '$release_package_filename'"
 				else
 					DisplayErrCommitAllLogs '! unable to get latest remote release package filename'
 				fi
@@ -720,7 +735,11 @@ RefreshReleasePackageFiles()
 	fi
 
 	if [[ $extract_release_package = true && -e $release_package_pathfile ]]; then
-		ExtractReleasePackage "$release_package_pathfile" "$release_package_name_ref_pathfilename"
+		if IsReleaseAnArchive; then
+			ExtractReleasePackage "$release_package_pathfile" "$release_package_name_ref_pathfilename"
+		else
+			MakeExecReleasePackage "$release_package_pathfile" "$release_package_name_ref_pathfilename"
+		fi
 	fi
 
 	if [[ -d $qpkg_repo_path ]]; then
@@ -2320,10 +2339,31 @@ IsOnlineReleasePackage()
 
 	}
 
-IsNotOnlinePackageArchive()
+IsNotOnlineReleasePackage()
 	{
 
 	! IsOnlineReleasePackage
+
+	}
+
+IsReleaseAnArchive()
+	{
+
+	# Inputs: (global)
+	#   $package_is_exec
+
+	# Outputs: (local)
+	#   $? = 0 : true
+	#   $? = 1 : false
+
+	[[ $package_is_exec != undefined && $package_is_exec = false ]]
+
+	}
+
+IsNotReleaseAnArchive()
+	{
+
+	! IsReleaseAnArchive
 
 	}
 
@@ -2938,6 +2978,38 @@ ExtractReleasePackage()
 
 		# Try as '.zip' first, then '.tar.gz'
 		DisplayRunAndLog 'extract from release package' "/usr/bin/unzip${unzip_opts} 2>/dev/null || /bin/tar${tar_opts}" log:failure-only
+
+		if [[ $compare_release_filename = true && -n $release_package_name_ref_pathfilename ]]; then
+			if [[ ! -e $release_package_name_ref_pathfilename ]]; then
+				DisplayRunAndLog 'create release package name reference' "/bin/touch $release_package_name_ref_pathfilename" log:failure-only
+			fi
+		fi
+	fi
+
+	}
+
+MakeExecReleasePackage()
+	{
+
+	# Inputs: (local)
+	#	$1 = pathfilename of the release package to process.
+	#   $2 (optional) = release package name ref pathfilename.
+
+	# Inputs: (global)
+	#	$compare_release_filename
+	#	$daemon_exec_pathfile
+	#	$qpkg_repo_path
+
+	[[ -n ${1:-} && ${1:-} != undefined ]] || return
+
+	local release_package_name_ref_pathfilename=''
+	local release_package_pathfile=$1
+
+	[[ -n ${2:-} && ${2:-} != undefined ]] && release_package_name_ref_pathfilename=$2
+
+	if [[ -e $release_package_pathfile ]]; then
+		DisplayRunAndLog 'copy release package' "cp -f $release_package_pathfile $daemon_exec_pathfile" log:failure-only
+		[[ ! -x $daemon_exec_pathfile ]] && DisplayRunAndLog 'make release package executable' "chmod +x $daemon_exec_pathfile" log:failure-only
 
 		if [[ $compare_release_filename = true && -n $release_package_name_ref_pathfilename ]]; then
 			if [[ ! -e $release_package_name_ref_pathfilename ]]; then
