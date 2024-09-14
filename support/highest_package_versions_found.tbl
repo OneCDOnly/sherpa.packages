@@ -19,10 +19,10 @@ Headphones_240915.qpkg.md5           Headphones_240915.qpkg           Headphones
 HideThatBanner_240807.qpkg.md5       HideThatBanner_240807.qpkg       HideThatBanner       240807       all    629cd406d0ccf298602001bae7d120ce
 IncreaseTimeouts_240808.qpkg.md5     IncreaseTimeouts_240808.qpkg     IncreaseTimeouts     240808       all    0c76a11a0db6d43c75125e68faef04ae
 inxi_240813.qpkg.md5                 inxi_240813.qpkg                 inxi                 240813       all    91b0a77dbde5efb1a06093399c53310f
-Kapowarr_240915_arm_64.qpkg.md5      Kapowarr_240915_arm_64.qpkg      Kapowarr             240915       a64    d8bb0d2055670d1641d9b9265334652c
-Kapowarr_240915_x86_64.qpkg.md5      Kapowarr_240915_x86_64.qpkg      Kapowarr             240915       i64    ceb6893c854f1db6b989363539fb72a9
-Kapowarr_240915_x86_ce53xx.qpkg.md5  Kapowarr_240915_x86_ce53xx.qpkg  Kapowarr             240915       i53    f927da6cf6ac5401c317690c781f288a
-Kapowarr_240915_x86.qpkg.md5         Kapowarr_240915_x86.qpkg         Kapowarr             240915       i86    83d99207a9e84759896ee524e10bfb75
+Kapowarr_240915_arm_64.qpkg.md5      Kapowarr_240915_arm_64.qpkg      Kapowarr             240915       a64    6cab9689c75b348687ae1681bda49de2
+Kapowarr_240915_x86_64.qpkg.md5      Kapowarr_240915_x86_64.qpkg      Kapowarr             240915       i64    3cb408341a936c12ce87017ca7b5f1b8
+Kapowarr_240915_x86_ce53xx.qpkg.md5  Kapowarr_240915_x86_ce53xx.qpkg  Kapowarr             240915       i53    fa7695148ea44642ab7d58b749389069
+Kapowarr_240915_x86.qpkg.md5         Kapowarr_240915_x86.qpkg         Kapowarr             240915       i86    606776337b5fded6119727ae1542dc46
 LazyLibrarian_240915.qpkg.md5        LazyLibrarian_240915.qpkg        LazyLibrarian        240915       all    37ec038e5689332224717df8297e5ac0
 Mylar3_240915.qpkg.md5               Mylar3_240915.qpkg               Mylar3               240915       all    817ecbbd4861e787090631504e2c3b39
 nzbget_24.3_arm_64.qpkg.md5          nzbget_24.3_arm_64.qpkg          nzbget               24.3         a64    e2b2da4bd6871661af76014da8797967
@@ -98,7 +98,7 @@ SABnzbd_240915_x86_ce53xx.qpkg.md5   SABnzbd_240915_x86_ce53xx.qpkg   SABnzbd   
 SABnzbd_240915_x86.qpkg.md5          SABnzbd_240915_x86.qpkg          SABnzbd              240915       i86    949a0efccec875d4bd83118bdde3a892
 sha3sum_240808_x86_64.qpkg.md5       sha3sum_240808_x86_64.qpkg       sha3sum              240808       i64    2933e3f0aaa4b5261408b230d1a90df1
 sha3sum_240808_x86.qpkg.md5          sha3sum_240808_x86.qpkg          sha3sum              240808       i86    788c070aab5a3b96006b6a963532a284
-sherpa_240915.qpkg.md5               sherpa_240915.qpkg               sherpa               240915       all    45ceae8b42154a899d50174e722eb45a
+sherpa_240915.qpkg.md5               sherpa_240915.qpkg               sherpa               240915       all    12ac159e997a339b9409e661c43cddfe
 SortMyQPKGs_240801.qpkg.md5          SortMyQPKGs_240801.qpkg          SortMyQPKGs          240801       all    111031554f2417fd5bdc4c472fd34229
 TorrServer_240915_arm_64.qpkg.md5    TorrServer_240915_arm_64.qpkg    TorrServer           240915       a64    371863dfdb0d8e2311a6f1f70446a626
 TorrServer_240915_arm-x19.qpkg.md5   TorrServer_240915_arm-x19.qpkg   TorrServer           240915       a19    941a69abdc183a5847d3fa1167d6e2aa
