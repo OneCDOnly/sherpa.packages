@@ -108,11 +108,6 @@ InitService()
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
-		# pid_start_wait_seconds=60									# This value is adaptive (changes depending on system load average).
-
-		# port_check_timeout_seconds=120							# This value is adaptive (changes depending on system load average).
-		port_check_timeout_seconds=360								# TS-230 responded in 300 seconds during high-load 'restart'.
-
 		# remote_arch=undefined
 
 		# source_arch=undefined
@@ -126,6 +121,19 @@ InitService()
 		# ui_port=0
 
 		# ui_port_secure=0
+
+		# wait_pid_kill_seconds=10									# This value is adaptive (increases with system load average).
+
+		# wait_pid_start_seconds=10									# This value is adaptive (increases with system load average).
+
+		# watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
+
+		# watch_pid_start_seconds=120								# This value is adaptive (increases with system load average).
+
+		# watch_pidfile_start_seconds=60							# This value is adaptive (increases with system load average).
+
+		# watch_port_check_seconds=120								# This value is adaptive (increases with system load average).
+		watch_port_check_seconds=360								# TS-230 responded in 300 seconds during a high-load 'restart'.
 
 	# >>> URLs <<<
 

@@ -118,6 +118,18 @@ InitService()
 
 		# ui_port_secure=0
 
+		# wait_pid_kill_seconds=10									# This value is adaptive (increases with system load average).
+
+		# wait_pid_start_seconds=10									# This value is adaptive (increases with system load average).
+
+		# watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
+
+		# watch_pid_start_seconds=120								# This value is adaptive (increases with system load average).
+
+		# watch_pidfile_start_seconds=60							# This value is adaptive (increases with system load average).
+
+		# watch_port_check_seconds=120								# This value is adaptive (increases with system load average).
+
 	# >>> URLs <<<
 
 		# remote_url=undefined
@@ -169,23 +181,23 @@ GetPyloadConfig()
 		return
 	fi
 
-	local result_line=''
-	local -i line_num=0
-	local section_raw=''
 	local blank=''
-	local section_description=''
-	local section_name=''
-	local -i start_line_num=0
-	local target_section=''
 	local end_line_num='$'
-
+	local -i line_num=0
 	local raw_var_type=''
 	local raw_var_description=''
-	local value_raw=''
-	local var_type=''
+	local result_line=''
+	local section_description=''
+	local section_line=''
+	local section_name=''
+	local section_raw=''
+	local -i start_line_num=0
+	local target_section=''
 	local value=''
-
+	local value_raw=''
 	local var_found=false
+	local var_name=''
+	local var_type=''
 
 	while read -r result_line; do
 		IFS=':' read -r line_num section_raw <<< "$result_line"
