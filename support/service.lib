@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='240915'
+readonly r_service_library_version='240921'
 InitLibrary()
 {
 IsQNAP || exit
@@ -89,8 +89,6 @@ daemon_port=0
 interpreter=undefined
 nice_daemon_to=0
 orig_daemon_service_script=undefined
-pid_start_wait_seconds=60
-port_check_timeout_seconds=120
 remote_arch=undefined
 source_arch=undefined
 source_git_branch=undefined
@@ -98,6 +96,12 @@ source_git_branch_depth=undefined
 ui_listening_address=undefined
 ui_port=0
 ui_port_secure=0
+wait_pid_kill_seconds=10
+wait_pid_start_seconds=10
+watch_pid_kill_seconds=120
+watch_pid_start_seconds=120
+watch_pidfile_start_seconds=60
+watch_port_check_seconds=120
 remote_url=undefined
 source_git_url=undefined
 daemon_launch_cmd=undefined
@@ -269,7 +273,7 @@ if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"
 SetError;return 1
 fi
 IsDaemonActive
-WaitForDaemonPid
+WatchForDaemonPid
 WaitForStartPid
 if ! IsDaemonActive;then
 DisplayErrCommitAllLogs 'daemon has failed to start!'
@@ -287,10 +291,9 @@ StopDaemon()
 {
 [[ -e $daemon_pid_pathfile ]] || return
 local a='stop daemon'
-local -i b=$(CalcAdaptiveSeconds 120)
+local -i b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
 local -i c=0
-local -i d=0
-d=$(<$daemon_pid_pathfile)
+local -i d=$(<$daemon_pid_pathfile)
 [[ $d -gt 1 ]] || return
 DisplayWaitCommitToLog "> $a PID '${d}' with SIGTERM (no-more than $b second$(Pluralise "$b")):"
 kill "$d"
@@ -650,7 +653,7 @@ local branch_depth='--depth 1'
 [[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
 local branch_switch=false
 local new_branch=false
-WaitForGit || return
+WatchForGit || return
 if [[ -d $qpkg_repo_path/.git ]];then
 if [[ $active_branch != "$source_git_branch" ]];then
 DisplayCommitToLog "- new git branch specified: '$source_git_branch'"
@@ -683,7 +686,7 @@ IsUsePipCache && [[ -d $pip_cache_path ]] && DisplayRunAndLog 'clean PyPI cache'
 IsUseTemp && [[ -d $r_qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$r_qpkg_temp_path\"" log:failure-only
 MakePaths
 }
-WaitForGit()
+WatchForGit()
 {
 if IsNotQPKGInstalled Entware;then
 DisplayErrCommitAllLogs "'git' unavailable: 'Entware is not installed'"
@@ -693,7 +696,7 @@ if IsNotQPKGEnabled Entware;then
 DisplayErrCommitAllLogs "'git' unavailable: 'Entware is not enabled'"
 SetError;return 1
 fi
-if WaitForFileToAppear '/opt/bin/git' 300;then
+if WatchForFileToAppear /opt/bin/git 300;then
 export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
 return 0
 fi
@@ -733,10 +736,10 @@ return 1
 }
 WaitForStartPid()
 {
-local -i a=$(CalcAdaptiveSeconds 10)
+local -i a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
 local -i i=0
 if [[ $daemon_pidfile_is_managed_by_app = true ]];then
-if WaitForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$pid_start_wait_seconds")";then
+if WatchForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$watch_pidfile_start_seconds")";then
 /bin/sleep 1
 fi
 fi
@@ -752,7 +755,7 @@ RefreshPidFile || return
 }
 WaitForKillPid()
 {
-local -i a=$(CalcAdaptiveSeconds 10)
+local -i a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
 local -i i=0
 if [[ $recheck_daemon_pid_after_kill = true ]];then
 DisplayWaitCommitToLog "> wait $a second$(Pluralise "$a") to recheck PID:"
@@ -764,17 +767,12 @@ DisplayCommitToLog 'done'
 fi
 ! RefreshPidFile || return
 }
-WaitForDaemonPid()
+WatchForDaemonPid()
 {
-local -i a=0
+local -i a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
 local -i i=0
-if [[ -n ${1:-} ]];then
-a=$1
-else
-a=$(CalcAdaptiveSeconds 120)
-fi
 if [[ ! -e $daemon_pid_pathfile ]];then
-DisplayWaitCommitToLog "> wait for daemon process name to appear (no-more than $a second$(Pluralise "$a")):"
+DisplayWaitCommitToLog "> watch for daemon process name to appear (no-more than $a second$(Pluralise "$a")):"
 (
 for ((i=1;i<=a; i++)); do
 /bin/sleep 1
@@ -790,13 +788,13 @@ done
 false
 )
 if [[ $? -ne 0 ]];then
-DisplayErrCommitAllLogs "process not found! (exceeded timeout: $a second$(Pluralise "$a"))"
+DisplayErrCommitAllLogs "process name not found! (exceeded timeout: $a second$(Pluralise "$a"))"
 return 1
 fi
 fi
 return 0
 }
-WaitForFileToAppear()
+WatchForFileToAppear()
 {
 [[ -n $1 ]] || return
 local -i a=0
@@ -807,7 +805,7 @@ else
 a=30
 fi
 if [[ ! -e $1 ]];then
-DisplayWaitCommitToLog "> wait for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a")):"
+DisplayWaitCommitToLog "> watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a")):"
 (
 for ((i=1;i<=a; i++)); do
 /bin/sleep 1
@@ -1322,7 +1320,7 @@ IsNotPortAvailable()
 IsPortResponds()
 {
 local -i a=${1//[!0-9]/}
-local -i b=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
+local -i b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
 local -i c=0
 if [[ -z $a ]];then
 Display 'empty port: not testing for response'
@@ -1366,7 +1364,7 @@ return 1
 IsPortSecureResponds()
 {
 local -i a=${1//[!0-9]/}
-local -i b=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
+local -i b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
 local -i c=0
 if [[ -z $a ]];then
 Display 'empty port: not testing for response'

@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=pyLoad
-readonly r_service_script_version='240915'
+readonly r_service_script_version='240921'
 InitService()
 {
 pip_cache_path=$r_qpkg_path/pip-cache
@@ -51,21 +51,23 @@ if [[ ! -e $source_pathfile ]];then
 echo false
 return
 fi
-local result_line=''
-local -i line_num=0
-local section_raw=''
 local blank=''
-local section_description=''
-local section_name=''
-local -i start_line_num=0
-local target_section=''
 local end_line_num='$'
+local -i line_num=0
 local raw_var_type=''
 local raw_var_description=''
-local value_raw=''
-local var_type=''
+local result_line=''
+local section_description=''
+local section_line=''
+local section_name=''
+local section_raw=''
+local -i start_line_num=0
+local target_section=''
 local value=''
+local value_raw=''
 local var_found=false
+local var_name=''
+local var_type=''
 while read -r result_line;do
 IFS=':' read -r line_num section_raw <<< "$result_line"
 IFS=' ' read -r section_name blank section_description <<< "$section_raw"
