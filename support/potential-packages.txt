@@ -1,4 +1,4 @@
-* ftpgrab?
+* ftpgrab? (CLI)
 	- https://github.com/crazy-max/ftpgrab
 
 * nix package manager?
@@ -14,6 +14,11 @@
 		[/share/Public] # ./slskd
 		./slskd: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.20' not found (required by ./slskd)
 		./slskd: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by ./slskd)
+	------------------------------------------------------------------------------------------------------
+	- incompatible with QTS 5.1.8 on x86-64:
+	------------------------------------------------------------------------------------------------------
+		[/share/Public] # ./slskd
+		./slskd: /lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by ./slskd)
 	------------------------------------------------------------------------------------------------------
 
 * Tdarr?
@@ -32,9 +37,6 @@
 
 * calibre?
 	- https://github.com/kovidgoyal/calibre
-
-* Gitea?
-	- https://docs.gitea.com/installation/install-from-binary
 
 * NetBox?
 	- https://docs.netbox.dev/en/stable/installation/

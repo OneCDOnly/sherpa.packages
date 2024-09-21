@@ -145,10 +145,6 @@ InitLibrary()
 
 		orig_daemon_service_script=undefined					# Specific to Entware binaries only.
 
-		pid_start_wait_seconds=60								# This value is adaptive (changes depending on system load average).
-
-		port_check_timeout_seconds=120							# This value is adaptive (changes depending on system load average).
-
 		remote_arch=undefined
 
 		source_arch=undefined
@@ -162,6 +158,18 @@ InitLibrary()
 		ui_port=0
 
 		ui_port_secure=0
+
+		wait_pid_kill_seconds=10								# This value is adaptive (increases with system load average).
+
+		wait_pid_start_seconds=10								# This value is adaptive (increases with system load average).
+
+		watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
+
+		watch_pid_start_seconds=120								# This value is adaptive (increases with system load average).
+
+		watch_pidfile_start_seconds=60							# This value is adaptive (increases with system load average).
+
+		watch_port_check_seconds=120							# This value is adaptive (increases with system load average).
 
 	# >>> URLs <<<
 
@@ -265,10 +273,6 @@ InitLibrary()
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
-		# pid_start_wait_seconds=60									# This value is adaptive (changes depending on system load average).
-
-		# port_check_timeout_seconds=120							# This value is adaptive (changes depending on system load average).
-
 		# remote_arch=undefined
 
 		# source_arch=undefined
@@ -282,6 +286,18 @@ InitLibrary()
 		# ui_port=0
 
 		# ui_port_secure=0
+
+		# wait_pid_kill_seconds=10									# This value is adaptive (increases with system load average).
+
+		# wait_pid_start_seconds=10									# This value is adaptive (increases with system load average).
+
+		# watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
+
+		# watch_pid_start_seconds=120								# This value is adaptive (increases with system load average).
+
+		# watch_pidfile_start_seconds=60							# This value is adaptive (increases with system load average).
+
+		# watch_port_check_seconds=120								# This value is adaptive (increases with system load average).
 
 	# >>> URLs <<<
 
@@ -558,7 +574,7 @@ StartDaemon()
 	fi
 
 	IsDaemonActive
-	WaitForDaemonPid
+	WatchForDaemonPid
 	WaitForStartPid
 
 	if ! IsDaemonActive; then
@@ -584,15 +600,14 @@ StopDaemon()
 
 	# Inputs: (global)
 	#	$daemon_pid_pathfile
+	#	$watch_pid_kill_seconds
 
 	[[ -e $daemon_pid_pathfile ]] || return
 
 	local a='stop daemon'
-	local -i b=$(CalcAdaptiveSeconds 120)
+	local -i b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
 	local -i c=0
-	local -i d=0
-
-	d=$(<$daemon_pid_pathfile)
+	local -i d=$(<$daemon_pid_pathfile)
 
 	[[ $d -gt 1 ]] || return
 
@@ -1191,7 +1206,7 @@ CloneGitRepo()
 	local branch_switch=false
 	local new_branch=false
 
-	WaitForGit || return
+	WatchForGit || return
 
 	if [[ -d $qpkg_repo_path/.git ]]; then
 		if [[ $active_branch != "$source_git_branch" ]]; then
@@ -1247,7 +1262,7 @@ CleanLocalRepo()
 
 	}
 
-WaitForGit()
+WatchForGit()
 	{
 
 	# Inputs: (global)
@@ -1267,7 +1282,7 @@ WaitForGit()
 		SetError; return 1
 	fi
 
-	if WaitForFileToAppear '/opt/bin/git' 300; then
+	if WatchForFileToAppear /opt/bin/git 300; then
 		export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
 		return 0
 	fi
@@ -1311,7 +1326,7 @@ FindPid()
 	#   $1 = Process pathfilename to find.
 	#   $2 (optional) = additional string to match if there are multiple processes with identical pathfilenames.
 
-	# Outputs:
+	# Outputs: (local)
 	#   $? = 0 (found) or 1 (not found)
 	#	stdout = PID
 
@@ -1347,14 +1362,15 @@ WaitForStartPid()
 	# Inputs: (global)
 	#   $daemon_pid_pathfile
 	#   $daemon_pidfile_is_managed_by_app
-	#   $pid_start_wait_seconds
 	#   $recheck_daemon_pid_after_launch
+	#   $wait_pid_start_seconds
+	#	$watch_pidfile_start_seconds
 
-	local -i a=$(CalcAdaptiveSeconds 10)
+	local -i a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
 	local -i i=0
 
 	if [[ $daemon_pidfile_is_managed_by_app = true ]]; then
-		if WaitForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$pid_start_wait_seconds")"; then
+		if WatchForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$watch_pidfile_start_seconds")"; then
 			/bin/sleep 1		# Wait one more second to allow file to have PID written into it.
 		fi
 	fi
@@ -1379,8 +1395,9 @@ WaitForKillPid()
 
 	# Inputs: (global)
 	#   $recheck_daemon_pid_after_kill
+	#   $wait_pid_kill_seconds
 
-	local -i a=$(CalcAdaptiveSeconds 10)
+	local -i a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
 	local -i i=0
 
 	if [[ $recheck_daemon_pid_after_kill = true ]]; then
@@ -1398,29 +1415,21 @@ WaitForKillPid()
 
 	}
 
-WaitForDaemonPid()
+WatchForDaemonPid()
 	{
-
-	# Inputs: (local)
-	#   $1 (optional) = Timeout in seconds - default 30
 
 	# Inputs: (global)
 	#   $daemon_pid_pathfile
+	#	$watch_pid_start_seconds
 
 	# Outputs: (local)
 	#   $? = 0 (file was found) or 1 (file not found: timeout)
 
-	local -i a=0
+	local -i a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
 	local -i i=0
 
-	if [[ -n ${1:-} ]]; then
-		a=$1
-	else
-		a=$(CalcAdaptiveSeconds 120)
-	fi
-
 	if [[ ! -e $daemon_pid_pathfile ]]; then
-		DisplayWaitCommitToLog "> wait for daemon process name to appear (no-more than $a second$(Pluralise "$a")):"
+		DisplayWaitCommitToLog "> watch for daemon process name to appear (no-more than $a second$(Pluralise "$a")):"
 
 		(
 			for ((i=1; i<=a; i++)); do
@@ -1442,7 +1451,7 @@ WaitForDaemonPid()
 		)
 
 		if [[ $? -ne 0 ]]; then
-			DisplayErrCommitAllLogs "process not found! (exceeded timeout: $a second$(Pluralise "$a"))"
+			DisplayErrCommitAllLogs "process name not found! (exceeded timeout: $a second$(Pluralise "$a"))"
 			return 1
 		fi
 	fi
@@ -1451,7 +1460,7 @@ WaitForDaemonPid()
 
 	}
 
-WaitForFileToAppear()
+WatchForFileToAppear()
 	{
 
 	# Inputs: (local)
@@ -1474,7 +1483,7 @@ WaitForFileToAppear()
 	fi
 
 	if [[ ! -e $1 ]]; then
-		DisplayWaitCommitToLog "> wait for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a")):"
+		DisplayWaitCommitToLog "> watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a")):"
 
 		(
 			for ((i=1; i<=a; i++)); do
@@ -2615,14 +2624,14 @@ IsPortResponds()
 	#   $1 = port to check.
 
 	# Inputs: (global)
-	#   $port_check_timeout_seconds
+	#   $watch_port_check_seconds
 
 	# Outputs: (local)
 	#   $? = 0 : response received.
 	#   $? = 1 : not OK.
 
 	local -i a=${1//[!0-9]/}			# Strip all non-numerals.
-	local -i b=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
+	local -i b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
 	local -i c=0
 
 	if [[ -z $a ]]; then
@@ -2680,14 +2689,14 @@ IsPortSecureResponds()
 	#   $1 = secure port to check.
 
 	# Inputs: (global)
-	#   $port_check_timeout_seconds
+	#   $watch_port_check_seconds
 
 	# Outputs: (local)
 	#   $? = 0 : response received.
 	#   $? = 1 : not OK or secure port unspecified.
 
 	local -i a=${1//[!0-9]/}			# Strip all non-numerals.
-	local -i b=$(CalcAdaptiveSeconds "$port_check_timeout_seconds")
+	local -i b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
 	local -i c=0
 
 	if [[ -z $a ]]; then

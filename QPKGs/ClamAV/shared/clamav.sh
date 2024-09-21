@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=ClamAV
-readonly r_service_script_version='240915'
+readonly r_service_script_version='240921'
 InitService()
 {
 qpkg_ini_file=undefined
@@ -36,7 +36,7 @@ StartQPKGCustom()
 {
 IsError && return
 MakePaths
-WaitForGit || { SetError;return 1 ;}
+WatchForGit || { SetError;return 1 ;}
 if [[ ! -e $r_backup_service_pathfile ]];then
 cp "$r_target_service_pathfile" "$r_backup_service_pathfile"
 /bin/sed -i 's|/usr/local/bin/clamscan|/opt/sbin/clamscan|' "$r_target_service_pathfile"
@@ -47,7 +47,7 @@ cp "$r_target_service_pathfile" "$r_backup_service_pathfile"
 eval "$r_target_service_pathfile" restart &>/dev/null
 fi
 /bin/grep -q freshclam /etc/profile || echo "alias freshclam='/opt/sbin/freshclam -u admin --config-file=/etc/config/freshclam.conf --datadir=/share/$(/sbin/getcfg Public path -f /etc/config/smb.conf | cut -d '/' -f 3)/.antivirus/usr/share/clamav -l /tmp/.freshclam.log'" >> /etc/profile
-DisplayCommitToLog 'start: OK'
+DisplayCommitToLog '> start: OK'
 return 0
 }
 StopQPKGCustom()
@@ -58,7 +58,7 @@ mv "$r_backup_service_pathfile" "$r_target_service_pathfile"
 eval "$r_target_service_pathfile" restart &>/dev/null
 fi
 /bin/sed -i '/freshclam/d' /etc/profile
-DisplayCommitToLog 'stop: OK'
+DisplayCommitToLog '> stop: OK'
 return 0
 }
 StatusQPKGCustom()

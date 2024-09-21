@@ -111,6 +111,18 @@ InitService()
 
 		# ui_port_secure=0
 
+		# wait_pid_kill_seconds=10									# This value is adaptive (increases with system load average).
+
+		# wait_pid_start_seconds=10									# This value is adaptive (increases with system load average).
+
+		# watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
+
+		# watch_pid_start_seconds=120								# This value is adaptive (increases with system load average).
+
+		# watch_pidfile_start_seconds=60							# This value is adaptive (increases with system load average).
+
+		# watch_port_check_seconds=120								# This value is adaptive (increases with system load average).
+
 	# >>> URLs <<<
 
 		# remote_url=undefined
@@ -143,7 +155,7 @@ StartQPKGCustom()
 
 	IsError && return
 	MakePaths
-	WaitForGit || { SetError; return 1 ;}
+	WatchForGit || { SetError; return 1 ;}
 
 	if [[ ! -e $r_backup_service_pathfile ]]; then
 		cp "$r_target_service_pathfile" "$r_backup_service_pathfile"
@@ -168,7 +180,7 @@ StartQPKGCustom()
 
 	/bin/grep -q freshclam /etc/profile || echo "alias freshclam='/opt/sbin/freshclam -u admin --config-file=/etc/config/freshclam.conf --datadir=/share/$(/sbin/getcfg Public path -f /etc/config/smb.conf | cut -d '/' -f 3)/.antivirus/usr/share/clamav -l /tmp/.freshclam.log'" >> /etc/profile
 
-	DisplayCommitToLog 'start: OK'
+	DisplayCommitToLog '> start: OK'
 
 	return 0
 
@@ -186,7 +198,7 @@ StopQPKGCustom()
 	fi
 
 	/bin/sed -i '/freshclam/d' /etc/profile
-	DisplayCommitToLog 'stop: OK'
+	DisplayCommitToLog '> stop: OK'
 
 	return 0
 
