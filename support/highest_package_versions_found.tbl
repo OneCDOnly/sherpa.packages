@@ -1,7 +1,7 @@
 # checksum_filename                  qpkg_filename                    package_name         version      arch   hash
 Bazarr_240921_arm_64.qpkg.md5        Bazarr_240921_arm_64.qpkg        Bazarr               240921       a64    5e2df1363a52d370ff4ad52302738576
 Bazarr_240921_x86_64.qpkg.md5        Bazarr_240921_x86_64.qpkg        Bazarr               240921       i64    86231b7ccb9fc3231d599ffb9eb478f1
-ClamAV_240921.qpkg.md5               ClamAV_240921.qpkg               ClamAV               240921       all    5d3d440895dccca019fdedb4a0ae9fb6
+ClamAV_240921.qpkg.md5               ClamAV_240921.qpkg               ClamAV               240921       all    c8591a922a0642f31eec28865752572c
 duf_240731_arm_64.qpkg.md5           duf_240731_arm_64.qpkg           duf                  240731       a64    f57d72a189ad9f49e42a2726e3eadc7c
 duf_240731_arm-x31.qpkg.md5          duf_240731_arm-x31.qpkg          duf                  240731       a31    79774fbe8dda0cf9d7431c88f66e5400
 duf_240731_arm-x41.qpkg.md5          duf_240731_arm-x41.qpkg          duf                  240731       a41    fdb790fc668345d593598453c3ce1cc0
@@ -98,7 +98,7 @@ SABnzbd_240921_x86_ce53xx.qpkg.md5   SABnzbd_240921_x86_ce53xx.qpkg   SABnzbd   
 SABnzbd_240921_x86.qpkg.md5          SABnzbd_240921_x86.qpkg          SABnzbd              240921       i86    d0f1b1383237dc4ebf7ba1aaf6c09f5f
 sha3sum_240808_x86_64.qpkg.md5       sha3sum_240808_x86_64.qpkg       sha3sum              240808       i64    2933e3f0aaa4b5261408b230d1a90df1
 sha3sum_240808_x86.qpkg.md5          sha3sum_240808_x86.qpkg          sha3sum              240808       i86    788c070aab5a3b96006b6a963532a284
-sherpa_240921.qpkg.md5               sherpa_240921.qpkg               sherpa               240921       all    ddaf38f29ad0dc414598b65ffde13c43
+sherpa_240921.qpkg.md5               sherpa_240921.qpkg               sherpa               240921       all    41da8347fbb142ee097c07ef3b3a5655
 SortMyQPKGs_240801.qpkg.md5          SortMyQPKGs_240801.qpkg          SortMyQPKGs          240801       all    111031554f2417fd5bdc4c472fd34229
 TorrServer_240921_arm_64.qpkg.md5    TorrServer_240921_arm_64.qpkg    TorrServer           240921       a64    a479612d1386b776892c8611b8251c1f
 TorrServer_240921_arm-x19.qpkg.md5   TorrServer_240921_arm-x19.qpkg   TorrServer           240921       a19    60ad92b9a5238fb504d0953b4fb657f1
