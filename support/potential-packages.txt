@@ -1,3 +1,6 @@
+* Watcharr?
+	- https://github.com/sbondCo/Watcharr
+
 * ftpgrab? (CLI)
 	- https://github.com/crazy-max/ftpgrab
 

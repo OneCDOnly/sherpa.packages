@@ -98,7 +98,7 @@ SABnzbd_240921_x86_ce53xx.qpkg.md5   SABnzbd_240921_x86_ce53xx.qpkg   SABnzbd   
 SABnzbd_240921_x86.qpkg.md5          SABnzbd_240921_x86.qpkg          SABnzbd              240921       i86    d0f1b1383237dc4ebf7ba1aaf6c09f5f
 sha3sum_240808_x86_64.qpkg.md5       sha3sum_240808_x86_64.qpkg       sha3sum              240808       i64    2933e3f0aaa4b5261408b230d1a90df1
 sha3sum_240808_x86.qpkg.md5          sha3sum_240808_x86.qpkg          sha3sum              240808       i86    788c070aab5a3b96006b6a963532a284
-sherpa_240922.qpkg.md5               sherpa_240922.qpkg               sherpa               240922       all    671228849d8dc6eff24c326df1b4bbde
+sherpa_240922.qpkg.md5               sherpa_240922.qpkg               sherpa               240922       all    7b1ecbf03dd20dce13d7dbbf6559ffc9
 SortMyQPKGs_240922.qpkg.md5          SortMyQPKGs_240922.qpkg          SortMyQPKGs          240922       all    a7ae99805f3b42e096cff923f2b8c836
 TorrServer_240921_arm_64.qpkg.md5    TorrServer_240921_arm_64.qpkg    TorrServer           240921       a64    a479612d1386b776892c8611b8251c1f
 TorrServer_240921_arm-x19.qpkg.md5   TorrServer_240921_arm-x19.qpkg   TorrServer           240921       a19    60ad92b9a5238fb504d0953b4fb657f1
