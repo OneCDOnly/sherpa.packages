@@ -134,6 +134,7 @@ InitService()
 		# watch_pidfile_start_seconds=60							# This value is adaptive (increases with system load average).
 
 		# watch_port_check_seconds=120								# This value is adaptive (increases with system load average).
+		watch_port_check_seconds=360
 
 	# >>> URLs <<<
 
