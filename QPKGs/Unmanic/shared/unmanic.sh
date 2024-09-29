@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Unmanic
-readonly r_service_script_version='240921'
+readonly r_service_script_version='240930'
 InitService()
 {
 pip_cache_path=$r_qpkg_path/pip-cache
@@ -30,7 +30,6 @@ venv_path=$r_qpkg_path/venv
 qpkg_ini_file=settings.json
 daemon_exec_pathfile=$venv_path/bin/python3
 daemon_script_pathfile=$venv_path/bin/unmanic
-qpkg_backup_pathfile=undefined
 qpkg_ini_pathfile=$r_qpkg_config_path/.unmanic/config/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 /bin/sed -i "s|<?installation_path?>|$r_qpkg_path|g" "$qpkg_ini_default_pathfile"
@@ -40,11 +39,11 @@ can_restart_to_update=true
 run_daemon_in_screen_session=true
 interpreter=/opt/bin/python3
 ui_listening_address=0.0.0.0
+daemon_launch_cmd="export HOME_DIR=$r_qpkg_config_path;$daemon_exec_pathfile $daemon_script_pathfile"
 get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="/opt/bin/jq -r '.\"ui_port\"' < "$qpkg_ini_pathfile""
 get_ui_port_secure_cmd="echo $ui_port_secure"
 get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="export HOME_DIR=$r_qpkg_config_path;$daemon_exec_pathfile $daemon_script_pathfile"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0

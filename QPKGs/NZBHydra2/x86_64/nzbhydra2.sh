@@ -21,7 +21,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version='240921'
+readonly r_service_script_version='240930'
 InitService()
 {
 pip_cache_path=$r_qpkg_path/pip-cache

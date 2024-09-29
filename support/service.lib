@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='240921'
+readonly r_service_library_version='240930'
 InitLibrary()
 {
 IsQNAP || exit
