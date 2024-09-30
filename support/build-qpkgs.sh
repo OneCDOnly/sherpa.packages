@@ -128,6 +128,10 @@ for d in "$qpkgs_path"/*; do
 
 	(cd "$d" || exit; qbuild --exclude '*.source' &>/dev/null)
 	echo "QPKG arches: $(ColourTextBrightGreen rebuilt)"
+
+	if [[ $(basename "$d") = sherpa ]]; then
+		cp -f "$qpkgs_path/sherpa/build/sherpa_${build_date}.qpkg" "$qpkgs_path/sherpa/build/sherpa.qpkg"
+	fi
 done
 
 exit 0
