@@ -17,9 +17,6 @@ esac
 cd "$qpkgs_support_path" || exit
 
 ./build-all.sh || exit
-
-cp -f "$qpkgs_path/sherpa/build/sherpa_${build_date}.qpkg" "$qpkgs_path/sherpa/build/sherpa.qpkg"
-
 ./commit.sh '[update] archives [pre-merge]' || exit
 
 cd "$qpkgs_root_path" || exit

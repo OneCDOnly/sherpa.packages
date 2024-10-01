@@ -16,8 +16,8 @@
 
 set -o nounset -o pipefail
 shopt -s extglob
+[[ $- != *m* ]] || set +m			# Disable job control if-enabled (only needed for QTS 4.2.6).
 ln -fns /proc/self/fd /dev/fd		# KLUDGE: `/dev/fd` isn't always created by QTS.
-
 readonly r_user_args_raw=$*
 
 Init()
@@ -70,31 +70,23 @@ StatusQPKG()
 
 	}
 
-ShowTitle()
-    {
-
-    echo "$(ShowAsTitleName) $(ShowAsVersion)"
-
-    }
-
-ShowAsTitleName()
+ShowHelp()
 	{
 
-	TextBrightWhite $r_qpkg_name
+	# Inputs: (global)
+	#	$r_qpkg_name
+	#	$r_qpkg_version
 
-	}
-
-ShowAsVersion()
-	{
-
-	printf '%s' "v$r_qpkg_version"
-
-	}
-
-ShowAsUsage()
-    {
-
-    echo -e "\nUsage: $0 {start|stop|restart|status}"
+	Display "$(TextBrightWhite "$(/usr/bin/basename "$0")") v$r_qpkg_version • a service control script for the $(FormatAsPackageName $r_qpkg_name) QPKG"
+	Display
+	Display "Usage: $0 [ACTION]"
+	Display
+	Display '[ACTION] must be one of the following:'
+	DisplayAsHelp 'activate, start' "start $(FormatAsPackageName $r_qpkg_name) if inactive"
+	DisplayAsHelp 'deactivate, stop' "stop $(FormatAsPackageName $r_qpkg_name) if active"
+	DisplayAsHelp 'r, reactivate, restart' "stop, then start $(FormatAsPackageName $r_qpkg_name)"
+	DisplayAsHelp 's, status' "check if $(FormatAsPackageName $r_qpkg_name) application is active. Returns \$? = 0 if active, 1 if not"
+	Display
 
 	}
 
@@ -147,6 +139,27 @@ CommitServiceResult()
 
 	}
 
+FormatAsPackageName()
+	{
+
+	echo "'${1:-}'"
+
+	}
+
+DisplayAsHelp()
+	{
+
+	printf '  %-22s  - %s\n' "${1:-}" "${2:-}."
+
+	}
+
+Display()
+	{
+
+	echo "${1:-}"
+
+	}
+
 TextBrightWhite()
 	{
 
@@ -161,7 +174,7 @@ Init
 user_arg=${r_user_args_raw%% *}		# Only process first argument.
 
 case $user_arg in
-    ?(--)start)
+    ?(--)activate|?(--)start)
         SetServiceAction start
 
         if StartQPKG; then
@@ -173,7 +186,7 @@ case $user_arg in
     ?(-)s|?(--)status)
         StatusQPKG
         ;;
-    ?(--)stop)
+    ?(--)deactivate|?(--)stop)
         SetServiceAction stop
 
         if StopQPKG; then
@@ -182,7 +195,7 @@ case $user_arg in
             SetServiceResultAsFailed
         fi
         ;;
-    ?(-)r|?(--)restart)
+    ?(-)r|?(--)reactivate|?(--)restart)
         SetServiceAction restart
 
         if StopQPKG && StartQPKG; then
@@ -192,8 +205,7 @@ case $user_arg in
         fi
         ;;
 	*)
-		ShowTitle
-		ShowAsUsage
+		ShowHelp
 esac
 
 exit 0

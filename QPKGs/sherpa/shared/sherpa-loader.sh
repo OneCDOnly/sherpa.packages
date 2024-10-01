@@ -24,7 +24,7 @@
 readonly r_user_args_raw=$*
 Init()
 {
-export LOADER_SCRIPT_VERSION='240930'
+export LOADER_SCRIPT_VERSION='241001'
 export LOADER_SCRIPT_PPID=$PPID
 readonly r_qpkg_name=sherpa
 readonly r_chars_regular_prompt='$ '

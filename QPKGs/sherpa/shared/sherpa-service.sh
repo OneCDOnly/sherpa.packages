@@ -23,6 +23,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 set -o nounset -o pipefail
 shopt -s extglob
+[[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
 readonly r_user_args_raw=$*
 Init()
@@ -61,21 +62,18 @@ echo inactive
 exit 1
 fi
 }
-ShowTitle()
+ShowHelp()
 {
-echo "$(ShowAsTitleName) $(ShowAsVersion)"
-}
-ShowAsTitleName()
-{
-TextBrightWhite $r_qpkg_name
-}
-ShowAsVersion()
-{
-printf '%s' "v$r_qpkg_version"
-}
-ShowAsUsage()
-{
-echo -e "\nUsage: $0 {start|stop|restart|status}"
+Display "$(TextBrightWhite "$(/usr/bin/basename "$0")") v$r_qpkg_version • a service control script for the $(FormatAsPackageName $r_qpkg_name) QPKG"
+Display
+Display "Usage: $0 [ACTION]"
+Display
+Display '[ACTION] must be one of the following:'
+DisplayAsHelp 'activate, start' "start $(FormatAsPackageName $r_qpkg_name) if inactive"
+DisplayAsHelp 'deactivate, stop' "stop $(FormatAsPackageName $r_qpkg_name) if active"
+DisplayAsHelp 'r, reactivate, restart' "stop, then start $(FormatAsPackageName $r_qpkg_name)"
+DisplayAsHelp 's, status' "check if $(FormatAsPackageName $r_qpkg_name) application is active. Returns \$? = 0 if active, 1 if not"
+Display
 }
 SetServiceAction()
 {
@@ -106,6 +104,18 @@ CommitServiceResult()
 {
 echo "$service_result" > "$r_service_result_pathfile"
 }
+FormatAsPackageName()
+{
+echo "'${1:-}'"
+}
+DisplayAsHelp()
+{
+printf '  %-22s  - %s\n' "${1:-}" "${2:-}."
+}
+Display()
+{
+echo "${1:-}"
+}
 TextBrightWhite()
 {
 [[ -n ${1:-} ]] || return
@@ -114,7 +124,7 @@ printf '\033[1;97m%s\033[0m' "$1"
 Init
 user_arg=${r_user_args_raw%% *}
 case $user_arg in
-?(--)start)
+?(--)activate|?(--)start)
 SetServiceAction start
 if StartQPKG;then
 SetServiceResultAsOK
@@ -125,7 +135,7 @@ fi
 ?(-)s|?(--)status)
 StatusQPKG
 ;;
-?(--)stop)
+?(--)deactivate|?(--)stop)
 SetServiceAction stop
 if StopQPKG;then
 SetServiceResultAsOK
@@ -133,7 +143,7 @@ else
 SetServiceResultAsFailed
 fi
 ;;
-?(-)r|?(--)restart)
+?(-)r|?(--)reactivate|?(--)restart)
 SetServiceAction restart
 if StopQPKG && StartQPKG;then
 SetServiceResultAsOK
@@ -142,7 +152,6 @@ SetServiceResultAsFailed
 fi
 ;;
 *)
-ShowTitle
-ShowAsUsage
+ShowHelp
 esac
 exit 0
