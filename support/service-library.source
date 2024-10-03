@@ -4150,9 +4150,9 @@ ProcessArgs()
 				: # Ignore.
 				;;
 			?(-)+(v|V)|?(--)version?(s))
-				Display "package: '$r_qpkg_version'"
-				Display "service: '$r_service_script_version'"
-				Display "library: '$r_service_library_version'"
+				Display "package: ${r_qpkg_version:-undefined}"
+				Display "service: ${r_service_script_version:-undefined}"
+				Display "library: ${r_service_library_version:-undefined}"
 				;;
 			*)
 				if [[ -z $user_arg ]]; then
