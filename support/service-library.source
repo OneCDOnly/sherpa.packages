@@ -3389,7 +3389,7 @@ ShowAsError()
 
 	# fatal error
 
-	Display "$(TextBrightRed derp): $(Capitalise "${1:-}")"
+	Display "$(TextBrightRed derp): ${1:-}"
 
 	} >&2
 
