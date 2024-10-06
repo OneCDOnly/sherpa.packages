@@ -250,7 +250,7 @@ r_qpkg_can_backup+=(false)
 r_qpkg_can_restart_to_update+=(false)
 r_qpkg_can_clean+=(false)
 r_qpkg_will_log+=(false)
-r_qpkg_test_for_active+=("[[ -L /opt && -L /opt/etc/passwd ]] && $GREP_CMD -q '/opt/etc/profile' /root/.profile")
+r_qpkg_test_for_active+=("[[ -L /opt && -L /opt/etc/passwd ]] && /bin/grep -q '/opt/etc/profile' /root/.profile")
 r_qpkg_is_sherpa_compatible+=(false)
 r_qpkg_is_unique_unpack+=(false)
 
