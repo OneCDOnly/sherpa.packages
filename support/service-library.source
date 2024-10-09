@@ -65,6 +65,8 @@ InitLibrary()
 				readonly r_chars_sudo_prompt="${r_chars_regular_prompt}sudo "
 			readonly r_chars_super_prompt='# '
 			readonly r_debug_log_datawidth=100
+			readonly r_extended_datetime_format='+%a %-d %b %Y'
+			readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
 			readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d unknown -f /etc/config/qpkg.conf)
 
@@ -739,7 +741,7 @@ RefreshReleasePackageFiles()
 	if [[ ! -e $release_package_pathfile && -n $release_package_url ]] || [[ $refresh_release_package = true ]]; then
 		DownloadReleasePackage "$release_package_url" "$release_package_pathfile"
 
-		if [[ -e $release_package_pathfile ]] && [[ ! -e $daemon_exec_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$release_package_pathfile" -c %Y))) -lt 10 ]]; then		# If release package was downloaded less-than 10 minutes ago, assume it's new and must therefore be extracted-from.
+		if [[ -e $release_package_pathfile ]] && [[ ! -e $daemon_exec_pathfile || $(($(ConvertNowToSeconds)-$(/usr/bin/stat "$release_package_pathfile" -c %Y))) -lt 10 ]]; then		# If release package was downloaded less-than 10 minutes ago, assume it's new and must therefore be extracted-from.
 			extract_release_package=true
 		fi
 	fi
@@ -3387,7 +3389,7 @@ ShowAsError()
 
 	# fatal error
 
-	Display "$(TextBrightRed derp): $(Capitalise "${1:-}")"
+	Display "$(TextBrightRed derp): ${1:-}"
 
 	} >&2
 
@@ -3524,8 +3526,8 @@ DisplayAndCommitActionToLog()
 
 	[[ $service_action = unspecified ]] && return
 
-	starttime=$(/bin/date +%s%N)
-	local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, time: $(date), load: $(GetSysLoad1MinAverage)"
+	starttime=$(ConvertNowToNanoseconds)
+	local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
 	local a=DisplayCommitToLog
 
@@ -3549,7 +3551,7 @@ DisplayAndCommitResultToLog()
 
 	[[ $service_action = unspecified ]] && return
 
-	local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(date), result: $service_result, elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(/bin/date +%s%N)")"), load: $(GetSysLoad1MinAverage)"
+	local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $service_result, elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
 	local a=DisplayCommitToLog
 
@@ -3694,6 +3696,79 @@ CalcMilliDifference()
 	echo "$(((${2:-1}-${1:-0})/1000000))"
 
 	}
+
+ConvertAsSmartDate()
+	{
+
+	# Convert a datecode or epoch time to an extended date format, or a full date format for epoch time.
+
+	# Inputs: (local)
+	#	$1 = datecode in the format 'YYMMDD'. Example: '240928' with 6 digits.
+	#	$1 = longdatecode in the format 'YYYYMMDD'. Example: '20240928' with 8 digits.
+	#	$1 = epoch time. Example: '1234567890'. Since 9th September 2001, epoch time has-been 10 digits and will remain-so until 21st November 2286.
+
+	# Inputs: (global)
+	#	$r_extended_datetime_format
+	#	$r_full_datetime_format
+
+	# Outputs: (local)
+	#	stdout = formatted datetime string.
+
+	[[ -n ${1:-} ]] || return
+
+	local a=$(/bin/sed 's/[^0-9]*//g' <<< "$1")		# Strip non-digits.
+	local b=''
+
+	case ${#a} in
+		6)		# Assume input is datecode, so convert to extended date format.
+			b=$(/bin/date -d "${a::2}-${a:2:2}-${a:4:2}" "$r_extended_datetime_format")
+			;;
+		8)		# Assume input is longdatecode, so convert to extended date format.
+			b=$(/bin/date -d ${a::4}-${a:4:2}-${a:6:2} "$r_extended_datetime_format")
+			;;
+		10)		# Assume input is epoch time, so convert to full date format.
+			b=$(/bin/date -d @"$a" "$r_full_datetime_format")
+	esac
+
+	if [[ -n $b ]]; then
+		printf '%s (%s)' "$1" "$b"
+	else
+		printf '%s' "$1"
+	fi
+
+	return
+
+	} 2> /dev/null
+
+ConvertNowToFullDate()
+	{
+
+	# Outputs: (local)
+	#	stdout = real date.
+
+	/bin/date "$r_full_datetime_format"
+
+	} 2> /dev/null
+
+ConvertNowToSeconds()
+	{
+
+	# Outputs: (local)
+	#	stdout = epoch seconds.
+
+	/bin/date +%s
+
+	} 2> /dev/null
+
+ConvertNowToNanoseconds()
+	{
+
+	# Outputs: (local)
+	#	stdout = epoch nanoseconds.
+
+	/bin/date +%s%N
+
+	} 2> /dev/null
 
 FormatAsThous()
 	{
@@ -4150,9 +4225,9 @@ ProcessArgs()
 				: # Ignore.
 				;;
 			?(-)+(v|V)|?(--)version?(s))
-				Display "package: ${r_qpkg_version:-undefined}"
-				Display "service: ${r_service_script_version:-undefined}"
-				Display "library: ${r_service_library_version:-undefined}"
+				Display "QPKG: $(ConvertAsSmartDate ${r_qpkg_version:-undefined})"
+				Display "service: $(ConvertAsSmartDate "${r_service_script_version:-undefined}")"
+				Display "library: $(ConvertAsSmartDate "${r_service_library_version:-undefined}")"
 				;;
 			*)
 				if [[ -z $user_arg ]]; then

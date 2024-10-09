@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='241004'
+readonly r_service_library_version='241007'
 InitLibrary()
 {
 IsQNAP || exit
@@ -55,6 +55,8 @@ readonly r_chars_regular_prompt='$ '
 readonly r_chars_sudo_prompt="${r_chars_regular_prompt}sudo "
 readonly r_chars_super_prompt='# '
 readonly r_debug_log_datawidth=100
+readonly r_extended_datetime_format='+%a %-d %b %Y'
+readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
 readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d unknown -f /etc/config/qpkg.conf)
 pip_cache_path=undefined
@@ -387,7 +389,7 @@ refresh_release_package=true
 fi
 if [[ ! -e $release_package_pathfile && -n $release_package_url ]] || [[ $refresh_release_package = true ]];then
 DownloadReleasePackage "$release_package_url" "$release_package_pathfile"
-if [[ -e $release_package_pathfile ]] && [[ ! -e $daemon_exec_pathfile || $(($(/bin/date +%s)-$(/usr/bin/stat "$release_package_pathfile" -c %Y))) -lt 10 ]];then
+if [[ -e $release_package_pathfile ]] && [[ ! -e $daemon_exec_pathfile || $(($(ConvertNowToSeconds)-$(/usr/bin/stat "$release_package_pathfile" -c %Y))) -lt 10 ]];then
 extract_release_package=true
 fi
 fi
@@ -1724,7 +1726,7 @@ IsNotPathEmpty()
 }
 ShowAsError()
 {
-Display "$(TextBrightRed derp): $(Capitalise "${1:-}")"
+Display "$(TextBrightRed derp): ${1:-}"
 } >&2
 DisplayCommitToLog()
 {
@@ -1802,8 +1804,8 @@ echo -n "${1:-} "
 DisplayAndCommitActionToLog()
 {
 [[ $service_action = unspecified ]] && return
-starttime=$(/bin/date +%s%N)
-local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, time: $(date), load: $(GetSysLoad1MinAverage)"
+starttime=$(ConvertNowToNanoseconds)
+local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' ' <<< "$msg") "
 local a=DisplayCommitToLog
 if IsNotStatus && IsNotLog && IsNotNone;then
@@ -1816,7 +1818,7 @@ fi
 DisplayAndCommitResultToLog()
 {
 [[ $service_action = unspecified ]] && return
-local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(date), result: $service_result, elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(/bin/date +%s%N)")"), load: $(GetSysLoad1MinAverage)"
+local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $service_result, elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' ' <<< "$msg") "
 local a=DisplayCommitToLog
 if IsNotStatus && IsNotLog && IsNotNone;then
@@ -1898,6 +1900,40 @@ CalcMilliDifference()
 {
 echo "$(((${2:-1}-${1:-0})/1000000))"
 }
+ConvertAsSmartDate()
+{
+[[ -n ${1:-} ]] || return
+local a=$(/bin/sed 's/[^0-9]*//g' <<< "$1")
+local b=''
+case ${#a} in
+6)
+b=$(/bin/date -d "${a::2}-${a:2:2}-${a:4:2}" "$r_extended_datetime_format")
+;;
+8)
+b=$(/bin/date -d ${a::4}-${a:4:2}-${a:6:2} "$r_extended_datetime_format")
+;;
+10)
+b=$(/bin/date -d @"$a" "$r_full_datetime_format")
+esac
+if [[ -n $b ]];then
+printf '%s (%s)' "$1" "$b"
+else
+printf '%s' "$1"
+fi
+return
+} 2> /dev/null
+ConvertNowToFullDate()
+{
+/bin/date "$r_full_datetime_format"
+} 2> /dev/null
+ConvertNowToSeconds()
+{
+/bin/date +%s
+} 2> /dev/null
+ConvertNowToNanoseconds()
+{
+/bin/date +%s%N
+} 2> /dev/null
 FormatAsThous()
 {
 local rightside_group=''
@@ -2202,9 +2238,9 @@ uninstall)
 :
 ;;
 ?(-)+(v|V)|?(--)version?(s))
-Display "package: ${r_qpkg_version:-undefined}"
-Display "service: ${r_service_script_version:-undefined}"
-Display "library: ${r_service_library_version:-undefined}"
+Display "QPKG: $(ConvertAsSmartDate ${r_qpkg_version:-undefined})"
+Display "service: $(ConvertAsSmartDate "${r_service_script_version:-undefined}")"
+Display "library: $(ConvertAsSmartDate "${r_service_library_version:-undefined}")"
 ;;
 *)
 if [[ -z $user_arg ]];then
