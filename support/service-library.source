@@ -1155,18 +1155,18 @@ ShowQPKGStates()
 	DisplayWaitCommitToLog '- QPKG enabled:'
 
 	if IsQPKGEnabled; then
-		DisplayCommitToLog true
+		DisplayCommitToLog "'true'"
 	else
-		DisplayCommitToLog false
+		DisplayCommitToLog "'false'"
 	fi
 
 	if IsSupportAutoUpdate; then
 		DisplayWaitCommitToLog '- application auto-update:'
 
 		if IsAutoUpdate; then
-			DisplayCommitToLog true
+			DisplayCommitToLog "'true'"
 		else
-			DisplayCommitToLog false
+			DisplayCommitToLog "'false'"
 		fi
 	fi
 
@@ -1921,14 +1921,14 @@ CheckPorts()
 		DisplayWaitCommitToLog '- HTTPS port enabled:'
 
 		if IsSSLEnabled; then
-			DisplayCommitToLog true
+			DisplayCommitToLog "'true'"
 			DisplayCommitToLog "- HTTPS port: '$ui_port_secure'"
 
 			if IsPortSecureResponds $ui_port_secure; then
 				a="HTTPS port '$ui_port_secure'"
 			fi
 		else
-			DisplayCommitToLog false
+			DisplayCommitToLog "'false'"
 		fi
 
 		DisplayCommitToLog "- HTTP port: '$ui_port'"
@@ -3551,7 +3551,7 @@ DisplayAndCommitResultToLog()
 
 	[[ $service_action = unspecified ]] && return
 
-	local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $service_result, elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
+	local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
 	local a=DisplayCommitToLog
 
@@ -3679,7 +3679,7 @@ TextInverse()
 Pluralise()
 	{
 
-	[[ ${1:-0} -ne 1 ]] && echo s
+	[[ ${1:-0} -ne 1 ]] && printf s
 
 	}
 
