@@ -26,7 +26,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='241007'
+readonly r_service_library_version='241012'
 InitLibrary()
 {
 IsQNAP || exit
@@ -624,16 +624,16 @@ ShowQPKGStates()
 {
 DisplayWaitCommitToLog '- QPKG enabled:'
 if IsQPKGEnabled;then
-DisplayCommitToLog true
+DisplayCommitToLog "'true'"
 else
-DisplayCommitToLog false
+DisplayCommitToLog "'false'"
 fi
 if IsSupportAutoUpdate;then
 DisplayWaitCommitToLog '- application auto-update:'
 if IsAutoUpdate;then
-DisplayCommitToLog true
+DisplayCommitToLog "'true'"
 else
-DisplayCommitToLog false
+DisplayCommitToLog "'false'"
 fi
 fi
 if IsGitApp;then
@@ -1036,13 +1036,13 @@ fi
 else
 DisplayWaitCommitToLog '- HTTPS port enabled:'
 if IsSSLEnabled;then
-DisplayCommitToLog true
+DisplayCommitToLog "'true'"
 DisplayCommitToLog "- HTTPS port: '$ui_port_secure'"
 if IsPortSecureResponds $ui_port_secure;then
 a="HTTPS port '$ui_port_secure'"
 fi
 else
-DisplayCommitToLog false
+DisplayCommitToLog "'false'"
 fi
 DisplayCommitToLog "- HTTP port: '$ui_port'"
 if IsPortResponds $ui_port;then
@@ -1818,7 +1818,7 @@ fi
 DisplayAndCommitResultToLog()
 {
 [[ $service_action = unspecified ]] && return
-local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $service_result, elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
+local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' ' <<< "$msg") "
 local a=DisplayCommitToLog
 if IsNotStatus && IsNotLog && IsNotNone;then
@@ -1894,7 +1894,7 @@ printf '\033[7m%s\033[0m' "${1:-}"
 } 2>/dev/null
 Pluralise()
 {
-[[ ${1:-0} -ne 1 ]] && echo s
+[[ ${1:-0} -ne 1 ]] && printf s
 }
 CalcMilliDifference()
 {
