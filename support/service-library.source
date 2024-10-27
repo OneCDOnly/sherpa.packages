@@ -906,21 +906,20 @@ InstallPythonPackages()
 		module_exclusions=${module_exclusions%* }
 
 		if [[ -n $module_exclusions ]]; then
-			re="^${module_exclusions// /\$\|^}$"			# Match whole line.
-
-# Let's leave the version and arch specifiers alone.
-# 			for a in '\=' '\~' '\<' '\>' '\!' '\[' ' '; do	# Add regexes for multiple patterns.
-# 				re+="|^${module_exclusions// /$a\|^}"
-# 			done
+			if [[ -e /opt/bin/sed ]]; then
+				re="^(${module_exclusions// /|})$"			# Replace whitespace with pipes to match each word as whole line (extended regex).
+			else
+				re="^${module_exclusions// /\$\|^}$"		# Replace whitespace with regex to match each word as whole line.
+			fi
 		fi
 
 		if [[ -n $re ]]; then
 			for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile; do
 				if [[ -e $a ]]; then
 					if [[ -e /opt/bin/sed ]]; then
-						cmd="/opt/bin/sed -i '/${re}/Id' $a"	# Perform case-insensitive matching only if GNU `sed` exists.
+						cmd="/opt/bin/sed -i -E '/${re}/Id' $a"		# Perform extended and case-insensitive matching.
 					else
-						cmd="/bin/sed -i '/${re}/d' $a"			# Eh, hope for the best.
+						cmd="/bin/sed -i '/${re}/d' $a"				# Eh, hope for the best, but this should never run. If Entware isn't installed, Python applications can't be run anyway.
 					fi
 
 					DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only
