@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #* Please don't edit this file directly, it was built/modified programmatically with the 'build-qpkgs.sh' script. (source: 'service-library.source')
 #* service.lib
-#* copyright (C) 2017-2024 OneCD.
+#* Copyright (C) 2017-2024 OneCD.
 #* Contact:
 #*   one.cd.only@gmail.com
 #* Description:
@@ -12,12 +12,14 @@
 #* Forum:
 #*	 https://forum.qnap.com/viewtopic.php?t=132373
 #* Tested on:
+#*	 GNU bash, version 3.2.57(1)-release (x86_64-QNAP-linux-gnu)
 #*	 GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*	 GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
 #*	   Copyright (C) 2007 Free Software Foundation, Inc.
 #*   ... and periodically on:
 #*	 GNU bash, version 5.0.17(1)-release (aarch64-openwrt-linux-gnu)
 #*	   Copyright (C) 2019 Free Software Foundation, Inc.
+#*	 All scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox). Be-careful reusing code in other shells, as these scripts contain syntax quirks often compatible only with bash.
 #* License:
 #*   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 #*	 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
@@ -25,8 +27,8 @@
 set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
-ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='241012'
+[[ -L /dev/fd ]] || ln -fns /proc/self/fd /dev/fd
+readonly r_service_library_version='241030'
 InitLibrary()
 {
 IsQNAP || exit
@@ -496,13 +498,17 @@ if [[ -e $excluded_modules_pathfile ]];then
 module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$excluded_modules_pathfile")")")
 module_exclusions=${module_exclusions%* }
 if [[ -n $module_exclusions ]];then
+if [[ -e /opt/bin/sed ]];then
+re="^(${module_exclusions// /|})$"
+else
 re="^${module_exclusions// /\$\|^}$"
+fi
 fi
 if [[ -n $re ]];then
 for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile;do
 if [[ -e $a ]];then
 if [[ -e /opt/bin/sed ]];then
-cmd="/opt/bin/sed -i '/${re}/Id' $a"
+cmd="/opt/bin/sed -i -E '/${re}/Id' $a"
 else
 cmd="/bin/sed -i '/${re}/d' $a"
 fi
@@ -890,17 +896,23 @@ local -r r_log_pathfile=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 local run_in_screen=${3:-false}
 local -i z=0
 FormatAsCommand "${1:?empty}" > "${2:?empty}"
-if [[ $run_in_screen = true ]];then
 if [[ $debug = true ]];then
-Display
-Display "{ exec (in screen session): '$1'"
+local exec_msg='{ exec'
+[[ $run_in_screen = true ]] && exec_msg+=' (in screen session)'
+exec_msg+=':'
+if [[ ${1: -1} = "'" ]];then
+exec_msg+=" \"$1\""
+else
+exec_msg+=" '$1'"
 fi
+Display
+Display "$exec_msg"
+fi
+if [[ $run_in_screen = true ]];then
 FormatAsCommand "$1" >> "$r_service_screen_log_pathfile"
 /usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" bash -c "$1"
 z=$?
 elif [[ $debug = true ]];then
-Display
-Display "{ exec: '$1'"
 eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"
 z=${PIPESTATUS[0]}
 else
@@ -913,10 +925,11 @@ else
 FormatAsResultAndStdout "$z" '<null>' >> "$2"
 fi
 if [[ $debug = true ]];then
+exec_msg='} exec: completed'
 if [[ $z -eq 0 ]];then
-Display '} exec: completed OK'
+Display "$exec_msg OK"
 else
-Display '} exec: completed with errors'
+Display "$exec_msg, but with errors"
 fi
 fi
 [[ -e $r_log_pathfile ]] && rm -f "$r_log_pathfile"
