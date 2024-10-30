@@ -17,8 +17,8 @@
 
 set -o nounset -o pipefail
 shopt -s extglob
-[[ $- != *m* ]] || set +m			# Disable job control if-enabled (only needed for QTS 4.2.6).
-ln -fns /proc/self/fd /dev/fd		# KLUDGE: `/dev/fd` isn't always created by QTS.
+[[ $- != *m* ]] || set +m								# Disable job control if-enabled (only needed for QTS 4.2.6).
+[[ -L /dev/fd ]] || ln -fns /proc/self/fd /dev/fd		# KLUDGE: `/dev/fd` isn't always created by QTS.
 readonly r_service_library_version='<?build_date?>'
 
 InitLibrary()
@@ -906,21 +906,20 @@ InstallPythonPackages()
 		module_exclusions=${module_exclusions%* }
 
 		if [[ -n $module_exclusions ]]; then
-			re="^${module_exclusions// /\$\|^}$"			# Match whole line.
-
-# Let's leave the version and arch specifiers alone.
-# 			for a in '\=' '\~' '\<' '\>' '\!' '\[' ' '; do	# Add regexes for multiple patterns.
-# 				re+="|^${module_exclusions// /$a\|^}"
-# 			done
+			if [[ -e /opt/bin/sed ]]; then
+				re="^(${module_exclusions// /|})$"			# Replace whitespace with pipes to match each word as whole line (extended regex).
+			else
+				re="^${module_exclusions// /\$\|^}$"		# Replace whitespace with regex to match each word as whole line.
+			fi
 		fi
 
 		if [[ -n $re ]]; then
 			for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile; do
 				if [[ -e $a ]]; then
 					if [[ -e /opt/bin/sed ]]; then
-						cmd="/opt/bin/sed -i '/${re}/Id' $a"	# Perform case-insensitive matching only if GNU `sed` exists.
+						cmd="/opt/bin/sed -i -E '/${re}/Id' $a"		# Perform extended and case-insensitive matching.
 					else
-						cmd="/bin/sed -i '/${re}/d' $a"			# Eh, hope for the best.
+						cmd="/bin/sed -i '/${re}/d' $a"				# Eh, hope for the best, but this should never run. If Entware isn't installed, Python applications can't be run anyway.
 					fi
 
 					DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only
@@ -1566,12 +1565,12 @@ SaveAppVersion()
 DisplayRunAndLog()
 	{
 
-	# Run a commandstring with a summarised description, log the results, and show onscreen if required.
+	# Run a commandstring with a summarised description, log the results, and show onscreen if-requested.
 	# This function is just a fancy wrapper for Executer()
 
 	# Inputs: (local)
 	#   $1 = Processing message.
-	#   $2 = Commandstring to execute.
+	#   $2 = commandstring to execute.
 	#   $3 (optional) = 'log:failure-only' - if specified, stdout & stderr are only recorded in the specified log if the command failed. Default is to always record stdout & stderr.
 	#   $4 (optional) = true/false - if true, run command in a `screen` session.
 
@@ -1639,22 +1638,30 @@ Executer()
 
 	FormatAsCommand "${1:?empty}" > "${2:?empty}"
 
-	if [[ $run_in_screen = true ]]; then
-		if [[ $debug = true ]]; then
-			Display
-			Display "{ exec (in screen session): '$1'"
+	if [[ $debug = true ]]; then
+		local exec_msg='{ exec'
+		[[ $run_in_screen = true ]] && exec_msg+=' (in screen session)'
+		exec_msg+=':'
+
+		if [[ ${1: -1} = "'" ]]; then						# Change display quotes depending on final content char.
+			exec_msg+=" \"$1\""
+		else
+			exec_msg+=" '$1'"
 		fi
 
+		Display
+		Display "$exec_msg"
+	fi
+
+	if [[ $run_in_screen = true ]]; then
 		FormatAsCommand "$1" >> "$r_service_screen_log_pathfile"
 		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" bash -c "$1"
 		z=$?
 	elif [[ $debug = true ]]; then
-		Display
-		Display "{ exec: '$1'"
-		eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"		# NOTE: 'tee' buffers stdout here.
-		z=${PIPESTATUS[0]}										# Must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
+		eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"	# NOTE: 'tee' buffers stdout here.
+		z=${PIPESTATUS[0]}									# Must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
 	else
-		(eval "$1" > "$r_log_pathfile" 2>&1)					# Run in a subshell to suppress "Terminated" message later.
+		(eval "$1" > "$r_log_pathfile" 2>&1)				# Run in a subshell to suppress "Terminated" message later.
 		z=$?
 	fi
 
@@ -1665,10 +1672,12 @@ Executer()
 	fi
 
 	if [[ $debug = true ]]; then
+		exec_msg='} exec: completed'
+
 		if [[ $z -eq 0 ]]; then
-			Display '} exec: completed OK'
+			Display "$exec_msg OK"
 		else
-			Display '} exec: completed with errors'
+			Display "$exec_msg, but with errors"
 		fi
 	fi
 

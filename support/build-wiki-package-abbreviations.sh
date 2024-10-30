@@ -4,7 +4,7 @@
 
 objects_built=false
 
-Objects:Load()
+LoadObjects()
 	{
 
 	readonly r_objects_pathfile=$support_path/$objects_file
@@ -25,7 +25,7 @@ Objects:Load()
 
 	}
 
-Packages:Load()
+LoadPackages()
 	{
 
 	readonly r_packages_pathfile=$qpkgs_support_path/$packages_source_file
@@ -81,8 +81,8 @@ echo -n "building wiki 'Package abbreviations' page ... "
 
 a=$wiki_path/Package-abbreviations.md
 
-Objects:Load
-Packages:Load 2>/dev/null	# packages source file throws a lot of syntax errors until it's processed - ignore these.
+LoadObjects
+LoadPackages 2>/dev/null	# packages source file throws a lot of syntax errors until it's processed - ignore these.
 
 	{
 
@@ -94,7 +94,7 @@ Packages:Load 2>/dev/null	# packages source file throws a lot of syntax errors u
 	} > "$a"
 
 for b in $(QPKGs-GRall:Array); do
-	abs=$(QPKG.Abbrvs "$b")
+	abs=$(QPKGAbbrvs "$b")
 	echo "| $b | \`${abs// /\` \`}\` |" >> "$a"
 done
 
