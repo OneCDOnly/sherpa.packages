@@ -26,7 +26,7 @@ InitLibrary()
 
 	IsQNAP || exit
 
-	[[ ${DEBUG_QPKG:-} = true ]] && debug=true || debug=false
+	debug=${DEBUG_QPKG:=false}
 
 	local re=''
 
