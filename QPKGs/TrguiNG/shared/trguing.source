@@ -149,6 +149,17 @@ InitService()
 
 	}
 
+StatusQPKGCustom()
+	{
+
+	IsNotError || return
+
+	IsQPKGEnabled
+
+	exit
+
+	}
+
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
