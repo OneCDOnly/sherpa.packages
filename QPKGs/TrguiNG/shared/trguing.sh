@@ -23,7 +23,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrguiNG
-readonly r_service_script_version='241122'
+readonly r_service_script_version='241123'
 InitService()
 {
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -33,6 +33,12 @@ can_restart_to_update=true
 resolve_remote_url=true
 remote_arch=web
 remote_url='https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest'
+}
+StatusQPKGCustom()
+{
+IsNotError || return
+IsQPKGEnabled
+exit
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
