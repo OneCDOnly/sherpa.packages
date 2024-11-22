@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-#* Please don't edit this file directly, it was built/modified programmatically with the 'build-qpkgs.sh' script. (source: 'otransmission.source')
-#* otransmission.sh
+#* Please don't edit this file directly, it was built/modified programmatically with the 'build-qpkgs.sh' script. (source: 'trguing.source')
+#* trguing.sh
 #* Copyright (C) 2017-2024 OneCD.
 #* Contact:
 #*   one.cd.only@gmail.com
@@ -22,22 +22,17 @@
 #*	 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
-readonly r_qpkg_name=OTransmission
+readonly r_qpkg_name=TrguiNG
 readonly r_service_script_version='241122'
 InitService()
 {
-qpkg_ini_file=settings.json
-daemon_exec_pathfile=/opt/bin/transmission-daemon
-qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
-qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-daemon_pidfile_is_managed_by_app=true
-run_daemon_in_screen_session=false
-orig_daemon_service_script=/opt/etc/init.d/S88transmission
-get_ui_listening_address_cmd="/opt/bin/jq -r '.\"rpc-bind-address\"' < $qpkg_ini_pathfile"
-get_ui_port_cmd="/opt/bin/jq -r '.\"rpc-port\"' < "$qpkg_ini_pathfile""
-get_ui_port_secure_cmd='echo 0'
-get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="$daemon_exec_pathfile --config-dir $(/usr/bin/dirname "$qpkg_ini_pathfile") --pid-file $daemon_pid_pathfile"
+qpkg_repo_path=$r_qpkg_path/repo-cache
+qpkg_backup_pathfile=undefined
+qpkg_ini_pathfile=undefined
+can_restart_to_update=true
+resolve_remote_url=true
+remote_arch=web
+remote_url='https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest'
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
@@ -47,8 +42,5 @@ if [[ -e $r_service_library_pathfile ]];then
 else
 printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
 exit 1
-fi
-if $(grep -q '[TrguiNG]' -f /etc/config/qpkg.conf) && [[ $(getcfg TrguiNG Enable -d FALSE -f /etc/config/qpkg.conf) = TRUE ]];then
-TRANSMISSION_WEB_HOME=
 fi
 ProcessArgs

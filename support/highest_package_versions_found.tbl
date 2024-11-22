@@ -67,7 +67,7 @@ OTautulli_241120_arm-x41.qpkg.md5    OTautulli_241120_arm-x41.qpkg    OTautulli 
 OTautulli_241120_x86_64.qpkg.md5     OTautulli_241120_x86_64.qpkg     OTautulli            241120       i64    fbac6e330623a1d1f3c07fa37b567e89
 OTautulli_241120_x86_ce53xx.qpkg.md5 OTautulli_241120_x86_ce53xx.qpkg OTautulli            241120       i53    cbc89b93d54b1285d54afc34f587c357
 OTautulli_241120_x86.qpkg.md5        OTautulli_241120_x86.qpkg        OTautulli            241120       i86    ee0dc32cef1567e9181052c9483f81d8
-OTransmission_241120.qpkg.md5        OTransmission_241120.qpkg        OTransmission        241120       all    50245f4d58eda7bdf7e9f025e507348e
+OTransmission_241122.qpkg.md5        OTransmission_241122.qpkg        OTransmission        241122       all    2c3718a1f8494b1b3275e7cad401986c
 OWatcher3_241120_arm_64.qpkg.md5     OWatcher3_241120_arm_64.qpkg     OWatcher3            241120       a64    73ae36dde041eba4f2bd0bf548f35c3f
 OWatcher3_241120_arm-x19.qpkg.md5    OWatcher3_241120_arm-x19.qpkg    OWatcher3            241120       a19    7fcd48cd95c6f7e99b5890e0a2439810
 OWatcher3_241120_arm-x31.qpkg.md5    OWatcher3_241120_arm-x31.qpkg    OWatcher3            241120       a31    f8757d42ba24664780e084b3b1dba97b
@@ -107,6 +107,7 @@ TorrServer_241120_arm-x41.qpkg.md5   TorrServer_241120_arm-x41.qpkg   TorrServer
 TorrServer_241120_x86_64.qpkg.md5    TorrServer_241120_x86_64.qpkg    TorrServer           241120       i64    bddd795bea35a974769d89d5c85bac0b
 TorrServer_241120_x86_ce53xx.qpkg.md5 TorrServer_241120_x86_ce53xx.qpkg TorrServer           241120       i53    f6147cba03d1bb1358540728d6f2e54d
 TorrServer_241120_x86.qpkg.md5       TorrServer_241120_x86.qpkg       TorrServer           241120       i86    42c7429bf3f410763c4108dce9c527ae
+TrguiNG_today.qpkg.md5               TrguiNG_today.qpkg               TrguiNG              today        all    8c0b6161fae8225e55774feccea3e97d
 Unmanic_241120_arm_64.qpkg.md5       Unmanic_241120_arm_64.qpkg       Unmanic              241120       a64    1dee76cf9ff4d188ede8e142aaa7c32c
 Unmanic_241120_arm-x19.qpkg.md5      Unmanic_241120_arm-x19.qpkg      Unmanic              241120       a19    98acbca977adedb394af43c08dcfc603
 Unmanic_241120_arm-x31.qpkg.md5      Unmanic_241120_arm-x31.qpkg      Unmanic              241120       a31    cb49abc0fbcb168582fe45fbab59744d
