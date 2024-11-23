@@ -353,8 +353,11 @@ StartQPKG()
 		return
 	fi
 
-	IsNotStart && IsNotRestart && DaemonWasNotActive && return	# Don't start (after running actions like 'backup') if daemon wasn't active before.
-	IsNotRestart && IsDaemon && IsDaemonActive && return		# No-need to check for an active daemon during 'restart' as it has already been killed.
+	if IsDaemon && IsNotRestart; then
+		IsNotStart && DaemonWasNotActive && return	# Don't start (after running actions like 'backup') if daemon wasn't active before.
+		IsDaemonActive && return					# No-need to check for an active daemon during 'restart' as it has already been killed.
+	fi
+
 	IsStart && ShowQPKGStates
 
 	if [[ $(type -t StartQPKGCustom) = function ]]; then
