@@ -349,11 +349,11 @@ StartQPKG()
 
 	IsNotError || return
 
-	if IsReinstall || IsUpgrade; then		# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is techically correct as the last action after upgrade is 'start', but probably better to see the upgrade or reinstall result instead).
+	if IsReinstall || IsUpgrade; then		# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade is 'start', but probably better to see the upgrade or reinstall result instead).
 		return
 	fi
 
-	IsNotStart && IsNotRestart && QPKGWasNotActive && return	# Don't start (after running actions like 'backup') if daemon wasn't active before.
+	IsNotStart && IsNotRestart && DaemonWasNotActive && return	# Don't start (after running actions like 'backup') if daemon wasn't active before.
 	IsNotRestart && IsDaemon && IsDaemonActive && return		# No-need to check for an active daemon during 'restart' as it has already been killed.
 	IsStart && ShowQPKGStates
 
@@ -424,7 +424,7 @@ StopQPKGLibrary()
 	RefreshPidFile
 
 	if IsDaemon && IsDaemonActive; then
-		SetQPKGWasActive
+		SetDaemonWasActive
 		StopDaemon
 	fi
 
@@ -3124,31 +3124,31 @@ CommitServiceResult()
 
 	}
 
-SetQPKGWasActive()
+SetDaemonWasActive()
 	{
 
-	_qpkg_was_active=true
+	_daemon_was_active=true
 
 	}
 
-UnsetQPKGWasActive()
+UnsetDaemonWasActive()
 	{
 
-	_qpkg_was_active=false
+	_daemon_was_active=false
 
 	}
 
-QPKGWasActive()
+DaemonWasActive()
 	{
 
-	[[ ${_qpkg_was_active:=false} = true ]]
+	[[ ${_daemon_was_active:=false} = true ]]
 
 	}
 
-QPKGWasNotActive()
+DaemonWasNotActive()
 	{
 
-	[[ ${_qpkg_was_active:=false} = false ]]
+	[[ ${_daemon_was_active:=false} = false ]]
 
 	}
 
