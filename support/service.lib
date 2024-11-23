@@ -28,7 +28,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 [[ -L /dev/fd ]] || ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='241120'
+readonly r_service_library_version='241123'
 InitLibrary()
 {
 IsQNAP || exit
@@ -137,8 +137,10 @@ IsNotError || return
 if IsReinstall || IsUpgrade;then
 return
 fi
-IsNotStart && IsNotRestart && QPKGWasNotActive && return
-IsNotRestart && IsDaemon && IsDaemonActive && return
+if IsDaemon && IsNotRestart;then
+IsNotStart && DaemonWasNotActive && return
+IsDaemonActive && return
+fi
 IsStart && ShowQPKGStates
 if [[ $(type -t StartQPKGCustom) = function ]];then
 StartQPKGCustom
@@ -189,7 +191,7 @@ return
 fi
 RefreshPidFile
 if IsDaemon && IsDaemonActive;then
-SetQPKGWasActive
+SetDaemonWasActive
 StopDaemon
 fi
 return
@@ -1589,21 +1591,21 @@ if IsNotStatus && IsNotLog && IsNotNone;then
 [[ $r_service_result_pathfile != undefined ]] && echo "$service_result" > "$r_service_result_pathfile"
 fi
 }
-SetQPKGWasActive()
+SetDaemonWasActive()
 {
-_qpkg_was_active=true
+_daemon_was_active=true
 }
-UnsetQPKGWasActive()
+UnsetDaemonWasActive()
 {
-_qpkg_was_active=false
+_daemon_was_active=false
 }
-QPKGWasActive()
+DaemonWasActive()
 {
-[[ ${_qpkg_was_active:=false} = true ]]
+[[ ${_daemon_was_active:=false} = true ]]
 }
-QPKGWasNotActive()
+DaemonWasNotActive()
 {
-[[ ${_qpkg_was_active:=false} = false ]]
+[[ ${_daemon_was_active:=false} = false ]]
 }
 SetStatusGet()
 {
