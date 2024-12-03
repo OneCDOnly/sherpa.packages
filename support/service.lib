@@ -28,7 +28,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 [[ -L /dev/fd ]] || ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='241123'
+readonly r_service_library_version='241204'
 InitLibrary()
 {
 IsQNAP || exit
@@ -254,9 +254,9 @@ DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$
 new_env=true
 if [[ ! -e $b ]];then
 DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $b" log:failure-only
-DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $b" log:failure-only
+DisplayRunAndLog "add location '$pip_cache_path' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $b" log:failure-only
 if [[ -d $qpkg_wheels_path ]];then
-DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
+DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
 fi
 fi
 fi
@@ -313,6 +313,7 @@ DisplayCommitToLog 'failed!'
 DisplayCommitToLog "> $a PID '${d}' with SIGKILL:"
 kill -9 "$d" 2> /dev/null
 [[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
+Display OK
 break 2
 fi
 done
@@ -442,7 +443,7 @@ Display
 Display '[ACTION] must be one of the following:'
 DisplayAsHelp 'activate, start' "start $(FormatAsPackageName $r_qpkg_name) if inactive"
 IsSupportBackup && DisplayAsHelp 'b, backup' "backup current $(FormatAsPackageName $r_qpkg_name) configuration to persistent storage"
-IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) files from source. Configuration will be retained"
+IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) files from source$(IsSupportBackup && printf '. Configuration will be retained')"
 DisplayAsHelp 'deactivate, stop' "stop $(FormatAsPackageName $r_qpkg_name) if active"
 DisplayAsHelp disable "disable $(FormatAsPackageName $r_qpkg_name) to prevent it starting (on NAS bootup)"
 IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $r_qpkg_name) before starting it"
