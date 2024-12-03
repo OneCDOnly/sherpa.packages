@@ -537,10 +537,10 @@ CreateVirtualPythonEnv()
 
 		if [[ ! -e $b ]]; then
 			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $b" log:failure-only
-			DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $b" log:failure-only
+			DisplayRunAndLog "add location '$pip_cache_path' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $b" log:failure-only
 
 			if [[ -d $qpkg_wheels_path ]]; then
-				DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
+				DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
 			fi
 		fi
 	fi
