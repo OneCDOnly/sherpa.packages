@@ -632,6 +632,7 @@ StopDaemon()
 				kill -9 "$d" 2> /dev/null
 
 				[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
+				Display OK
 				break 2
 			fi
 		done
