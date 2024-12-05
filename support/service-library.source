@@ -349,12 +349,15 @@ StartQPKG()
 
 	IsNotError || return
 
-	if IsReinstall || IsUpgrade; then		# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is techically correct as the last action after upgrade is 'start', but probably better to see the upgrade or reinstall result instead).
+	if IsReinstall || IsUpgrade; then		# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade is 'start', but probably better to see the upgrade or reinstall result instead).
 		return
 	fi
 
-	IsNotStart && IsNotRestart && QPKGWasNotActive && return	# Don't start (after running actions like 'backup') if daemon wasn't active before.
-	IsNotRestart && IsDaemon && IsDaemonActive && return		# No-need to check for an active daemon during 'restart' as it has already been killed.
+	if IsDaemon && IsNotRestart; then
+		IsNotStart && DaemonWasNotActive && return	# Don't start (after running actions like 'backup') if daemon wasn't active before.
+		IsDaemonActive && return					# No-need to check for an active daemon during 'restart' as it has already been killed.
+	fi
+
 	IsStart && ShowQPKGStates
 
 	if [[ $(type -t StartQPKGCustom) = function ]]; then
@@ -424,7 +427,7 @@ StopQPKGLibrary()
 	RefreshPidFile
 
 	if IsDaemon && IsDaemonActive; then
-		SetQPKGWasActive
+		SetDaemonWasActive
 		StopDaemon
 	fi
 
@@ -534,10 +537,10 @@ CreateVirtualPythonEnv()
 
 		if [[ ! -e $b ]]; then
 			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $b" log:failure-only
-			DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $b" log:failure-only
+			DisplayRunAndLog "add location '$pip_cache_path' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $b" log:failure-only
 
 			if [[ -d $qpkg_wheels_path ]]; then
-				DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
+				DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
 			fi
 		fi
 	fi
@@ -629,6 +632,7 @@ StopDaemon()
 				kill -9 "$d" 2> /dev/null
 
 				[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
+				Display OK
 				break 2
 			fi
 		done
@@ -816,7 +820,7 @@ ShowHelp()
 	Display '[ACTION] must be one of the following:'
 	DisplayAsHelp 'activate, start' "start $(FormatAsPackageName $r_qpkg_name) if inactive"
 	IsSupportBackup && DisplayAsHelp 'b, backup' "backup current $(FormatAsPackageName $r_qpkg_name) configuration to persistent storage"
-	IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) files from source. Configuration will be retained"
+	IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) files from source$(IsSupportBackup && printf '. Configuration will be retained')"
 	DisplayAsHelp 'deactivate, stop' "stop $(FormatAsPackageName $r_qpkg_name) if active"
 	DisplayAsHelp disable "disable $(FormatAsPackageName $r_qpkg_name) to prevent it starting (on NAS bootup)"
 	IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $r_qpkg_name) before starting it"
@@ -3124,31 +3128,31 @@ CommitServiceResult()
 
 	}
 
-SetQPKGWasActive()
+SetDaemonWasActive()
 	{
 
-	_qpkg_was_active=true
+	_daemon_was_active=true
 
 	}
 
-UnsetQPKGWasActive()
+UnsetDaemonWasActive()
 	{
 
-	_qpkg_was_active=false
+	_daemon_was_active=false
 
 	}
 
-QPKGWasActive()
+DaemonWasActive()
 	{
 
-	[[ ${_qpkg_was_active:=false} = true ]]
+	[[ ${_daemon_was_active:=false} = true ]]
 
 	}
 
-QPKGWasNotActive()
+DaemonWasNotActive()
 	{
 
-	[[ ${_qpkg_was_active:=false} = false ]]
+	[[ ${_daemon_was_active:=false} = false ]]
 
 	}
 

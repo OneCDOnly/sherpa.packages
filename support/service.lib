@@ -28,7 +28,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 [[ -L /dev/fd ]] || ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='241120'
+readonly r_service_library_version='241204'
 InitLibrary()
 {
 IsQNAP || exit
@@ -137,8 +137,10 @@ IsNotError || return
 if IsReinstall || IsUpgrade;then
 return
 fi
-IsNotStart && IsNotRestart && QPKGWasNotActive && return
-IsNotRestart && IsDaemon && IsDaemonActive && return
+if IsDaemon && IsNotRestart;then
+IsNotStart && DaemonWasNotActive && return
+IsDaemonActive && return
+fi
 IsStart && ShowQPKGStates
 if [[ $(type -t StartQPKGCustom) = function ]];then
 StartQPKGCustom
@@ -189,7 +191,7 @@ return
 fi
 RefreshPidFile
 if IsDaemon && IsDaemonActive;then
-SetQPKGWasActive
+SetDaemonWasActive
 StopDaemon
 fi
 return
@@ -252,9 +254,9 @@ DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$
 new_env=true
 if [[ ! -e $b ]];then
 DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $b" log:failure-only
-DisplayRunAndLog "add '$(/usr/bin/basename "$pip_cache_path")' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $b" log:failure-only
+DisplayRunAndLog "add location '$pip_cache_path' as 'pip' cache" "echo \"cache-dir = $pip_cache_path\" >> $b" log:failure-only
 if [[ -d $qpkg_wheels_path ]];then
-DisplayRunAndLog "add '$(/usr/bin/basename "$qpkg_wheels_path")' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
+DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
 fi
 fi
 fi
@@ -311,6 +313,7 @@ DisplayCommitToLog 'failed!'
 DisplayCommitToLog "> $a PID '${d}' with SIGKILL:"
 kill -9 "$d" 2> /dev/null
 [[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
+Display OK
 break 2
 fi
 done
@@ -440,7 +443,7 @@ Display
 Display '[ACTION] must be one of the following:'
 DisplayAsHelp 'activate, start' "start $(FormatAsPackageName $r_qpkg_name) if inactive"
 IsSupportBackup && DisplayAsHelp 'b, backup' "backup current $(FormatAsPackageName $r_qpkg_name) configuration to persistent storage"
-IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) files from source. Configuration will be retained"
+IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) files from source$(IsSupportBackup && printf '. Configuration will be retained')"
 DisplayAsHelp 'deactivate, stop' "stop $(FormatAsPackageName $r_qpkg_name) if active"
 DisplayAsHelp disable "disable $(FormatAsPackageName $r_qpkg_name) to prevent it starting (on NAS bootup)"
 IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $r_qpkg_name) before starting it"
@@ -1589,21 +1592,21 @@ if IsNotStatus && IsNotLog && IsNotNone;then
 [[ $r_service_result_pathfile != undefined ]] && echo "$service_result" > "$r_service_result_pathfile"
 fi
 }
-SetQPKGWasActive()
+SetDaemonWasActive()
 {
-_qpkg_was_active=true
+_daemon_was_active=true
 }
-UnsetQPKGWasActive()
+UnsetDaemonWasActive()
 {
-_qpkg_was_active=false
+_daemon_was_active=false
 }
-QPKGWasActive()
+DaemonWasActive()
 {
-[[ ${_qpkg_was_active:=false} = true ]]
+[[ ${_daemon_was_active:=false} = true ]]
 }
-QPKGWasNotActive()
+DaemonWasNotActive()
 {
-[[ ${_qpkg_was_active:=false} = false ]]
+[[ ${_daemon_was_active:=false} = false ]]
 }
 SetStatusGet()
 {

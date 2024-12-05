@@ -154,6 +154,10 @@ InitService()
 
 	}
 
+if $(/bin/grep -q '[TrguiNG]' /etc/config/qpkg.conf) && [[ $(/sbin/getcfg TrguiNG Enable -d FALSE -f /etc/config/qpkg.conf) = TRUE ]]; then
+	export TRANSMISSION_WEB_HOME=$(/sbin/getcfg TrguiNG Install_Path -f /etc/config/qpkg.conf)/repo-cache
+fi
+
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
