@@ -4004,6 +4004,106 @@ GetCPUCores()
 
 	}
 
+GetQPKGPostInstallDeps()
+	{
+
+	# Inputs: (local)
+	#	$1 = target QPKG name
+
+	# Outputs: (local)
+	#	stdout = target QPKG dependency list, colon-separated.
+
+	# Layout:
+	# 	'Dependency = packageA:packageB:packageC'
+
+	[[ -n ${1:-} ]] || return
+
+	CleanDependencyField "$(/sbin/getcfg "$1" Dependency -f /etc/config/qpkg.conf)"
+
+	}
+
+AddToQPKGPostInstallDeps()
+	{
+
+	# Inputs: (local)
+	#	$1 = target QPKG name.
+	#	$2 = QPKG to add as a post-install dependency.
+
+	# Layout:
+	# 	'Dependency = packageA:packageB:packageC'
+
+	[[ -n ${1:-} && -n ${2:-} ]] || return
+
+	local a=$(GetQPKGPostInstallDeps "$1")
+
+	# Check if entry already exists.
+	/bin/grep -qw "$2" <<< "$a" && return
+
+	SetQPKGPostInstallDeps "$1" "$(CleanDependencyField "$a:$2")"
+
+	}
+
+RemoveFromQPKGPostInstallDeps()
+	{
+
+	# Inputs: (local)
+	#	$1 = target QPKG name.
+	#	$2 = QPKG to remove as a post-install dependency.
+
+	# Layout:
+	# 	'Dependency = packageA:packageB:packageC'
+
+	[[ -n ${1:-} && -n ${2:-} ]] || return
+
+	local re=\\b${2}\\b
+	local a=$(/bin/sed "s|${re}||" <<< "$(GetQPKGPostInstallDeps "$1")")
+
+	SetQPKGPostInstallDeps "$1" "$(CleanDependencyField "$a")"
+
+	}
+
+SetQPKGPostInstallDeps()
+	{
+
+	# Inputs: (local)
+	#	$1 = target QPKG name.
+	#	$2 = dependency field.
+
+	# Layout:
+	# 	'Dependency = packageA:packageB:packageC'
+
+	[[ -n ${1:-} ]] || return
+
+	if [[ -n $2 ]]; then
+		/sbin/setcfg "$1" Dependency "$2" -f /etc/config/qpkg.conf
+	else
+		/sbin/setcfg -e "$1" Dependency -f /etc/config/qpkg.conf
+	fi
+
+	}
+
+CleanDependencyField()
+	{
+
+	# Inputs: (local)
+	#	$1 = dependency field to clean.
+
+	# Outputs: (local)
+	#	$1 = cleaned dependency field.
+
+	# Layout:
+	# 	'Dependency = packageA:packageB:packageC'
+
+	[[ -n ${1:-} ]] || return
+
+	local a=$(/bin/tr -s ':' <<< "$1")
+	[[ ${a:0:1} = ':' ]] && a=${a#?}
+	[[ ${a: -1:1} = ':' ]] && a=${a%?}
+
+	printf '%s' "$a"
+
+	}
+
 SetTraps()
 	{
 
