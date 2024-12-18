@@ -28,7 +28,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 [[ -L /dev/fd ]] || ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='241218'
+readonly r_service_library_version='241219'
 InitLibrary()
 {
 IsQNAP || exit
@@ -2067,20 +2067,20 @@ AddToQPKGPostInstallDeps()
 [[ -n ${1:-} && -n ${2:-} ]] || return
 local a=$(GetQPKGPostInstallDeps "$1")
 /bin/grep -qw "$2" <<< "$a" && return
-SetQPKGPostInstallDeps "$1" "$(CleanDependencyField "$a:$2")"
+SetQPKGPostInstallDeps "$1" "$a:$2"
 }
 RemoveFromQPKGPostInstallDeps()
 {
 [[ -n ${1:-} && -n ${2:-} ]] || return
 local re=\\b${2}\\b
-local a=$(/bin/sed "s|${re}||" <<< "$(GetQPKGPostInstallDeps "$1")")
-SetQPKGPostInstallDeps "$1" "$(CleanDependencyField "$a")"
+SetQPKGPostInstallDeps "$1" "$(/bin/sed "s|${re}||" <<< "$(GetQPKGPostInstallDeps "$1")")"
 }
 SetQPKGPostInstallDeps()
 {
 [[ -n ${1:-} ]] || return
-if [[ -n $2 ]];then
-/sbin/setcfg "$1" Dependency "$2" -f /etc/config/qpkg.conf
+local a=$(CleanDependencyField "${2:-}")
+if [[ -n $a ]];then
+/sbin/setcfg "$1" Dependency "$a" -f /etc/config/qpkg.conf
 else
 /sbin/setcfg -e "$1" Dependency -f /etc/config/qpkg.conf
 fi
