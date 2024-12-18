@@ -3939,6 +3939,11 @@ IsSU()
 
 	# Running as superuser?
 
+	# Inputs: (global)
+	#	$EUID
+	#	$r_chars_super_prompt
+	#	$r_user_args_raw
+
 	if [[ $EUID -ne 0 ]]; then
 		if [[ -e /usr/bin/sudo ]]; then
 			ShowAsError 'this utility must be run with superuser privileges. Try again as:'
@@ -4056,9 +4061,8 @@ RemoveFromQPKGPostInstallDeps()
 	[[ -n ${1:-} && -n ${2:-} ]] || return
 
 	local re=\\b${2}\\b
-	local a=$(/bin/sed "s|${re}||" <<< "$(GetQPKGPostInstallDeps "$1")")
 
-	SetQPKGPostInstallDeps "$1" "$(CleanDependencyField "$a")"
+	SetQPKGPostInstallDeps "$1" "$(CleanDependencyField "$(/bin/sed "s|${re}||" <<< "$(GetQPKGPostInstallDeps "$1")")")"
 
 	}
 
