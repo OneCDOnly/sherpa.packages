@@ -360,6 +360,8 @@ StartQPKG()
 
 	IsStart && ShowQPKGStates
 
+	[[ $(type -t PreStartQPKGCustom) = function ]] && PreStartQPKGCustom
+
 	if [[ $(type -t StartQPKGCustom) = function ]]; then
 		StartQPKGCustom
 	else
@@ -407,6 +409,8 @@ StopQPKG()
 	if IsStop || IsRestart; then
 		ShowQPKGStates
 	fi
+
+	[[ $(type -t PreStopQPKGCustom) = function ]] && PreStopQPKGCustom
 
 	if [[ $(type -t StopQPKGCustom) = function ]]; then
 		StopQPKGCustom

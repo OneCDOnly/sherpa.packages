@@ -160,18 +160,19 @@ StatusQPKGCustom()
 
 	}
 
-PreDisableQPKGCustom()
+PreStartQPKGCustom()
 	{
 
-	RemoveFromQPKGPostInstallDeps OTransmission $r_qpkg_name
+	AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
+	/sbin/setcfg $r_qpkg_name Use TRUE -f /etc/config/qpkg.conf
 
 	}
 
-PreEnableQPKGCustom()
+PreStopQPKGCustom()
 	{
 
-	export TRANSMISSION_WEB_HOME=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)/repo-cache
-	AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
+	RemoveFromQPKGPostInstallDeps OTransmission $r_qpkg_name
+	/sbin/setcfg $r_qpkg_name Use FALSE -f /etc/config/qpkg.conf
 
 	}
 
