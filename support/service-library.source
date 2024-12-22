@@ -4009,6 +4009,24 @@ GetCPUCores()
 
 	}
 
+AddToQPKGPostInstallDeps()
+	{
+
+	# Inputs: (local)
+	#	$1 = target QPKG name.
+	#	$2 = QPKG name to add as a post-install dependency.
+
+	# Layout:
+	# 	'Dependency = packageA:packageB:packageC'
+
+	[[ -n ${1:-} && -n ${2:-} ]] || return
+
+	RemoveFromQPKGPostInstallDeps "$1" "$2"
+
+	SetQPKGPostInstallDeps "$1" "$(GetQPKGPostInstallDeps "$1"):$2"
+
+	}
+
 GetQPKGPostInstallDeps()
 	{
 
@@ -4027,27 +4045,6 @@ GetQPKGPostInstallDeps()
 
 	}
 
-AddToQPKGPostInstallDeps()
-	{
-
-	# Inputs: (local)
-	#	$1 = target QPKG name.
-	#	$2 = QPKG name to add as a post-install dependency.
-
-	# Layout:
-	# 	'Dependency = packageA:packageB:packageC'
-
-	[[ -n ${1:-} && -n ${2:-} ]] || return
-
-	local a=$(GetQPKGPostInstallDeps "$1")
-
-	# Check if an entry for $2 already exists.
-	/bin/grep -qw "$2" <<< "$a" && return
-
-	SetQPKGPostInstallDeps "$1" "$a:$2"
-
-	}
-
 RemoveFromQPKGPostInstallDeps()
 	{
 
@@ -4062,7 +4059,7 @@ RemoveFromQPKGPostInstallDeps()
 
 	local re=\\b${2}\\b
 
-	SetQPKGPostInstallDeps "$1" "$(/bin/sed "s|${re}||" <<< "$(GetQPKGPostInstallDeps "$1")")"
+	SetQPKGPostInstallDeps "$1" "$(/bin/sed "s|${re}||g" <<< "$(GetQPKGPostInstallDeps "$1")")"
 
 	}
 
@@ -4103,8 +4100,8 @@ CleanDependencyField()
 	[[ -n ${1:-} ]] || return
 
 	local a=$(/bin/tr -s ':' <<< "$1")
-	[[ ${a:0:1} = ':' ]] && a=${a#?}
-	[[ ${a: -1:1} = ':' ]] && a=${a%?}
+	[[ -n $a && ${a:0:1} = ':' ]] && a=${a#?}
+	[[ -n $a && ${a: -1:1} = ':' ]] && a=${a%?}
 
 	printf '%s' "$a"
 
@@ -4227,6 +4224,9 @@ ProcessArgs()
 
 				SetServiceAction disable
 				SetTraps
+
+				[[ $(type -t PreDisableQPKGCustom) = function ]] && PreDisableQPKGCustom
+
 				/sbin/qpkg_service disable "$r_qpkg_name"
 
 				if IsNotQPKGEnabled; then
@@ -4253,6 +4253,9 @@ ProcessArgs()
 
 				SetServiceAction enable
 				SetTraps
+
+				[[ $(type -t PreEnableQPKGCustom) = function ]] && PreEnableQPKGCustom
+
 				/sbin/qpkg_service enable "$r_qpkg_name"
 
 				if IsQPKGEnabled; then
