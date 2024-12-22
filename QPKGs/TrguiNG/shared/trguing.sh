@@ -23,7 +23,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrguiNG
-readonly r_service_script_version='241219'
+readonly r_service_script_version='241223'
 InitService()
 {
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -39,6 +39,15 @@ StatusQPKGCustom()
 IsNotError || return
 IsQPKGEnabled
 exit
+}
+PreDisableQPKGCustom()
+{
+RemoveFromQPKGPostInstallDeps OTransmission $r_qpkg_name
+}
+PreEnableQPKGCustom()
+{
+export TRANSMISSION_WEB_HOME=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)/repo-cache
+AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0

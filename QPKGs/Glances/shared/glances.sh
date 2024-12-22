@@ -23,7 +23,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Glances
-readonly r_service_script_version='241219'
+readonly r_service_script_version='241223'
 InitService()
 {
 pip_cache_path=$r_qpkg_path/pip-cache
@@ -41,6 +41,7 @@ can_restart_to_update=true
 recheck_daemon_pid_after_kill=true
 run_daemon_in_screen_session=true
 interpreter=/opt/bin/python3
+nice_daemon_to=-18
 ui_listening_address=0.0.0.0
 ui_port=61208
 watch_port_check_seconds=360

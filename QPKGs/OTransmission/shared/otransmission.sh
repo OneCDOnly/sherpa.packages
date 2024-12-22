@@ -23,7 +23,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OTransmission
-readonly r_service_script_version='241219'
+readonly r_service_script_version='241223'
 InitService()
 {
 qpkg_ini_file=settings.json
@@ -47,11 +47,5 @@ if [[ -e $r_service_library_pathfile ]];then
 else
 printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
 exit 1
-fi
-if IsQPKGInstalled TrguiNG && IsQPKGEnabled TrguiNG;then
-export TRANSMISSION_WEB_HOME=$(/sbin/getcfg TrguiNG Install_Path -f /etc/config/qpkg.conf)/repo-cache
-AddToQPKGPostInstallDeps $r_qpkg_name TrguiNG
-else
-RemoveFromQPKGPostInstallDeps $r_qpkg_name TrguiNG
 fi
 ProcessArgs
