@@ -48,4 +48,5 @@ else
 printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
 exit 1
 fi
+[[ $(/sbin/getcfg TrguiNG Use -d FALSE -u -f /etc/config/qpkg.conf) = TRUE ]] && export TRANSMISSION_WEB_HOME=$(/sbin/getcfg TrguiNG Install_Path -f /etc/config/qpkg.conf)/repo-cache
 ProcessArgs

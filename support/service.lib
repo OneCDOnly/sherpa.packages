@@ -142,6 +142,7 @@ IsNotStart && DaemonWasNotActive && return
 IsDaemonActive && return
 fi
 IsStart && ShowQPKGStates
+[[ $(type -t PreStartQPKGCustom) = function ]] && PreStartQPKGCustom
 if [[ $(type -t StartQPKGCustom) = function ]];then
 StartQPKGCustom
 else
@@ -177,6 +178,7 @@ IsNotRestart && IsDaemon && IsNotDaemonActive && return
 if IsStop || IsRestart;then
 ShowQPKGStates
 fi
+[[ $(type -t PreStopQPKGCustom) = function ]] && PreStopQPKGCustom
 if [[ $(type -t StopQPKGCustom) = function ]];then
 StopQPKGCustom
 else

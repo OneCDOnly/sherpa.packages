@@ -40,14 +40,15 @@ IsNotError || return
 IsQPKGEnabled
 exit
 }
-PreDisableQPKGCustom()
+PreStartQPKGCustom()
+{
+AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
+/sbin/setcfg $r_qpkg_name Use TRUE -f /etc/config/qpkg.conf
+}
+PreStopQPKGCustom()
 {
 RemoveFromQPKGPostInstallDeps OTransmission $r_qpkg_name
-}
-PreEnableQPKGCustom()
-{
-export TRANSMISSION_WEB_HOME=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)/repo-cache
-AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
+/sbin/setcfg $r_qpkg_name Use FALSE -f /etc/config/qpkg.conf
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
