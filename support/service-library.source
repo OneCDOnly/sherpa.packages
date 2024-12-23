@@ -360,6 +360,8 @@ StartQPKG()
 
 	IsStart && ShowQPKGStates
 
+	[[ $(type -t PreStartQPKGCustom) = function ]] && PreStartQPKGCustom
+
 	if [[ $(type -t StartQPKGCustom) = function ]]; then
 		StartQPKGCustom
 	else
@@ -407,6 +409,8 @@ StopQPKG()
 	if IsStop || IsRestart; then
 		ShowQPKGStates
 	fi
+
+	[[ $(type -t PreStopQPKGCustom) = function ]] && PreStopQPKGCustom
 
 	if [[ $(type -t StopQPKGCustom) = function ]]; then
 		StopQPKGCustom
@@ -3939,6 +3943,11 @@ IsSU()
 
 	# Running as superuser?
 
+	# Inputs: (global)
+	#	$EUID
+	#	$r_chars_super_prompt
+	#	$r_user_args_raw
+
 	if [[ $EUID -ne 0 ]]; then
 		if [[ -e /usr/bin/sudo ]]; then
 			ShowAsError 'this utility must be run with superuser privileges. Try again as:'
@@ -4004,11 +4013,29 @@ GetCPUCores()
 
 	}
 
+AddToQPKGPostInstallDeps()
+	{
+
+	# Inputs: (local)
+	#	$1 = target QPKG name.
+	#	$2 = QPKG name to add as a post-install dependency.
+
+	# Layout:
+	# 	'Dependency = packageA:packageB:packageC'
+
+	[[ -n ${1:-} && -n ${2:-} ]] || return
+
+	RemoveFromQPKGPostInstallDeps "$1" "$2"
+
+	SetQPKGPostInstallDeps "$1" "$(GetQPKGPostInstallDeps "$1"):$2"
+
+	}
+
 GetQPKGPostInstallDeps()
 	{
 
 	# Inputs: (local)
-	#	$1 = target QPKG name
+	#	$1 = source QPKG name.
 
 	# Outputs: (local)
 	#	stdout = target QPKG dependency list, colon-separated.
@@ -4022,33 +4049,12 @@ GetQPKGPostInstallDeps()
 
 	}
 
-AddToQPKGPostInstallDeps()
-	{
-
-	# Inputs: (local)
-	#	$1 = target QPKG name.
-	#	$2 = QPKG to add as a post-install dependency.
-
-	# Layout:
-	# 	'Dependency = packageA:packageB:packageC'
-
-	[[ -n ${1:-} && -n ${2:-} ]] || return
-
-	local a=$(GetQPKGPostInstallDeps "$1")
-
-	# Check if entry already exists.
-	/bin/grep -qw "$2" <<< "$a" && return
-
-	SetQPKGPostInstallDeps "$1" "$(CleanDependencyField "$a:$2")"
-
-	}
-
 RemoveFromQPKGPostInstallDeps()
 	{
 
 	# Inputs: (local)
 	#	$1 = target QPKG name.
-	#	$2 = QPKG to remove as a post-install dependency.
+	#	$2 = QPKG name to remove as a post-install dependency.
 
 	# Layout:
 	# 	'Dependency = packageA:packageB:packageC'
@@ -4056,9 +4062,8 @@ RemoveFromQPKGPostInstallDeps()
 	[[ -n ${1:-} && -n ${2:-} ]] || return
 
 	local re=\\b${2}\\b
-	local a=$(/bin/sed "s|${re}||" <<< "$(GetQPKGPostInstallDeps "$1")")
 
-	SetQPKGPostInstallDeps "$1" "$(CleanDependencyField "$a")"
+	SetQPKGPostInstallDeps "$1" "$(/bin/sed "s|${re}||g" <<< "$(GetQPKGPostInstallDeps "$1")")"
 
 	}
 
@@ -4067,15 +4072,17 @@ SetQPKGPostInstallDeps()
 
 	# Inputs: (local)
 	#	$1 = target QPKG name.
-	#	$2 = dependency field.
+	#	$2 (optional) = dependency field.
 
 	# Layout:
 	# 	'Dependency = packageA:packageB:packageC'
 
 	[[ -n ${1:-} ]] || return
 
-	if [[ -n $2 ]]; then
-		/sbin/setcfg "$1" Dependency "$2" -f /etc/config/qpkg.conf
+	local a=$(CleanDependencyField "${2:-}")
+
+	if [[ -n $a ]]; then
+		/sbin/setcfg "$1" Dependency "$a" -f /etc/config/qpkg.conf
 	else
 		/sbin/setcfg -e "$1" Dependency -f /etc/config/qpkg.conf
 	fi
@@ -4097,8 +4104,8 @@ CleanDependencyField()
 	[[ -n ${1:-} ]] || return
 
 	local a=$(/bin/tr -s ':' <<< "$1")
-	[[ ${a:0:1} = ':' ]] && a=${a#?}
-	[[ ${a: -1:1} = ':' ]] && a=${a%?}
+	[[ -n $a && ${a:0:1} = ':' ]] && a=${a#?}
+	[[ -n $a && ${a: -1:1} = ':' ]] && a=${a%?}
 
 	printf '%s' "$a"
 
@@ -4221,6 +4228,9 @@ ProcessArgs()
 
 				SetServiceAction disable
 				SetTraps
+
+				[[ $(type -t PreDisableQPKGCustom) = function ]] && PreDisableQPKGCustom
+
 				/sbin/qpkg_service disable "$r_qpkg_name"
 
 				if IsNotQPKGEnabled; then
@@ -4247,6 +4257,9 @@ ProcessArgs()
 
 				SetServiceAction enable
 				SetTraps
+
+				[[ $(type -t PreEnableQPKGCustom) = function ]] && PreEnableQPKGCustom
+
 				/sbin/qpkg_service enable "$r_qpkg_name"
 
 				if IsQPKGEnabled; then

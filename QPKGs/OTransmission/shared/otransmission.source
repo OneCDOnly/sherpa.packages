@@ -165,11 +165,6 @@ else
 	exit 1
 fi
 
-if $(/bin/grep -q '[TrguiNG]' /etc/config/qpkg.conf) && [[ $(/sbin/getcfg TrguiNG Enable -d FALSE -f /etc/config/qpkg.conf) = TRUE ]];then
-	export TRANSMISSION_WEB_HOME=$(/sbin/getcfg TrguiNG Install_Path -f /etc/config/qpkg.conf)/repo-cache
-	AddToQPKGPostInstallDeps $r_qpkg_name TrguiNG
-else
-	RemoveFromQPKGPostInstallDeps $r_qpkg_name TrguiNG
-fi
+[[ $(/sbin/getcfg TrguiNG Use -d FALSE -u -f /etc/config/qpkg.conf) = TRUE ]] && export TRANSMISSION_WEB_HOME=$(/sbin/getcfg TrguiNG Install_Path -f /etc/config/qpkg.conf)/repo-cache
 
 ProcessArgs
