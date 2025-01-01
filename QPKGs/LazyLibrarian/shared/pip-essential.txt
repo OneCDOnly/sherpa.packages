@@ -1,4 +1,5 @@
 apprise
+apscheduler
 bs4
 cherrypy
 cherrypy_cors
