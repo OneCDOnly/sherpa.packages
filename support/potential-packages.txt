@@ -1,3 +1,7 @@
+* NetAlertX?
+	- https://github.com/jokob-sk/NetAlertX
+	- primarily a docker image, but can also be installed the hard way.
+
 * Watcharr?
 	- https://github.com/sbondCo/Watcharr
 
