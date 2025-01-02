@@ -1,3 +1,6 @@
+* CrowdSec?
+	- https://github.com/crowdsecurity/crowdsec
+
 * NetAlertX?
 	- https://github.com/jokob-sk/NetAlertX
 	- primarily a docker image, but can also be installed the hard way.
