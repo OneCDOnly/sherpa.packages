@@ -9,7 +9,7 @@ httpagentparser
 httplib2
 irc
 mako
-pypdf3
+pypdf
 python_magic
 thefuzz
 webencodings
