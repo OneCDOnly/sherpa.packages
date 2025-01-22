@@ -82,7 +82,7 @@ six
 sqlite3
 sqlparse
 twisted
-typing-extensions
+typing_extensions
 unittest
 urllib
 urllib3
