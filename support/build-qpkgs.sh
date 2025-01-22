@@ -30,13 +30,13 @@ if [[ $rebuild_functions = true ]]; then
 	[[ -f "$b" ]] && chmod 444 "$b"
 
 	if [[ -s "$b" ]]; then
-		echo "service library: $(ColourTextBrightGreen rebuilt)"
+		echo "service library: $(TextBrightGreen rebuilt)"
 		rebuilt_functions=true
 	fi
 fi
 
 for d in "$qpkgs_path"/*; do
-	echo -e "\n$(ColourTextBrightWhite 'QPKG:') $(basename "$d")"
+	echo -e "\n$(TextBrightWhite 'QPKG:') $(basename "$d")"
 	config_source_pathfile=$d/qpkg.source
 
 	if [[ ! -e $config_source_pathfile ]]; then
@@ -127,7 +127,7 @@ for d in "$qpkgs_path"/*; do
 	done
 
 	(cd "$d" || exit; qbuild --exclude '*.source' &>/dev/null)
-	echo "QPKG arches: $(ColourTextBrightGreen rebuilt)"
+	echo "QPKG arches: $(TextBrightGreen rebuilt)"
 
 	if [[ $(basename "$d") = sherpa ]]; then
 		cp -f "$qpkgs_path/sherpa/build/sherpa_${build_date}.qpkg" "$qpkgs_path/sherpa/build/sherpa.qpkg"
