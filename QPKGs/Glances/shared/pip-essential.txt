@@ -16,6 +16,7 @@ jinja2
 markdown-it-py
 mdurl
 netifaces
+netifaces2
 podman
 pydantic
 pydantic-core
@@ -37,3 +38,4 @@ ujson
 uvicorn
 watchfiles
 websockets
+zeroconf
