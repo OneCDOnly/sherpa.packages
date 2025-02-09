@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #* Please don't edit this file directly, it was built/modified programmatically with the 'build-qpkgs.sh' script. (source: 'service-library.source')
 #* service.lib
-#* Copyright (C) 2017-2024 OneCD.
+#* Copyright (C) 2017-2025 OneCD.
 #* Contact:
 #*   one.cd.only@gmail.com
 #* Description:
@@ -28,7 +28,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 [[ -L /dev/fd ]] || ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='241223'
+readonly r_service_library_version='250210'
 InitLibrary()
 {
 IsQNAP || exit
@@ -147,6 +147,13 @@ if [[ $(type -t StartQPKGCustom) = function ]];then
 StartQPKGCustom
 else
 StartQPKGLibrary
+fi
+}
+MigrateQPKGName()
+{
+local migration_qpkgs=(OLidarr OMedusa OqBittorrent OReadarr OSickGear OSonarr OTautulli OTransmission OWatcher3 OWhisparr)
+if [[ "${migration_qpkgs[*]}" =~ [[:space:]]${r_qpkg_name}[[:space:]] ]];then
+echo "found a migratable QPKG name!"
 fi
 }
 StartQPKGLibrary()
