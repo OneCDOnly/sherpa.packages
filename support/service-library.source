@@ -349,7 +349,9 @@ StartQPKG()
 
 	IsNotError || return
 
-	if IsReinstall || IsUpgrade; then		# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade is 'start', but probably better to see the upgrade or reinstall result instead).
+# 	MigrateQPKGName
+
+	if IsReinstall || IsUpgrade; then		# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade/reinstall is 'start', but probably better to see the upgrade/reinstall result instead).
 		return
 	fi
 
@@ -366,6 +368,41 @@ StartQPKG()
 		StartQPKGCustom
 	else
 		StartQPKGLibrary
+	fi
+
+	}
+
+MigrateQPKGName()
+	{
+
+	# Will need to modify (example):
+	#	'qpkg.conf'
+	#		[OTransmission]
+	# 		Name = OTransmission
+	# 		QPKG_File = OTransmission.qpkg
+	# 		Shell = /share/CACHEDEV1_DATA/.qpkg/OTransmission/otransmission.sh
+	# 		Install_Path = /share/CACHEDEV1_DATA/.qpkg/OTransmission
+
+	# 1. stop QPKG,
+	# 2. rename service script,
+	# 3. rename installation path,
+	# 4. 'sed' replace all remaining occurrences in 'qpkg.conf',
+	# 5. application config files? internal paths, etc...
+	# 6. start QPKG.
+
+	local migration_qpkgs=(OLidarr OMedusa OqBittorrent OReadarr OSickGear OSonarr OTautulli OTransmission OWatcher3 OWhisparr)
+
+	if [[ "${migration_qpkgs[*]}" =~ [[:space:]]${r_qpkg_name}[[:space:]] ]]; then
+		# 1. rename service script,
+		# 2. rename installation path,
+		# 3. 'sed' replace all remaining occurrences in 'qpkg.conf',
+		# 4. application config files? internal paths, etc...
+
+		echo "found a migratable QPKG name!"
+
+# 		mv "$(getcfg "$r_qpkg_name" Shell -f /etc/config/qpkg.conf)" "$(getcfg "$r_qpkg_name" Shell -f /etc/config/qpkg.conf)"
+
+
 	fi
 
 	}
