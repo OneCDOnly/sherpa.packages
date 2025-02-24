@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #* Please don't edit this file directly, it was built/modified programmatically with the 'build-qpkgs.sh' script. (source: 'clamav.source')
 #* clamav.sh
-#* Copyright (C) 2017-2024 OneCD.
+#* Copyright (C) 2017-2025 OneCD.
 #* Contact:
 #*   one.cd.only@gmail.com
 #* Project:
@@ -23,7 +23,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=ClamAV
-readonly r_service_script_version='241223'
+readonly r_service_script_version='250210'
 InitService()
 {
 qpkg_ini_file=undefined
