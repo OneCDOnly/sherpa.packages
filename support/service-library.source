@@ -57,7 +57,7 @@ InitLibrary()
 			readonly r_service_action_pathfile=/var/log/$r_qpkg_name.action
 			readonly r_service_log_pathfile=/var/log/$r_qpkg_name.log
 			readonly r_service_result_pathfile=/var/log/$r_qpkg_name.result
-			readonly r_service_screen_log_pathfile=/var/log/$r_qpkg_name.screen.log
+			readonly r_service_screen_log_pathfile=$r_qpkg_path/$r_qpkg_name.screen.log
 
 		# Values.
 
@@ -338,6 +338,11 @@ InitLibrary()
 	DisableOpkgDaemonStart
 	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate >/dev/null
 
+	# KLUDGE: delete existing `screen.conf` so it's rewritten with new log location.
+	# see https://github.com/OneCDOnly/sherpa/discussions/301 for more information.
+
+	rm -f "$r_screen_conf_pathfile"
+
 	if [[ $run_daemon_in_screen_session = true && ! -e $r_screen_conf_pathfile ]]; then
 		echo -e "logfile ${r_service_screen_log_pathfile}\nlogfile flush 1\nlog on" > "$r_screen_conf_pathfile"
 	fi
@@ -361,6 +366,10 @@ StartQPKG()
 	fi
 
 	IsStart && ShowQPKGStates
+
+	# Clear previous `screen.log` on each startup.
+
+	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog 'remove previous screen log' "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
 
 	[[ $(type -t PreStartQPKGCustom) = function ]] && PreStartQPKGCustom
 
@@ -1301,6 +1310,7 @@ CleanLocalRepo()
 	IsVirtualPythonEnv && [[ -d $venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$venv_path\"" log:failure-only
 	IsUsePipCache && [[ -d $pip_cache_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$pip_cache_path\"" log:failure-only
 	[[ -e $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
+	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog 'remove previous screen log' "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
 	IsUseTemp && [[ -d $r_qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$r_qpkg_temp_path\"" log:failure-only
 
 	MakePaths
