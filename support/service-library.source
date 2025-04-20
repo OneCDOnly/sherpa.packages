@@ -4391,6 +4391,8 @@ ProcessArgs()
 				fi
 				;;
 			?(-)s|?(--)status)
+				IsSU ||	exit
+
 				SetStatusGet
 				StatusQPKG
 				;;
