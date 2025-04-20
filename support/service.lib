@@ -28,7 +28,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m
 [[ -L /dev/fd ]] || ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='250321'
+readonly r_service_library_version='250420'
 InitLibrary()
 {
 IsQNAP || exit
@@ -2296,6 +2296,7 @@ ShowUnsupportedAction "$user_arg"
 fi
 ;;
 ?(-)s|?(--)status)
+IsSU ||	exit
 SetStatusGet
 StatusQPKG
 ;;
