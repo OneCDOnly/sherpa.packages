@@ -1,3 +1,9 @@
+* GhostHub?
+	- https://github.com/BleedingXiko/GhostHub
+
+* VERT?
+	- https://github.com/VERT-sh/VERT
+
 * cryptomator?
 	- https://github.com/cryptomator/cryptomator
 

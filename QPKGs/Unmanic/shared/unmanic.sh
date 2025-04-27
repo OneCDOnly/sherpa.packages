@@ -6,12 +6,13 @@
 #*   one.cd.only@gmail.com
 #* Project:
 #*	 https://git.io/sherpa
-#* Forum:
+#* Support forums:
+#*	 https://community.qnap.com/t/qpkg-sherpa-a-mini-package-manager-cli/1081
 #*	 https://forum.qnap.com/viewtopic.php?t=132373
 #* Tested on:
+#*	 GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
 #*	 GNU bash, version 3.2.57(1)-release (x86_64-QNAP-linux-gnu)
 #*	 GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
-#*	 GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
 #*	   Copyright (C) 2007 Free Software Foundation, Inc.
 #*   ... and periodically on:
 #*	 GNU bash, version 5.0.17(1)-release (aarch64-openwrt-linux-gnu)
@@ -23,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Unmanic
-readonly r_service_script_version='250420'
+readonly r_service_script_version='250425'
 InitService()
 {
 pip_cache_path=$r_qpkg_path/pip-cache
