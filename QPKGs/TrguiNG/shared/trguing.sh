@@ -24,9 +24,8 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrguiNG
-readonly r_service_script_version='250425'
-InitService()
-{
+readonly r_service_script_version='250504'
+InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_backup_pathfile=undefined
 qpkg_ini_pathfile=undefined
@@ -35,19 +34,16 @@ resolve_remote_url=true
 remote_arch=web
 remote_url='https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest'
 }
-StatusQPKGCustom()
-{
+StatusQPKGCustom(){
 IsNotError || return
 IsQPKGEnabled
 exit
 }
-PreStartQPKGCustom()
-{
+PreStartQPKGCustom(){
 AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
 /sbin/setcfg $r_qpkg_name Use TRUE -f /etc/config/qpkg.conf
 }
-PreStopQPKGCustom()
-{
+PreStopQPKGCustom(){
 RemoveFromQPKGPostInstallDeps OTransmission $r_qpkg_name
 /sbin/setcfg $r_qpkg_name Use FALSE -f /etc/config/qpkg.conf
 }

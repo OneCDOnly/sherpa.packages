@@ -170,7 +170,6 @@ TextBrightWhite()
 	}
 
 Init
-
 user_arg=${r_user_args_raw%% *}		# Only process first argument.
 
 case $user_arg in

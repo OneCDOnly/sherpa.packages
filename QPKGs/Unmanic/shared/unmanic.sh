@@ -24,9 +24,8 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Unmanic
-readonly r_service_script_version='250425'
-InitService()
-{
+readonly r_service_script_version='250504'
+InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
 venv_path=$r_qpkg_path/venv
@@ -44,7 +43,7 @@ interpreter=/opt/bin/python3
 ui_listening_address=0.0.0.0
 daemon_launch_cmd="export HOME_DIR=$r_qpkg_config_path;$daemon_exec_pathfile $daemon_script_pathfile"
 get_ui_listening_address_cmd="echo $ui_listening_address"
-get_ui_port_cmd="/opt/bin/jq -r '.\"ui_port\"' < "$qpkg_ini_pathfile""
+get_ui_port_cmd="/opt/bin/jq -r '.\"ui_port\"'<"$qpkg_ini_pathfile""
 get_ui_port_secure_cmd="echo $ui_port_secure"
 get_ui_port_secure_enabled_test_cmd='false'
 }

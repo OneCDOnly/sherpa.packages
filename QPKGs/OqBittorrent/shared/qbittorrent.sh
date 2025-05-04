@@ -24,9 +24,8 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OqBittorrent
-readonly r_service_script_version='250425'
-InitService()
-{
+readonly r_service_script_version='250504'
+InitService(){
 qpkg_ini_file=qBittorrent.conf
 daemon_exec_pathfile=/opt/bin/qbittorrent-nox
 qpkg_ini_pathfile=$r_qpkg_config_path/qBittorrent/config/$qpkg_ini_file
