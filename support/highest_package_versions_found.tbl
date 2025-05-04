@@ -1,7 +1,7 @@
 # checksum_filename                  qpkg_filename                    package_name         version      arch   hash
 Bazarr_250504_arm_64.qpkg.md5        Bazarr_250504_arm_64.qpkg        Bazarr               250504       a64    0922cc1c6c360cf345f89e80dea9b254
 Bazarr_250504_x86_64.qpkg.md5        Bazarr_250504_x86_64.qpkg        Bazarr               250504       i64    9dacf01e2f5ba18f63c2b7d99b5a6b9e
-ClamAV_250504.qpkg.md5               ClamAV_250504.qpkg               ClamAV               250504       all    90216a2b3a934d595f738d6ffa046af1
+ClamAV_250504.qpkg.md5               ClamAV_250504.qpkg               ClamAV               250504       all    6a15f843c99e096bc8d5a96f32c7c9f6
 duf_240731_arm_64.qpkg.md5           duf_240731_arm_64.qpkg           duf                  240731       a64    f57d72a189ad9f49e42a2726e3eadc7c
 duf_240731_arm-x31.qpkg.md5          duf_240731_arm-x31.qpkg          duf                  240731       a31    79774fbe8dda0cf9d7431c88f66e5400
 duf_240731_arm-x41.qpkg.md5          duf_240731_arm-x41.qpkg          duf                  240731       a41    fdb790fc668345d593598453c3ce1cc0
