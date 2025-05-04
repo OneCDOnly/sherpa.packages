@@ -14,6 +14,8 @@
 #
 #* <?license?>
 
+set -o nounset -o pipefail
+ln -fns /proc/self/fd /dev/fd		# KLUDGE: `/dev/fd` isn't always created by QTS.
 readonly r_user_args_raw=$*
 
 Init()
@@ -23,13 +25,13 @@ Init()
 
 	readonly r_qpkg_name=sherpa
 	readonly r_chars_regular_prompt='$ '
+		readonly r_chars_sudo_prompt="${r_chars_regular_prompt}sudo "
 	readonly r_chars_super_prompt='# '
-	readonly r_chars_sudo_prompt="${r_chars_regular_prompt}sudo "
 
 	IsQNAP || return
 	IsSU || return
 
-	local source_git_branch=stable		# default branch to follow
+	local source_git_branch=stable			# Default branch to follow.
 	local test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
 
 	if [[ $test_branch = unknown ]]; then
@@ -47,9 +49,8 @@ Init()
 	readonly r_manager_archive_pathfile=$r_work_path/$r_manager_archive_file
 	readonly r_manager_pathfile=$r_work_path/$r_manager_file
 
-	local -r r_nas_firmware=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
-	[[ ${r_nas_firmware//.} -lt 426 ]] && curl_insecure_arg=' --insecure' || curl_insecure_arg=''
-	readonly GNU_FIND_CMD=/opt/bin/find
+	local -r r_nas_firmware_ver=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
+	[[ ${r_nas_firmware_ver//.} -ge 455 ]] && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
 	previous_msg=''
 
 	return 0
@@ -59,11 +60,12 @@ Init()
 EnsureFileIsCurrent()
 	{
 
-	# $1 = local pathfilename to examine.
-	# $2 = remote archive to pull updated file from.
-	# $3 = local archive pathfilename to extract archive to.
+	# If file was updated only recently, don't run another update.
 
-	# If file was updated only recently, don't run another update. Examine `change` time as this is updated even if file content isn't modified.
+	# Inputs: (local)
+	# 	$1 = local pathfilename to examine.
+	# 	$2 = remote archive to pull updated file from.
+	# 	$3 = local archive pathfilename to extract archive to.
 
 	if [[ ! -e $1 ]] || ! IsThisFileRecent "$1" 60; then
 		if ! (/sbin/curl"$curl_insecure_arg" --silent --fail "$2" > "$3"); then
@@ -78,14 +80,14 @@ EnsureFileIsCurrent()
 IsThisFileRecent()
 	{
 
-	# input:
+	# Examine `change` time as this is updated even if file content isn't modified.
+
+	# Inputs: (local)
 	#   $1 = pathfilename: file to examine change time of.
 	#   $2 = integer (optional): threshold in minutes - default is `1440` = 1 day.
 
-	# output:
+	# Outputs: (local)
 	#   $? = true/false
-
-	# Examine `change` time as this is updated even if file content isn't modified.
 
 	# https://stackoverflow.com/a/55622661
 	[[ -e ${1:-} && $((($(/bin/date +%s)-$(/usr/bin/stat "$1" -c %Y))/60)) -le ${2:-1440} ]]
@@ -132,7 +134,7 @@ ShowAsWarn()
 
 	# Warning only.
 
-	WriteToDisplay.New "$(ColourTextBrightOrange warn)" "${1:-}"
+	WriteToDisplay.New "$(TextBrightOrange warn)" "${1:-}"
 
 	return 0
 
@@ -143,7 +145,7 @@ ShowAsAbort()
 
 	# Fatal abort.
 
-	WriteToDisplay.New "$(ColourTextBrightRed bort)" "${1:-}"
+	WriteToDisplay.New "$(TextBrightRed bort)" "${1:-}"
 
 	return 0
 
@@ -156,7 +158,7 @@ ShowAsError()
 
 	local capitalised=$(Capitalise "${1:-}")
 
-	WriteToDisplay.New "$(ColourTextBrightRed derp)" "$capitalised"
+	WriteToDisplay.New "$(TextBrightRed derp)" "$capitalised"
 
 	return 0
 
@@ -183,12 +185,14 @@ WriteToDisplay.New()
 
 	# Updates the previous message.
 
-	# input:
+	# Inputs: (local)
 	#	$1 = pass/fail
 	#	$2 = message
 
-	# output:
+	# Outputs: (local)
 	#	stdout = overwrites previous message with updated message.
+
+	# Outputs: (global)
 	#	$previous_length
 	#	$appended_length
 
@@ -218,14 +222,14 @@ WriteToDisplay.New()
 
 	}
 
-ColourTextBrightOrange()
+TextBrightOrange()
 	{
 
 	printf '\033[1;38;5;214m%s\033[0m' "${1:-}"
 
 	}
 
-ColourTextBrightRed()
+TextBrightRed()
 	{
 
 	printf '\033[1;31m%s\033[0m' "${1:-}"
