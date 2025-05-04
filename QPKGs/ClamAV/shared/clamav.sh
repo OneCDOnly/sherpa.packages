@@ -26,18 +26,11 @@ readonly r_user_args_raw=$*
 readonly r_qpkg_name=ClamAV
 readonly r_service_script_version='250504'
 InitService(){
-#>>>Paths<<<
-#>>>Filenames<<<
 qpkg_ini_file=undefined
-#>>>Pathfilenames<<<
 qpkg_backup_pathfile=undefined
 qpkg_ini_pathfile=undefined
 qpkg_ini_default_pathfile=undefined
-#>>>Switches<<<
 install_pip_deps=true
-#>>>Values<<<
-#>>>URLs<<<
-#>>>CMDs<<<
 readonly r_target_service_pathfile=/etc/init.d/antivirus.sh
 readonly r_backup_service_pathfile=$r_target_service_pathfile.bak
 }
