@@ -24,9 +24,8 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OTransmission
-readonly r_service_script_version='250425'
-InitService()
-{
+readonly r_service_script_version='250504'
+InitService(){
 qpkg_ini_file=settings.json
 daemon_exec_pathfile=/opt/bin/transmission-daemon
 qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
@@ -34,8 +33,8 @@ qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 daemon_pidfile_is_managed_by_app=true
 run_daemon_in_screen_session=false
 orig_daemon_service_script=/opt/etc/init.d/S88transmission
-get_ui_listening_address_cmd="/opt/bin/jq -r '.\"rpc-bind-address\"' < $qpkg_ini_pathfile"
-get_ui_port_cmd="/opt/bin/jq -r '.\"rpc-port\"' < "$qpkg_ini_pathfile""
+get_ui_listening_address_cmd="/opt/bin/jq -r '.\"rpc-bind-address\"'<$qpkg_ini_pathfile"
+get_ui_port_cmd="/opt/bin/jq -r '.\"rpc-port\"'<"$qpkg_ini_pathfile""
 get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd='false'
 daemon_launch_cmd="$daemon_exec_pathfile --config-dir $(/usr/bin/dirname "$qpkg_ini_pathfile") --pid-file $daemon_pid_pathfile"

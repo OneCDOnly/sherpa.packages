@@ -24,9 +24,8 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OWatcher3
-readonly r_service_script_version='250425'
-InitService()
-{
+readonly r_service_script_version='250504'
+InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
@@ -41,9 +40,9 @@ interpreter=/opt/bin/python3
 source_git_branch=master
 source_git_branch_depth=shallow
 source_git_url=https://github.com/barbequesauce/Watcher3.git
-get_ui_listening_address_cmd="/opt/bin/jq -r .Server.serverhost < $qpkg_ini_pathfile"
-get_ui_port_cmd="/opt/bin/jq -r .Server.serverport < $qpkg_ini_pathfile"
-get_ui_port_secure_cmd="/opt/bin/jq -r .Server.serverport < $qpkg_ini_pathfile"
+get_ui_listening_address_cmd="/opt/bin/jq -r .Server.serverhost<$qpkg_ini_pathfile"
+get_ui_port_cmd="/opt/bin/jq -r .Server.serverport<$qpkg_ini_pathfile"
+get_ui_port_secure_cmd="/opt/bin/jq -r .Server.serverport<$qpkg_ini_pathfile"
 get_ui_port_secure_enabled_test_cmd=''
 daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdata $(/usr/bin/dirname "$qpkg_ini_pathfile") --conf $qpkg_ini_pathfile --pid $daemon_pid_pathfile"
 }
