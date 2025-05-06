@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Mylar3
-readonly r_service_script_version='250504'
+readonly r_service_script_version='250507'
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -53,7 +53,7 @@ if [[ -e $qpkg_ini_pathfile ]];then
 fi
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
-[[ -z $library_path ]] && library_path=$0
+[[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
 if [[ -e $r_service_library_pathfile ]];then
 . $r_service_library_pathfile

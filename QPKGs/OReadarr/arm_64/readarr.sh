@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OReadarr
-readonly r_service_script_version='250504'
+readonly r_service_script_version='250507'
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_ini_file=config.xml
@@ -45,7 +45,7 @@ get_ui_port_secure_enabled_test_cmd='[[ $(grep "<EnableSsl>" $qpkg_ini_pathfile 
 daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$r_qpkg_temp_path;$daemon_exec_pathfile --nobrowser --data=$r_qpkg_config_path"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
-[[ -z $library_path ]] && library_path=$0
+[[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
 if [[ -e $r_service_library_pathfile ]];then
 . $r_service_library_pathfile

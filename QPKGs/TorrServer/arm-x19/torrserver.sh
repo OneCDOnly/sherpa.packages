@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TorrServer
-readonly r_service_script_version='250504'
+readonly r_service_script_version='250507'
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_ini_file=settings.json
@@ -37,14 +37,14 @@ resolve_remote_url=true
 run_daemon_in_screen_session=true
 remote_arch=linux-arm5
 remote_url='https://api.github.com/repos/YouROK/TorrServer/releases/latest'
-daemon_launch_cmd="cd $qpkg_repo_path && $daemon_exec_pathfile --path $r_qpkg_config_path"
+daemon_launch_cmd="cd $qpkg_repo_path&&$daemon_exec_pathfile --path $r_qpkg_config_path"
 get_ui_listening_address_cmd='echo 0.0.0.0'
 get_ui_port_cmd='echo 8090'
 get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd='false'
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
-[[ -z $library_path ]] && library_path=$0
+[[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
 if [[ -e $r_service_library_pathfile ]];then
 . $r_service_library_pathfile

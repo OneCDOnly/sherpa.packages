@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WebSSH
-readonly r_service_script_version='250504'
+readonly r_service_script_version='250507'
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
@@ -49,7 +49,7 @@ get_ui_port_secure_enabled_test_cmd='false'
 daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --address=$ui_listening_address --port=$ui_port --encoding=850"
 }
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
-[[ -z $library_path ]] && library_path=$0
+[[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
 if [[ -e $r_service_library_pathfile ]];then
 . $r_service_library_pathfile
