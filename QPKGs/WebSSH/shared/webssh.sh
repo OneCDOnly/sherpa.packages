@@ -46,8 +46,7 @@ get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="echo $ui_port"
 get_ui_port_secure_cmd="echo $ui_port_secure"
 get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --address=$ui_listening_address --port=$ui_port --encoding=850"
-}
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --address=$ui_listening_address --port=$ui_port --encoding=850";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

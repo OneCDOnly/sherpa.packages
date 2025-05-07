@@ -41,8 +41,7 @@ daemon_launch_cmd="cd $qpkg_repo_path&&$daemon_exec_pathfile --path $r_qpkg_conf
 get_ui_listening_address_cmd='echo 0.0.0.0'
 get_ui_port_cmd='echo 8090'
 get_ui_port_secure_cmd='echo 0'
-get_ui_port_secure_enabled_test_cmd='false'
-}
+get_ui_port_secure_enabled_test_cmd='false';}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

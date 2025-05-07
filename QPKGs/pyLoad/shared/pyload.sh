@@ -42,8 +42,7 @@ get_ui_listening_address_cmd="GetPyloadConfig $qpkg_ini_pathfile webui host"
 get_ui_port_cmd="GetPyloadConfig $qpkg_ini_pathfile webui port"
 get_ui_port_secure_cmd="GetPyloadConfig $qpkg_ini_pathfile webui port"
 get_ui_port_secure_enabled_test_cmd="[[ $(GetPyloadConfig "$qpkg_ini_pathfile" webui use_ssl) = True ]]"
-daemon_launch_cmd="export TEMP=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $r_qpkg_path/config"
-}
+daemon_launch_cmd="export TEMP=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $r_qpkg_path/config";}
 GetPyloadConfig(){
 local source_pathfile=${1:?no pathfilename supplied}
 local target_section_name=${2:?no section supplied}
@@ -100,8 +99,7 @@ if [[ $var_found = false ]];then
 echo 'variable match not found'
 return 1
 fi
-echo "$value"
-}
+echo "$value";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

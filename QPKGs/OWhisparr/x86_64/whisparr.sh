@@ -42,8 +42,7 @@ get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd='grep "<Port>" $qpkg_ini_pathfile | sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
 get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_ini_pathfile | sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'
 get_ui_port_secure_enabled_test_cmd='[[ $(grep "<EnableSsl>" $qpkg_ini_pathfile | sed "s/.*<EnableSsl>\(.*\)<\/EnableSsl>.*/\1/") = True ]]'
-daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$r_qpkg_temp_path;$daemon_exec_pathfile --nobrowser --data=$r_qpkg_config_path"
-}
+daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$r_qpkg_temp_path;$daemon_exec_pathfile --nobrowser --data=$r_qpkg_config_path";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

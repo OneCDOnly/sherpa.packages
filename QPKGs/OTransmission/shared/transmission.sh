@@ -37,8 +37,7 @@ get_ui_listening_address_cmd="/opt/bin/jq -r '.\"rpc-bind-address\"'<$qpkg_ini_p
 get_ui_port_cmd="/opt/bin/jq -r '.\"rpc-port\"'<"$qpkg_ini_pathfile""
 get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="$daemon_exec_pathfile --config-dir $(/usr/bin/dirname "$qpkg_ini_pathfile") --pid-file $daemon_pid_pathfile"
-}
+daemon_launch_cmd="$daemon_exec_pathfile --config-dir $(/usr/bin/dirname "$qpkg_ini_pathfile") --pid-file $daemon_pid_pathfile";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

@@ -48,8 +48,7 @@ get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_h
 get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_port= | cut -d\" -f2'
 get_ui_port_secure_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_port= | cut -d\" -f2'
 get_ui_port_secure_enabled_test_cmd='[[ $(parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_ssl= | cut -d\" -f2) = true ]]'
-daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $r_qpkg_config_path --pidfile $daemon_pid_pathfile"
-}
+daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $r_qpkg_config_path --pidfile $daemon_pid_pathfile";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

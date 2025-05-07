@@ -41,8 +41,7 @@ get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep listen
 get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep listenAddressSingleHTTPFrontend | cut -d= -f2 | cut -d: -f2 | /bin/sed "s| .*$||"'
 get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-$remote_arch&&$daemon_exec_pathfile -configdir $r_qpkg_config_path"
-}
+daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-$remote_arch&&$daemon_exec_pathfile -configdir $r_qpkg_config_path";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

@@ -54,8 +54,7 @@ if [[ -e $qpkg_ini_pathfile ]];then
 /sbin/setcfg General log_dir "$r_qpkg_config_path"/logs -f "$qpkg_ini_pathfile"
 /sbin/setcfg General cache_dir "$r_qpkg_config_path"/cache -f "$qpkg_ini_pathfile"
 fi
-IsSupportGetAppVersion&&app_version_cmd="/bin/grep '^VERSION =' $app_version_pathfile | /bin/sed 's|^.*\"\(.*\)\"|\1|'"
-}
+IsSupportGetAppVersion&&app_version_cmd="/bin/grep '^VERSION =' $app_version_pathfile | /bin/sed 's|^.*\"\(.*\)\"|\1|'";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

@@ -45,8 +45,7 @@ daemon_launch_cmd="export HOME_DIR=$r_qpkg_config_path;$daemon_exec_pathfile $da
 get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="/opt/bin/jq -r '.\"ui_port\"'<"$qpkg_ini_pathfile""
 get_ui_port_secure_cmd="echo $ui_port_secure"
-get_ui_port_secure_enabled_test_cmd='false'
-}
+get_ui_port_secure_enabled_test_cmd='false';}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

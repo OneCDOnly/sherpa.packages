@@ -48,8 +48,7 @@ get_ui_listening_address_cmd="/sbin/getcfg misc host -d undefined -f $qpkg_ini_p
 get_ui_port_cmd="/sbin/getcfg misc port -d $ui_port -f $qpkg_ini_pathfile"
 get_ui_port_secure_cmd="/sbin/getcfg misc https_port -d $ui_port_secure -f $qpkg_ini_pathfile"
 get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg misc enable_https -d 0 -f '$qpkg_ini_pathfile') = 1 ]]'
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --browser 0 --config-file $qpkg_ini_pathfile --pidfile $daemon_pid_pathfile"
-}
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --browser 0 --config-file $qpkg_ini_pathfile --pidfile $daemon_pid_pathfile";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_path_library=$(/usr/bin/dirname "$library_path")/service.lib

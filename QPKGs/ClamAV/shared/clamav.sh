@@ -32,8 +32,7 @@ qpkg_ini_pathfile=undefined
 qpkg_ini_default_pathfile=undefined
 install_pip_deps=true
 readonly r_target_service_pathfile=/etc/init.d/antivirus.sh
-readonly r_backup_service_pathfile=$r_target_service_pathfile.bak
-}
+readonly r_backup_service_pathfile=$r_target_service_pathfile.bak;}
 StartQPKGCustom(){
 IsError&&return
 MakePaths
@@ -49,8 +48,7 @@ eval "$r_target_service_pathfile" restart &>/dev/null
 fi
 /bin/grep -q freshclam /etc/profile||echo "alias freshclam='/opt/sbin/freshclam -u admin --config-file=/etc/config/freshclam.conf --datadir=/share/$(/sbin/getcfg Public path -f /etc/config/smb.conf | cut -d '/' -f 3)/.antivirus/usr/share/clamav -l /tmp/.freshclam.log'">>/etc/profile
 DisplayCommitToLog '> start: OK'
-return 0
-}
+return 0;}
 StopQPKGCustom(){
 IsError&&return
 if [[ -e $r_backup_service_pathfile ]];then
@@ -59,8 +57,7 @@ eval "$r_target_service_pathfile" restart &>/dev/null
 fi
 /bin/sed -i '/freshclam/d' /etc/profile
 DisplayCommitToLog '> stop: OK'
-return 0
-}
+return 0;}
 StatusQPKGCustom(){
 IsNotError||return
 if [[ -e $r_backup_service_pathfile ]];then
@@ -68,8 +65,7 @@ printf active
 exit 0
 fi
 printf inactive
-exit 1
-}
+exit 1;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

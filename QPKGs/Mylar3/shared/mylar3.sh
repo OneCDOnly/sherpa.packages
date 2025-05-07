@@ -50,8 +50,7 @@ if [[ -e $qpkg_ini_default_pathfile ]];then
 fi
 if [[ -e $qpkg_ini_pathfile ]];then
 /sbin/setcfg Metatagging ct_settingspath "$r_qpkg_config_path"/ComicTagger -f "$qpkg_ini_pathfile"
-fi
-}
+fi;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

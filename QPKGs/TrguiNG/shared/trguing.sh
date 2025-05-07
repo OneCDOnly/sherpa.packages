@@ -32,21 +32,17 @@ qpkg_ini_pathfile=undefined
 can_restart_to_update=true
 resolve_remote_url=true
 remote_arch=web
-remote_url='https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest'
-}
+remote_url='https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest';}
 StatusQPKGCustom(){
 IsNotError||return
 IsQPKGEnabled
-exit
-}
+exit;}
 PreStartQPKGCustom(){
 AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
-/sbin/setcfg $r_qpkg_name Use TRUE -f /etc/config/qpkg.conf
-}
+/sbin/setcfg $r_qpkg_name Use TRUE -f /etc/config/qpkg.conf;}
 PreStopQPKGCustom(){
 RemoveFromQPKGPostInstallDeps OTransmission $r_qpkg_name
-/sbin/setcfg $r_qpkg_name Use FALSE -f /etc/config/qpkg.conf
-}
+/sbin/setcfg $r_qpkg_name Use FALSE -f /etc/config/qpkg.conf;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib

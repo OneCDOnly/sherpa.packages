@@ -130,8 +130,7 @@ IsSupportAutoUpdate&&IsAutoUpdateMissing&&EnableAutoUpdate>/dev/null
 rm -f "$r_screen_conf_pathfile"
 if [[ $run_daemon_in_screen_session = true&&! -e $r_screen_conf_pathfile ]];then
 echo -e "logfile ${r_service_screen_log_pathfile}\nlogfile flush 1\nlog on">"$r_screen_conf_pathfile"
-fi
-}
+fi;}
 StartQPKG(){
 IsNotError||return
 if IsReinstall||IsUpgrade;then
@@ -148,14 +147,12 @@ if [[ $(type -t StartQPKGCustom) = function ]];then
 StartQPKGCustom
 else
 StartQPKGLibrary
-fi
-}
+fi;}
 MigrateQPKGName(){
 local migration_qpkgs=(OLidarr OMedusa OqBittorrent OReadarr OSickGear OSonarr OTautulli OTransmission OWatcher3 OWhisparr)
 if [[ "${migration_qpkgs[*]}" =~ [[:space:]]${r_qpkg_name}[[:space:]] ]];then
 echo "found a migratable QPKG name!"
-fi
-}
+fi;}
 StartQPKGLibrary(){
 if IsGitApp;then
 CloneGitRepo||return
@@ -175,8 +172,7 @@ EnsureConfigFileExists
 LoadPorts app||return
 CheckPortsAvailable||return
 StartDaemon
-return
-}
+return;}
 StopQPKG(){
 IsNotError||return
 IsNotRestart&&IsDaemon&&IsNotDaemonActive&&return
@@ -188,8 +184,7 @@ if [[ $(type -t StopQPKGCustom) = function ]];then
 StopQPKGCustom
 else
 StopQPKGLibrary
-fi
-}
+fi;}
 StopQPKGLibrary(){
 if IsNotDaemon;then
 RemoveUserlinkToExec
@@ -200,8 +195,7 @@ if IsDaemon&&IsDaemonActive;then
 SetDaemonWasActive
 StopDaemon
 fi
-return
-}
+return;}
 StatusQPKG(){
 IsNotError||return
 ShowQPKGStates
@@ -209,8 +203,7 @@ if [[ $(type -t StatusQPKGCustom) = function ]];then
 StatusQPKGCustom
 else
 StatusQPKGLibrary
-fi
-}
+fi;}
 StatusQPKGLibrary(){
 RefreshPidFile
 if IsDaemon&&IsDaemonActive;then
@@ -219,8 +212,7 @@ CheckPorts||exit
 else
 exit 1
 fi
-exit 0
-}
+exit 0;}
 CreateUserlinkToExec(){
 if [[ $userlink_pathfile != undefined ]];then
 if [[ ! -L $userlink_pathfile&&-e $launcher_pathfile ]];then
@@ -235,16 +227,14 @@ else
 DisplayCommitToLog "- symlink exists: '$userlink_pathfile'"
 fi
 return
-fi
-}
+fi;}
 RemoveUserlinkToExec(){
 if [[ $userlink_pathfile != undefined ]];then
 if [[ -L $userlink_pathfile ]];then
 rm -f "$userlink_pathfile"
 DisplayCommitToLog "= symlink removed: '$userlink_pathfile'"
 fi
-fi
-}
+fi;}
 CreateVirtualPythonEnv(){
 new_env=false
 local a=''
@@ -261,8 +251,7 @@ DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \
 fi
 fi
 fi
-return 0
-}
+return 0;}
 StartDaemon(){
 local a='start daemon'
 local b=$daemon_launch_cmd
@@ -270,7 +259,7 @@ if [[ $run_daemon_in_screen_session = true ]];then
 a+=' (in screen session)'
 rm -f "${r_service_screen_log_pathfile:?}"
 fi
-if ((nice_daemon_to != 0))&&((nice_daemon_to>= -20))&&((nice_daemon_to<= 19))&&[[ -e /opt/bin/nice ]];then
+if((nice_daemon_to != 0))&&((nice_daemon_to>= -20))&&((nice_daemon_to<= 19))&&[[ -e /opt/bin/nice ]];then
 b="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
 DisplayCommitToLog "- nice daemon to: $nice_daemon_to"
 fi
@@ -291,8 +280,7 @@ DisplayErrCommitAllLogs 'port tests failed!'
 [[ $run_daemon_in_screen_session = true ]]&&AddFileToDebug "$r_service_screen_log_pathfile"
 SetError;return 1
 fi
-CommitInfoToSysLog "$a: OK"
-}
+CommitInfoToSysLog "$a: OK";}
 StopDaemon(){
 [[ -e $daemon_pid_pathfile ]]||return
 local a='stop daemon'
@@ -325,8 +313,7 @@ done
 WaitForKillPid
 if IsDaemonActive;then
 SetError;return 1
-fi
-}
+fi;}
 RefreshReleasePackageFiles(){
 local extract_release_package=false
 local refresh_release_package=false
@@ -415,8 +402,7 @@ else
 DisplayErrCommitAllLogs "'local repository path does not exist'"
 SetError;return 1
 fi
-return 0
-}
+return 0;}
 CheckPortsAvailable(){
 local a=''
 if [[ $daemon_port -le 0&&$ui_port -le 0&&$ui_port_secure -le 0 ]];then
@@ -429,8 +415,7 @@ DisplayErrCommitAllLogs "- process details for port '$ui_port': '${a}': PID '$([
 a=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
 DisplayErrCommitAllLogs "- process details for secure port '$ui_port_secure': PID '${a}': '$([[ -n ${a:-} ]]&&/bin/tr '\000' ' '</proc/"${a/p/}"/cmdline)'"
 SetError;return 1
-fi
-}
+fi;}
 ShowHelp(){
 Display "$(TextBrightWhite "$(/usr/bin/basename "$0")") v$r_service_script_version • a service control script for the $(FormatAsPackageName $r_qpkg_name) QPKG"
 Display
@@ -455,8 +440,7 @@ DisplayAsHelp 'v, V, version' 'display the package version numbers'
 Display
 Display '[OPTION] may be one of the following:'
 DisplayAsHelp 'd, D, debug, verbose' "execute the specified [ACTION] in debug mode"
-Display
-}
+Display;}
 InstallPythonPackages(){
 IsVirtualPythonEnv||return 0
 local a=''
@@ -540,8 +524,7 @@ DisplayRunAndLog 'generate language translations' "cd $qpkg_repo_path;$venv_pyth
 fi
 SaveAppVersion
 fi
-return 0
-}
+return 0;}
 StripComments(){
 [[ -n $1 ]]||return
 local a=$1
@@ -549,13 +532,11 @@ a=$(/bin/sed -e '/^#[[:space:]].*/d;/#$/d;s/[[:space:]]#[[:space:]].*//'<<<"$a")
 a=$(/bin/sed -e 's/^[[:space:]]*//'<<<"$a")
 a=$(/bin/sed 's/[[:space:]]*$//'<<<"$a")
 a=$(/bin/sed "/^$/d"<<<"$a")
-echo "$a"
-}
+echo "$a";}
 BackupConfig(){
 if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=$qpkg_backup_pathfile --directory=$r_qpkg_path/config ." log:failure-only;then
 SetError;return 1
-fi
-}
+fi;}
 RestoreConfig(){
 if [[ ! -f $qpkg_backup_pathfile ]];then
 DisplayErrCommitAllLogs "unable to restore configuration: 'no backup file was found'"
@@ -563,13 +544,11 @@ SetError;return 1
 fi
 if ! DisplayRunAndLog 'restore configuration backup' "/bin/tar --extract --gzip --file=$qpkg_backup_pathfile --directory=$r_qpkg_path/config" log:failure-only;then
 SetError;return 1
-fi
-}
+fi;}
 ResetConfig(){
 if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $r_qpkg_path;rm -rf $r_qpkg_path/config/*;mkdir -p $(/usr/bin/dirname "$qpkg_ini_default_pathfile");mv $r_qpkg_path/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only;then
 SetError;return 1
-fi
-}
+fi;}
 MakePaths(){
 local a=''
 if [[ -d $r_qpkg_path ]];then
@@ -577,24 +556,20 @@ for a in "$r_qpkg_temp_path" "$qpkg_repo_path" "$pip_cache_path" "$venv_path";do
 [[ $a != undefined&&! -d $a ]]&&mkdir -p "$a"
 done
 fi
-[[ $r_backup_path != undefined&&! -d $r_backup_path ]]&&mkdir -p "$r_backup_path"
-}
+[[ $r_backup_path != undefined&&! -d $r_backup_path ]]&&mkdir -p "$r_backup_path";}
 LoadPorts(){
 case $1 in
 app)
 DisplayWaitCommitToLog '>load ports from configuration file:'
 [[ $get_ui_port_cmd != undefined ]]&&ui_port=$(eval "$get_ui_port_cmd")
 [[ $get_ui_port_secure_cmd != undefined ]]&&ui_port_secure=$(eval "$get_ui_port_secure_cmd")
-DisplayCommitToLog OK
-;;
+DisplayCommitToLog OK;;
 qts)
 DisplayWaitCommitToLog '>load UI ports from QPKG icon:'
 ui_port=$(/sbin/getcfg $r_qpkg_name Web_Port -d 0 -f /etc/config/qpkg.conf)
 ui_port_secure=$(/sbin/getcfg $r_qpkg_name Web_SSL_Port -d 0 -f /etc/config/qpkg.conf)
-DisplayCommitToLog OK
-;;
-*)
-DisplayErrCommitAllLogs "unable to load ports: action '$1' is unrecognised"
+DisplayCommitToLog OK;;
+*)DisplayErrCommitAllLogs "unable to load ports: action '$1' is unrecognised"
 SetError;return 1
 esac
 [[ $get_daemon_port_cmd != undefined ]]&&daemon_port=$(eval "$get_daemon_port_cmd")
@@ -606,8 +581,7 @@ ui_port_secure=${ui_port_secure//[!0-9]/}
 daemon_port=${daemon_port//[!0-9]/}
 [[ -z $daemon_port||$daemon_port -lt 0||$daemon_port -gt 65535 ]]&&daemon_port=0
 [[ -z $ui_listening_address ]]&&ui_listening_address=undefined
-return 0
-}
+return 0;}
 GetAppVersion(){
 if IsSupportGetAppVersion&&[[ -e $app_version_pathfile ]];then
 app_version=$(eval "$get_app_version_cmd")
@@ -615,8 +589,7 @@ return 0
 else
 app_version=unknown
 return 1
-fi
-}
+fi;}
 ShowQPKGStates(){
 DisplayWaitCommitToLog '- QPKG enabled:'
 if IsQPKGEnabled;then
@@ -634,14 +607,12 @@ fi
 fi
 if IsGitApp;then
 DisplayCommitToLog "- active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
-fi
-}
+fi;}
 DisableOpkgDaemonStart(){
 if [[ $orig_daemon_service_script != undefined&&-x $orig_daemon_service_script ]];then
 $orig_daemon_service_script stop
 chmod -x "$orig_daemon_service_script"
-fi
-}
+fi;}
 CloneGitRepo(){
 IsGitApp||return 0
 local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
@@ -668,8 +639,7 @@ fi
 fi
 IsAutoUpdate&&[[ $new_branch = true||$branch_switch = true ]]&&DisplayCommitToLog "- active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
 [[ $branch_switch = true&&$r_qpkg_name = nzbToMedia ]]&&RestoreConfig
-return 0
-}
+return 0;}
 CleanLocalRepo(){
 if [[ -z $r_qpkg_path||-z $r_qpkg_name ]]||IsNotSourcedOnline;then
 SetError;return 1
@@ -680,8 +650,7 @@ IsUsePipCache&&[[ -d $pip_cache_path ]]&&DisplayRunAndLog 'clean PyPI cache' "rm
 [[ -e $r_appl_version_store_pathfile ]]&&DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
 [[ -e $r_service_screen_log_pathfile ]]&&DisplayRunAndLog 'remove previous screen log' "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
 IsUseTemp&&[[ -d $r_qpkg_temp_path ]]&&DisplayRunAndLog 'clean temp path' "rm -rf \"$r_qpkg_temp_path\"" log:failure-only
-MakePaths
-}
+MakePaths;}
 WatchForGit(){
 if IsNotQPKGInstalled Entware;then
 DisplayErrCommitAllLogs "'git' unavailable: 'Entware is not installed'"
@@ -695,8 +664,7 @@ if WatchForFileToAppear /opt/bin/git 300;then
 export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||"<<<"$PATH")
 return 0
 fi
-SetError;return 1
-}
+SetError;return 1;}
 RefreshPidFile(){
 local -i a=0
 if [[ -e $daemon_pid_pathfile&&! -d /proc/"$(<$daemon_pid_pathfile)" ]];then
@@ -707,8 +675,7 @@ a=$(FindPid "$daemon_check_pathfile")
 else
 a=$(FindPid "$daemon_exec_pathfile" "$daemon_script_pathfile")
 fi
-[[ -n $a&&$a -gt 0 ]]&&echo "$a">"$daemon_pid_pathfile"
-}
+[[ -n $a&&$a -gt 0 ]]&&echo "$a">"$daemon_pid_pathfile";}
 FindPid(){
 [[ -n ${1:-} ]]||return
 local -i a=0
@@ -725,8 +692,7 @@ fi
 printf '%s' "$a"
 return
 done
-return 1
-}
+return 1;}
 WaitForStartPid(){
 local -i a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
 local -i i=0
@@ -737,34 +703,32 @@ fi
 fi
 if [[ $recheck_daemon_pid_after_launch = true ]];then
 DisplayWaitCommitToLog ">wait $a second$(Pluralise "$a") to recheck PID:"
-for ((i=1;i<=a;i++));do
+for((i=1;i<=a;i++));do
 /bin/sleep 1
 DisplayWait "$i,"
 done
 DisplayCommitToLog 'done'
 fi
-RefreshPidFile||return
-}
+RefreshPidFile||return;}
 WaitForKillPid(){
 local -i a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
 local -i i=0
 if [[ $recheck_daemon_pid_after_kill = true ]];then
 DisplayWaitCommitToLog ">wait $a second$(Pluralise "$a") to recheck PID:"
-for ((i=1;i<=a;i++));do
+for((i=1;i<=a;i++));do
 /bin/sleep 1
 DisplayWait "$i,"
 done
 DisplayCommitToLog 'done'
 fi
-! RefreshPidFile||return
-}
+! RefreshPidFile||return;}
 WatchForDaemonPid(){
 local -i a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
 local -i i=0
 if [[ ! -e $daemon_pid_pathfile ]];then
 DisplayWaitCommitToLog ">watch for daemon process name to appear (no-more than $a second$(Pluralise "$a")):"
 (
-for ((i=1;i<=a;i++));do
+for((i=1;i<=a;i++));do
 /bin/sleep 1
 DisplayWait "$i,"
 RefreshPidFile
@@ -782,8 +746,7 @@ DisplayErrCommitAllLogs "process name not found! (exceeded timeout: $a second$(P
 return 1
 fi
 fi
-return 0
-}
+return 0;}
 WatchForFileToAppear(){
 [[ -n $1 ]]||return
 local -i a=0
@@ -796,7 +759,7 @@ fi
 if [[ ! -e $1 ]];then
 DisplayWaitCommitToLog ">watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a")):"
 (
-for ((i=1;i<=a;i++));do
+for((i=1;i<=a;i++));do
 /bin/sleep 1
 DisplayWait "$i,"
 if [[ -e $1 ]];then
@@ -814,8 +777,7 @@ return 1
 fi
 fi
 DisplayCommitToLog "- file exists: '$1'"
-return 0
-}
+return 0;}
 ViewLog(){
 if [[ -e $r_service_log_pathfile ]];then
 if [[ -e /opt/bin/less ]];then
@@ -827,18 +789,15 @@ else
 Display "service log not found: $r_service_log_pathfile"
 SetError;return 1
 fi
-return 0
-}
+return 0;}
 EnsureConfigFileExists(){
 IsNotSupportReset&&return
 if IsNotConfigFound&&IsDefaultConfigFound;then
 DisplayCommitToLog '>no configuration file found: using default'
 cp "${qpkg_ini_default_pathfile:?undefined}" "${qpkg_ini_pathfile:?undefined}"
-fi
-}
+fi;}
 SaveAppVersion(){
-[[ $r_appl_version_store_pathfile != undefined ]]&&echo "$app_version">"$r_appl_version_store_pathfile"
-}
+[[ $r_appl_version_store_pathfile != undefined ]]&&echo "$app_version">"$r_appl_version_store_pathfile";}
 DisplayRunAndLog(){
 local -r r_log_pathfile=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 local -i z=0
@@ -865,8 +824,7 @@ else
 AddFileToDebug "$r_log_pathfile"
 fi
 [[ -e $r_log_pathfile ]]&&rm -f "$r_log_pathfile"
-return $z
-}
+return $z;}
 Executer(){
 local -r r_log_pathfile=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 local run_in_screen=${3:-false}
@@ -909,23 +867,17 @@ Display "$exec_msg, but with errors"
 fi
 fi
 [[ -e $r_log_pathfile ]]&&rm -f "$r_log_pathfile"
-return $z
-}
+return $z;}
 ShowEnabled(){
-DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG is enabled."
-}
+DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG is enabled.";}
 ShowDisabled(){
-DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG is disabled."
-}
+DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG is disabled.";}
 ShowDisabledPrompt(){
-DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG is disabled. Please enable it first with: $0 enable"
-}
+DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG is disabled. Please enable it first with: $0 enable";}
 ShowEnableFailed(){
-DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG enable failed."
-}
+DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG enable failed.";}
 ShowDisableFailed(){
-DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG disable failed."
-}
+DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG disable failed.";}
 AddFileToDebug(){
 [[ -e ${1:?no filename supplied} ]]||return
 local a=''
@@ -939,51 +891,39 @@ while read -r a;do
 DebugAsLog "$a"
 done<"$1"
 DebugExtLogMinorSeparator
-debug=$debug_was_set
-}
+debug=$debug_was_set;}
 DebugExtLogMinorSeparator(){
-DebugAsLog "$(DebugMinorSeparator)"
-}
+DebugAsLog "$(DebugMinorSeparator)";}
 DebugBulletSeparatorWithText(){
 local a=''
 [[ -n ${1:-} ]]&&a=" ${1:-} "
 local b=$(((r_debug_log_datawidth-${#a})/2))
 local c=$((r_debug_log_datawidth-${#a}-b))
-eval printf '%0.s•' "{1..$b}";printf '%s' "$a";eval printf '%0.s•' "{1..$c}";echo
-}
+eval printf '%0.s•' "{1..$b}";printf '%s' "$a";eval printf '%0.s•' "{1..$c}";echo;}
 DebugMinorSeparator(){
-eval printf '%0.s-' "{1..$r_debug_log_datawidth}"
-}
+eval printf '%0.s-' "{1..$r_debug_log_datawidth}";}
 DebugAsLog(){
 [[ -n ${1:-} ]]||return
-DebugThis "(LL) $1"
-}
+DebugThis "(LL) $1";}
 DebugThis(){
 [[ $debug = true ]]&&Display "${1:-}"
-WriteAsDebug "${1:-}"
-}
+WriteAsDebug "${1:-}";}
 WriteAsDebug(){
-WriteToLog dbug "${1:-}"
-}
+WriteToLog dbug "${1:-}";}
 WriteToLog(){
-printf "%-4s: %s\n" "$(StripANSICodes "${1:-}")" "$(StripANSICodes "${2:-}")">>"$r_service_log_pathfile"
-}
+printf "%-4s: %s\n" "$(StripANSICodes "${1:-}")" "$(StripANSICodes "${2:-}")">>"$r_service_log_pathfile";}
 StripANSICodes(){
 if [[ -e /opt/bin/sed&&-L /opt/etc/passwd ]];then
 /opt/bin/sed -r 's/\x1b\[[0-9;]*m//g'<<<"${1:-}"
 else
 echo "${1:-}"
-fi
-}
+fi;}
 Capitalise(){
-echo "$(Uppercase ${1:0:1})${1:1}"
-}
+echo "$(Uppercase ${1:0:1})${1:1}";}
 Uppercase(){
-/bin/tr 'a-z' 'A-Z'<<<"$1"
-}
+/bin/tr 'a-z' 'A-Z'<<<"$1";}
 Lowercase(){
-/bin/tr 'A-Z' 'a-z'<<<"$1"
-}
+/bin/tr 'A-Z' 'a-z'<<<"$1";}
 ReWriteUIPorts(){
 [[ $get_daemon_port_cmd != undefined ]]&&return
 DisplayWaitCommitToLog '>update QPKG icon with UI ports:'
@@ -993,8 +933,7 @@ if IsSSLEnabled;then
 else
 /sbin/setcfg $r_qpkg_name Web_SSL_Port '-2' -f /etc/config/qpkg.conf
 fi
-DisplayCommitToLog OK
-}
+DisplayCommitToLog OK;}
 CheckPorts(){
 local a=''
 DisplayCommitToLog "- daemon listening address: '$ui_listening_address'"
@@ -1026,16 +965,13 @@ SetError;return 1
 else
 ReWriteUIPorts
 return 0
-fi
-}
+fi;}
 GetPythonVer(){
 local a=''
 a=$(GetThisBinPath ${1:-python} &>/dev/null&&${1:-python} -V 2>&1 | /bin/sed 's|^Python||;s|\.||g')
-[[ -n $a ]]&&echo "${a:0:3}"
-}
+[[ -n $a ]]&&echo "${a:0:3}";}
 GetThisBinPath(){
-[[ -n ${1:?null} ]]&&command -v "$1" 2>&1
-}
+[[ -n ${1:?null} ]]&&command -v "$1" 2>&1;}
 RenameSharedObjectFile(){
 [[ -n ${1:-} ]]||return
 if [[ -e $(GetModulePath)/$(GetOriginalModuleSOFilename "_$1") ]];then
@@ -1050,20 +986,16 @@ if [[ -e $(GetModulePath)/$(GetOriginalModuleSOFilename "$1") ]];then
 mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "$1")"
 DisplayCommitToLog "= renamed module: $1"
 fi
-return 0
-}
+return 0;}
 GetOriginalModuleSOFilename(){
 [[ -z $pyver ]]&&pyver=$(GetPythonVer)
-[[ -n ${1:-} ]]&&echo "$1.cpython-$pyver-$(/bin/uname -m)-linux-gnu.so"
-}
+[[ -n ${1:-} ]]&&echo "$1.cpython-$pyver-$(/bin/uname -m)-linux-gnu.so";}
 GetFixedModuleSOFilename(){
 [[ -z $pyver ]]&&pyver=$(GetPythonVer)
-[[ -n ${1:-} ]]&&echo "$1.cpython-$pyver.so"
-}
+[[ -n ${1:-} ]]&&echo "$1.cpython-$pyver.so";}
 GetModulePath(){
 [[ -z $pyver ]]&&pyver=$(GetPythonVer)
-echo "$venv_path/lib/python${pyver:0:1}.${pyver:1:2}/site-packages"
-}
+echo "$venv_path/lib/python${pyver:0:1}.${pyver:1:2}/site-packages";}
 parse_yaml(){
 local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
 /bin/sed -ne "s|^\($s\):|\1|" \
@@ -1075,136 +1007,95 @@ vname[indent] = $2;
 for (i in vname) {if (i>indent) {delete vname[i]}}
 if (length($3)>0) {
 vn="";for (i=0;i<indent;i++) {vn=(vn)(vname[i])("_")}
-printf("%s%s%s=\"%s\"\n", "'${2:-}'",vn, $2, $3);
-}
-}'
-}
+printf("%s%s%s=\"%s\"\n", "'${2:-}'",vn, $2, $3);;}
+}';}
 IsQNAP(){
 if [[ ! -e /etc/init.d/functions ]];then
 Display 'QTS functions missing (is this a QNAP NAS?)'
 SetError;return 1
 fi
-return 0
-}
+return 0;}
 IsQPKGInstalled(){
-/bin/grep -q "^\[${1:-$r_qpkg_name}\]" /etc/config/qpkg.conf
-}
+/bin/grep -q "^\[${1:-$r_qpkg_name}\]" /etc/config/qpkg.conf;}
 IsNotQPKGInstalled(){
-! IsQPKGInstalled "${1:-$r_qpkg_name}"
-}
+! IsQPKGInstalled "${1:-$r_qpkg_name}";}
 IsQPKGActive(){
-IsDaemon&&IsDaemonActive
-}
+IsDaemon&&IsDaemonActive;}
 IsNotQPKGActive(){
-! IsNotQPKGActive
-}
+! IsNotQPKGActive;}
 IsQPKGEnabled(){
-[[ $(Lowercase "$(/sbin/getcfg ${1:-$r_qpkg_name} Enable -d false -f /etc/config/qpkg.conf)") = true ]]
-}
+[[ $(Lowercase "$(/sbin/getcfg ${1:-$r_qpkg_name} Enable -d false -f /etc/config/qpkg.conf)") = true ]];}
 IsNotQPKGEnabled(){
-! IsQPKGEnabled "${1:-$r_qpkg_name}"
-}
+! IsQPKGEnabled "${1:-$r_qpkg_name}";}
 IsSupportBackup(){
-[[ $qpkg_backup_pathfile != undefined ]]
-}
+[[ $qpkg_backup_pathfile != undefined ]];}
 IsNotSupportBackup(){
-! IsSupportBackup
-}
+! IsSupportBackup;}
 IsSupportReset(){
-[[ $qpkg_ini_pathfile != undefined ]]
-}
+[[ $qpkg_ini_pathfile != undefined ]];}
 IsNotSupportReset(){
-! IsSupportReset
-}
+! IsSupportReset;}
 IsSupportActions(){
-[[ -e $r_service_action_pathfile||-e $r_service_result_pathfile ]]
-}
+[[ -e $r_service_action_pathfile||-e $r_service_result_pathfile ]];}
 IsNotSupportActions(){
-! IsSupportActions
-}
+! IsSupportActions;}
 IsSupportGetAppVersion(){
-[[ $get_app_version_cmd != undefined&&$app_version_pathfile != undefined ]]
-}
+[[ $get_app_version_cmd != undefined&&$app_version_pathfile != undefined ]];}
 IsNotSupportGetAppVersion(){
-! IsSupportGetAppVersion
-}
+! IsSupportGetAppVersion;}
 IsVirtualPythonEnv(){
-[[ $venv_path != undefined ]]
-}
+[[ $venv_path != undefined ]];}
 IsNotVirtualPythonEnv(){
-! IsVirtualPythonEnv
-}
+! IsVirtualPythonEnv;}
 IsGitApp(){
-[[ $source_git_url != undefined&&$source_git_branch != undefined&&$qpkg_repo_path != undefined ]]
-}
+[[ $source_git_url != undefined&&$source_git_branch != undefined&&$qpkg_repo_path != undefined ]];}
 IsNotGitApp(){
-! IsGitApp
-}
+! IsGitApp;}
 IsUsePipCache(){
-[[ $pip_cache_path != undefined ]]
-}
+[[ $pip_cache_path != undefined ]];}
 IsNotUsePipCache(){
-! IsUsePipCache
-}
+! IsUsePipCache;}
 IsOnlineReleasePackage(){
-[[ $remote_url != undefined ]]
-}
+[[ $remote_url != undefined ]];}
 IsNotOnlineReleasePackage(){
-! IsOnlineReleasePackage
-}
+! IsOnlineReleasePackage;}
 IsReleaseAnArchive(){
-[[ $package_is_exec != undefined&&$package_is_exec = false ]]
-}
+[[ $package_is_exec != undefined&&$package_is_exec = false ]];}
 IsNotReleaseAnArchive(){
-! IsReleaseAnArchive
-}
+! IsReleaseAnArchive;}
 IsSupportAutoUpdate(){
-[[ $can_restart_to_update = true ]]
-}
+[[ $can_restart_to_update = true ]];}
 IsNotSupportAutoUpdate(){
-! IsSupportAutoUpdate
-}
+! IsSupportAutoUpdate;}
 IsSourcedOnline(){
-IsGitApp||IsUsePipCache||IsOnlineReleasePackage
-}
+IsGitApp||IsUsePipCache||IsOnlineReleasePackage;}
 IsNotSourcedOnline(){
-! IsSourcedOnline
-}
+! IsSourcedOnline;}
 IsUseTemp(){
-[[ $r_qpkg_temp_path != undefined ]]
-}
+[[ $r_qpkg_temp_path != undefined ]];}
 IsNotUseTemp(){
-! IsUseTemp
-}
+! IsUseTemp;}
 IsSSLEnabled(){
-eval "$get_ui_port_secure_enabled_test_cmd"
-}
+eval "$get_ui_port_secure_enabled_test_cmd";}
 IsNotSSLEnabled(){
-! IsSSLEnabled
-}
+! IsSSLEnabled;}
 IsDaemon(){
-[[ $daemon_exec_pathfile != undefined ]]
-}
+[[ $daemon_exec_pathfile != undefined ]];}
 IsNotDaemon(){
-! IsDaemon
-}
+! IsDaemon;}
 IsDaemonCheck(){
-[[ $daemon_check_pathfile != undefined ]]
-}
+[[ $daemon_check_pathfile != undefined ]];}
 IsNotDaemonCheck(){
-! IsDaemonCheck
-}
+! IsDaemonCheck;}
 IsDaemonActive(){
 if IsDaemonProcessActive;then
 DisplayCommitToLog "- daemon PID: '$(<"$daemon_pid_pathfile")'"
 return 0
 fi
 DisplayCommitToLog '- daemon PID: none'
-return 1
-}
+return 1;}
 IsNotDaemonActive(){
-! IsDaemonActive
-}
+! IsDaemonActive;}
 IsDaemonProcessActive(){
 if [[ -e $daemon_pid_pathfile&&-d /proc/"$(<$daemon_pid_pathfile)" ]];then
 if IsDaemonCheck;then
@@ -1214,8 +1105,7 @@ else
 fi
 else
 false
-fi
-}
+fi;}
 IsSysFilePresent(){
 if [[ -z ${1:?pathfilename null} ]];then
 SetError;return 1
@@ -1224,20 +1114,16 @@ if [[ ! -e $1 ]];then
 Display "A required NAS system file is missing: '$1'"
 SetError;return 1
 fi
-return 0
-}
+return 0;}
 IsNotSysFilePresent(){
-! IsSysFilePresent "${1:?pathfilename null}"
-}
+! IsSysFilePresent "${1:?pathfilename null}";}
 IsPortAvailable(){
 local port=${1//[!0-9]/}
 [[ -n $port&&$port -gt 0 ]]||return 0
 /usr/sbin/lsof -i :"$port" -sTCP:LISTEN>/dev/null 2>&1&&return 1
-return 0
-}
+return 0;}
 IsNotPortAvailable(){
-! IsPortAvailable "${1:-0}"
-}
+! IsPortAvailable "${1:-0}";}
 IsPortResponds(){
 local -i a=${1//[!0-9]/}
 local -i b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
@@ -1260,16 +1146,12 @@ case $? in
 0|22|52)
 Display OK
 CommitToLog "responded in $c second$(Pluralise "$c")"
-return 0
-;;
+return 0;;
 28)
-:
-;;
+:;;
 7)
-/bin/sleep 1
-;;
-*)
-:
+/bin/sleep 1;;
+*):
 esac
 ((c++))
 DisplayWait "$c,"
@@ -1279,8 +1161,7 @@ CommitErrToSysLog "port '$a' failed to respond after $c second$(Pluralise "$c")!
 break
 fi
 done
-return 1
-}
+return 1;}
 IsPortSecureResponds(){
 local -i a=${1//[!0-9]/}
 local -i b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
@@ -1303,20 +1184,15 @@ case $? in
 0|22|52)
 Display OK
 CommitToLog "port responded after $c second$(Pluralise "$c")"
-return 0
-;;
+return 0;;
 35)
 DisplayCommitToLog 'TLS inactive'
-break
-;;
+break;;
 28)
-:
-;;
+:;;
 7)
-/bin/sleep 1
-;;
-*)
-:
+/bin/sleep 1;;
+*):
 esac
 ((c++))
 DisplayWait "$c,"
@@ -1326,35 +1202,27 @@ CommitErrToSysLog "secure port '$a' failed to respond after $c second$(Pluralise
 break
 fi
 done
-return 1
-}
+return 1;}
 IsConfigFound(){
-[[ $qpkg_ini_pathfile != undefined&&-e $qpkg_ini_pathfile ]]
-}
+[[ $qpkg_ini_pathfile != undefined&&-e $qpkg_ini_pathfile ]];}
 IsNotConfigFound(){
-! IsConfigFound
-}
+! IsConfigFound;}
 IsDefaultConfigFound(){
-[[ $qpkg_ini_default_pathfile != undefined&&-e $qpkg_ini_default_pathfile ]]
-}
+[[ $qpkg_ini_default_pathfile != undefined&&-e $qpkg_ini_default_pathfile ]];}
 IsNotDefaultConfigFound(){
-! IsDefaultConfigFound
-}
+! IsDefaultConfigFound;}
 IsVirtualPythonEnvExist(){
-[[ -e $venv_path/bin/activate ]]
-}
+[[ -e $venv_path/bin/activate ]];}
 IsNotVirtualPythonEnvExist(){
-! IsVirtualPythonEnvExist
-}
+! IsVirtualPythonEnvExist;}
 OSIsSupportSecureDownload(){
-[[ ${r_nas_firmware_version//.} -ge 500 ]]
-}
+[[ ${r_nas_firmware_version//.} -ge 500 ]];}
 IsSiteUp(){
 [[ -n $1&&$1 != undefined ]]||return
 local a=$(cut -d'/' -f3<<<"$1" | cut -d':' -f1)
 [[ -n $a&&$a != undefined ]]||return
 local -i n=0
-for ((n=0;n<20;n++));do
+for((n=0;n<20;n++));do
 /bin/ping -c 1 -w 1 "$a"&&return 0
 /bin/sleep 5
 done
@@ -1388,8 +1256,7 @@ else
 a='download latest release package'
 fi
 b+=" --show-error --max-time 300 --location --output $c"
-DisplayRunAndLog "$a" "/sbin/curl${b} '$1'" log:failure-only
-}
+DisplayRunAndLog "$a" "/sbin/curl${b} '$1'" log:failure-only;}
 ExtractReleasePackage(){
 [[ -n ${1:-}&&${1:-} != undefined ]]||return
 local release_package_name_ref_pathfilename=''
@@ -1411,8 +1278,7 @@ if [[ ! -e $release_package_name_ref_pathfilename ]];then
 DisplayRunAndLog 'create release package name reference' "/bin/touch $release_package_name_ref_pathfilename" log:failure-only
 fi
 fi
-fi
-}
+fi;}
 MakeExecReleasePackage(){
 [[ -n ${1:-}&&${1:-} != undefined ]]||return
 local release_package_name_ref_pathfilename=''
@@ -1426,194 +1292,140 @@ if [[ ! -e $release_package_name_ref_pathfilename ]];then
 DisplayRunAndLog 'create release package name reference' "/bin/touch $release_package_name_ref_pathfilename" log:failure-only
 fi
 fi
-fi
-}
+fi;}
 ResetServiceAction(){
 SetServiceAction reset-action
-SetServiceResultAsOK
-}
+SetServiceResultAsOK;}
 SetServiceAction(){
 service_action=${1:-none}
 CommitServiceAction
 SetServiceResultAsInProgress
-DisplayAndCommitActionToLog
-}
+DisplayAndCommitActionToLog;}
 SetServiceResultAsOK(){
 service_result=ok
 CommitServiceResult
-DisplayAndCommitResultToLog
-}
+DisplayAndCommitResultToLog;}
 SetServiceResultAsFailed(){
 service_result=failed
 CommitServiceResult
-DisplayAndCommitResultToLog
-}
+DisplayAndCommitResultToLog;}
 SetServiceResultAsAborted(){
 service_result=aborted
 CommitServiceResult
-DisplayAndCommitResultToLog
-}
+DisplayAndCommitResultToLog;}
 SetServiceResultAsInProgress(){
 service_result=in-progress
-CommitServiceResult
-}
+CommitServiceResult;}
 SetServiceResultAsUnsupported(){
 service_result=unsupported
-CommitServiceResult
-}
+CommitServiceResult;}
 CommitServiceAction(){
 if IsNotStatus&&IsNotLog&&IsNotNone;then
 [[ $r_service_action_pathfile != undefined ]]&&echo "$service_action">"$r_service_action_pathfile"
-fi
-}
+fi;}
 CommitServiceResult(){
 if IsNotStatus&&IsNotLog&&IsNotNone;then
 [[ $r_service_result_pathfile != undefined ]]&&echo "$service_result">"$r_service_result_pathfile"
-fi
-}
+fi;}
 SetDaemonWasActive(){
-_daemon_was_active=true
-}
+_daemon_was_active=true;}
 UnsetDaemonWasActive(){
-_daemon_was_active=false
-}
+_daemon_was_active=false;}
 DaemonWasActive(){
-[[ ${_daemon_was_active:=false} = true ]]
-}
+[[ ${_daemon_was_active:=false} = true ]];}
 DaemonWasNotActive(){
-[[ ${_daemon_was_active:=false} = false ]]
-}
+[[ ${_daemon_was_active:=false} = false ]];}
 SetStatusGet(){
-_get_status_flag=true
-}
+_get_status_flag=true;}
 UnsetStatusGet(){
-_get_status_flag=false
-}
+_get_status_flag=false;}
 IsStatus(){
-[[ ${_get_status_flag:=false} = true ]]
-}
+[[ ${_get_status_flag:=false} = true ]];}
 IsNotStatus(){
-! IsStatus
-}
+! IsStatus;}
 SetError(){
 IsError&&return
-_error_flag=true
-}
+_error_flag=true;}
 UnsetError(){
 IsNotError&&return
-_error_flag=false
-}
+_error_flag=false;}
 IsError(){
-[[ ${_error_flag:=false} = true ]]
-}
+[[ ${_error_flag:=false} = true ]];}
 IsNotError(){
-! IsError
-}
+! IsError;}
 IsReinstall(){
-[[ ${REINSTALL_QPKG:=false} = true ]]
-}
+[[ ${REINSTALL_QPKG:=false} = true ]];}
 IsUpgrade(){
-[[ ${UPGRADE_QPKG:=false} = true ]]
-}
+[[ ${UPGRADE_QPKG:=false} = true ]];}
 IsStart(){
-[[ $service_action = start ]]
-}
+[[ $service_action = start ]];}
 IsNotStart(){
-! IsStart
-}
+! IsStart;}
 IsStop(){
-[[ $service_action = stop ]]
-}
+[[ $service_action = stop ]];}
 IsNotStop(){
-! IsStop
-}
+! IsStop;}
 IsRestart(){
-[[ $service_action = restart ]]
-}
+[[ $service_action = restart ]];}
 IsNotRestart(){
-! IsRestart
-}
+! IsRestart;}
 IsLog(){
-[[ $service_action = log ]]
-}
+[[ $service_action = log ]];}
 IsNotLog(){
-! IsLog
-}
+! IsLog;}
 IsNone(){
-[[ $service_action = none ]]
-}
+[[ $service_action = none ]];}
 IsNotNone(){
-! IsNone
-}
+! IsNone;}
 IsClean(){
-[[ $service_action = clean ]]
-}
+[[ $service_action = clean ]];}
 IsNotClean(){
-! IsClean
-}
+! IsClean;}
 IsBackup(){
-[[ $service_action = backup ]]
-}
+[[ $service_action = backup ]];}
 IsNotBackup(){
-! IsBackup
-}
+! IsBackup;}
 IsRestore(){
-[[ $service_action = restore ]]
-}
+[[ $service_action = restore ]];}
 IsNotRestore(){
-! IsRestore
-}
+! IsRestore;}
 IsReset(){
-[[ $service_action = reset ]]
-}
+[[ $service_action = reset ]];}
 IsNotReset(){
-! IsReset
-}
+! IsReset;}
 IsUnsupported(){
-[[ $service_action = unsupported ]]
-}
+[[ $service_action = unsupported ]];}
 IsServiceResultInProgress(){
-[[ $service_result = in-progress ]]
-}
+[[ $service_result = in-progress ]];}
 IsPathEmpty(){
 local a=${1:-}
 [[ -n $a&&-d $a ]]||return
-rmdir "$a" &>/dev/null&&mkdir "$a"
-}
+rmdir "$a" &>/dev/null&&mkdir "$a";}
 IsNotPathEmpty(){
-! IsPathEmpty "${1:-}"
-}
+! IsPathEmpty "${1:-}";}
 ShowAsError(){
 Display "$(TextBrightRed derp): ${1:-}"
 }>&2
 DisplayCommitToLog(){
 Display "${1:-}"
-CommitToLog "${1:-}"
-}
+CommitToLog "${1:-}";}
 DisplayWaitCommitToLog(){
 DisplayWait "${1:-}"
-CommitToLogWait "${1:-}"
-}
+CommitToLogWait "${1:-}";}
 DisplayWarnCommitAllLogs(){
 DisplayCommitToLog "${1:-}"
-CommitWarnToSysLog "${1:-}"
-}
+CommitWarnToSysLog "${1:-}";}
 DisplayErrCommitAllLogs(){
 DisplayCommitToLog "${1:-}"
-CommitErrToSysLog "${1:-}"
-}
+CommitErrToSysLog "${1:-}";}
 FormatAsLogFilename(){
-echo "= log file: '${1:-}'"
-}
+echo "= log file: '${1:-}'";}
 FormatAsCommand(){
-Display "command: '${1:-}'"
-}
+Display "command: '${1:-}'";}
 FormatAsStdout(){
-Display "output: \"${1:-}\""
-}
+Display "output: \"${1:-}\"";}
 FormatAsResult(){
-Display "result: $(FormatAsExitcode "${1:-}")"
-}
+Display "result: $(FormatAsExitcode "${1:-}")";}
 FormatAsResultAndStdout(){
 if [[ ${1:-0} -eq 0 ]];then
 echo "= result_code: $(FormatAsExitcode "$1")"
@@ -1622,28 +1434,21 @@ echo "= result_code: $(FormatAsExitcode "$1")"
 fi
 DebugBulletSeparatorWithText 'stdout & stderr begins below'
 echo "${2:-}"
-DebugBulletSeparatorWithText 'stdout & stderr is complete'
-}
+DebugBulletSeparatorWithText 'stdout & stderr is complete';}
 FormatAsFuncMessages(){
 echo "= ${FUNCNAME[1]}()"
 FormatAsCommand "${1:?command null}"
-FormatAsStdout "${2:-}"
-}
+FormatAsStdout "${2:-}";}
 FormatAsExitcode(){
-echo "[${1:-}]"
-}
+echo "[${1:-}]";}
 FormatAsPackageName(){
-echo "'${1:-}'"
-}
+echo "'${1:-}'";}
 DisplayAsHelp(){
-printf '  %-22s  - %s\n' "${1:-}" "${2:-}."
-}
+printf '  %-22s  - %s\n' "${1:-}" "${2:-}.";}
 Display(){
-echo "${1:-}"
-}
+echo "${1:-}";}
 DisplayWait(){
-echo -n "${1:-} "
-}
+echo -n "${1:-} ";}
 DisplayAndCommitActionToLog(){
 [[ $service_action = unspecified ]]&&return
 starttime=$(ConvertNowToNanoseconds)
@@ -1655,8 +1460,7 @@ IsUnsupported&&a=CommitToLog
 CommitToLog '•'
 $a "$(TextInverse "$msg")"
 $a "- package: $r_qpkg_version, service: $r_service_script_version, library: $r_service_library_version"
-fi
-}
+fi;}
 DisplayAndCommitResultToLog(){
 [[ $service_action = unspecified ]]&&return
 local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
@@ -1666,43 +1470,33 @@ if IsNotStatus&&IsNotLog&&IsNotNone;then
 IsUnsupported&&a=CommitToLog
 case $service_result in
 ok)
-$a "$(TextBlackOnGreen "$msg")"
-;;
+$a "$(TextBlackOnGreen "$msg")";;
 failed)
-$a "$(TextBlackOnRed "$msg")"
-;;
-*)
-$a "$(TextBlackOnYellow "$msg")"
+$a "$(TextBlackOnRed "$msg")";;
+*)$a "$(TextBlackOnYellow "$msg")"
 esac
-fi
-}
+fi;}
 CommitInfoToSysLog(){
-CommitSysLog "${1:-}" 4
-}
+CommitSysLog "${1:-}" 4;}
 CommitWarnToSysLog(){
-CommitSysLog "${1:-} Please check the service log for more information." 2
-}
+CommitSysLog "${1:-} Please check the service log for more information." 2;}
 CommitErrToSysLog(){
-CommitSysLog "${1:-}" 1
-}
+CommitSysLog "${1:-}" 1;}
 CommitToLog(){
 if IsNotStatus&&IsNotLog&&IsNotNone;then
 [[ ${1:-} = '•'&&! -s "$r_service_log_pathfile" ]]||echo -e "${1:-}">>"$r_service_log_pathfile"
-fi
-}
+fi;}
 CommitToLogWait(){
 if IsNotStatus&&IsNotLog&&IsNotNone;then
 printf '%s' "${1:-} ">>"$r_service_log_pathfile"
-fi
-}
+fi;}
 CommitSysLog(){
 if IsNotStatus&&IsNotLog&&IsNotNone;then
 if [[ -z ${1:-}||-z ${2:-} ]];then
 SetError;return 1
 fi
 /sbin/write_log "[$r_qpkg_name] $1" "$2"
-fi
-}
+fi;}
 TextBrightWhite(){
 printf '\033[1;97m%s\033[0m' "${1:-}"
 } 2>/dev/null
@@ -1722,22 +1516,18 @@ TextInverse(){
 printf '\033[7m%s\033[0m' "${1:-}"
 } 2>/dev/null
 Pluralise(){
-[[ ${1:-0} -ne 1 ]]&&printf s
-}
+[[ ${1:-0} -ne 1 ]]&&printf s;}
 CalcMilliDifference(){
-echo "$(((${2:-1}-${1:-0})/1000000))"
-}
+echo "$(((${2:-1}-${1:-0})/1000000))";}
 ConvertAsSmartDate(){
 [[ -n ${1:-} ]]||return
 local a=$(/bin/sed 's/[^0-9]*//g'<<<"$1")
 local b=''
 case ${#a} in
 6)
-b=$(/bin/date -d "${a::2}-${a:2:2}-${a:4:2}" "$r_extended_datetime_format")
-;;
+b=$(/bin/date -d "${a::2}-${a:2:2}-${a:4:2}" "$r_extended_datetime_format");;
 8)
-b=$(/bin/date -d ${a::4}-${a:4:2}-${a:6:2} "$r_extended_datetime_format")
-;;
+b=$(/bin/date -d ${a::4}-${a:4:2}-${a:6:2} "$r_extended_datetime_format");;
 10)
 b=$(/bin/date -d @"$a" "$r_full_datetime_format")
 esac
@@ -1775,15 +1565,13 @@ break
 fi
 done
 printf '%s' "$foutput"
-return 0
-}
+return 0;}
 FormatAsDuration(){
 if [[ ${1:-0} -lt 10000 ]];then
 printf '%s' "$(FormatAsThous "${1:-0}")ms"
 else
 FormatSecsToHoursMinutesSecs "$(((${1:-0}+500)/1000))"
-fi
-}
+fi;}
 FormatSecsToHoursMinutesSecs(){
 ((h=${1:-0}/3600))
 ((m=(${1:-0}%3600)/60))
@@ -1791,24 +1579,18 @@ FormatSecsToHoursMinutesSecs(){
 printf '%01dh:%02dm:%02ds\n' "$h" "$m" "$s"
 } 2>/dev/null
 IsAutoUpdateMissing(){
-[[ $(/sbin/getcfg $r_qpkg_name Auto_Update -f /etc/config/qpkg.conf) = '' ]]
-}
+[[ $(/sbin/getcfg $r_qpkg_name Auto_Update -f /etc/config/qpkg.conf) = '' ]];}
 IsAutoUpdate(){
-IsSupportAutoUpdate&&[[ $(Lowercase "$(/sbin/getcfg $r_qpkg_name Auto_Update -f /etc/config/qpkg.conf)") = true ]]
-}
+IsSupportAutoUpdate&&[[ $(Lowercase "$(/sbin/getcfg $r_qpkg_name Auto_Update -f /etc/config/qpkg.conf)") = true ]];}
 IsNotAutoUpdate(){
-! IsAutoUpdate
-}
+! IsAutoUpdate;}
 EnableAutoUpdate(){
-StoreAutoUpdateSelection true
-}
+StoreAutoUpdateSelection true;}
 DisableAutoUpdate(){
-StoreAutoUpdateSelection false
-}
+StoreAutoUpdateSelection false;}
 StoreAutoUpdateSelection(){
 /sbin/setcfg $r_qpkg_name Auto_Update "$(Uppercase "$1")" -f /etc/config/qpkg.conf
-DisplayCommitToLog "- application auto-update: $1"
-}
+DisplayCommitToLog "- application auto-update: $1";}
 GetPathGitBranch(){
 [[ -n $1 ]]||return
 /opt/bin/git -C "$1" branch | /bin/grep '^\*' | /bin/sed 's|^\*||'
@@ -1823,15 +1605,13 @@ ShowAsError "this utility must be run as the 'admin' user. Please login via SSH 
 fi
 return 1
 fi
-return 0
-}
+return 0;}
 ShowUnsupportedAction(){
 ShowAsError "specified action '$1' is unsupported by this service-script."
 SetError
 CommitToLog "- specified action '$1' is unsupported."
 Display
-ShowHelp
-}
+ShowHelp;}
 CalcAdaptiveSeconds(){
 local a=$(GetSysLoad1MinAverage);a=${a/./}
 local b=$(($(GetCPUCores)*100))
@@ -1839,30 +1619,24 @@ local c=$((10#$a/10#$b))
 local d=$((10#${1:-1}))
 [[ $((10#$c)) -gt 1 ]]&&d=$((c*d))
 [[ $((10#$d)) -gt 1800 ]]&&d=1800
-printf '%s' "$d"
-}
+printf '%s' "$d";}
 GetSysLoad1MinAverage(){
-/usr/bin/uptime | /bin/sed 's|.*load average:||' | /bin/awk -F', ' '{print $1}'
-}
+/usr/bin/uptime | /bin/sed 's|.*load average:||' | /bin/awk -F', ' '{print $1}';}
 GetCPUCores(){
 local a=$(/bin/grep -c '^processor' /proc/cpuinfo)
 [[ $a -eq 0 ]]&&a=$(/bin/grep -c '^Processor' /proc/cpuinfo)
-printf '%s' "$a"
-}
+printf '%s' "$a";}
 AddToQPKGPostInstallDeps(){
 [[ -n ${1:-}&&-n ${2:-} ]]||return
 RemoveFromQPKGPostInstallDeps "$1" "$2"
-SetQPKGPostInstallDeps "$1" "$(GetQPKGPostInstallDeps "$1"):$2"
-}
+SetQPKGPostInstallDeps "$1" "$(GetQPKGPostInstallDeps "$1"):$2";}
 GetQPKGPostInstallDeps(){
 [[ -n ${1:-} ]]||return
-CleanDependencyField "$(/sbin/getcfg "$1" Dependency -f /etc/config/qpkg.conf)"
-}
+CleanDependencyField "$(/sbin/getcfg "$1" Dependency -f /etc/config/qpkg.conf)";}
 RemoveFromQPKGPostInstallDeps(){
 [[ -n ${1:-}&&-n ${2:-} ]]||return
 local re=\\b${2}\\b
-SetQPKGPostInstallDeps "$1" "$(/bin/sed "s|${re}||g"<<<"$(GetQPKGPostInstallDeps "$1")")"
-}
+SetQPKGPostInstallDeps "$1" "$(/bin/sed "s|${re}||g"<<<"$(GetQPKGPostInstallDeps "$1")")";}
 SetQPKGPostInstallDeps(){
 [[ -n ${1:-} ]]||return
 local a=$(CleanDependencyField "${2:-}")
@@ -1870,39 +1644,33 @@ if [[ -n $a ]];then
 /sbin/setcfg "$1" Dependency "$a" -f /etc/config/qpkg.conf
 else
 /sbin/setcfg -e "$1" Dependency -f /etc/config/qpkg.conf
-fi
-}
+fi;}
 CleanDependencyField(){
 [[ -n ${1:-} ]]||return
 local a=$(/bin/tr -s ':'<<<"$1")
 [[ -n $a&&${a:0:1} = ':' ]]&&a=${a#?}
 [[ -n $a&&${a: -1:1} = ':' ]]&&a=${a%?}
-printf '%s' "$a"
-}
+printf '%s' "$a";}
 SetTraps(){
 trap CaughtSIGHUP SIGHUP
 trap CaughtSIGINT SIGINT
-trap CaughtEXIT EXIT
-}
+trap CaughtEXIT EXIT;}
 CaughtSIGHUP(){
 trap - SIGHUP
 DisplayCommitToLog '* caught SIGHUP: abort.'
 SetServiceResultAsAborted
-exit
-}
+exit;}
 CaughtSIGINT(){
 trap - SIGINT
 DisplayCommitToLog '* caught SIGINT: abort.'
 SetServiceResultAsAborted
-exit
-}
+exit;}
 CaughtEXIT(){
 trap - EXIT
 if IsServiceResultInProgress;then
 DisplayCommitToLog '* caught EXIT: abort.'
 SetServiceResultAsAborted
-fi
-}
+fi;}
 ProcessArgs(){
 if IsGitApp;then
 local test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
@@ -1924,8 +1692,7 @@ StartQPKG
 else
 ShowDisabledPrompt
 SetError
-fi
-;;
+fi;;
 ?(-)b|?(--)backup?(-config))
 IsSU||exit
 if IsSupportBackup;then
@@ -1937,8 +1704,7 @@ IsQPKGEnabled&&StartQPKG
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
-fi
-;;
+fi;;
 ?(--)clean|?(--)update|?(--)upgrade)
 IsSU||exit
 if IsSourcedOnline;then
@@ -1952,14 +1718,12 @@ IsQPKGEnabled&&StartQPKG
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
-fi
-;;
+fi;;
 ?(--)deactivate|?(--)stop)
 IsSU||exit
 SetServiceAction stop
 SetTraps
-StopQPKG
-;;
+StopQPKG;;
 ?(--)disable)
 IsSU||exit
 SetServiceAction disable
@@ -1971,8 +1735,7 @@ ShowDisabled
 else
 ShowDisableFailed
 SetError
-fi
-;;
+fi;;
 ?(--)disable-auto-update)
 IsSU||exit
 if IsSupportAutoUpdate;then
@@ -1982,8 +1745,7 @@ DisableAutoUpdate
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
-fi
-;;
+fi;;
 ?(--)enable)
 IsSU||exit
 SetServiceAction enable
@@ -1995,8 +1757,7 @@ ShowEnabled
 else
 ShowEnableFailed
 SetError
-fi
-;;
+fi;;
 ?(--)enable-auto-update)
 IsSU||exit
 if IsSupportAutoUpdate;then
@@ -2006,15 +1767,12 @@ EnableAutoUpdate
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
-fi
-;;
+fi;;
 ?(--)help)
-ShowHelp
-;;
+ShowHelp;;
 ?(-)+(l|L)|?(--)log)
 SetServiceAction log
-ViewLog
-;;
+ViewLog;;
 ?(-)r|?(--)reactivate|?(--)restart)
 IsSU||exit
 SetServiceAction restart
@@ -2024,11 +1782,9 @@ StopQPKG&&StartQPKG
 else
 ShowDisabledPrompt
 SetError
-fi
-;;
+fi;;
 remove)
-SetServiceAction uninstall
-;;
+SetServiceAction uninstall;;
 ?(--)reset-action)
 IsSU||exit
 if IsSupportActions;then
@@ -2037,8 +1793,7 @@ exit
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
-fi
-;;
+fi;;
 ?(--)reset-config)
 IsSU||exit
 if IsSupportReset;then
@@ -2050,8 +1805,7 @@ IsQPKGEnabled&&StartQPKG
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
-fi
-;;
+fi;;
 ?(--)restore?(-config))
 IsSU||exit
 if IsSupportBackup;then
@@ -2063,23 +1817,18 @@ IsQPKGEnabled&&StartQPKG
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
-fi
-;;
+fi;;
 ?(-)s|?(--)status)
 IsSU||exit
 SetStatusGet
-StatusQPKG
-;;
+StatusQPKG;;
 uninstall)
-:
-;;
+:;;
 ?(-)+(v|V)|?(--)version?(s))
 Display "QPKG: $(ConvertAsSmartDate ${r_qpkg_version:-undefined})"
 Display "service: $(ConvertAsSmartDate "${r_service_script_version:-undefined}")"
-Display "library: $(ConvertAsSmartDate "${r_service_library_version:-undefined}")"
-;;
-*)
-if [[ -z $user_arg ]];then
+Display "library: $(ConvertAsSmartDate "${r_service_library_version:-undefined}")";;
+*)if [[ -z $user_arg ]];then
 ShowHelp
 else
 SetServiceAction unsupported
@@ -2095,6 +1844,5 @@ else
 SetServiceResultAsOK
 fi
 fi
-exit 0
-}
+exit 0;}
 InitLibrary
