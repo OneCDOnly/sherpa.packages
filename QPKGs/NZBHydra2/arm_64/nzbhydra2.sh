@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version='250507'
+readonly r_service_script_version='250508'
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -44,10 +44,10 @@ interpreter=/opt/bin/python3
 nice_daemon_to=15
 remote_arch=arm64-linux
 remote_url='https://api.github.com/repos/theotherp/nzbhydra2/releases/latest'
-get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_host= | cut -d\" -f2'
-get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_port= | cut -d\" -f2'
-get_ui_port_secure_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_port= | cut -d\" -f2'
-get_ui_port_secure_enabled_test_cmd='[[ $(parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_ssl= | cut -d\" -f2) = true ]]'
+get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile'|/bin/grep main_host=|cut -d\" -f2'
+get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile'|/bin/grep main_port=|cut -d\" -f2'
+get_ui_port_secure_cmd='parse_yaml '$qpkg_ini_pathfile'|/bin/grep main_port=|cut -d\" -f2'
+get_ui_port_secure_enabled_test_cmd='[[ $(parse_yaml '$qpkg_ini_pathfile'|/bin/grep main_ssl=|cut -d\" -f2) = true ]]'
 daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $r_qpkg_config_path --pidfile $daemon_pid_pathfile";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0

@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=SABnzbd
-readonly r_service_script_version='250507'
+readonly r_service_script_version='250508'
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -43,7 +43,7 @@ interpreter=/opt/bin/python3
 source_git_branch=master
 source_git_branch_depth=shallow
 source_git_url=https://github.com/sabnzbd/sabnzbd.git
-get_app_version_cmd="/bin/grep '__version__ =' $app_version_pathfile | /bin/sed 's|^.*\"\(.*\)\"|\1|'"
+get_app_version_cmd="/bin/grep '__version__ =' $app_version_pathfile|/bin/sed 's|^.*\"\(.*\)\"|\1|'"
 get_ui_listening_address_cmd="/sbin/getcfg misc host -d undefined -f $qpkg_ini_pathfile"
 get_ui_port_cmd="/sbin/getcfg misc port -d $ui_port -f $qpkg_ini_pathfile"
 get_ui_port_secure_cmd="/sbin/getcfg misc https_port -d $ui_port_secure -f $qpkg_ini_pathfile"
