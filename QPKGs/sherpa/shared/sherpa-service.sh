@@ -26,7 +26,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 set -o nounset -o pipefail
 shopt -s extglob
-[[ $- != *m* ]] || set +m
+[[ $- != *m* ]]||set +m
 ln -fns /proc/self/fd /dev/fd
 readonly r_user_args_raw=$*
 Init(){
@@ -39,19 +39,16 @@ readonly r_gui_log_pathfile=/home/httpd/sherpa.debug.log
 readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -f /etc/config/qpkg.conf)
 readonly r_service_action_pathfile=/var/log/$r_qpkg_name.action
 readonly r_service_result_pathfile=/var/log/$r_qpkg_name.result
-[[ ! -d $(/usr/bin/dirname "$r_real_log_pathfile") ]] && mkdir -p "$(/usr/bin/dirname "$r_real_log_pathfile")"
-[[ ! -e $r_real_log_pathfile ]] && /bin/touch "$r_real_log_pathfile"
-}
+[[ ! -d $(/usr/bin/dirname "$r_real_log_pathfile") ]]&&mkdir -p "$(/usr/bin/dirname "$r_real_log_pathfile")"
+[[ ! -e $r_real_log_pathfile ]]&&/bin/touch "$r_real_log_pathfile";}
 StartQPKG(){
-[[ ! -L $r_apparent_loader_script_pathname ]] && /bin/ln -s "$r_real_loader_script_pathname" "$r_apparent_loader_script_pathname"
-[[ ! -L $r_gui_log_pathfile ]] && /bin/ln -s "$r_real_log_pathfile" "$r_gui_log_pathfile"
-echo 'symlinks created'
-}
+[[ ! -L $r_apparent_loader_script_pathname ]]&&/bin/ln -s "$r_real_loader_script_pathname" "$r_apparent_loader_script_pathname"
+[[ ! -L $r_gui_log_pathfile ]]&&/bin/ln -s "$r_real_log_pathfile" "$r_gui_log_pathfile"
+echo 'symlinks created';}
 StopQPKG(){
-[[ -L $r_apparent_loader_script_pathname ]] && rm -f "$r_apparent_loader_script_pathname"
-[[ -L $r_gui_log_pathfile ]] && rm -f "$r_gui_log_pathfile"
-echo 'symlinks removed'
-}
+[[ -L $r_apparent_loader_script_pathname ]]&&rm -f "$r_apparent_loader_script_pathname"
+[[ -L $r_gui_log_pathfile ]]&&rm -f "$r_gui_log_pathfile"
+echo 'symlinks removed';}
 StatusQPKG(){
 if [[ -L $r_apparent_loader_script_pathname ]];then
 echo active
@@ -59,8 +56,7 @@ exit 0
 else
 echo inactive
 exit 1
-fi
-}
+fi;}
 ShowHelp(){
 Display "$(TextBrightWhite "$(/usr/bin/basename "$0")") v$r_qpkg_version • a service control script for the $(FormatAsPackageName $r_qpkg_name) QPKG"
 Display
@@ -71,44 +67,33 @@ DisplayAsHelp 'activate, start' "start $(FormatAsPackageName $r_qpkg_name) if in
 DisplayAsHelp 'deactivate, stop' "stop $(FormatAsPackageName $r_qpkg_name) if active"
 DisplayAsHelp 'r, reactivate, restart' "stop, then start $(FormatAsPackageName $r_qpkg_name)"
 DisplayAsHelp 's, status' "check if $(FormatAsPackageName $r_qpkg_name) application is active. Returns \$? = 0 if active, 1 if not"
-Display
-}
+Display;}
 SetServiceAction(){
 service_action=${1:-none}
 CommitServiceAction
-SetServiceResultAsInProgress
-}
+SetServiceResultAsInProgress;}
 SetServiceResultAsOK(){
 service_result=ok
-CommitServiceResult
-}
+CommitServiceResult;}
 SetServiceResultAsFailed(){
 service_result=failed
-CommitServiceResult
-}
+CommitServiceResult;}
 SetServiceResultAsInProgress(){
 service_result=in-progress
-CommitServiceResult
-}
+CommitServiceResult;}
 CommitServiceAction(){
-echo "$service_action">"$r_service_action_pathfile"
-}
+echo "$service_action">"$r_service_action_pathfile";}
 CommitServiceResult(){
-echo "$service_result">"$r_service_result_pathfile"
-}
+echo "$service_result">"$r_service_result_pathfile";}
 FormatAsPackageName(){
-echo "'${1:-}'"
-}
+echo "'${1:-}'";}
 DisplayAsHelp(){
-printf '  %-22s  - %s\n' "${1:-}" "${2:-}."
-}
+printf '  %-22s  - %s\n' "${1:-}" "${2:-}.";}
 Display(){
-echo "${1:-}"
-}
+echo "${1:-}";}
 TextBrightWhite(){
-[[ -n ${1:-} ]] || return
-printf '\033[1;97m%s\033[0m' "$1"
-}
+[[ -n ${1:-} ]]||return
+printf '\033[1;97m%s\033[0m' "$1";}
 Init
 user_arg=${r_user_args_raw%% *}
 case $user_arg in
@@ -118,28 +103,23 @@ if StartQPKG;then
 SetServiceResultAsOK
 else
 SetServiceResultAsFailed
-fi
-;;
+fi;;
 ?(-)s|?(--)status)
-StatusQPKG
-;;
+StatusQPKG;;
 ?(--)deactivate|?(--)stop)
 SetServiceAction stop
 if StopQPKG;then
 SetServiceResultAsOK
 else
 SetServiceResultAsFailed
-fi
-;;
+fi;;
 ?(-)r|?(--)reactivate|?(--)restart)
 SetServiceAction restart
-if StopQPKG && StartQPKG;then
+if StopQPKG &&StartQPKG;then
 SetServiceResultAsOK
 else
 SetServiceResultAsFailed
-fi
-;;
-*)
-ShowHelp
+fi;;
+*)ShowHelp
 esac
 exit 0

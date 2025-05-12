@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=pyLoad
-readonly r_service_script_version='250504'
+readonly r_service_script_version='250511'
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
@@ -42,8 +42,7 @@ get_ui_listening_address_cmd="GetPyloadConfig $qpkg_ini_pathfile webui host"
 get_ui_port_cmd="GetPyloadConfig $qpkg_ini_pathfile webui port"
 get_ui_port_secure_cmd="GetPyloadConfig $qpkg_ini_pathfile webui port"
 get_ui_port_secure_enabled_test_cmd="[[ $(GetPyloadConfig "$qpkg_ini_pathfile" webui use_ssl) = True ]]"
-daemon_launch_cmd="export TEMP=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $r_qpkg_path/config"
-}
+daemon_launch_cmd="export TEMP=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $r_qpkg_path/config";}
 GetPyloadConfig(){
 local source_pathfile=${1:?no pathfilename supplied}
 local target_section_name=${2:?no section supplied}
@@ -73,7 +72,7 @@ while read -r result_line;do
 IFS=':' read -r line_num section_raw<<<"$result_line"
 IFS=' ' read -r section_name blank section_description<<<"$section_raw"
 if [[ $section_name = "$target_section_name" ]];then
-[[ $start_line_num -eq 0 ]] && start_line_num=$((line_num+1))
+[[ $start_line_num -eq 0 ]]&&start_line_num=$((line_num+1))
 else
 if [[ $start_line_num -ne 0 ]];then
 end_line_num=$((line_num-2))
@@ -89,7 +88,7 @@ target_section=$(/bin/sed -n "${start_line_num},${end_line_num}p" "$source_pathf
 while read -r section_line;do
 IFS=':' read -r raw_var_type raw_var_description<<<"$section_line"
 read -r var_type var_name<<<"$raw_var_type"
-[[ $var_name != "$target_var_name" ]] && continue
+[[ $var_name != "$target_var_name" ]]&&continue
 var_found=true
 IFS='"' read -r blank var_description value_raw<<<"$raw_var_description"
 IFS='=' read -r blank value<<<"$value_raw"
@@ -100,10 +99,9 @@ if [[ $var_found = false ]];then
 echo 'variable match not found'
 return 1
 fi
-echo "$value"
-}
+echo "$value";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
-[[ -z $library_path ]] && library_path=$0
+[[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
 if [[ -e $r_service_library_pathfile ]];then
 . $r_service_library_pathfile

@@ -665,7 +665,7 @@ StopDaemon()
 
 	[[ $d -gt 1 ]] || return
 
-	DisplayWaitCommitToLog "> $a PID '${d}' with SIGTERM (no-more than $b second$(Pluralise "$b")):"
+	DisplayWaitCommitToLog "> $a PID '${d}' with SIGTERM (no-more than $b second$(Pluralise "$b")):"		# squeezer-ignore
 
 	kill "$d"
 
@@ -677,7 +677,7 @@ StopDaemon()
 
 			if [[ $c -ge $b ]]; then
 				DisplayCommitToLog 'failed!'
-				DisplayCommitToLog "> $a PID '${d}' with SIGKILL:"
+				DisplayCommitToLog "> $a PID '${d}' with SIGKILL:"											# squeezer-ignore
 
 				kill -9 "$d" 2> /dev/null
 
@@ -727,7 +727,7 @@ RefreshReleasePackageFiles()
 		if [[ $resolve_remote_url = true ]]; then
 			refresh_release_package=true
 
-			DisplayWaitCommitToLog '> get latest release package URL:'
+			DisplayWaitCommitToLog '> get latest release package URL:'		# squeezer-ignore
 
 			if IsSiteUp "$remote_url"; then
 				release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_arch")
@@ -746,7 +746,7 @@ RefreshReleasePackageFiles()
 		fi
 
 		if [[ $compare_release_filename = true ]]; then
-			DisplayWaitCommitToLog "> get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds):"
+			DisplayWaitCommitToLog "> get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds):"	# squeezer-ignore
 
 			if IsSiteUp "$remote_url"; then
 				release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
@@ -1139,14 +1139,14 @@ LoadPorts()
 	case $1 in
 		app)
 			# Read the current application UI ports from application configuration.
-			DisplayWaitCommitToLog '> load ports from configuration file:'
+			DisplayWaitCommitToLog '> load ports from configuration file:'					# squeezer-ignore
 			[[ $get_ui_port_cmd != undefined ]] && ui_port=$(eval "$get_ui_port_cmd")
 			[[ $get_ui_port_secure_cmd != undefined ]] && ui_port_secure=$(eval "$get_ui_port_secure_cmd")
 			DisplayCommitToLog OK
 			;;
 		qts)
 			# Read the current application UI ports from QTS App Center.
-			DisplayWaitCommitToLog '> load UI ports from QPKG icon:'
+			DisplayWaitCommitToLog '> load UI ports from QPKG icon:'						# squeezer-ignore
 			ui_port=$(/sbin/getcfg $r_qpkg_name Web_Port -d 0 -f /etc/config/qpkg.conf)
 			ui_port_secure=$(/sbin/getcfg $r_qpkg_name Web_SSL_Port -d 0 -f /etc/config/qpkg.conf)
 			DisplayCommitToLog OK
@@ -1431,7 +1431,7 @@ WaitForStartPid()
 	fi
 
 	if [[ $recheck_daemon_pid_after_launch = true ]]; then
-		DisplayWaitCommitToLog "> wait $a second$(Pluralise "$a") to recheck PID:"
+		DisplayWaitCommitToLog "> wait $a second$(Pluralise "$a") to recheck PID:"				# squeezer-ignore
 
 		for ((i=1; i<=a; i++)); do
 			/bin/sleep 1
@@ -1456,7 +1456,7 @@ WaitForKillPid()
 	local -i i=0
 
 	if [[ $recheck_daemon_pid_after_kill = true ]]; then
-		DisplayWaitCommitToLog "> wait $a second$(Pluralise "$a") to recheck PID:"
+		DisplayWaitCommitToLog "> wait $a second$(Pluralise "$a") to recheck PID:"				# squeezer-ignore
 
 		for ((i=1; i<=a; i++)); do
 			/bin/sleep 1
@@ -1484,7 +1484,7 @@ WatchForDaemonPid()
 	local -i i=0
 
 	if [[ ! -e $daemon_pid_pathfile ]]; then
-		DisplayWaitCommitToLog "> watch for daemon process name to appear (no-more than $a second$(Pluralise "$a")):"
+		DisplayWaitCommitToLog "> watch for daemon process name to appear (no-more than $a second$(Pluralise "$a")):"		# squeezer-ignore
 
 		(
 			for ((i=1; i<=a; i++)); do
@@ -1538,7 +1538,7 @@ WatchForFileToAppear()
 	fi
 
 	if [[ ! -e $1 ]]; then
-		DisplayWaitCommitToLog "> watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a")):"
+		DisplayWaitCommitToLog "> watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a")):"		# squeezer-ignore
 
 		(
 			for ((i=1; i<=a; i++)); do
@@ -1600,7 +1600,7 @@ EnsureConfigFileExists()
 	IsNotSupportReset && return
 
 	if IsNotConfigFound && IsDefaultConfigFound; then
-		DisplayCommitToLog '> no configuration file found: using default'
+		DisplayCommitToLog '> no configuration file found: using default'				# squeezer-ignore
 		cp "${qpkg_ini_default_pathfile:?undefined}" "${qpkg_ini_pathfile:?undefined}"
 	fi
 
@@ -1635,7 +1635,7 @@ DisplayRunAndLog()
 	local -r r_log_pathfile=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 	local -i z=0
 
-	DisplayWaitCommitToLog "> $1:"
+	DisplayWaitCommitToLog "> $1:"				# squeezer-ignore
 
 	Executer "${2:?empty}" "$r_log_pathfile" "${4:-false}"
 	z=$?
@@ -1713,7 +1713,7 @@ Executer()
 		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" bash -c "$1"
 		z=$?
 	elif [[ $debug = true ]]; then
-		eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"	# NOTE: 'tee' buffers stdout here.
+		eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"	# NOTE: 'tee' buffers stdout here.				# squeezer-ignore
 		z=${PIPESTATUS[0]}									# Must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
 	else
 		(eval "$1" > "$r_log_pathfile" 2>&1)				# Run in a subshell to suppress "Terminated" message later.
@@ -1949,7 +1949,7 @@ ReWriteUIPorts()
 
 	[[ $get_daemon_port_cmd != undefined ]] && return		# Don't need to rewrite QTS UI ports if this app has a daemon port, as UI ports are unused.
 
-	DisplayWaitCommitToLog '> update QPKG icon with UI ports:'
+	DisplayWaitCommitToLog '> update QPKG icon with UI ports:'				# squeezer-ignore
 	/sbin/setcfg $r_qpkg_name Web_Port "$ui_port" -f /etc/config/qpkg.conf
 
 	if IsSSLEnabled; then
@@ -2707,7 +2707,7 @@ IsPortResponds()
 		return 1
 	fi
 
-	DisplayWaitCommitToLog "> test for port '$a' response (no-more than $b second$(Pluralise "$b")):"
+	DisplayWaitCommitToLog "> test for port '$a' response (no-more than $b second$(Pluralise "$b")):"			# squeezer-ignore
 
 	while true; do
 		if ! IsDaemonProcessActive; then
@@ -2772,7 +2772,7 @@ IsPortSecureResponds()
 		return 1
 	fi
 
-	DisplayWaitCommitToLog "> test for secure port '$a' response (no-more than $b second$(Pluralise "$b")):"
+	DisplayWaitCommitToLog "> test for secure port '$a' response (no-more than $b second$(Pluralise "$b")):"		# squeezer-ignore
 
 	while true; do
 		if ! IsDaemonProcessActive; then
@@ -3591,7 +3591,7 @@ DisplayAndCommitActionToLog()
 	[[ $service_action = unspecified ]] && return
 
 	starttime=$(ConvertNowToNanoseconds)
-	local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
+	local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"	# squeezer-ignore
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
 	local a=DisplayCommitToLog
 
@@ -4045,7 +4045,7 @@ CalcAdaptiveSeconds()
 GetSysLoad1MinAverage()
 	{
 
-	/usr/bin/uptime | /bin/sed 's|.*load average: ||' | /bin/awk -F', ' '{print $1}'
+	/usr/bin/uptime | /bin/sed 's/.*load average: //' | /bin/awk -F', ' '{print $1}'
 
 	}
 

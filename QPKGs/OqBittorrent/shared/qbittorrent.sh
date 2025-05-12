@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OqBittorrent
-readonly r_service_script_version='250504'
+readonly r_service_script_version='250511'
 InitService(){
 qpkg_ini_file=qBittorrent.conf
 daemon_exec_pathfile=/opt/bin/qbittorrent-nox
@@ -38,10 +38,9 @@ get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="/sbin/getcfg Preferences 'WebUI\Port' -d 0 -f $qpkg_ini_pathfile"
 get_ui_port_secure_cmd="/sbin/getcfg Preferences 'WebUI\Port' -d 0 -f $qpkg_ini_pathfile"
 get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="$daemon_exec_pathfile --profile=$r_qpkg_path/config --daemon"
-}
+daemon_launch_cmd="$daemon_exec_pathfile --profile=$r_qpkg_path/config --daemon";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
-[[ -z $library_path ]] && library_path=$0
+[[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
 if [[ -e $r_service_library_pathfile ]];then
 . $r_service_library_pathfile

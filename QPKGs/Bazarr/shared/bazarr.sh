@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Bazarr
-readonly r_service_script_version='250504'
+readonly r_service_script_version='250511'
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -43,14 +43,13 @@ interpreter=/opt/bin/python3
 nice_daemon_to=15
 watch_port_check_seconds=360
 remote_url='https://api.github.com/repos/morpheus65535/bazarr/releases/latest'
-get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep general_ip= | cut -d\" -f2'
-get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep general_port= | cut -d\" -f2'
-get_ui_port_secure_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep general_port= | cut -d\" -f2'
+get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile'|/bin/grep general_ip=|cut -d\" -f2'
+get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile'|/bin/grep general_port=|cut -d\" -f2'
+get_ui_port_secure_cmd='parse_yaml '$qpkg_ini_pathfile'|/bin/grep general_port=|cut -d\" -f2'
 get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --config $r_qpkg_config_path --debug true"
-}
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --config $r_qpkg_config_path --debug true";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
-[[ -z $library_path ]] && library_path=$0
+[[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
 if [[ -e $r_service_library_pathfile ]];then
 . $r_service_library_pathfile

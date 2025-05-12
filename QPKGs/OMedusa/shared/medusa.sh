@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OMedusa
-readonly r_service_script_version='250504'
+readonly r_service_script_version='250511'
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -54,10 +54,9 @@ if [[ -e $qpkg_ini_pathfile ]];then
 /sbin/setcfg General log_dir "$r_qpkg_config_path"/logs -f "$qpkg_ini_pathfile"
 /sbin/setcfg General cache_dir "$r_qpkg_config_path"/cache -f "$qpkg_ini_pathfile"
 fi
-IsSupportGetAppVersion && app_version_cmd="/bin/grep '^VERSION =' $app_version_pathfile | /bin/sed 's|^.*\"\(.*\)\"|\1|'"
-}
+IsSupportGetAppVersion &&app_version_cmd="/bin/grep '^VERSION =' $app_version_pathfile|/bin/sed 's|^.*\"\(.*\)\"|\1|'";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
-[[ -z $library_path ]] && library_path=$0
+[[ -z $library_path ]]&&library_path=$0
 readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
 if [[ -e $r_service_library_pathfile ]];then
 . $r_service_library_pathfile

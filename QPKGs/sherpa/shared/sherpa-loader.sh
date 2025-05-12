@@ -33,8 +33,8 @@ readonly r_qpkg_name=sherpa
 readonly r_chars_regular_prompt='$ '
 readonly r_chars_sudo_prompt="${r_chars_regular_prompt}sudo "
 readonly r_chars_super_prompt='# '
-IsQNAP || return
-IsSU || return
+IsQNAP ||return
+IsSU ||return
 local source_git_branch=stable
 local test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
 if [[ $test_branch = unknown ]];then
@@ -43,36 +43,32 @@ else
 source_git_branch=$test_branch
 fi
 local -r r_work_path=$(/sbin/getcfg sherpa Install_Path -f /etc/config/qpkg.conf)/cache
-[[ ! -d $r_work_path ]] && mkdir -p "$r_work_path"
+[[ ! -d $r_work_path ]]&&mkdir -p "$r_work_path"
 local -r r_manager_file='sherpa-manager.sh'
 local -r r_manager_archive_file=${r_manager_file%.*}.tar.gz
 readonly r_manager_archive_url='https://raw.githubusercontent.com/OneCDOnly/sherpa'/$source_git_branch/$r_manager_archive_file
 readonly r_manager_archive_pathfile=$r_work_path/$r_manager_archive_file
 readonly r_manager_pathfile=$r_work_path/$r_manager_file
 local -r r_nas_firmware_ver=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
-[[ ${r_nas_firmware_ver//.} -ge 455 ]] && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
+[[ ${r_nas_firmware_ver//.} -ge 455 ]]&&curl_insecure_arg='' ||curl_insecure_arg=' --insecure'
 previous_msg=''
-return 0
-}
+return 0;}
 EnsureFileIsCurrent(){
-if [[ ! -e $1 ]] || ! IsThisFileRecent "$1" 60;then
+if [[ ! -e $1 ]]||! IsThisFileRecent "$1" 60;then
 if ! (/sbin/curl"$curl_insecure_arg" --silent --fail "$2">"$3");then
 ShowAsWarn 'Remote file download failed'
 else
 /bin/tar --extract --gzip --no-same-owner --file="$3" --directory="$(/usr/bin/dirname "$3")" 2>/dev/null
 fi
-fi
-}
+fi;}
 IsThisFileRecent(){
-[[ -e ${1:-} && $((($(/bin/date +%s)-$(/usr/bin/stat "$1" -c %Y))/60)) -le ${2:-1440} ]]
-}
+[[ -e ${1:-} &&$((($(/bin/date +%s)-$(/usr/bin/stat "$1" -c %Y))/60)) -le ${2:-1440} ]];}
 IsQNAP(){
 if [[ ! -e /etc/init.d/functions ]];then
 ShowAsAbort 'QNAP functions not found ... is this a QNAP NAS?'
 return 1
 fi
-return 0
-}
+return 0;}
 IsSU(){
 if [[ $EUID -ne 0 ]];then
 if [[ -e /usr/bin/sudo ]];then
@@ -83,27 +79,21 @@ ShowAsError "this utility must be run as the 'admin' user. Please login via SSH 
 fi
 return 1
 fi
-return 0
-}
+return 0;}
 ShowAsWarn(){
 WriteToDisplay.New "$(TextBrightOrange warn)" "${1:-}"
-return 0
-}
+return 0;}
 ShowAsAbort(){
 WriteToDisplay.New "$(TextBrightRed bort)" "${1:-}"
-return 0
-}
+return 0;}
 ShowAsError(){
 local capitalised=$(Capitalise "${1:-}")
 WriteToDisplay.New "$(TextBrightRed derp)" "$capitalised"
-return 0
-}
+return 0;}
 Capitalise(){
-echo "$(Uppercase ${1:0:1})${1:1}"
-}
+echo "$(Uppercase ${1:0:1})${1:1}";}
 Uppercase(){
-tr 'a-z' 'A-Z'<<<"$1"
-}
+tr 'a-z' 'A-Z'<<<"$1";}
 WriteToDisplay.New(){
 local new_message=''
 local strbuffer=''
@@ -119,14 +109,11 @@ strbuffer+=$(printf "%${appended_length}s")
 fi
 echo "$strbuffer"
 fi
-return 0
-}
+return 0;}
 TextBrightOrange(){
-printf '\033[1;38;5;214m%s\033[0m' "${1:-}"
-}
+printf '\033[1;38;5;214m%s\033[0m' "${1:-}";}
 TextBrightRed(){
-printf '\033[1;31m%s\033[0m' "${1:-}"
-}
-Init || exit
+printf '\033[1;31m%s\033[0m' "${1:-}";}
+Init ||exit
 EnsureFileIsCurrent "$r_manager_pathfile" "$r_manager_archive_url" "$r_manager_archive_pathfile"
 eval '/usr/bin/env bash' "$r_manager_pathfile" "$r_user_args_raw"
