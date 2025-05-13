@@ -1698,7 +1698,7 @@ Executer()
 		[[ $run_in_screen = true ]] && exec_msg+=' (in screen session)'
 		exec_msg+=':'
 
-		if [[ ${1: -1} = "'" ]]; then						# Change display quotes depending on final content char.
+		if IsHaveSingleQuote "$1"; then						# Change display quotes depending-on content quote chars.
 			exec_msg+=" \"$1\""
 		else
 			exec_msg+=" '$1'"
@@ -2927,6 +2927,20 @@ IsSiteUp()
 	return 1
 
 	} &>/dev/null
+
+IsHaveSingleQuote()
+	{
+
+	# Inputs: (local)
+	#	$1 = string to be tested.
+
+	# Outputs: (local)
+	#	$? = true if $1 contains a single quote.
+	#	$? = false if $1 does not contain a single quote.
+
+	/bin/grep -q "'" <<<"${1:-}"
+
+	}
 
 RequestLatestReleaseFilename()
 	{
