@@ -29,7 +29,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='250511'
+readonly r_service_library_version='250514'
 InitLibrary(){
 IsQNAP ||exit
 debug=${DEBUG_QPKG:=false}
@@ -834,7 +834,7 @@ if [[ $debug = true ]];then
 local exec_msg='{ exec'
 [[ $run_in_screen = true ]]&&exec_msg+=' (in screen session)'
 exec_msg+=':'
-if [[ ${1: -1} = "'" ]];then
+if IsHaveSingleQuote "$1";then
 exec_msg+=" \"$1\""
 else
 exec_msg+=" '$1'"
@@ -1228,6 +1228,8 @@ for((n=0;n<20;n++));do
 done
 return 1
 } &>/dev/null
+IsHaveSingleQuote(){
+/bin/grep -q "'"<<<"${1:-}";}
 RequestLatestReleaseFilename(){
 [[ -n ${1:-} &&${1:-} != undefined ]]||return
 local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"
