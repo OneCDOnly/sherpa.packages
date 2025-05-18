@@ -118,6 +118,8 @@ InitLibrary()
 
 		can_restart_to_update=false								# If 'true', application files can be updated by restarting service-script.
 
+		check_network_before_start=false						# If 'true', at-least one network interface must be operational before starting application daemon.
+
 		compare_release_filename=false							# If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
 
 		daemon_pidfile_is_managed_by_app=false
@@ -163,6 +165,8 @@ InitLibrary()
 		wait_pid_kill_seconds=10								# This value is adaptive (increases with system load average).
 
 		wait_pid_start_seconds=10								# This value is adaptive (increases with system load average).
+
+		watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
 
 		watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
 
@@ -246,6 +250,8 @@ InitLibrary()
 
 		# can_restart_to_update=false								# If 'true', application files can be updated by restarting service-script.
 
+		# check_network_before_start=false							# If 'true', at-least one network interface must be operational before starting application daemon.
+
 		# compare_release_filename=false							# If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
 
 		# daemon_pidfile_is_managed_by_app=false
@@ -287,6 +293,8 @@ InitLibrary()
 		# ui_port=0
 
 		# ui_port_secure=0
+
+		# watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
 
 		# wait_pid_kill_seconds=10									# This value is adaptive (increases with system load average).
 
@@ -440,6 +448,11 @@ StartQPKGLibrary()
 	EnsureConfigFileExists
 	LoadPorts app || return
 	CheckPortsAvailable || return
+
+	if IsCheckNetworkBeforeStart; then
+		WatchForAnyInterfaceUp || return
+	fi
+
 	StartDaemon
 
 	return
@@ -1467,6 +1480,52 @@ WaitForKillPid()
 	fi
 
 	! RefreshPidFile || return
+
+	}
+
+WatchForAnyInterfaceUp()
+	{
+
+	# Inputs: (global)
+	#	$watch_interface_up_seconds
+
+	# Outputs: (local)
+	#   $? = 0 (network was found) or 1 (network not found: timeout)
+
+	local -i a=$(CalcAdaptiveSeconds "$watch_interface_up_seconds")
+	local -i i=0
+
+	local found_interface=''
+
+	if ! IsAnyInterfaceUp; then
+		DisplayWaitCommitToLog "> watch for a network interface to become operational (no-more than $a second$(Pluralise "$a")):"		# squeezer-ignore
+
+		(
+			for ((i=1; i<=a; i++)); do
+				/bin/sleep 1
+				DisplayWait "$i,"
+
+				if IsAnyInterfaceUp; then
+					Display OK
+					CommitToLog "found in $i second$(Pluralise "$i")"
+					true
+
+					exit	# Only this sub-shell.
+				fi
+			done
+
+			false
+		)
+
+		if [[ $? -ne 0 ]]; then
+			DisplayErrCommitAllLogs "operational network interface not found! (exceeded timeout: $a second$(Pluralise "$a"))"
+			return 1
+		fi
+	fi
+
+	DisplayCommitToLog "- operational network interface found: '$found_interface'"
+
+	return 0
 
 	}
 
@@ -2941,6 +3000,52 @@ IsHaveSingleQuote()
 	/bin/grep -q "'" <<<"${1:-}"
 
 	}
+
+IsCheckNetworkBeforeStart()
+	{
+
+	[[ $check_network_before_start = true ]]
+
+	}
+
+IsInterfaceUp()
+	{
+
+	# Inputs: (local)
+	#	$1 = interface name to check.
+
+	# Outputs: (local)
+	#	$? = true if $1 is up, false if not.
+
+	[[ -n ${1:-} ]] || return
+	[[ -n $(/bin/ip a | /bin/sed -rn '/: '"$1"':.*state UP/{N;N;s/.*inet (\S*).*/\1/p}') ]] 	# https://unix.stackexchange.com/a/121525
+
+	}
+
+IsAnyInterfaceUp()
+	{
+
+	local a=''
+	found_interface=null
+
+	for a in $(/bin/grep ':' /proc/net/dev | cut -d':' -f1 | tr -d ' '); do
+		[[ $a != 'lo' ]] || continue
+		[[ ! $a =~ 'docker' ]] || continue
+		[[ ! $a =~ 'bond' ]] || continue
+		[[ ! $a =~ 'dummy' ]] || continue
+		[[ ! $a =~ 'lxc' ]] || continue
+		[[ ! $a =~ 'lxd' ]] || continue
+
+		if IsInterfaceUp "$a"; then
+			echo "interface '$a' is operational"
+			found_interface=$a
+			return
+		fi
+	done
+
+	return 1
+
+	} &>/dev/null
 
 RequestLatestReleaseFilename()
 	{
