@@ -112,14 +112,14 @@ InitService()
 
 		# remote_arch=undefined
 
-		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
-		start_retries=2
-
 		# source_arch=undefined
 
 		# source_git_branch=undefined
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
+		start_retries=3
 
 		# ui_listening_address=undefined
 		ui_listening_address=0.0.0.0

@@ -115,7 +115,7 @@ InitService()
 		source_git_branch_depth=single-branch
 
 		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
-		start_retries=2
+		start_retries=3
 
 		# ui_listening_address=undefined
 
