@@ -81,7 +81,6 @@ InitService()
 		can_restart_to_update=true
 
 		# check_network_before_start=false							# If 'true', at-least one network interface must be operational before starting application daemon.
-		check_network_before_start=true
 
 		# daemon_pidfile_is_managed_by_app=false
 
@@ -91,6 +90,7 @@ InitService()
 		recheck_daemon_pid_after_kill=true
 
 		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		recheck_daemon_pid_after_launch=true
 
 		# resolve_remote_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
