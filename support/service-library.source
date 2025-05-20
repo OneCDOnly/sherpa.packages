@@ -1680,7 +1680,7 @@ DisplayRunAndLog()
 	{
 
 	# Run a commandstring with a summarised description, log the results, and show onscreen if-requested.
-	# This function is just a fancy wrapper for Executer()
+	# This function is just a fancy wrapper for Executer()			# unused-ignore
 
 	# Inputs: (local)
 	#   $1 = Processing message.
@@ -2021,36 +2021,36 @@ ReWriteUIPorts()
 
 	}
 
-IsPortsAvailable()
-	{
-
-	# Inputs: (global)
-	#	$daemon_port
-	#	$ui_port
-	#	$ui_port_secure
-
-	if [[ $daemon_port -ne 0 ]]; then
-		DisplayCommitToLog "- daemon port: '$daemon_port'"
-		IsPortResponds $daemon_port
-	else
-		if IsSSLEnabled; then
-			IsPortSecureResponds $ui_port_secure
-		else
-			IsPortResponds $ui_port
-		fi
-	fi
-
-
-	if IsDaemonProcessActive; then
-		DisplayCommitToLog "- daemon PID: '$(<"$daemon_pid_pathfile")'"
-		return 0
-	fi
-
-	DisplayCommitToLog '- daemon PID: none'
-	return 1
-
-
-	}
+#IsPortsAvailable()
+# 	{
+#
+# 	# Inputs: (global)
+# 	#	$daemon_port
+# 	#	$ui_port
+# 	#	$ui_port_secure
+#
+# 	if [[ $daemon_port -ne 0 ]]; then
+# 		DisplayCommitToLog "- daemon port: '$daemon_port'"
+# 		IsPortResponds $daemon_port
+# 	else
+# 		if IsSSLEnabled; then
+# 			IsPortSecureResponds $ui_port_secure
+# 		else
+# 			IsPortResponds $ui_port
+# 		fi
+# 	fi
+#
+#
+# 	if IsDaemonProcessActive; then
+# 		DisplayCommitToLog "- daemon PID: '$(<"$daemon_pid_pathfile")'"
+# 		return 0
+# 	fi
+#
+# 	DisplayCommitToLog '- daemon PID: none'
+# 	return 1
+#
+#
+# 	}
 
 WatchForPortsActive()
 	{
@@ -2208,7 +2208,7 @@ GetModulePath()
 
 	}
 
-parse_yaml()
+parse_yaml()		# unused-ignore
 	{
 
 	# a nice bit of coding! https://stackoverflow.com/a/21189044
@@ -2294,12 +2294,12 @@ IsQPKGActive()
 
 	}
 
-IsNotQPKGActive()
-	{
-
-	! IsNotQPKGActive
-
-	}
+#IsNotQPKGActive()
+# 	{
+#
+# 	! IsQPKGActive
+#
+# 	}
 
 IsQPKGEnabled()
 	{
@@ -2349,12 +2349,12 @@ IsSupportBackup()
 
 	}
 
-IsNotSupportBackup()
-	{
-
-	! IsSupportBackup
-
-	}
+#IsNotSupportBackup()
+# 	{
+#
+# 	! IsSupportBackup
+#
+# 	}
 
 IsSupportReset()
 	{
@@ -2392,12 +2392,12 @@ IsSupportActions()
 
 	}
 
-IsNotSupportActions()
-	{
-
-	! IsSupportActions
-
-	}
+#IsNotSupportActions()
+# 	{
+#
+# 	! IsSupportActions
+#
+# 	}
 
 IsSupportGetAppVersion()
 	{
@@ -2414,12 +2414,12 @@ IsSupportGetAppVersion()
 
 	}
 
-IsNotSupportGetAppVersion()
-	{
-
-	! IsSupportGetAppVersion
-
-	}
+#IsNotSupportGetAppVersion()
+# 	{
+#
+# 	! IsSupportGetAppVersion
+#
+# 	}
 
 IsVirtualPythonEnv()
 	{
@@ -4352,7 +4352,7 @@ CaughtEXIT()
 
 	}
 
-ProcessArgs()
+ProcessArgs()		# unused-ignore.
 	{
 
 	if IsGitApp; then
