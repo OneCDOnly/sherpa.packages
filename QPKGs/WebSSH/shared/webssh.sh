@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WebSSH
-readonly r_service_script_version='250520'
+readonly r_service_script_version='250521'
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
@@ -40,6 +40,7 @@ can_restart_to_update=true
 run_daemon_in_screen_session=true
 interpreter=/opt/bin/python3
 source_git_branch=master
+start_retries=3
 ui_listening_address=0.0.0.0
 ui_port=8010
 get_ui_listening_address_cmd="echo $ui_listening_address"

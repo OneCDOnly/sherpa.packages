@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OSickGear
-readonly r_service_script_version='250520'
+readonly r_service_script_version='250521'
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -40,7 +40,7 @@ recheck_daemon_pid_after_launch=true
 interpreter=/opt/bin/python3
 source_git_branch=main
 source_git_branch_depth=single-branch
-start_retries=2
+start_retries=3
 source_git_url=https://github.com/SickGear/SickGear.git
 get_ui_listening_address_cmd="/sbin/getcfg General web_host -d undefined -f $qpkg_ini_pathfile"
 get_ui_port_cmd="/sbin/getcfg General web_port -d 0 -f $qpkg_ini_pathfile"

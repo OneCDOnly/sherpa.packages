@@ -29,7 +29,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='250520'
+readonly r_service_library_version='250521'
 InitLibrary(){
 IsQNAP ||exit
 debug=${DEBUG_QPKG:=false}
@@ -1071,48 +1071,39 @@ IsSupportGetAppVersion(){
 #IsNotSupportGetAppVersion()
 IsVirtualPythonEnv(){
 [[ $venv_path != undefined ]];}
-IsNotVirtualPythonEnv(){
-! IsVirtualPythonEnv;}
+#IsNotVirtualPythonEnv()
 IsGitApp(){
 [[ $source_git_url != undefined &&$source_git_branch != undefined &&$qpkg_repo_path != undefined ]];}
-IsNotGitApp(){
-! IsGitApp;}
+#IsNotGitApp()
 IsUsePipCache(){
 [[ $pip_cache_path != undefined ]];}
-IsNotUsePipCache(){
-! IsUsePipCache;}
+#IsNotUsePipCache()
 IsOnlineReleasePackage(){
 [[ $remote_url != undefined ]];}
-IsNotOnlineReleasePackage(){
-! IsOnlineReleasePackage;}
+#IsNotOnlineReleasePackage()
 IsReleaseAnArchive(){
 [[ $package_is_exec != undefined &&$package_is_exec = false ]];}
-IsNotReleaseAnArchive(){
-! IsReleaseAnArchive;}
+#IsNotReleaseAnArchive()
 IsSupportAutoUpdate(){
 [[ $can_restart_to_update = true ]];}
-IsNotSupportAutoUpdate(){
-! IsSupportAutoUpdate;}
+#IsNotSupportAutoUpdate()
 IsSourcedOnline(){
 IsGitApp ||IsUsePipCache ||IsOnlineReleasePackage;}
 IsNotSourcedOnline(){
 ! IsSourcedOnline;}
 IsUseTemp(){
 [[ $r_qpkg_temp_path != undefined ]];}
-IsNotUseTemp(){
-! IsUseTemp;}
+#IsNotUseTemp()
 IsSSLEnabled(){
 eval "$get_ui_port_secure_enabled_test_cmd";}
-IsNotSSLEnabled(){
-! IsSSLEnabled;}
+#IsNotSSLEnabled()
 IsDaemon(){
 [[ $daemon_exec_pathfile != undefined ]];}
 IsNotDaemon(){
 ! IsDaemon;}
 IsDaemonCheck(){
 [[ $daemon_check_pathfile != undefined ]];}
-IsNotDaemonCheck(){
-! IsDaemonCheck;}
+#IsNotDaemonCheck()
 CheckDaemonActive(){
 if IsDaemonProcessActive;then
 DisplayCommitToLog "- daemon PID: '$(<"$daemon_pid_pathfile")'"
@@ -1141,8 +1132,7 @@ Display "A required NAS system file is missing: '$1'"
 SetError;return 1
 fi
 return 0;}
-IsNotSysFilePresent(){
-! IsSysFilePresent "${1:?pathfilename null}";}
+#IsNotSysFilePresent()
 IsPortAvailable(){
 local port=${1//[!0-9]/}
 [[ -n $port &&$port -gt 0 ]]||return 0
@@ -1235,8 +1225,7 @@ IsNotConfigFound(){
 ! IsConfigFound;}
 IsDefaultConfigFound(){
 [[ $qpkg_ini_default_pathfile != undefined &&-e $qpkg_ini_default_pathfile ]];}
-IsNotDefaultConfigFound(){
-! IsDefaultConfigFound;}
+#IsNotDefaultConfigFound()
 IsVirtualPythonEnvExist(){
 [[ -e $venv_path/bin/activate ]];}
 IsNotVirtualPythonEnvExist(){
@@ -1367,9 +1356,7 @@ DisplayAndCommitResultToLog;}
 SetServiceResultAsInProgress(){
 service_result=in-progress
 CommitServiceResult;}
-SetServiceResultAsUnsupported(){
-service_result=unsupported
-CommitServiceResult;}
+#SetServiceResultAsUnsupported()
 CommitServiceAction(){
 if IsNotStatus &&IsNotLog &&IsNotNone;then
 [[ $r_service_action_pathfile != undefined ]]&&echo "$service_action">"$r_service_action_pathfile"
@@ -1380,16 +1367,13 @@ if IsNotStatus &&IsNotLog &&IsNotNone;then
 fi;}
 SetDaemonWasActive(){
 _daemon_was_active=true;}
-UnsetDaemonWasActive(){
-_daemon_was_active=false;}
-DaemonWasActive(){
-[[ ${_daemon_was_active:=false} = true ]];}
+#UnsetDaemonWasActive()
+#DaemonWasActive()
 DaemonWasNotActive(){
 [[ ${_daemon_was_active:=false} = false ]];}
 SetStatusGet(){
 _get_status_flag=true;}
-UnsetStatusGet(){
-_get_status_flag=false;}
+#UnsetStatusGet()
 IsStatus(){
 [[ ${_get_status_flag:=false} = true ]];}
 IsNotStatus(){
@@ -1414,8 +1398,7 @@ IsNotStart(){
 ! IsStart;}
 IsStop(){
 [[ $service_action = stop ]];}
-IsNotStop(){
-! IsStop;}
+#IsNotStop()
 IsRestart(){
 [[ $service_action = restart ]];}
 IsNotRestart(){
@@ -1430,20 +1413,16 @@ IsNotNone(){
 ! IsNone;}
 IsClean(){
 [[ $service_action = clean ]];}
-IsNotClean(){
-! IsClean;}
+#IsNotClean()
 IsBackup(){
 [[ $service_action = backup ]];}
-IsNotBackup(){
-! IsBackup;}
+#IsNotBackup()
 IsRestore(){
 [[ $service_action = restore ]];}
-IsNotRestore(){
-! IsRestore;}
+#IsNotRestore()
 IsReset(){
 [[ $service_action = reset ]];}
-IsNotReset(){
-! IsReset;}
+#IsNotReset()
 IsUnsupported(){
 [[ $service_action = unsupported ]];}
 IsServiceResultInProgress(){
@@ -1452,8 +1431,7 @@ IsPathEmpty(){
 local a=${1:-}
 [[ -n $a &&-d $a ]]||return
 rmdir "$a" &>/dev/null &&mkdir "$a";}
-IsNotPathEmpty(){
-! IsPathEmpty "${1:-}";}
+#IsNotPathEmpty()
 ShowAsError(){
 Display "$(TextBrightRed derp): ${1:-}"
 }>&2
@@ -1475,8 +1453,7 @@ FormatAsCommand(){
 Display "command: '${1:-}'";}
 FormatAsStdout(){
 Display "output: \"${1:-}\"";}
-FormatAsResult(){
-Display "result: $(FormatAsExitcode "${1:-}")";}
+#FormatAsResult()
 FormatAsResultAndStdout(){
 if [[ ${1:-0} -eq 0 ]];then
 echo "= result_code: $(FormatAsExitcode "$1")"
@@ -1486,10 +1463,7 @@ fi
 DebugBulletSeparatorWithText 'stdout & stderr begins below'
 echo "${2:-}"
 DebugBulletSeparatorWithText 'stdout & stderr is complete';}
-FormatAsFuncMessages(){
-echo "= ${FUNCNAME[1]}()"
-FormatAsCommand "${1:?command null}"
-FormatAsStdout "${2:-}";}
+#FormatAsFuncMessages()
 FormatAsExitcode(){
 echo "[${1:-}]";}
 FormatAsPackageName(){

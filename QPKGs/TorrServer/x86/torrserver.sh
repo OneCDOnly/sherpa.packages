@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TorrServer
-readonly r_service_script_version='250520'
+readonly r_service_script_version='250521'
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_ini_file=settings.json
@@ -36,6 +36,7 @@ package_is_exec=true
 resolve_remote_url=true
 run_daemon_in_screen_session=true
 remote_arch=linux-386
+start_retries=3
 remote_url='https://api.github.com/repos/YouROK/TorrServer/releases/latest'
 daemon_launch_cmd="cd $qpkg_repo_path &&$daemon_exec_pathfile --path $r_qpkg_config_path"
 get_ui_listening_address_cmd='echo 0.0.0.0'
