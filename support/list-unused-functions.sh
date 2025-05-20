@@ -8,7 +8,11 @@ b=''
 # shellcheck disable=SC2013
 for b in $(grep '()$' "$a" | grep -v unused-ignore | grep -v '=\|\$\|_(' | sed 's|()||g'); do
 	if [[ $(grep -ow "$b" < "$a" | wc -l) -eq 1 ]]; then
-		echo "$b()"
+		if [[ ${b:0:1} = '#' ]]; then
+			echo "$b()"
+		else
+			TextBrightOrange "$b()"; echo
+		fi
 	fi
 done
 

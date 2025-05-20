@@ -2435,12 +2435,12 @@ IsVirtualPythonEnv()
 
 	}
 
-IsNotVirtualPythonEnv()
-	{
-
-	! IsVirtualPythonEnv
-
-	}
+#IsNotVirtualPythonEnv()
+# 	{
+#
+# 	! IsVirtualPythonEnv
+#
+# 	}
 
 IsGitApp()
 	{
@@ -2460,12 +2460,12 @@ IsGitApp()
 
 	}
 
-IsNotGitApp()
-	{
-
-	! IsGitApp
-
-	}
+#IsNotGitApp()
+# 	{
+#
+# 	! IsGitApp
+#
+# 	}
 
 IsUsePipCache()
 	{
@@ -2481,12 +2481,12 @@ IsUsePipCache()
 
 	}
 
-IsNotUsePipCache()
-	{
-
-	! IsUsePipCache
-
-	}
+#IsNotUsePipCache()
+# 	{
+#
+# 	! IsUsePipCache
+#
+# 	}
 
 IsOnlineReleasePackage()
 	{
@@ -2502,12 +2502,12 @@ IsOnlineReleasePackage()
 
 	}
 
-IsNotOnlineReleasePackage()
-	{
-
-	! IsOnlineReleasePackage
-
-	}
+#IsNotOnlineReleasePackage()
+# 	{
+#
+# 	! IsOnlineReleasePackage
+#
+# 	}
 
 IsReleaseAnArchive()
 	{
@@ -2523,12 +2523,12 @@ IsReleaseAnArchive()
 
 	}
 
-IsNotReleaseAnArchive()
-	{
-
-	! IsReleaseAnArchive
-
-	}
+#IsNotReleaseAnArchive()
+# 	{
+#
+# 	! IsReleaseAnArchive
+#
+# 	}
 
 IsSupportAutoUpdate()
 	{
@@ -2544,12 +2544,12 @@ IsSupportAutoUpdate()
 
 	}
 
-IsNotSupportAutoUpdate()
-	{
-
-	! IsSupportAutoUpdate
-
-	}
+#IsNotSupportAutoUpdate()
+# 	{
+#
+# 	! IsSupportAutoUpdate
+#
+# 	}
 
 IsSourcedOnline()
 	{
@@ -2579,12 +2579,12 @@ IsUseTemp()
 
 	}
 
-IsNotUseTemp()
-	{
-
-	! IsUseTemp
-
-	}
+#IsNotUseTemp()
+# 	{
+#
+# 	! IsUseTemp
+#
+# 	}
 
 IsSSLEnabled()
 	{
@@ -2600,12 +2600,12 @@ IsSSLEnabled()
 
 	}
 
-IsNotSSLEnabled()
-	{
-
-	! IsSSLEnabled
-
-	}
+#IsNotSSLEnabled()
+# 	{
+#
+# 	! IsSSLEnabled
+#
+# 	}
 
 IsDaemon()
 	{
@@ -2642,12 +2642,12 @@ IsDaemonCheck()
 
 	}
 
-IsNotDaemonCheck()
-	{
-
-	! IsDaemonCheck
-
-	}
+#IsNotDaemonCheck()
+# 	{
+#
+# 	! IsDaemonCheck
+#
+# 	}
 
 CheckDaemonActive()
 	{
@@ -2724,19 +2724,19 @@ IsSysFilePresent()
 
 	}
 
-IsNotSysFilePresent()
-	{
-
-	# Inputs: (local)
-	#   $1 = pathfilename to check.
-
-	# Outputs: (local)
-	#   $? = 0 : true
-	#   $? = 1 : false
-
-	! IsSysFilePresent "${1:?pathfilename null}"
-
-	}
+#IsNotSysFilePresent()
+# 	{
+#
+# 	# Inputs: (local)
+# 	#   $1 = pathfilename to check.
+#
+# 	# Outputs: (local)
+# 	#   $? = 0 : true
+# 	#   $? = 1 : false
+#
+# 	! IsSysFilePresent "${1:?pathfilename null}"
+#
+# 	}
 
 IsPortAvailable()
 	{
@@ -2944,12 +2944,12 @@ IsDefaultConfigFound()
 
 	}
 
-IsNotDefaultConfigFound()
-	{
-
-	! IsDefaultConfigFound
-
-	}
+#IsNotDefaultConfigFound()
+# 	{
+#
+# 	! IsDefaultConfigFound
+#
+# 	}
 
 IsVirtualPythonEnvExist()
 	{
@@ -3300,15 +3300,15 @@ SetServiceResultAsInProgress()
 
 	}
 
-SetServiceResultAsUnsupported()
-	{
-
-	# Selected action isn't supported by this QPKG.
-
-	service_result=unsupported
-	CommitServiceResult
-
-	}
+#SetServiceResultAsUnsupported()
+# 	{
+#
+# 	# Selected action isn't supported by this QPKG.
+#
+# 	service_result=unsupported
+# 	CommitServiceResult
+#
+# 	}
 
 CommitServiceAction()
 	{
@@ -3335,19 +3335,19 @@ SetDaemonWasActive()
 
 	}
 
-UnsetDaemonWasActive()
-	{
+#UnsetDaemonWasActive()
+# 	{
+#
+# 	_daemon_was_active=false
+#
+# 	}
 
-	_daemon_was_active=false
-
-	}
-
-DaemonWasActive()
-	{
-
-	[[ ${_daemon_was_active:=false} = true ]]
-
-	}
+#DaemonWasActive()
+# 	{
+#
+# 	[[ ${_daemon_was_active:=false} = true ]]
+#
+# 	}
 
 DaemonWasNotActive()
 	{
@@ -3363,12 +3363,12 @@ SetStatusGet()
 
 	}
 
-UnsetStatusGet()
-	{
-
-	_get_status_flag=false
-
-	}
+#UnsetStatusGet()
+# 	{
+#
+# 	_get_status_flag=false
+#
+# 	}
 
 IsStatus()
 	{
@@ -3453,12 +3453,12 @@ IsStop()
 
 	}
 
-IsNotStop()
-	{
-
-	! IsStop
-
-	}
+#IsNotStop()
+# 	{
+#
+# 	! IsStop
+#
+# 	}
 
 IsRestart()
 	{
@@ -3509,12 +3509,12 @@ IsClean()
 
 	}
 
-IsNotClean()
-	{
-
-	! IsClean
-
-	}
+#IsNotClean()
+# 	{
+#
+# 	! IsClean
+#
+# 	}
 
 IsBackup()
 	{
@@ -3523,12 +3523,12 @@ IsBackup()
 
 	}
 
-IsNotBackup()
-	{
-
-	! IsBackup
-
-	}
+#IsNotBackup()
+# 	{
+#
+# 	! IsBackup
+#
+# 	}
 
 IsRestore()
 	{
@@ -3537,12 +3537,12 @@ IsRestore()
 
 	}
 
-IsNotRestore()
-	{
-
-	! IsRestore
-
-	}
+#IsNotRestore()
+# 	{
+#
+# 	! IsRestore
+#
+# 	}
 
 IsReset()
 	{
@@ -3551,12 +3551,12 @@ IsReset()
 
 	}
 
-IsNotReset()
-	{
-
-	! IsReset
-
-	}
+#IsNotReset()
+# 	{
+#
+# 	! IsReset
+#
+# 	}
 
 IsUnsupported()
 	{
@@ -3590,12 +3590,12 @@ IsPathEmpty()
 
 	}
 
-IsNotPathEmpty()
-	{
-
-	! IsPathEmpty "${1:-}"
-
-	}
+#IsNotPathEmpty()
+# 	{
+#
+# 	! IsPathEmpty "${1:-}"
+#
+# 	}
 
 ShowAsError()
 	{
@@ -3659,12 +3659,12 @@ FormatAsStdout()
 
 	}
 
-FormatAsResult()
-	{
-
-	Display "result: $(FormatAsExitcode "${1:-}")"
-
-	}
+#FormatAsResult()
+# 	{
+#
+# 	Display "result: $(FormatAsExitcode "${1:-}")"
+#
+# 	}
 
 FormatAsResultAndStdout()
 	{
@@ -3681,14 +3681,14 @@ FormatAsResultAndStdout()
 
 	}
 
-FormatAsFuncMessages()
-	{
-
-	echo "= ${FUNCNAME[1]}()"
-	FormatAsCommand "${1:?command null}"
-	FormatAsStdout "${2:-}"
-
-	}
+#FormatAsFuncMessages()
+# 	{
+#
+# 	echo "= ${FUNCNAME[1]}()"
+# 	FormatAsCommand "${1:?command null}"
+# 	FormatAsStdout "${2:-}"
+#
+# 	}
 
 FormatAsExitcode()
 	{
@@ -4209,7 +4209,7 @@ GetCPUCores()
 
 	}
 
-AddToQPKGPostInstallDeps()
+AddToQPKGPostInstallDeps()			# unused-ignore
 	{
 
 	# Inputs: (local)
