@@ -29,7 +29,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='250514'
+readonly r_service_library_version='250520'
 InitLibrary(){
 IsQNAP ||exit
 debug=${DEBUG_QPKG:=false}
@@ -80,6 +80,7 @@ venv_pip_pathfile=undefined
 venv_python_pathfile=undefined
 allow_access_to_sys_packages=true
 can_restart_to_update=false
+check_network_before_start=false
 compare_release_filename=false
 daemon_pidfile_is_managed_by_app=false
 install_pip_deps=false
@@ -97,11 +98,13 @@ remote_arch=undefined
 source_arch=undefined
 source_git_branch=undefined
 source_git_branch_depth=undefined
+start_retries=0
 ui_listening_address=undefined
 ui_port=0
 ui_port_secure=0
 wait_pid_kill_seconds=10
 wait_pid_start_seconds=10
+watch_interface_up_seconds=180
 watch_pid_kill_seconds=120
 watch_pid_start_seconds=120
 watch_pidfile_start_seconds=60
@@ -138,7 +141,7 @@ return
 fi
 if IsDaemon &&IsNotRestart;then
 IsNotStart &&DaemonWasNotActive &&return
-IsDaemonActive &&return
+CheckDaemonActive &&return
 fi
 IsStart &&ShowQPKGStates
 [[ -e $r_service_screen_log_pathfile ]]&&DisplayRunAndLog 'remove previous screen log' "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
@@ -171,6 +174,9 @@ fi
 EnsureConfigFileExists
 LoadPorts app ||return
 CheckPortsAvailable ||return
+if IsCheckNetworkBeforeStart;then
+WatchForAnyInterfaceUp ||return
+fi
 StartDaemon
 return;}
 StopQPKG(){
@@ -191,7 +197,7 @@ RemoveUserlinkToExec
 return
 fi
 RefreshPidFile
-if IsDaemon &&IsDaemonActive;then
+if IsDaemon &&CheckDaemonActive;then
 SetDaemonWasActive
 StopDaemon
 fi
@@ -206,9 +212,9 @@ StatusQPKGLibrary
 fi;}
 StatusQPKGLibrary(){
 RefreshPidFile
-if IsDaemon &&IsDaemonActive;then
+if IsDaemon &&CheckDaemonActive;then
 LoadPorts app
-CheckPorts ||exit
+WatchForPortsActive ||exit
 else
 exit 1
 fi
@@ -255,6 +261,7 @@ return 0;}
 StartDaemon(){
 local a='start daemon'
 local b=$daemon_launch_cmd
+local -i c=0
 if [[ $run_daemon_in_screen_session = true ]];then
 a+=' (in screen session)'
 rm -f "${r_service_screen_log_pathfile:?}"
@@ -263,23 +270,19 @@ if((nice_daemon_to != 0)) &&((nice_daemon_to>= -20)) &&((nice_daemon_to<= 19)) &
 b="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
 DisplayCommitToLog "- nice daemon to: $nice_daemon_to"
 fi
-if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";then
+while true;do
+if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";CheckDaemonActive;WatchForDaemon;PauseForStartPid) ||! CheckDaemonActive &>/dev/null ||! WatchForPortsActive;then
 [[ $run_daemon_in_screen_session = true ]]&&AddFileToDebug "$r_service_screen_log_pathfile"
+if [[ $c -lt $start_retries ]];then
+((c++))
+DisplayWarnCommitAllLogs "~ retry $c"
+continue
+fi
+DisplayErrCommitAllLogs '! no further retries possible'
 SetError;return 1
 fi
-IsDaemonActive
-WatchForDaemonPid
-WaitForStartPid
-if ! IsDaemonActive;then
-DisplayErrCommitAllLogs 'daemon has failed to start!'
-[[ $run_daemon_in_screen_session = true ]]&&AddFileToDebug "$r_service_screen_log_pathfile"
-SetError;return 1
-fi
-if ! CheckPorts;then
-DisplayErrCommitAllLogs 'port tests failed!'
-[[ $run_daemon_in_screen_session = true ]]&&AddFileToDebug "$r_service_screen_log_pathfile"
-SetError;return 1
-fi
+break
+done
 CommitInfoToSysLog "$a: OK";}
 StopDaemon(){
 [[ -e $daemon_pid_pathfile ]]||return
@@ -310,8 +313,8 @@ CommitToLog "stopped in $c second$(Pluralise "$c")"
 CommitInfoToSysLog "$a: OK"
 break
 done
-WaitForKillPid
-if IsDaemonActive;then
+PauseForKillPid
+if CheckDaemonActive;then
 SetError;return 1
 fi;}
 RefreshReleasePackageFiles(){
@@ -693,7 +696,7 @@ printf '%s' "$a"
 return
 done
 return 1;}
-WaitForStartPid(){
+PauseForStartPid(){
 local -i a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
 local -i i=0
 if [[ $daemon_pidfile_is_managed_by_app = true ]];then
@@ -710,7 +713,7 @@ done
 DisplayCommitToLog 'done'
 fi
 RefreshPidFile ||return;}
-WaitForKillPid(){
+PauseForKillPid(){
 local -i a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
 local -i i=0
 if [[ $recheck_daemon_pid_after_kill = true ]];then
@@ -722,7 +725,33 @@ done
 DisplayCommitToLog 'done'
 fi
 ! RefreshPidFile ||return;}
-WatchForDaemonPid(){
+WatchForAnyInterfaceUp(){
+local -i a=$(CalcAdaptiveSeconds "$watch_interface_up_seconds")
+local -i i=0
+local found_interface=''
+if ! IsAnyInterfaceUp;then
+DisplayWaitCommitToLog "> watch for a network interface to become operational (no-more than $a second$(Pluralise "$a")):"
+(
+for((i=1;i<=a;i++));do
+/bin/sleep 1
+DisplayWait "$i,"
+if IsAnyInterfaceUp;then
+Display OK
+CommitToLog "found in $i second$(Pluralise "$i")"
+true
+exit
+fi
+done
+false
+)
+if [[ $? -ne 0 ]];then
+DisplayErrCommitAllLogs "operational network interface not found! (exceeded timeout: $a second$(Pluralise "$a"))"
+return 1
+fi
+fi
+DisplayCommitToLog "- operational network interface found: '$found_interface'"
+return 0;}
+WatchForDaemon(){
 local -i a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
 local -i i=0
 if [[ ! -e $daemon_pid_pathfile ]];then
@@ -934,7 +963,8 @@ else
 /sbin/setcfg $r_qpkg_name Web_SSL_Port '-2' -f /etc/config/qpkg.conf
 fi
 DisplayCommitToLog OK;}
-CheckPorts(){
+#IsPortsAvailable()
+WatchForPortsActive(){
 local a=''
 DisplayCommitToLog "- daemon listening address: '$ui_listening_address'"
 if [[ $daemon_port -ne 0 ]];then
@@ -960,8 +990,8 @@ a+="HTTP port '$ui_port'"
 fi
 fi
 if [[ -z $a ]];then
-DisplayErrCommitAllLogs 'no response on configured port(s)'
-SetError;return 1
+DisplayWarnCommitAllLogs '! no response on configured port(s)'
+return 1
 else
 ReWriteUIPorts
 return 0
@@ -1020,29 +1050,25 @@ IsQPKGInstalled(){
 IsNotQPKGInstalled(){
 ! IsQPKGInstalled "${1:-$r_qpkg_name}";}
 IsQPKGActive(){
-IsDaemon &&IsDaemonActive;}
-IsNotQPKGActive(){
-! IsNotQPKGActive;}
+IsDaemon &&CheckDaemonActive;}
+#IsNotQPKGActive()
 IsQPKGEnabled(){
 [[ $(Lowercase "$(/sbin/getcfg ${1:-$r_qpkg_name} Enable -d false -f /etc/config/qpkg.conf)") = true ]];}
 IsNotQPKGEnabled(){
 ! IsQPKGEnabled "${1:-$r_qpkg_name}";}
 IsSupportBackup(){
 [[ $qpkg_backup_pathfile != undefined ]];}
-IsNotSupportBackup(){
-! IsSupportBackup;}
+#IsNotSupportBackup()
 IsSupportReset(){
 [[ $qpkg_ini_pathfile != undefined ]];}
 IsNotSupportReset(){
 ! IsSupportReset;}
 IsSupportActions(){
 [[ -e $r_service_action_pathfile ||-e $r_service_result_pathfile ]];}
-IsNotSupportActions(){
-! IsSupportActions;}
+#IsNotSupportActions()
 IsSupportGetAppVersion(){
 [[ $get_app_version_cmd != undefined &&$app_version_pathfile != undefined ]];}
-IsNotSupportGetAppVersion(){
-! IsSupportGetAppVersion;}
+#IsNotSupportGetAppVersion()
 IsVirtualPythonEnv(){
 [[ $venv_path != undefined ]];}
 IsNotVirtualPythonEnv(){
@@ -1087,7 +1113,7 @@ IsDaemonCheck(){
 [[ $daemon_check_pathfile != undefined ]];}
 IsNotDaemonCheck(){
 ! IsDaemonCheck;}
-IsDaemonActive(){
+CheckDaemonActive(){
 if IsDaemonProcessActive;then
 DisplayCommitToLog "- daemon PID: '$(<"$daemon_pid_pathfile")'"
 return 0
@@ -1095,7 +1121,7 @@ fi
 DisplayCommitToLog '- daemon PID: none'
 return 1;}
 IsNotDaemonActive(){
-! IsDaemonActive;}
+! CheckDaemonActive;}
 IsDaemonProcessActive(){
 if [[ -e $daemon_pid_pathfile &&-d /proc/"$(<$daemon_pid_pathfile)" ]];then
 if IsDaemonCheck;then
@@ -1230,6 +1256,29 @@ return 1
 } &>/dev/null
 IsHaveSingleQuote(){
 /bin/grep -q "'"<<<"${1:-}";}
+IsCheckNetworkBeforeStart(){
+[[ $check_network_before_start = true ]];}
+IsInterfaceUp(){
+[[ -n ${1:-} ]]||return
+[[ -n $(/bin/ip a|/bin/sed -rn '/: '"$1"':.*state UP/{N;N;s/.*inet (\S*).*/\1/p}') ]];}
+IsAnyInterfaceUp(){
+local a=''
+found_interface=null
+for a in $(/bin/grep ':' /proc/net/dev|cut -d':' -f1|tr -d ' ');do
+[[ $a != 'lo' ]]||continue
+[[ ! $a =~ 'docker' ]]||continue
+[[ ! $a =~ 'bond' ]]||continue
+[[ ! $a =~ 'dummy' ]]||continue
+[[ ! $a =~ 'lxc' ]]||continue
+[[ ! $a =~ 'lxd' ]]||continue
+if IsInterfaceUp "$a";then
+echo "interface '$a' is operational"
+found_interface=$a
+return
+fi
+done
+return 1
+} &>/dev/null
 RequestLatestReleaseFilename(){
 [[ -n ${1:-} &&${1:-} != undefined ]]||return
 local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"
