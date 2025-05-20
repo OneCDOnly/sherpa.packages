@@ -107,11 +107,13 @@ InitService()
 		interpreter=/opt/bin/python3
 
 		# nice_daemon_to=0											# If non-zero, daemon proc is niced to this value on-launch.
-		nice_daemon_to=-18
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
 		# remote_arch=undefined
+
+		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
+		start_retries=2
 
 		# source_arch=undefined
 

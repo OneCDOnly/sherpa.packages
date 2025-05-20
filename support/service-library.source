@@ -156,6 +156,8 @@ InitLibrary()
 
 		source_git_branch_depth=undefined						# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 
+		start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
+
 		ui_listening_address=undefined
 
 		ui_port=0
@@ -288,6 +290,8 @@ InitLibrary()
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 
+		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
+
 		# ui_listening_address=undefined
 
 		# ui_port=0
@@ -370,7 +374,7 @@ StartQPKG()
 
 	if IsDaemon && IsNotRestart; then
 		IsNotStart && DaemonWasNotActive && return	# Don't start (after running actions like 'backup') if daemon wasn't active before.
-		IsDaemonActive && return					# No-need to check for an active daemon during 'restart' as it has already been killed.
+		CheckDaemonActive && return					# No-need to check for an active daemon during 'restart' as it has already been killed.
 	fi
 
 	IsStart && ShowQPKGStates
@@ -489,7 +493,7 @@ StopQPKGLibrary()
 
 	RefreshPidFile
 
-	if IsDaemon && IsDaemonActive; then
+	if IsDaemon && CheckDaemonActive; then
 		SetDaemonWasActive
 		StopDaemon
 	fi
@@ -520,9 +524,9 @@ StatusQPKGLibrary()
 
 	RefreshPidFile
 
-	if IsDaemon && IsDaemonActive; then
+	if IsDaemon && CheckDaemonActive; then
 		LoadPorts app
-		CheckPorts || exit
+		WatchForPortsActive || exit
 	else
 		exit 1
 	fi
@@ -620,9 +624,11 @@ StartDaemon()
 	#	$nice_daemon_to
 	#	$run_daemon_in_screen_session
 	#	$r_service_screen_log_pathfile
+	#	$start_retries
 
 	local a='start daemon'
 	local b=$daemon_launch_cmd
+	local -i c=0
 
 	if [[ $run_daemon_in_screen_session = true ]]; then
 		a+=' (in screen session)'
@@ -634,29 +640,23 @@ StartDaemon()
 		DisplayCommitToLog "- nice daemon to: $nice_daemon_to"
 	fi
 
-	if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; then
-		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
+	while true; do
+		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; CheckDaemonActive; WatchForDaemon; PauseForStartPid) || ! CheckDaemonActive &>/dev/null || ! WatchForPortsActive; then
+			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
 
-		SetError; return 1
-	fi
+			if [[ $c -lt $start_retries ]]; then
+				((c++))
+				DisplayWarnCommitAllLogs "~ retry $c"
+				continue
+			fi
 
-	IsDaemonActive
-	WatchForDaemonPid
-	WaitForStartPid
+			DisplayErrCommitAllLogs '! no further retries possible'
 
-	if ! IsDaemonActive; then
-		DisplayErrCommitAllLogs 'daemon has failed to start!'
-		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
+			SetError; return 1
+		fi
 
-		SetError; return 1
-	fi
-
-	if ! CheckPorts; then
-		DisplayErrCommitAllLogs 'port tests failed!'
-		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
-
-		SetError; return 1
-	fi
+		break
+	done
 
 	CommitInfoToSysLog "$a: OK"
 
@@ -709,9 +709,9 @@ StopDaemon()
 		break
 	done
 
-	WaitForKillPid
+	PauseForKillPid
 
-	if IsDaemonActive; then
+	if CheckDaemonActive; then
 		SetError; return 1
 	fi
 
@@ -1424,7 +1424,7 @@ FindPid()
 
 	}
 
-WaitForStartPid()
+PauseForStartPid()
 	{
 
 	# Inputs: (global)
@@ -1458,7 +1458,7 @@ WaitForStartPid()
 
 	}
 
-WaitForKillPid()
+PauseForKillPid()
 	{
 
 	# Inputs: (global)
@@ -1529,7 +1529,7 @@ WatchForAnyInterfaceUp()
 
 	}
 
-WatchForDaemonPid()
+WatchForDaemon()
 	{
 
 	# Inputs: (global)
@@ -2021,7 +2021,38 @@ ReWriteUIPorts()
 
 	}
 
-CheckPorts()
+IsPortsAvailable()
+	{
+
+	# Inputs: (global)
+	#	$daemon_port
+	#	$ui_port
+	#	$ui_port_secure
+
+	if [[ $daemon_port -ne 0 ]]; then
+		DisplayCommitToLog "- daemon port: '$daemon_port'"
+		IsPortResponds $daemon_port
+	else
+		if IsSSLEnabled; then
+			IsPortSecureResponds $ui_port_secure
+		else
+			IsPortResponds $ui_port
+		fi
+	fi
+
+
+	if IsDaemonProcessActive; then
+		DisplayCommitToLog "- daemon PID: '$(<"$daemon_pid_pathfile")'"
+		return 0
+	fi
+
+	DisplayCommitToLog '- daemon PID: none'
+	return 1
+
+
+	}
+
+WatchForPortsActive()
 	{
 
 	# Inputs: (global)
@@ -2063,9 +2094,8 @@ CheckPorts()
 	fi
 
 	if [[ -z $a ]]; then
-		DisplayErrCommitAllLogs 'no response on configured port(s)'
-
-		SetError; return 1
+		DisplayWarnCommitAllLogs '! no response on configured port(s)'
+		return 1
 	else
 		ReWriteUIPorts
 		return 0
@@ -2260,7 +2290,7 @@ IsNotQPKGInstalled()
 IsQPKGActive()
 	{
 
-	IsDaemon && IsDaemonActive
+	IsDaemon && CheckDaemonActive
 
 	}
 
@@ -2619,7 +2649,7 @@ IsNotDaemonCheck()
 
 	}
 
-IsDaemonActive()
+CheckDaemonActive()
 	{
 
 	# Inputs: (global)
@@ -2642,7 +2672,7 @@ IsDaemonActive()
 IsNotDaemonActive()
 	{
 
-	! IsDaemonActive
+	! CheckDaemonActive
 
 	}
 
