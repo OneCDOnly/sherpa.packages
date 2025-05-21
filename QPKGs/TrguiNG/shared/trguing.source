@@ -166,7 +166,7 @@ StatusQPKGCustom()
 PreStartQPKGCustom()
 	{
 
-	AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
+	IsQPKGInstalled OTransmission && AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
 	/sbin/setcfg $r_qpkg_name Use TRUE -f /etc/config/qpkg.conf
 
 	}
