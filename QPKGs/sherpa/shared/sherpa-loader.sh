@@ -50,12 +50,12 @@ readonly r_manager_archive_url='https://raw.githubusercontent.com/OneCDOnly/sher
 readonly r_manager_archive_pathfile=$r_work_path/$r_manager_archive_file
 readonly r_manager_pathfile=$r_work_path/$r_manager_file
 local -r r_nas_firmware_ver=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
-[[ ${r_nas_firmware_ver//.} -ge 455 ]]&&curl_insecure_arg='' ||curl_insecure_arg=' --insecure'
+[[ ${r_nas_firmware_ver//.} -ge 455 ]]&&curl_options='' ||curl_options=' --insecure'
 previous_msg=''
 return 0;}
 EnsureFileIsCurrent(){
 if [[ ! -e $1 ]]||! IsThisFileRecent "$1" 60;then
-if ! (/sbin/curl"$curl_insecure_arg" --silent --fail "$2">"$3");then
+if ! (/sbin/curl${curl_options} --silent --fail "$2">"$3");then
 ShowAsWarn 'Remote file download failed'
 else
 /bin/tar --extract --gzip --no-same-owner --file="$3" --directory="$(/usr/bin/dirname "$3")" 2>/dev/null

@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=ClamAV
-readonly r_service_script_version='250514'
+readonly r_service_script_version='250521'
 InitService(){
 qpkg_ini_file=undefined
 qpkg_backup_pathfile=undefined

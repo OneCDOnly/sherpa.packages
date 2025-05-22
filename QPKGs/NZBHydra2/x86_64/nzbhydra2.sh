@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version='250514'
+readonly r_service_script_version='250521'
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -43,6 +43,7 @@ resolve_remote_url=true
 interpreter=/opt/bin/python3
 nice_daemon_to=15
 remote_arch=amd64-linux
+start_retries=3
 remote_url='https://api.github.com/repos/theotherp/nzbhydra2/releases/latest'
 get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile'|/bin/grep main_host=|cut -d\" -f2'
 get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile'|/bin/grep main_port=|cut -d\" -f2'

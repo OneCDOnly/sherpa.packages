@@ -83,6 +83,7 @@ InitService()
 		install_pip_deps=true
 
 		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		recheck_daemon_pid_after_launch=true
 
 		# recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 
@@ -113,11 +114,28 @@ InitService()
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 		source_git_branch_depth=single-branch
 
+		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
+		start_retries=3
+
 		# ui_listening_address=undefined
 
 		# ui_port=0
 
 		# ui_port_secure=0
+
+		# watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
+
+		# wait_pid_kill_seconds=10									# This value is adaptive (increases with system load average).
+
+		# wait_pid_start_seconds=10									# This value is adaptive (increases with system load average).
+
+		# watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
+
+		# watch_pid_start_seconds=120								# This value is adaptive (increases with system load average).
+
+		# watch_pidfile_start_seconds=60							# This value is adaptive (increases with system load average).
+
+		# watch_port_check_seconds=120								# This value is adaptive (increases with system load average).
 
 	# >>> URLs <<<
 

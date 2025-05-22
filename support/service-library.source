@@ -118,6 +118,8 @@ InitLibrary()
 
 		can_restart_to_update=false								# If 'true', application files can be updated by restarting service-script.
 
+		check_network_before_start=false						# If 'true', at-least one network interface must be operational before starting application daemon.
+
 		compare_release_filename=false							# If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
 
 		daemon_pidfile_is_managed_by_app=false
@@ -154,6 +156,8 @@ InitLibrary()
 
 		source_git_branch_depth=undefined						# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 
+		start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
+
 		ui_listening_address=undefined
 
 		ui_port=0
@@ -163,6 +167,8 @@ InitLibrary()
 		wait_pid_kill_seconds=10								# This value is adaptive (increases with system load average).
 
 		wait_pid_start_seconds=10								# This value is adaptive (increases with system load average).
+
+		watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
 
 		watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
 
@@ -246,6 +252,8 @@ InitLibrary()
 
 		# can_restart_to_update=false								# If 'true', application files can be updated by restarting service-script.
 
+		# check_network_before_start=false							# If 'true', at-least one network interface must be operational before starting application daemon.
+
 		# compare_release_filename=false							# If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
 
 		# daemon_pidfile_is_managed_by_app=false
@@ -282,11 +290,15 @@ InitLibrary()
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 
+		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
+
 		# ui_listening_address=undefined
 
 		# ui_port=0
 
 		# ui_port_secure=0
+
+		# watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
 
 		# wait_pid_kill_seconds=10									# This value is adaptive (increases with system load average).
 
@@ -362,7 +374,7 @@ StartQPKG()
 
 	if IsDaemon && IsNotRestart; then
 		IsNotStart && DaemonWasNotActive && return	# Don't start (after running actions like 'backup') if daemon wasn't active before.
-		IsDaemonActive && return					# No-need to check for an active daemon during 'restart' as it has already been killed.
+		CheckDaemonActive && return					# No-need to check for an active daemon during 'restart' as it has already been killed.
 	fi
 
 	IsStart && ShowQPKGStates
@@ -440,6 +452,11 @@ StartQPKGLibrary()
 	EnsureConfigFileExists
 	LoadPorts app || return
 	CheckPortsAvailable || return
+
+	if IsCheckNetworkBeforeStart; then
+		WatchForAnyInterfaceUp || return
+	fi
+
 	StartDaemon
 
 	return
@@ -476,7 +493,7 @@ StopQPKGLibrary()
 
 	RefreshPidFile
 
-	if IsDaemon && IsDaemonActive; then
+	if IsDaemon && CheckDaemonActive; then
 		SetDaemonWasActive
 		StopDaemon
 	fi
@@ -507,9 +524,9 @@ StatusQPKGLibrary()
 
 	RefreshPidFile
 
-	if IsDaemon && IsDaemonActive; then
+	if IsDaemon && CheckDaemonActive; then
 		LoadPorts app
-		CheckPorts || exit
+		WatchForPortsActive || exit
 	else
 		exit 1
 	fi
@@ -607,9 +624,11 @@ StartDaemon()
 	#	$nice_daemon_to
 	#	$run_daemon_in_screen_session
 	#	$r_service_screen_log_pathfile
+	#	$start_retries
 
 	local a='start daemon'
 	local b=$daemon_launch_cmd
+	local -i c=0
 
 	if [[ $run_daemon_in_screen_session = true ]]; then
 		a+=' (in screen session)'
@@ -621,29 +640,23 @@ StartDaemon()
 		DisplayCommitToLog "- nice daemon to: $nice_daemon_to"
 	fi
 
-	if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; then
-		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
+	while true; do
+		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; CheckDaemonActive; WatchForDaemon; PauseForStartPid) || ! CheckDaemonActive &>/dev/null || ! WatchForPortsActive; then
+			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
 
-		SetError; return 1
-	fi
+			if [[ $c -lt $start_retries ]]; then
+				((c++))
+				DisplayWarnCommitAllLogs "~ retry $c"
+				continue
+			fi
 
-	IsDaemonActive
-	WatchForDaemonPid
-	WaitForStartPid
+			DisplayErrCommitAllLogs '! no further retries possible'
 
-	if ! IsDaemonActive; then
-		DisplayErrCommitAllLogs 'daemon has failed to start!'
-		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
+			SetError; return 1
+		fi
 
-		SetError; return 1
-	fi
-
-	if ! CheckPorts; then
-		DisplayErrCommitAllLogs 'port tests failed!'
-		[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
-
-		SetError; return 1
-	fi
+		break
+	done
 
 	CommitInfoToSysLog "$a: OK"
 
@@ -696,9 +709,9 @@ StopDaemon()
 		break
 	done
 
-	WaitForKillPid
+	PauseForKillPid
 
-	if IsDaemonActive; then
+	if CheckDaemonActive; then
 		SetError; return 1
 	fi
 
@@ -1411,7 +1424,7 @@ FindPid()
 
 	}
 
-WaitForStartPid()
+PauseForStartPid()
 	{
 
 	# Inputs: (global)
@@ -1445,7 +1458,7 @@ WaitForStartPid()
 
 	}
 
-WaitForKillPid()
+PauseForKillPid()
 	{
 
 	# Inputs: (global)
@@ -1470,7 +1483,53 @@ WaitForKillPid()
 
 	}
 
-WatchForDaemonPid()
+WatchForAnyInterfaceUp()
+	{
+
+	# Inputs: (global)
+	#	$watch_interface_up_seconds
+
+	# Outputs: (local)
+	#   $? = 0 (network was found) or 1 (network not found: timeout)
+
+	local -i a=$(CalcAdaptiveSeconds "$watch_interface_up_seconds")
+	local -i i=0
+
+	local found_interface=''
+
+	if ! IsAnyInterfaceUp; then
+		DisplayWaitCommitToLog "> watch for a network interface to become operational (no-more than $a second$(Pluralise "$a")):"		# squeezer-ignore
+
+		(
+			for ((i=1; i<=a; i++)); do
+				/bin/sleep 1
+				DisplayWait "$i,"
+
+				if IsAnyInterfaceUp; then
+					Display OK
+					CommitToLog "found in $i second$(Pluralise "$i")"
+					true
+
+					exit	# Only this sub-shell.
+				fi
+			done
+
+			false
+		)
+
+		if [[ $? -ne 0 ]]; then
+			DisplayErrCommitAllLogs "operational network interface not found! (exceeded timeout: $a second$(Pluralise "$a"))"
+			return 1
+		fi
+	fi
+
+	DisplayCommitToLog "- operational network interface found: '$found_interface'"
+
+	return 0
+
+	}
+
+WatchForDaemon()
 	{
 
 	# Inputs: (global)
@@ -1621,7 +1680,7 @@ DisplayRunAndLog()
 	{
 
 	# Run a commandstring with a summarised description, log the results, and show onscreen if-requested.
-	# This function is just a fancy wrapper for Executer()
+	# This function is just a fancy wrapper for Executer()			# unused-ignore
 
 	# Inputs: (local)
 	#   $1 = Processing message.
@@ -1962,7 +2021,38 @@ ReWriteUIPorts()
 
 	}
 
-CheckPorts()
+#IsPortsAvailable()
+# 	{
+#
+# 	# Inputs: (global)
+# 	#	$daemon_port
+# 	#	$ui_port
+# 	#	$ui_port_secure
+#
+# 	if [[ $daemon_port -ne 0 ]]; then
+# 		DisplayCommitToLog "- daemon port: '$daemon_port'"
+# 		IsPortResponds $daemon_port
+# 	else
+# 		if IsSSLEnabled; then
+# 			IsPortSecureResponds $ui_port_secure
+# 		else
+# 			IsPortResponds $ui_port
+# 		fi
+# 	fi
+#
+#
+# 	if IsDaemonProcessActive; then
+# 		DisplayCommitToLog "- daemon PID: '$(<"$daemon_pid_pathfile")'"
+# 		return 0
+# 	fi
+#
+# 	DisplayCommitToLog '- daemon PID: none'
+# 	return 1
+#
+#
+# 	}
+
+WatchForPortsActive()
 	{
 
 	# Inputs: (global)
@@ -2004,9 +2094,8 @@ CheckPorts()
 	fi
 
 	if [[ -z $a ]]; then
-		DisplayErrCommitAllLogs 'no response on configured port(s)'
-
-		SetError; return 1
+		DisplayWarnCommitAllLogs '! no response on configured port(s)'
+		return 1
 	else
 		ReWriteUIPorts
 		return 0
@@ -2119,7 +2208,7 @@ GetModulePath()
 
 	}
 
-parse_yaml()
+parse_yaml()		# unused-ignore
 	{
 
 	# a nice bit of coding! https://stackoverflow.com/a/21189044
@@ -2201,16 +2290,16 @@ IsNotQPKGInstalled()
 IsQPKGActive()
 	{
 
-	IsDaemon && IsDaemonActive
+	IsDaemon && CheckDaemonActive
 
 	}
 
-IsNotQPKGActive()
-	{
-
-	! IsNotQPKGActive
-
-	}
+#IsNotQPKGActive()
+# 	{
+#
+# 	! IsQPKGActive
+#
+# 	}
 
 IsQPKGEnabled()
 	{
@@ -2260,12 +2349,12 @@ IsSupportBackup()
 
 	}
 
-IsNotSupportBackup()
-	{
-
-	! IsSupportBackup
-
-	}
+#IsNotSupportBackup()
+# 	{
+#
+# 	! IsSupportBackup
+#
+# 	}
 
 IsSupportReset()
 	{
@@ -2303,12 +2392,12 @@ IsSupportActions()
 
 	}
 
-IsNotSupportActions()
-	{
-
-	! IsSupportActions
-
-	}
+#IsNotSupportActions()
+# 	{
+#
+# 	! IsSupportActions
+#
+# 	}
 
 IsSupportGetAppVersion()
 	{
@@ -2325,12 +2414,12 @@ IsSupportGetAppVersion()
 
 	}
 
-IsNotSupportGetAppVersion()
-	{
-
-	! IsSupportGetAppVersion
-
-	}
+#IsNotSupportGetAppVersion()
+# 	{
+#
+# 	! IsSupportGetAppVersion
+#
+# 	}
 
 IsVirtualPythonEnv()
 	{
@@ -2346,12 +2435,12 @@ IsVirtualPythonEnv()
 
 	}
 
-IsNotVirtualPythonEnv()
-	{
-
-	! IsVirtualPythonEnv
-
-	}
+#IsNotVirtualPythonEnv()
+# 	{
+#
+# 	! IsVirtualPythonEnv
+#
+# 	}
 
 IsGitApp()
 	{
@@ -2371,12 +2460,12 @@ IsGitApp()
 
 	}
 
-IsNotGitApp()
-	{
-
-	! IsGitApp
-
-	}
+#IsNotGitApp()
+# 	{
+#
+# 	! IsGitApp
+#
+# 	}
 
 IsUsePipCache()
 	{
@@ -2392,12 +2481,12 @@ IsUsePipCache()
 
 	}
 
-IsNotUsePipCache()
-	{
-
-	! IsUsePipCache
-
-	}
+#IsNotUsePipCache()
+# 	{
+#
+# 	! IsUsePipCache
+#
+# 	}
 
 IsOnlineReleasePackage()
 	{
@@ -2413,12 +2502,12 @@ IsOnlineReleasePackage()
 
 	}
 
-IsNotOnlineReleasePackage()
-	{
-
-	! IsOnlineReleasePackage
-
-	}
+#IsNotOnlineReleasePackage()
+# 	{
+#
+# 	! IsOnlineReleasePackage
+#
+# 	}
 
 IsReleaseAnArchive()
 	{
@@ -2434,12 +2523,12 @@ IsReleaseAnArchive()
 
 	}
 
-IsNotReleaseAnArchive()
-	{
-
-	! IsReleaseAnArchive
-
-	}
+#IsNotReleaseAnArchive()
+# 	{
+#
+# 	! IsReleaseAnArchive
+#
+# 	}
 
 IsSupportAutoUpdate()
 	{
@@ -2455,12 +2544,12 @@ IsSupportAutoUpdate()
 
 	}
 
-IsNotSupportAutoUpdate()
-	{
-
-	! IsSupportAutoUpdate
-
-	}
+#IsNotSupportAutoUpdate()
+# 	{
+#
+# 	! IsSupportAutoUpdate
+#
+# 	}
 
 IsSourcedOnline()
 	{
@@ -2490,12 +2579,12 @@ IsUseTemp()
 
 	}
 
-IsNotUseTemp()
-	{
-
-	! IsUseTemp
-
-	}
+#IsNotUseTemp()
+# 	{
+#
+# 	! IsUseTemp
+#
+# 	}
 
 IsSSLEnabled()
 	{
@@ -2511,12 +2600,12 @@ IsSSLEnabled()
 
 	}
 
-IsNotSSLEnabled()
-	{
-
-	! IsSSLEnabled
-
-	}
+#IsNotSSLEnabled()
+# 	{
+#
+# 	! IsSSLEnabled
+#
+# 	}
 
 IsDaemon()
 	{
@@ -2553,14 +2642,14 @@ IsDaemonCheck()
 
 	}
 
-IsNotDaemonCheck()
-	{
+#IsNotDaemonCheck()
+# 	{
+#
+# 	! IsDaemonCheck
+#
+# 	}
 
-	! IsDaemonCheck
-
-	}
-
-IsDaemonActive()
+CheckDaemonActive()
 	{
 
 	# Inputs: (global)
@@ -2583,7 +2672,7 @@ IsDaemonActive()
 IsNotDaemonActive()
 	{
 
-	! IsDaemonActive
+	! CheckDaemonActive
 
 	}
 
@@ -2635,19 +2724,19 @@ IsSysFilePresent()
 
 	}
 
-IsNotSysFilePresent()
-	{
-
-	# Inputs: (local)
-	#   $1 = pathfilename to check.
-
-	# Outputs: (local)
-	#   $? = 0 : true
-	#   $? = 1 : false
-
-	! IsSysFilePresent "${1:?pathfilename null}"
-
-	}
+#IsNotSysFilePresent()
+# 	{
+#
+# 	# Inputs: (local)
+# 	#   $1 = pathfilename to check.
+#
+# 	# Outputs: (local)
+# 	#   $? = 0 : true
+# 	#   $? = 1 : false
+#
+# 	! IsSysFilePresent "${1:?pathfilename null}"
+#
+# 	}
 
 IsPortAvailable()
 	{
@@ -2855,12 +2944,12 @@ IsDefaultConfigFound()
 
 	}
 
-IsNotDefaultConfigFound()
-	{
-
-	! IsDefaultConfigFound
-
-	}
+#IsNotDefaultConfigFound()
+# 	{
+#
+# 	! IsDefaultConfigFound
+#
+# 	}
 
 IsVirtualPythonEnvExist()
 	{
@@ -2941,6 +3030,52 @@ IsHaveSingleQuote()
 	/bin/grep -q "'" <<<"${1:-}"
 
 	}
+
+IsCheckNetworkBeforeStart()
+	{
+
+	[[ $check_network_before_start = true ]]
+
+	}
+
+IsInterfaceUp()
+	{
+
+	# Inputs: (local)
+	#	$1 = interface name to check.
+
+	# Outputs: (local)
+	#	$? = true if $1 is up, false if not.
+
+	[[ -n ${1:-} ]] || return
+	[[ -n $(/bin/ip a | /bin/sed -rn '/: '"$1"':.*state UP/{N;N;s/.*inet (\S*).*/\1/p}') ]] 	# https://unix.stackexchange.com/a/121525
+
+	}
+
+IsAnyInterfaceUp()
+	{
+
+	local a=''
+	found_interface=null
+
+	for a in $(/bin/grep ':' /proc/net/dev | cut -d':' -f1 | tr -d ' '); do
+		[[ $a != 'lo' ]] || continue
+		[[ ! $a =~ 'docker' ]] || continue
+		[[ ! $a =~ 'bond' ]] || continue
+		[[ ! $a =~ 'dummy' ]] || continue
+		[[ ! $a =~ 'lxc' ]] || continue
+		[[ ! $a =~ 'lxd' ]] || continue
+
+		if IsInterfaceUp "$a"; then
+			echo "interface '$a' is operational"
+			found_interface=$a
+			return
+		fi
+	done
+
+	return 1
+
+	} &>/dev/null
 
 RequestLatestReleaseFilename()
 	{
@@ -3165,15 +3300,15 @@ SetServiceResultAsInProgress()
 
 	}
 
-SetServiceResultAsUnsupported()
-	{
-
-	# Selected action isn't supported by this QPKG.
-
-	service_result=unsupported
-	CommitServiceResult
-
-	}
+#SetServiceResultAsUnsupported()
+# 	{
+#
+# 	# Selected action isn't supported by this QPKG.
+#
+# 	service_result=unsupported
+# 	CommitServiceResult
+#
+# 	}
 
 CommitServiceAction()
 	{
@@ -3200,19 +3335,19 @@ SetDaemonWasActive()
 
 	}
 
-UnsetDaemonWasActive()
-	{
+#UnsetDaemonWasActive()
+# 	{
+#
+# 	_daemon_was_active=false
+#
+# 	}
 
-	_daemon_was_active=false
-
-	}
-
-DaemonWasActive()
-	{
-
-	[[ ${_daemon_was_active:=false} = true ]]
-
-	}
+#DaemonWasActive()
+# 	{
+#
+# 	[[ ${_daemon_was_active:=false} = true ]]
+#
+# 	}
 
 DaemonWasNotActive()
 	{
@@ -3228,12 +3363,12 @@ SetStatusGet()
 
 	}
 
-UnsetStatusGet()
-	{
-
-	_get_status_flag=false
-
-	}
+#UnsetStatusGet()
+# 	{
+#
+# 	_get_status_flag=false
+#
+# 	}
 
 IsStatus()
 	{
@@ -3318,12 +3453,12 @@ IsStop()
 
 	}
 
-IsNotStop()
-	{
-
-	! IsStop
-
-	}
+#IsNotStop()
+# 	{
+#
+# 	! IsStop
+#
+# 	}
 
 IsRestart()
 	{
@@ -3374,12 +3509,12 @@ IsClean()
 
 	}
 
-IsNotClean()
-	{
-
-	! IsClean
-
-	}
+#IsNotClean()
+# 	{
+#
+# 	! IsClean
+#
+# 	}
 
 IsBackup()
 	{
@@ -3388,12 +3523,12 @@ IsBackup()
 
 	}
 
-IsNotBackup()
-	{
-
-	! IsBackup
-
-	}
+#IsNotBackup()
+# 	{
+#
+# 	! IsBackup
+#
+# 	}
 
 IsRestore()
 	{
@@ -3402,12 +3537,12 @@ IsRestore()
 
 	}
 
-IsNotRestore()
-	{
-
-	! IsRestore
-
-	}
+#IsNotRestore()
+# 	{
+#
+# 	! IsRestore
+#
+# 	}
 
 IsReset()
 	{
@@ -3416,12 +3551,12 @@ IsReset()
 
 	}
 
-IsNotReset()
-	{
-
-	! IsReset
-
-	}
+#IsNotReset()
+# 	{
+#
+# 	! IsReset
+#
+# 	}
 
 IsUnsupported()
 	{
@@ -3455,12 +3590,12 @@ IsPathEmpty()
 
 	}
 
-IsNotPathEmpty()
-	{
-
-	! IsPathEmpty "${1:-}"
-
-	}
+#IsNotPathEmpty()
+# 	{
+#
+# 	! IsPathEmpty "${1:-}"
+#
+# 	}
 
 ShowAsError()
 	{
@@ -3524,12 +3659,12 @@ FormatAsStdout()
 
 	}
 
-FormatAsResult()
-	{
-
-	Display "result: $(FormatAsExitcode "${1:-}")"
-
-	}
+#FormatAsResult()
+# 	{
+#
+# 	Display "result: $(FormatAsExitcode "${1:-}")"
+#
+# 	}
 
 FormatAsResultAndStdout()
 	{
@@ -3546,14 +3681,14 @@ FormatAsResultAndStdout()
 
 	}
 
-FormatAsFuncMessages()
-	{
-
-	echo "= ${FUNCNAME[1]}()"
-	FormatAsCommand "${1:?command null}"
-	FormatAsStdout "${2:-}"
-
-	}
+#FormatAsFuncMessages()
+# 	{
+#
+# 	echo "= ${FUNCNAME[1]}()"
+# 	FormatAsCommand "${1:?command null}"
+# 	FormatAsStdout "${2:-}"
+#
+# 	}
 
 FormatAsExitcode()
 	{
@@ -4074,7 +4209,7 @@ GetCPUCores()
 
 	}
 
-AddToQPKGPostInstallDeps()
+AddToQPKGPostInstallDeps()			# unused-ignore
 	{
 
 	# Inputs: (local)
@@ -4217,7 +4352,7 @@ CaughtEXIT()
 
 	}
 
-ProcessArgs()
+ProcessArgs()		# unused-ignore.
 	{
 
 	if IsGitApp; then

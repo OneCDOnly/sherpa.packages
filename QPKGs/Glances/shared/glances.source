@@ -80,6 +80,8 @@ InitService()
 		# can_restart_to_update=false								# If 'true', application can be updated by restarting service-script.
 		can_restart_to_update=true
 
+		# check_network_before_start=false							# If 'true', at-least one network interface must be operational before starting application daemon.
+
 		# daemon_pidfile_is_managed_by_app=false
 
 		# install_pip_deps=false
@@ -88,6 +90,7 @@ InitService()
 		recheck_daemon_pid_after_kill=true
 
 		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		recheck_daemon_pid_after_launch=true
 
 		# resolve_remote_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
@@ -104,7 +107,6 @@ InitService()
 		interpreter=/opt/bin/python3
 
 		# nice_daemon_to=0											# If non-zero, daemon proc is niced to this value on-launch.
-		nice_daemon_to=-18
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
@@ -115,6 +117,9 @@ InitService()
 		# source_git_branch=undefined
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
+		start_retries=3
 
 		# ui_listening_address=undefined
 		ui_listening_address=0.0.0.0

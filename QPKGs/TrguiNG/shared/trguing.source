@@ -106,6 +106,9 @@ InitService()
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 
+		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
+		start_retries=3
+
 		# ui_listening_address=undefined
 
 		# ui_port=0
@@ -163,7 +166,7 @@ StatusQPKGCustom()
 PreStartQPKGCustom()
 	{
 
-	AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
+	IsQPKGInstalled OTransmission && AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
 	/sbin/setcfg $r_qpkg_name Use TRUE -f /etc/config/qpkg.conf
 
 	}
