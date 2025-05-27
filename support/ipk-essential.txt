@@ -4,12 +4,10 @@ coreutils-nice
 coreutils-sleep
 coreutils-stty
 coreutils-timeout
-findutils
 gawk
 gcc
 git
 git-http
-grep
 less
 nano
 sed
