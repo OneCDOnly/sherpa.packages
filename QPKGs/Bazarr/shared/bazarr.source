@@ -84,6 +84,7 @@ InitService()
 		# install_pip_deps=false
 
 		# recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		recheck_daemon_pid_after_kill=true
 
 		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 
