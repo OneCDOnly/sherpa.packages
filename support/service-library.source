@@ -368,7 +368,7 @@ StartQPKG()
 
 # 	MigrateQPKGName
 
-	if IsReinstall || IsUpgrade; then		# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade/reinstall is 'start', but probably better to see the upgrade/reinstall result instead).
+	if IsReinstall || IsUpgrade; then					# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade/reinstall is 'start', but probably better to see the upgrade/reinstall result instead).
 		return
 	fi
 
