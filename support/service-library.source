@@ -2266,9 +2266,9 @@ IsQPKGInstalled()
 	#   $? = 0 : true
 	#   $? = 1 : false
 
-	/bin/grep -q "^\[${1:-$r_qpkg_name}\]" /etc/config/qpkg.conf
+	/bin/grep "^\[${1:-$r_qpkg_name}\]" /etc/config/qpkg.conf
 
-	}
+	} &> /dev/null
 
 IsNotQPKGInstalled()
 	{
@@ -3027,9 +3027,9 @@ IsHaveSingleQuote()
 	#	$? = true if $1 contains a single quote.
 	#	$? = false if $1 does not contain a single quote.
 
-	/bin/grep -q "'" <<<"${1:-}"
+	/bin/grep "'" <<<"${1:-}"
 
-	}
+	} &> /dev/null
 
 IsCheckNetworkBeforeStart()
 	{
