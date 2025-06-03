@@ -3027,7 +3027,7 @@ IsHaveSingleQuote()
 	#	$? = true if $1 contains a single quote.
 	#	$? = false if $1 does not contain a single quote.
 
-	/bin/grep "'" <<<"${1:-}"
+	/bin/grep "'" <<< "${1:-}"
 
 	} &> /dev/null
 

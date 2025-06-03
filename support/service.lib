@@ -29,7 +29,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='250521'
+readonly r_service_library_version='250603'
 InitLibrary(){
 IsQNAP ||exit
 debug=${DEBUG_QPKG:=false}
@@ -1046,7 +1046,8 @@ SetError;return 1
 fi
 return 0;}
 IsQPKGInstalled(){
-/bin/grep -q "^\[${1:-$r_qpkg_name}\]" /etc/config/qpkg.conf;}
+/bin/grep "^\[${1:-$r_qpkg_name}\]" /etc/config/qpkg.conf
+} &>/dev/null
 IsNotQPKGInstalled(){
 ! IsQPKGInstalled "${1:-$r_qpkg_name}";}
 IsQPKGActive(){
@@ -1244,7 +1245,8 @@ done
 return 1
 } &>/dev/null
 IsHaveSingleQuote(){
-/bin/grep -q "'"<<<"${1:-}";}
+/bin/grep "'"<<<"${1:-}"
+} &>/dev/null
 IsCheckNetworkBeforeStart(){
 [[ $check_network_before_start = true ]];}
 IsInterfaceUp(){
