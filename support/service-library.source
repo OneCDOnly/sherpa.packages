@@ -636,7 +636,7 @@ StartDaemon()
 	fi
 
 	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
-		b="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
+		b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 		DisplayCommitToLog "- nice daemon to: $nice_daemon_to"
 	fi
 
@@ -1769,7 +1769,7 @@ Executer()
 
 	if [[ $run_in_screen = true ]]; then
 		FormatAsCommand "$1" >> "$r_service_screen_log_pathfile"
-		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" bash -c "$1"
+		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 		z=$?
 	elif [[ $debug = true ]]; then
 		eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"	# NOTE: 'tee' buffers stdout here.				# squeezer-ignore
@@ -2266,9 +2266,10 @@ IsQPKGInstalled()
 	#   $? = 0 : true
 	#   $? = 1 : false
 
-	/bin/grep "^\[${1:-$r_qpkg_name}\]" /etc/config/qpkg.conf
+	# shellcheck disable=2076
+	[[ "$(< /etc/config/qpkg.conf)" =~ "[${1:-$r_qpkg_name}]" ]]
 
-	} &> /dev/null
+	}
 
 IsNotQPKGInstalled()
 	{
