@@ -348,7 +348,7 @@ InitLibrary()
 	EnsureConfigFileExists
 	GetAppVersion
 	DisableOpkgDaemonStart
-	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate >/dev/null
+	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate > /dev/null
 
 	# KLUDGE: delete existing `screen.conf` so it's rewritten with new log location.
 	# see https://github.com/OneCDOnly/sherpa/discussions/301 for more information.
@@ -368,7 +368,7 @@ StartQPKG()
 
 # 	MigrateQPKGName
 
-	if IsReinstall || IsUpgrade; then		# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade/reinstall is 'start', but probably better to see the upgrade/reinstall result instead).
+	if IsReinstall || IsUpgrade; then					# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade/reinstall is 'start', but probably better to see the upgrade/reinstall result instead).
 		return
 	fi
 
@@ -636,12 +636,12 @@ StartDaemon()
 	fi
 
 	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
-		b="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
+		b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 		DisplayCommitToLog "- nice daemon to: $nice_daemon_to"
 	fi
 
 	while true; do
-		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; CheckDaemonActive; WatchForDaemon; PauseForStartPid) || ! CheckDaemonActive &>/dev/null || ! WatchForPortsActive; then
+		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; CheckDaemonActive; WatchForDaemon; PauseForStartPid) || ! CheckDaemonActive &> /dev/null || ! WatchForPortsActive; then
 			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
 
 			if [[ $c -lt $start_retries ]]; then
@@ -674,7 +674,7 @@ StopDaemon()
 	local a='stop daemon'
 	local -i b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
 	local -i c=0
-	local -i d=$(<$daemon_pid_pathfile)
+	local -i d=$(< $daemon_pid_pathfile)
 
 	[[ $d -gt 1 ]] || return
 
@@ -969,7 +969,7 @@ InstallPythonPackages()
 	# If not, `pip` will attempt to compile these, which fails on various arches.
 
 	if [[ -e $excluded_modules_pathfile ]]; then
-		module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$excluded_modules_pathfile")")")
+		module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(< "$excluded_modules_pathfile")")")
 		module_exclusions=${module_exclusions%* }
 
 		if [[ -n $module_exclusions ]]; then
@@ -1012,7 +1012,7 @@ InstallPythonPackages()
 	# KLUDGE: `manytolinux2014` builds are problematic in QTS, so rename these locally.
 
 	if [[ -e $rename_modules_pathfile ]]; then
-		for a in $(StripComments "$(<"$rename_modules_pathfile")"); do
+		for a in $(StripComments "$(< "$rename_modules_pathfile")"); do
 			RenameSharedObjectFile "$a"
 		done
 	fi
@@ -1020,13 +1020,13 @@ InstallPythonPackages()
 	if IsSupportGetAppVersion; then
 		GetAppVersion
 
-		if [[ $new_env = false && -e $r_appl_version_store_pathfile && $(<"$r_appl_version_store_pathfile") != "$app_version" ]]; then
+		if [[ $new_env = false && -e $r_appl_version_store_pathfile && $(< "$r_appl_version_store_pathfile") != "$app_version" ]]; then
 			# Remove existing .pyc files to prevent runtime errors
 			DisplayRunAndLog 'clean Python bytecode files' "/opt/bin/find $qpkg_repo_path -type d -name '__pycache__' -print0 | xargs -I {} -0 rm -rf '{}'
 " log:failure-only
 		fi
 
-		if [[ ! -e $r_appl_version_store_pathfile || $(<"$r_appl_version_store_pathfile") != "$app_version" ]]; then
+		if [[ ! -e $r_appl_version_store_pathfile || $(< "$r_appl_version_store_pathfile") != "$app_version" ]]; then
 			# Generate language translations.
 			DisplayRunAndLog 'generate language translations' "cd $qpkg_repo_path; $venv_python_pathfile $qpkg_repo_path/tools/make_mo.py" log:failure-only
 		fi
@@ -1373,7 +1373,7 @@ RefreshPidFile()
 
 	local -i a=0
 
-	if [[ -e $daemon_pid_pathfile && ! -d /proc/"$(<$daemon_pid_pathfile)" ]]; then
+	if [[ -e $daemon_pid_pathfile && ! -d /proc/"$(< $daemon_pid_pathfile)" ]]; then
 		rm -f "$daemon_pid_pathfile"
 	fi
 
@@ -1769,7 +1769,7 @@ Executer()
 
 	if [[ $run_in_screen = true ]]; then
 		FormatAsCommand "$1" >> "$r_service_screen_log_pathfile"
-		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" bash -c "$1"
+		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 		z=$?
 	elif [[ $debug = true ]]; then
 		eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"	# NOTE: 'tee' buffers stdout here.				# squeezer-ignore
@@ -1780,7 +1780,7 @@ Executer()
 	fi
 
 	if [[ -e $r_log_pathfile ]]; then
-		FormatAsResultAndStdout "$z" "$(<"$r_log_pathfile")" >> "$2"
+		FormatAsResultAndStdout "$z" "$(< "$r_log_pathfile")" >> "$2"
 	else
 		FormatAsResultAndStdout "$z" '<null>' >> "$2"
 	fi
@@ -2042,7 +2042,7 @@ ReWriteUIPorts()
 #
 #
 # 	if IsDaemonProcessActive; then
-# 		DisplayCommitToLog "- daemon PID: '$(<"$daemon_pid_pathfile")'"
+# 		DisplayCommitToLog "- daemon PID: '$(< "$daemon_pid_pathfile")'"
 # 		return 0
 # 	fi
 #
@@ -2108,7 +2108,7 @@ GetPythonVer()
 
 	local a=''
 
-	a=$(GetThisBinPath ${1:-python} &>/dev/null && ${1:-python} -V 2>&1 | /bin/sed 's|^Python ||;s|\.||g')
+	a=$(GetThisBinPath ${1:-python} &> /dev/null && ${1:-python} -V 2>&1 | /bin/sed 's|^Python ||;s|\.||g')
 
 	[[ -n $a ]] && echo "${a:0:3}"
 
@@ -2266,7 +2266,8 @@ IsQPKGInstalled()
 	#   $? = 0 : true
 	#   $? = 1 : false
 
-	/bin/grep -q "^\[${1:-$r_qpkg_name}\]" /etc/config/qpkg.conf
+	# shellcheck disable=2076
+	[[ "$(< /etc/config/qpkg.conf)" =~ "[${1:-$r_qpkg_name}]" ]]
 
 	}
 
@@ -2660,7 +2661,7 @@ CheckDaemonActive()
 	# 	$? = 1 : daemon is not in memory
 
 	if IsDaemonProcessActive; then
-		DisplayCommitToLog "- daemon PID: '$(<"$daemon_pid_pathfile")'"
+		DisplayCommitToLog "- daemon PID: '$(< "$daemon_pid_pathfile")'"
 		return 0
 	fi
 
@@ -2688,11 +2689,11 @@ IsDaemonProcessActive()
 	#   $? = 0 : $daemon_exec_pathfile is in memory
 	#   $? = 1 : $daemon_exec_pathfile is not in memory
 
-	if [[ -e $daemon_pid_pathfile && -d /proc/"$(<$daemon_pid_pathfile)" ]]; then
+	if [[ -e $daemon_pid_pathfile && -d /proc/"$(< $daemon_pid_pathfile)" ]]; then
 		if IsDaemonCheck; then
-			[[ $(/usr/bin/readlink /proc/"$(<$daemon_pid_pathfile)"/exe) = "$daemon_check_pathfile" ]]
+			[[ $(/usr/bin/readlink /proc/"$(< $daemon_pid_pathfile)"/exe) = "$daemon_check_pathfile" ]]
 		else
-			[[ $(</proc/"$(<$daemon_pid_pathfile)"/cmdline) =~ $daemon_exec_pathfile ]]
+			[[ $(</proc/"$(< $daemon_pid_pathfile)"/cmdline) =~ $daemon_exec_pathfile ]]
 		fi
 	else
 		false
@@ -2751,7 +2752,7 @@ IsPortAvailable()
 	local port=${1//[!0-9]/}			# Strip all non-numerals.
 	[[ -n $port && $port -gt 0 ]] || return 0
 
-	/usr/sbin/lsof -i :"$port" -sTCP:LISTEN >/dev/null 2>&1 && return 1
+	/usr/sbin/lsof -i :"$port" -sTCP:LISTEN > /dev/null 2>&1 && return 1
 
 	return 0
 
@@ -2804,7 +2805,7 @@ IsPortResponds()
 			break
 		fi
 
-		/sbin/curl --silent --fail --max-time 1 http://localhost:"$a" &>/dev/null
+		/sbin/curl --silent --fail --max-time 1 http://localhost:"$a" &> /dev/null
 
 		case $? in
 			0|22|52)	# Accept these exitcodes as evidence of valid responses.
@@ -2869,7 +2870,7 @@ IsPortSecureResponds()
 			break
 		fi
 
-		/sbin/curl --silent --insecure --fail --max-time 1 https://localhost:"$a" &>/dev/null
+		/sbin/curl --silent --insecure --fail --max-time 1 https://localhost:"$a" &> /dev/null
 
 		case $? in
 			0|22|52)	# Accept these exitcodes as evidence of valid responses.
@@ -3015,7 +3016,7 @@ IsSiteUp()
 
 	return 1
 
-	} &>/dev/null
+	} &> /dev/null
 
 IsHaveSingleQuote()
 	{
@@ -3027,9 +3028,9 @@ IsHaveSingleQuote()
 	#	$? = true if $1 contains a single quote.
 	#	$? = false if $1 does not contain a single quote.
 
-	/bin/grep -q "'" <<<"${1:-}"
+	/bin/grep "'" <<< "${1:-}"
 
-	}
+	} &> /dev/null
 
 IsCheckNetworkBeforeStart()
 	{
@@ -3075,7 +3076,7 @@ IsAnyInterfaceUp()
 
 	return 1
 
-	} &>/dev/null
+	} &> /dev/null
 
 RequestLatestReleaseFilename()
 	{
@@ -3104,7 +3105,7 @@ RequestLatestReleaseFilename()
 
 	printf '%s' "$b"
 
-	} 2>/dev/null
+	} 2> /dev/null
 
 RequestLatestReleaseURL()
 	{
@@ -3130,7 +3131,7 @@ RequestLatestReleaseURL()
 
 	printf '%s' "$b"
 
-	} 2>/dev/null
+	} 2> /dev/null
 
 DownloadReleasePackage()
 	{
@@ -3200,7 +3201,7 @@ ExtractReleasePackage()
 		unzip_opts="$unzip_verbose -o $release_package_pathfile -d $qpkg_repo_path"
 
 		# Try as '.zip' first, then '.tar.gz'
-		DisplayRunAndLog 'extract from release package' "/usr/bin/unzip${unzip_opts} 2>/dev/null || /bin/tar${tar_opts}" log:failure-only
+		DisplayRunAndLog 'extract from release package' "/usr/bin/unzip${unzip_opts} 2> /dev/null || /bin/tar${tar_opts}" log:failure-only
 
 		if [[ $compare_release_filename = true && -n $release_package_name_ref_pathfilename ]]; then
 			if [[ ! -e $release_package_name_ref_pathfilename ]]; then
@@ -3586,7 +3587,7 @@ IsPathEmpty()
 
 	[[ -n $a && -d $a ]] || return
 
-	rmdir "$a" &>/dev/null && mkdir "$a"
+	rmdir "$a" &> /dev/null && mkdir "$a"
 
 	}
 
@@ -3852,42 +3853,42 @@ TextBrightWhite()
 
 	printf '\033[1;97m%s\033[0m' "${1:-}"
 
-	} 2>/dev/null
+	} 2> /dev/null
 
 TextBrightRed()
 	{
 
 	printf '\033[1;31m%s\033[0m' "${1:-}"
 
-	} 2>/dev/null
+	} 2> /dev/null
 
 TextBlackOnGreen()
 	{
 
 	printf '\033[30;42m%s\033[0m' "${1:-}"
 
-	} 2>/dev/null
+	} 2> /dev/null
 
 TextBlackOnRed()
 	{
 
 	printf '\033[30;41m%s\033[0m' "${1:-}"
 
-	} 2>/dev/null
+	} 2> /dev/null
 
 TextBlackOnYellow()
 	{
 
 	printf '\033[30;43m%s\033[0m' "${1:-}"
 
-	} 2>/dev/null
+	} 2> /dev/null
 
 TextInverse()
 	{
 
 	printf '\033[7m%s\033[0m' "${1:-}"
 
-	} 2>/dev/null
+	} 2> /dev/null
 
 Pluralise()
 	{
@@ -4054,7 +4055,7 @@ FormatSecsToHoursMinutesSecs()
 
 	printf '%01dh:%02dm:%02ds\n' "$h" "$m" "$s"
 
-	} 2>/dev/null
+	} 2> /dev/null
 
 IsAutoUpdateMissing()
 	{
@@ -4132,7 +4133,7 @@ GetPathGitBranch()
 
 	/opt/bin/git -C "$1" branch | /bin/grep '^\*' | /bin/sed 's|^\* ||'
 
-	} 2>/dev/null
+	} 2> /dev/null
 
 IsSU()
 	{

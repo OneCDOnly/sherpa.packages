@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OTransmission
-readonly r_service_script_version='250521'
+readonly r_service_script_version='250611'
 InitService(){
 qpkg_ini_file=settings.json
 daemon_exec_pathfile=/opt/bin/transmission-daemon

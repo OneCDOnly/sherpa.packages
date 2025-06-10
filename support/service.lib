@@ -29,7 +29,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='250521'
+readonly r_service_library_version='250611'
 InitLibrary(){
 IsQNAP ||exit
 debug=${DEBUG_QPKG:=false}
@@ -267,7 +267,7 @@ a+=' (in screen session)'
 rm -f "${r_service_screen_log_pathfile:?}"
 fi
 if((nice_daemon_to != 0)) &&((nice_daemon_to>= -20)) &&((nice_daemon_to<= 19)) &&[[ -e /opt/bin/nice ]];then
-b="/opt/bin/nice -n $nice_daemon_to bash -c \"$daemon_launch_cmd\""
+b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 DisplayCommitToLog "- nice daemon to: $nice_daemon_to"
 fi
 while true;do
@@ -873,7 +873,7 @@ Display "$exec_msg"
 fi
 if [[ $run_in_screen = true ]];then
 FormatAsCommand "$1">>"$r_service_screen_log_pathfile"
-/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" bash -c "$1"
+/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 z=$?
 elif [[ $debug = true ]];then
 eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"
@@ -1046,7 +1046,7 @@ SetError;return 1
 fi
 return 0;}
 IsQPKGInstalled(){
-/bin/grep -q "^\[${1:-$r_qpkg_name}\]" /etc/config/qpkg.conf;}
+[[ "$(</etc/config/qpkg.conf)" =~ "[${1:-$r_qpkg_name}]" ]];}
 IsNotQPKGInstalled(){
 ! IsQPKGInstalled "${1:-$r_qpkg_name}";}
 IsQPKGActive(){
@@ -1244,7 +1244,8 @@ done
 return 1
 } &>/dev/null
 IsHaveSingleQuote(){
-/bin/grep -q "'"<<<"${1:-}";}
+/bin/grep "'"<<<"${1:-}"
+} &>/dev/null
 IsCheckNetworkBeforeStart(){
 [[ $check_network_before_start = true ]];}
 IsInterfaceUp(){
