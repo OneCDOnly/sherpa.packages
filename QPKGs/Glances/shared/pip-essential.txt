@@ -38,8 +38,8 @@ prometheus_client
 psutil>=5.6.7
 pySMART.smartx
 pycouchdb
-pydantic
-pydantic-core
+pydantic==2.11.4			# sherpa: to prevent webserver daemon start error
+pydantic-core==2.33.2		# sherpa: to suit pydantic downgrade
 pygal
 pygments
 pymdstat
@@ -59,7 +59,7 @@ shtab
 six
 sniffio
 sparklines
-starlette
+starlette<0.47.0			# sherpa: to suit fastapi downgrade
 statsd
 typer
 typing-extensions
