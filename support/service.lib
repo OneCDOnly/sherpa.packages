@@ -29,7 +29,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='250611'
+readonly r_service_library_version='250613'
 InitLibrary(){
 IsQNAP ||exit
 debug=${DEBUG_QPKG:=false}
@@ -214,7 +214,10 @@ StatusQPKGLibrary(){
 RefreshPidFile
 if IsDaemon &&CheckDaemonActive;then
 LoadPorts app
-WatchForPortsActive ||exit
+if ! WatchForPortsActive;then
+Display '! no response from port(s)'
+exit 1
+fi
 else
 exit 1
 fi
@@ -224,13 +227,13 @@ if [[ $userlink_pathfile != undefined ]];then
 if [[ ! -L $userlink_pathfile &&-e $launcher_pathfile ]];then
 ln -s "$launcher_pathfile" "$userlink_pathfile"
 if [[ -L $userlink_pathfile ]];then
-DisplayCommitToLog "= symlink created: '$userlink_pathfile'"
+DisplayInfoCommitToLog "symlink created: '$userlink_pathfile'"
 else
-DisplayErrCommitAllLogs "= unable to create symlink to '$r_qpkg_name' launcher"
+DisplayErrCommitAllLogs "unable to create symlink to '$r_qpkg_name' launcher"
 SetError;return 1
 fi
 else
-DisplayCommitToLog "- symlink exists: '$userlink_pathfile'"
+DisplayInfoCommitToLog "symlink exists: '$userlink_pathfile'"
 fi
 return
 fi;}
@@ -238,7 +241,7 @@ RemoveUserlinkToExec(){
 if [[ $userlink_pathfile != undefined ]];then
 if [[ -L $userlink_pathfile ]];then
 rm -f "$userlink_pathfile"
-DisplayCommitToLog "= symlink removed: '$userlink_pathfile'"
+DisplayInfoCommitToLog "symlink removed: '$userlink_pathfile'"
 fi
 fi;}
 CreateVirtualPythonEnv(){
@@ -268,17 +271,18 @@ rm -f "${r_service_screen_log_pathfile:?}"
 fi
 if((nice_daemon_to != 0)) &&((nice_daemon_to>= -20)) &&((nice_daemon_to<= 19)) &&[[ -e /opt/bin/nice ]];then
 b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
-DisplayCommitToLog "- nice daemon to: $nice_daemon_to"
+DisplayInfoCommitToLog "nice daemon to: $nice_daemon_to"
 fi
 while true;do
-if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";CheckDaemonActive;WatchForDaemon;PauseForStartPid) ||! CheckDaemonActive &>/dev/null ||! WatchForPortsActive;then
+if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";CheckDaemonActive &>/dev/null;WatchForDaemon;PauseForStartPid) ||! CheckDaemonActive &>/dev/null ||! WatchForPortsActive;then
+DisplayWarnCommitToLog 'daemon check failed: there appears to be a launch failure'
 [[ $run_daemon_in_screen_session = true ]]&&AddFileToDebug "$r_service_screen_log_pathfile"
-if [[ $c -lt $start_retries ]];then
 ((c++))
-DisplayWarnCommitAllLogs "~ retry $c"
+if [[ $((c-1)) -lt $start_retries ]];then
+DisplayCommitToLog "~ retry $c/$start_retries"
 continue
 fi
-DisplayErrCommitAllLogs '! no further retries possible'
+DisplayErrCommitAllLogs "tried to launch $c time$(Pluralise "$c"), no further retries are possible"
 SetError;return 1
 fi
 break
@@ -291,7 +295,7 @@ local -i b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
 local -i c=0
 local -i d=$(<$daemon_pid_pathfile)
 [[ $d -gt 1 ]]||return
-DisplayWaitCommitToLog "> $a PID '${d}' with SIGTERM (no-more than $b second$(Pluralise "$b")):"
+DisplayWaitCommitToLog "$a PID '${d}' with SIGTERM (no-more than $b second$(Pluralise "$b"))"
 kill "$d"
 while true;do
 while [[ -d /proc/$d ]];do
@@ -299,17 +303,17 @@ while [[ -d /proc/$d ]];do
 ((c++))
 DisplayWait "$c,"
 if [[ $c -ge $b ]];then
-DisplayCommitToLog 'failed!'
-DisplayCommitToLog "> $a PID '${d}' with SIGKILL:"
+DisplayOutcomeCommitToLog 'failed'
+DisplayWaitCommitToLog "$a PID '${d}' with SIGKILL"
 kill -9 "$d" 2>/dev/null
 [[ -f $daemon_pid_pathfile ]]&&rm -f "$daemon_pid_pathfile"
-Display OK
+DisplayOutcomeCommitToLog OK
 break 2
 fi
 done
 [[ -f $daemon_pid_pathfile ]]&&rm -f "$daemon_pid_pathfile"
-Display OK
-CommitToLog "stopped in $c second$(Pluralise "$c")"
+DisplayOutcomeCommitToLog OK
+CommitInfoToLog "stopped in $c second$(Pluralise "$c")"
 CommitInfoToSysLog "$a: OK"
 break
 done
@@ -327,33 +331,33 @@ local release_package_url=''
 if IsAutoUpdate ||[[ ! -e $release_package_pathfile ]];then
 if [[ $resolve_remote_url = true ]];then
 refresh_release_package=true
-DisplayWaitCommitToLog '> get latest release package URL:'
+DisplayWaitCommitToLog 'get latest release package URL'
 if IsSiteUp "$remote_url";then
 release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_arch")
 if [[ -n $release_package_url ]];then
 DisplayCommitToLog OK
-DisplayCommitToLog "- release package URL: '$release_package_url'"
+DisplayInfoCommitToLog "release package URL: '$release_package_url'"
 else
-DisplayErrCommitAllLogs '! unable to get latest remote release package URL'
+DisplayErrCommitAllLogs 'unable to get latest remote release package URL'
 fi
 else
-DisplayErrCommitAllLogs '! unable to access remote site'
+DisplayErrCommitAllLogs 'unable to access remote site'
 fi
 else
 release_package_url=$remote_url
 fi
 if [[ $compare_release_filename = true ]];then
-DisplayWaitCommitToLog "> get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds):"
+DisplayWaitCommitToLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
 if IsSiteUp "$remote_url";then
 release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
 if [[ -n $release_package_filename ]];then
 DisplayCommitToLog OK
-DisplayCommitToLog "- release package filename: '$release_package_filename'"
+DisplayInfoCommitToLog "release package filename: '$release_package_filename'"
 else
-DisplayErrCommitAllLogs '! unable to get latest remote release package filename'
+DisplayErrCommitAllLogs 'unable to get latest remote release package filename'
 fi
 else
-DisplayErrCommitAllLogs '! unable to access remote site'
+DisplayErrCommitAllLogs 'unable to access remote site'
 fi
 if [[ -z $release_package_filename &&-n $release_package_url &&$release_package_url != undefined ]];then
 release_package_filename=$(/usr/bin/basename "$release_package_url")
@@ -362,22 +366,22 @@ if [[ -z $release_package_name_ref_pathfilename &&-n $release_package_filename &
 release_package_name_ref_pathfilename=$(/usr/bin/dirname "$release_package_pathfile")/$release_package_filename
 fi
 if [[ -n $release_package_filename &&-n $release_package_name_ref_pathfilename ]];then
-DisplayWaitCommitToLog '- release package name reference exists locally:'
+DisplayWaitCommitToLog 'release package name reference exists locally'
 if [[ -e $release_package_name_ref_pathfilename ]];then
-DisplayCommitToLog true
+DisplayOutcomeCommitToLog true
 else
-DisplayCommitToLog false
+DisplayOutcomeCommitToLog false
 refresh_release_package=true
 rm -f "$release_package_pathfile"
 fi
 fi
 fi
 fi
-DisplayWaitCommitToLog '- release package exists locally:'
+DisplayWaitCommitToLog 'release package exists locally'
 if [[ -e $release_package_pathfile ]];then
-DisplayCommitToLog true
+DisplayOutcomeCommitToLog true
 else
-DisplayCommitToLog false
+DisplayOutcomeCommitToLog false
 refresh_release_package=true
 fi
 if [[ ! -e $release_package_pathfile &&-n $release_package_url ]]||[[ $refresh_release_package = true ]];then
@@ -398,25 +402,25 @@ fi
 fi
 if [[ -d $qpkg_repo_path ]];then
 if IsPathEmpty "$qpkg_repo_path";then
-DisplayErrCommitAllLogs "'local repository files do not exist'"
+DisplayErrCommitAllLogs 'local repository files do not exist'
 SetError;return 1
 fi
 else
-DisplayErrCommitAllLogs "'local repository path does not exist'"
+DisplayErrCommitAllLogs 'local repository path does not exist'
 SetError;return 1
 fi
 return 0;}
 CheckPortsAvailable(){
 local a=''
 if [[ $daemon_port -le 0 &&$ui_port -le 0 &&$ui_port_secure -le 0 ]];then
-DisplayErrCommitAllLogs "'no port specified'"
+DisplayErrCommitAllLogs 'no port specified'
 SetError;return 1
 elif IsNotPortAvailable $ui_port ||IsNotPortAvailable $ui_port_secure;then
 DisplayErrCommitAllLogs "ports '$ui_port' or '$ui_port_secure' are already in-use"
 a=$(/usr/sbin/lsof -i :$ui_port -Fp)
-DisplayErrCommitAllLogs "- process details for port '$ui_port': '${a}': PID '$([[ -n ${a:-} ]]&&/bin/tr '\000' ' '</proc/"${a/p/}"/cmdline)'"
+DisplayInfoCommitAllLogs "process details for port '$ui_port': '${a}': PID '$([[ -n ${a:-} ]]&&/bin/tr '\000' ' '</proc/"${a/p/}"/cmdline)'"
 a=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
-DisplayErrCommitAllLogs "- process details for secure port '$ui_port_secure': PID '${a}': '$([[ -n ${a:-} ]]&&/bin/tr '\000' ' '</proc/"${a/p/}"/cmdline)'"
+DisplayInfoCommitAllLogs "process details for secure port '$ui_port_secure': PID '${a}': '$([[ -n ${a:-} ]]&&/bin/tr '\000' ' '</proc/"${a/p/}"/cmdline)'"
 SetError;return 1
 fi;}
 ShowHelp(){
@@ -463,14 +467,14 @@ local rename_modules_pathfile=$r_qpkg_path/pip-rename.txt
 local requirements_modules_pathfile=$qpkg_repo_path/requirements.txt
 [[ $install_pip_deps = true ]]&&no_pip_deps=''
 if IsNotVirtualPythonEnvExist;then
-DisplayErrCommitAllLogs "unable to install addons: 'virtual Python environment does not exist'"
+DisplayErrCommitAllLogs 'unable to install addons: virtual Python environment does not exist'
 SetError;return 1
 fi
 IsNotAutoUpdate &&[[ $new_env = false ]]&&return 0
 if [[ $r_qpkg_name = OWatcher3 ]];then
 DisplayRunAndLog "KLUDGE: install 'm2r' PyPI module first" "$venv_pip_pathfile install${no_pip_deps} --no-input m2r" log:failure-only
 if [[ $? -gt 0 &&$silence_pypi_errors = false ]];then
-CommitWarnToSysLog "'mr2' PyPI module installation failed."
+CommitWarnToSysLog "'mr2' PyPI module installation failed"
 fi
 fi
 [[ ! -e $default_essential_modules_pathfile &&-e $essential_modules_pathfile &&-d $(/usr/bin/dirname "$default_essential_modules_pathfile") ]]&&cp -f "$essential_modules_pathfile" "$default_essential_modules_pathfile"
@@ -506,7 +510,7 @@ for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended
 if [[ -e $a ]];then
 DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$a")'" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip -r $a" log:failure-only
 if [[ $? -gt 0 &&$silence_pypi_errors = false ]];then
-CommitWarnToSysLog '= PyPI module installation failed.'
+CommitWarnToSysLog '= PyPI module installation failed'
 fi
 no_pips_installed=false
 fi
@@ -563,15 +567,15 @@ fi
 LoadPorts(){
 case $1 in
 app)
-DisplayWaitCommitToLog '> load ports from configuration file:'
+DisplayWaitCommitToLog 'load ports from configuration file'
 [[ $get_ui_port_cmd != undefined ]]&&ui_port=$(eval "$get_ui_port_cmd")
 [[ $get_ui_port_secure_cmd != undefined ]]&&ui_port_secure=$(eval "$get_ui_port_secure_cmd")
-DisplayCommitToLog OK;;
+DisplayOutcomeCommitToLog OK;;
 qts)
-DisplayWaitCommitToLog '> load UI ports from QPKG icon:'
+DisplayWaitCommitToLog 'load UI ports from QPKG icon'
 ui_port=$(/sbin/getcfg $r_qpkg_name Web_Port -d 0 -f /etc/config/qpkg.conf)
 ui_port_secure=$(/sbin/getcfg $r_qpkg_name Web_SSL_Port -d 0 -f /etc/config/qpkg.conf)
-DisplayCommitToLog OK;;
+DisplayOutcomeCommitToLog OK;;
 *)DisplayErrCommitAllLogs "unable to load ports: action '$1' is unrecognised"
 SetError;return 1
 esac
@@ -594,22 +598,22 @@ app_version=unknown
 return 1
 fi;}
 ShowQPKGStates(){
-DisplayWaitCommitToLog '- QPKG enabled:'
+DisplayWaitCommitToLog 'QPKG enabled'
 if IsQPKGEnabled;then
-DisplayCommitToLog "'true'"
+DisplayOutcomeCommitToLog true
 else
-DisplayCommitToLog "'false'"
+DisplayOutcomeCommitToLog false
 fi
 if IsSupportAutoUpdate;then
-DisplayWaitCommitToLog '- application auto-update:'
+DisplayWaitCommitToLog 'application auto-update'
 if IsAutoUpdate;then
-DisplayCommitToLog "'true'"
+DisplayOutcomeCommitToLog true
 else
-DisplayCommitToLog "'false'"
+DisplayOutcomeCommitToLog false
 fi
 fi
 if IsGitApp;then
-DisplayCommitToLog "- active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
+DisplayInfoCommitToLog "active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
 fi;}
 DisableOpkgDaemonStart(){
 if [[ $orig_daemon_service_script != undefined &&-x $orig_daemon_service_script ]];then
@@ -626,7 +630,7 @@ local new_branch=false
 WatchForGit ||return
 if [[ -d $qpkg_repo_path/.git ]];then
 if [[ $active_branch != "$source_git_branch" ]];then
-DisplayCommitToLog "- new git branch specified: '$source_git_branch'"
+DisplayInfoCommitToLog "new git branch specified: '$source_git_branch'"
 branch_switch=true
 [[ $r_qpkg_name = nzbToMedia ]]&&BackupConfig
 CleanLocalRepo
@@ -640,7 +644,7 @@ if IsAutoUpdate;then
 DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;/opt/bin/git -C $qpkg_repo_path clean -f;/opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch;/opt/bin/git -C $qpkg_repo_path pull" log:failure-only
 fi
 fi
-IsAutoUpdate &&[[ $new_branch = true ||$branch_switch = true ]]&&DisplayCommitToLog "- active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
+IsAutoUpdate &&[[ $new_branch = true ||$branch_switch = true ]]&&DisplayInfoCommitToLog "active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
 [[ $branch_switch = true &&$r_qpkg_name = nzbToMedia ]]&&RestoreConfig
 return 0;}
 CleanLocalRepo(){
@@ -656,11 +660,11 @@ IsUseTemp &&[[ -d $r_qpkg_temp_path ]]&&DisplayRunAndLog 'clean temp path' "rm -
 MakePaths;}
 WatchForGit(){
 if IsNotQPKGInstalled Entware;then
-DisplayErrCommitAllLogs "'git' unavailable: 'Entware is not installed'"
+DisplayErrCommitAllLogs "'git' unavailable: Entware is not installed"
 SetError;return 1
 fi
 if IsNotQPKGEnabled Entware;then
-DisplayErrCommitAllLogs "'git' unavailable: 'Entware is not enabled'"
+DisplayErrCommitAllLogs "'git' unavailable: Entware is not enabled"
 SetError;return 1
 fi
 if WatchForFileToAppear /opt/bin/git 300;then
@@ -705,24 +709,24 @@ if WatchForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$watch_pi
 fi
 fi
 if [[ $recheck_daemon_pid_after_launch = true ]];then
-DisplayWaitCommitToLog "> wait $a second$(Pluralise "$a") to recheck PID:"
+DisplayWaitCommitToLog "wait $a second$(Pluralise "$a") to recheck start PID"
 for((i=1;i<=a;i++));do
 /bin/sleep 1
 DisplayWait "$i,"
 done
-DisplayCommitToLog 'done'
+DisplayOutcomeCommitToLog 'done'
 fi
 RefreshPidFile ||return;}
 PauseForKillPid(){
 local -i a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
 local -i i=0
 if [[ $recheck_daemon_pid_after_kill = true ]];then
-DisplayWaitCommitToLog "> wait $a second$(Pluralise "$a") to recheck PID:"
+DisplayWaitCommitToLog "wait $a second$(Pluralise "$a") to recheck kill PID"
 for((i=1;i<=a;i++));do
 /bin/sleep 1
 DisplayWait "$i,"
 done
-DisplayCommitToLog 'done'
+DisplayOutcomeCommitToLog 'done'
 fi
 ! RefreshPidFile ||return;}
 WatchForAnyInterfaceUp(){
@@ -730,7 +734,7 @@ local -i a=$(CalcAdaptiveSeconds "$watch_interface_up_seconds")
 local -i i=0
 local found_interface=''
 if ! IsAnyInterfaceUp;then
-DisplayWaitCommitToLog "> watch for a network interface to become operational (no-more than $a second$(Pluralise "$a")):"
+DisplayWaitCommitToLog "watch for a network interface to become operational (no-more than $a second$(Pluralise "$a"))"
 (
 for((i=1;i<=a;i++));do
 /bin/sleep 1
@@ -749,21 +753,21 @@ DisplayErrCommitAllLogs "operational network interface not found! (exceeded time
 return 1
 fi
 fi
-DisplayCommitToLog "- operational network interface found: '$found_interface'"
+DisplayInfoCommitToLog "operational network interface found: '$found_interface'"
 return 0;}
 WatchForDaemon(){
 local -i a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
 local -i i=0
 if [[ ! -e $daemon_pid_pathfile ]];then
-DisplayWaitCommitToLog "> watch for daemon process name to appear (no-more than $a second$(Pluralise "$a")):"
+DisplayWaitCommitToLog "watch for daemon process name to appear (no-more than $a second$(Pluralise "$a"))"
 (
 for((i=1;i<=a;i++));do
 /bin/sleep 1
 DisplayWait "$i,"
 RefreshPidFile
 if IsDaemonProcessActive;then
-Display OK
-CommitToLog "appeared in $i second$(Pluralise "$i")"
+DisplayOutcomeCommitToLog OK
+CommitInfoToLog "process name appeared in $i second$(Pluralise "$i")"
 true
 exit
 fi
@@ -771,7 +775,7 @@ done
 false
 )
 if [[ $? -ne 0 ]];then
-DisplayErrCommitAllLogs "process name not found! (exceeded timeout: $a second$(Pluralise "$a"))"
+DisplayWarnCommitToLog "process name not found (exceeded timeout: $a second$(Pluralise "$a"))"
 return 1
 fi
 fi
@@ -786,7 +790,7 @@ else
 a=30
 fi
 if [[ ! -e $1 ]];then
-DisplayWaitCommitToLog "> watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a")):"
+DisplayWaitCommitToLog "watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a"))"
 (
 for((i=1;i<=a;i++));do
 /bin/sleep 1
@@ -801,11 +805,11 @@ done
 false
 )
 if [[ $? -ne 0 ]];then
-DisplayErrCommitAllLogs "file $1 not found! (exceeded timeout: $a second$(Pluralise "$a"))"
+DisplayErrCommitAllLogs "file $1 not found (exceeded timeout: $a second$(Pluralise "$a"))"
 return 1
 fi
 fi
-DisplayCommitToLog "- file exists: '$1'"
+DisplayInfoCommitToLog "file exists: '$1'"
 return 0;}
 ViewLog(){
 if [[ -e $r_service_log_pathfile ]];then
@@ -822,7 +826,7 @@ return 0;}
 EnsureConfigFileExists(){
 IsNotSupportReset &&return
 if IsNotConfigFound &&IsDefaultConfigFound;then
-DisplayCommitToLog '> no configuration file found: using default'
+DisplayInfoCommitToLog 'no configuration file found: using default'
 cp "${qpkg_ini_default_pathfile:?undefined}" "${qpkg_ini_pathfile:?undefined}"
 fi;}
 SaveAppVersion(){
@@ -830,21 +834,22 @@ SaveAppVersion(){
 DisplayRunAndLog(){
 local -r r_log_pathfile=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 local -i z=0
-DisplayWaitCommitToLog "> $1:"
+DisplayWaitCommitToLog "$1"
 Executer "${2:?empty}" "$r_log_pathfile" "${4:-false}"
 z=$?
 if [[ $z -eq 0 ]];then
 if [[ $debug = false ]];then
-DisplayCommitToLog OK
+DisplayOutcomeCommitToLog OK
 else
-Display "= $1: OK"
+Display "= $1: 'OK'"
 CommitToLog OK
 fi
 else
 if [[ $debug = false ]];then
-DisplayCommitToLog failed
+DisplayOutcomeCommitToLog failed
 else
-DisplayCommitToLog "= $1: failed"
+Display "= $1: 'failed'"
+CommitToLog failed
 fi
 fi
 if [[ $z -eq 0 ]];then
@@ -898,7 +903,7 @@ fi
 [[ -e $r_log_pathfile ]]&&rm -f "$r_log_pathfile"
 return $z;}
 ShowEnabled(){
-DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG is enabled.";}
+DisplayInfoCommitToLog "$(FormatAsPackageName "$r_qpkg_name") QPKG is enabled.";}
 ShowDisabled(){
 DisplayCommitToLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG is disabled.";}
 ShowDisabledPrompt(){
@@ -955,42 +960,42 @@ Lowercase(){
 /bin/tr 'A-Z' 'a-z'<<<"$1";}
 ReWriteUIPorts(){
 [[ $get_daemon_port_cmd != undefined ]]&&return
-DisplayWaitCommitToLog '> update QPKG icon with UI ports:'
+DisplayWaitCommitToLog 'update QPKG icon with UI ports'
 /sbin/setcfg $r_qpkg_name Web_Port "$ui_port" -f /etc/config/qpkg.conf
 if IsSSLEnabled;then
 /sbin/setcfg $r_qpkg_name Web_SSL_Port "$ui_port_secure" -f /etc/config/qpkg.conf
 else
 /sbin/setcfg $r_qpkg_name Web_SSL_Port '-2' -f /etc/config/qpkg.conf
 fi
-DisplayCommitToLog OK;}
+DisplayOutcomeCommitToLog OK;}
 #IsPortsAvailable()
 WatchForPortsActive(){
 local a=''
-DisplayCommitToLog "- daemon listening address: '$ui_listening_address'"
+DisplayInfoCommitToLog "daemon listening address: '$ui_listening_address'"
 if [[ $daemon_port -ne 0 ]];then
-DisplayCommitToLog "- daemon port: '$daemon_port'"
+DisplayInfoCommitToLog "daemon port: '$daemon_port'"
 if IsPortResponds $daemon_port;then
 a="daemon port '$daemon_port'"
 fi
 else
-DisplayWaitCommitToLog '- HTTPS port enabled:'
+DisplayWaitCommitToLog 'HTTPS port enabled'
 if IsSSLEnabled;then
-DisplayCommitToLog "'true'"
-DisplayCommitToLog "- HTTPS port: '$ui_port_secure'"
+DisplayOutcomeCommitToLog true
+DisplayInfoCommitToLog "HTTPS port: '$ui_port_secure'"
 if IsPortSecureResponds $ui_port_secure;then
 a="HTTPS port '$ui_port_secure'"
 fi
 else
-DisplayCommitToLog "'false'"
+DisplayOutcomeCommitToLog false
 fi
-DisplayCommitToLog "- HTTP port: '$ui_port'"
+DisplayInfoCommitToLog "HTTP port: '$ui_port'"
 if IsPortResponds $ui_port;then
 [[ -n $a ]]&&a+=' and '
 a+="HTTP port '$ui_port'"
 fi
 fi
 if [[ -z $a ]];then
-DisplayWarnCommitAllLogs '! no response on configured port(s)'
+DisplayWarnCommitToLog 'no response on configured port(s)'
 return 1
 else
 ReWriteUIPorts
@@ -1151,7 +1156,7 @@ elif [[ $a -eq 0 ]];then
 Display "port '0': not testing for response"
 return 1
 fi
-DisplayWaitCommitToLog "> test for port '$a' response (no-more than $b second$(Pluralise "$b")):"
+DisplayWaitCommitToLog "test for port '$a' response (no-more than $b second$(Pluralise "$b"))"
 while true;do
 if ! IsDaemonProcessActive;then
 DisplayCommitToLog 'process not active'
@@ -1160,8 +1165,8 @@ fi
 /sbin/curl --silent --fail --max-time 1 http://localhost:"$a" &>/dev/null
 case $? in
 0|22|52)
-Display OK
-CommitToLog "responded in $c second$(Pluralise "$c")"
+DisplayOutcomeCommitToLog OK
+CommitInfoToLog "responded in $c second$(Pluralise "$c")"
 return 0;;
 28)
 :;;
@@ -1172,8 +1177,8 @@ esac
 ((c++))
 DisplayWait "$c,"
 if [[ $c -ge $b ]];then
-DisplayCommitToLog failed
-CommitErrToSysLog "port '$a' failed to respond after $c second$(Pluralise "$c")!"
+DisplayOutcomeCommitToLog failed
+CommitErrToSysLog "port '$a' failed to respond after $c second$(Pluralise "$c")"
 break
 fi
 done
@@ -1189,7 +1194,7 @@ elif [[ $a -eq 0 ]];then
 Display "port '0': not testing for response"
 return 1
 fi
-DisplayWaitCommitToLog "> test for secure port '$a' response (no-more than $b second$(Pluralise "$b")):"
+DisplayWaitCommitToLog "test for secure port '$a' response (no-more than $b second$(Pluralise "$b"))"
 while true;do
 if ! IsDaemonProcessActive;then
 DisplayCommitToLog 'process not active'
@@ -1214,7 +1219,7 @@ esac
 DisplayWait "$c,"
 if [[ $c -ge $b ]];then
 DisplayCommitToLog failed
-CommitErrToSysLog "secure port '$a' failed to respond after $c second$(Pluralise "$c")!"
+CommitErrToSysLog "secure port '$a' failed to respond after $c second$(Pluralise "$c")"
 break
 fi
 done
@@ -1439,14 +1444,29 @@ Display "$(TextBrightRed derp): ${1:-}"
 DisplayCommitToLog(){
 Display "${1:-}"
 CommitToLog "${1:-}";}
+DisplayInfoCommitToLog(){
+Display "- ${1:-}"
+CommitToLog "- ${1:-}";}
+DisplayWarnCommitToLog(){
+Display "* ${1:-}"
+CommitToLog "* ${1:-}";}
+DisplayErrorCommitToLog(){
+Display "! ${1:-}"
+CommitToLog "! ${1:-}";}
 DisplayWaitCommitToLog(){
-DisplayWait "${1:-}"
-CommitToLogWait "${1:-}";}
+DisplayWait "> ${1:-}:"
+CommitToLogWait "> ${1:-}:";}
+DisplayOutcomeCommitToLog(){
+Display "'${1:-}'"
+CommitToLog "'${1:-}'";}
+DisplayInfoCommitAllLogs(){
+DisplayInfoCommitToLog "${1:-}"
+CommitInfoToSysLog "${1:-}";}
 DisplayWarnCommitAllLogs(){
-DisplayCommitToLog "${1:-}"
+DisplayWarnCommitToLog "${1:-}"
 CommitWarnToSysLog "${1:-}";}
 DisplayErrCommitAllLogs(){
-DisplayCommitToLog "${1:-}"
+DisplayErrorCommitToLog "${1:-}"
 CommitErrToSysLog "${1:-}";}
 FormatAsLogFilename(){
 echo "= log file: '${1:-}'";}
@@ -1503,11 +1523,15 @@ $a "$(TextBlackOnRed "$msg")";;
 esac
 fi;}
 CommitInfoToSysLog(){
-CommitSysLog "${1:-}" 4;}
+CommitSysLog "${1:-}." 4;}
 CommitWarnToSysLog(){
-CommitSysLog "${1:-} Please check the service log for more information." 2;}
+CommitSysLog "${1:-}. Please check the service log for more information." 2;}
 CommitErrToSysLog(){
-CommitSysLog "${1:-}" 1;}
+CommitSysLog "${1:-}. Please check the service log for more information." 1;}
+CommitInfoToLog(){
+CommitToLog "- ${1:-}";}
+CommitOutcomeToLog(){
+CommitToLog "'${1:-}'";}
 CommitToLog(){
 if IsNotStatus &&IsNotLog &&IsNotNone;then
 [[ ${1:-} = '•' &&! -s "$r_service_log_pathfile" ]]||echo -e "${1:-}">>"$r_service_log_pathfile"
@@ -1616,7 +1640,7 @@ DisableAutoUpdate(){
 StoreAutoUpdateSelection false;}
 StoreAutoUpdateSelection(){
 /sbin/setcfg $r_qpkg_name Auto_Update "$(Uppercase "$1")" -f /etc/config/qpkg.conf
-DisplayCommitToLog "- application auto-update: $1";}
+DisplayInfoCommitToLog "application auto-update: $1";}
 GetPathGitBranch(){
 [[ -n $1 ]]||return
 /opt/bin/git -C "$1" branch|/bin/grep '^\*'|/bin/sed 's|^\* ||'
@@ -1683,18 +1707,18 @@ trap CaughtSIGINT SIGINT
 trap CaughtEXIT EXIT;}
 CaughtSIGHUP(){
 trap - SIGHUP
-DisplayCommitToLog '* caught SIGHUP: abort.'
+DisplayWarnCommitToLog 'caught SIGHUP: abort'
 SetServiceResultAsAborted
 exit;}
 CaughtSIGINT(){
 trap - SIGINT
-DisplayCommitToLog '* caught SIGINT: abort.'
+DisplayWarnCommitToLog 'caught SIGINT: abort'
 SetServiceResultAsAborted
 exit;}
 CaughtEXIT(){
 trap - EXIT
 if IsServiceResultInProgress;then
-DisplayCommitToLog '* caught EXIT: abort.'
+DisplayWarnCommitToLog 'caught EXIT: abort'
 SetServiceResultAsAborted
 fi;}
 ProcessArgs(){
