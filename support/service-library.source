@@ -550,7 +550,7 @@ CreateUserlinkToExec()
 			if [[ -L $userlink_pathfile ]]; then
 				DisplayCommitToLog "= symlink created: '$userlink_pathfile'"
 			else
-				DisplayErrCommitAllLogs "= unable to create symlink to '$r_qpkg_name' launcher"
+				DisplayErrCommitAllLogs "! unable to create symlink to '$r_qpkg_name' launcher"
 
 				SetError; return 1
 			fi
@@ -641,16 +641,17 @@ StartDaemon()
 	fi
 
 	while true; do
-		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; CheckDaemonActive; WatchForDaemon; PauseForStartPid) || ! CheckDaemonActive &> /dev/null || ! WatchForPortsActive; then
+		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; CheckDaemonActive &> /dev/null; WatchForDaemon; PauseForStartPid) || ! CheckDaemonActive &> /dev/null || ! WatchForPortsActive; then
+			DisplayCommitToLog '= daemon check failed: there appears to be a launch failure'
 			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
+			((c++))
 
-			if [[ $c -lt $start_retries ]]; then
-				((c++))
-				DisplayWarnCommitAllLogs "~ retry $c"
+			if [[ $((c-1)) -lt $start_retries ]]; then
+				DisplayCommitToLog "~ retry $c/$start_retries"
 				continue
 			fi
 
-			DisplayErrCommitAllLogs '! no further retries possible'
+			DisplayErrCommitAllLogs "! tried to launch $c time$(Pluralise "$c"), no further retries possible"
 
 			SetError; return 1
 		fi
@@ -827,12 +828,12 @@ RefreshReleasePackageFiles()
 
 	if [[ -d $qpkg_repo_path ]]; then
 		if IsPathEmpty "$qpkg_repo_path"; then
-			DisplayErrCommitAllLogs "'local repository files do not exist'"
+			DisplayErrCommitAllLogs "! 'local repository files do not exist'"
 
 			SetError; return 1
 		fi
 	else
-		DisplayErrCommitAllLogs "'local repository path does not exist'"
+		DisplayErrCommitAllLogs "! 'local repository path does not exist'"
 
 		SetError; return 1
 	fi
@@ -852,11 +853,11 @@ CheckPortsAvailable()
 	local a=''
 
 	if [[ $daemon_port -le 0 && $ui_port -le 0 && $ui_port_secure -le 0 ]]; then
-		DisplayErrCommitAllLogs "'no port specified'"
+		DisplayErrCommitAllLogs "! 'no port specified'"
 
 		SetError; return 1
 	elif IsNotPortAvailable $ui_port || IsNotPortAvailable $ui_port_secure; then
-		DisplayErrCommitAllLogs "ports '$ui_port' or '$ui_port_secure' are already in-use"
+		DisplayErrCommitAllLogs "! ports '$ui_port' or '$ui_port_secure' are already in-use"
 
 		a=$(/usr/sbin/lsof -i :$ui_port -Fp)
 		DisplayErrCommitAllLogs "- process details for port '$ui_port': '${a}': PID '$([[ -n ${a:-} ]] && /bin/tr '\000' ' ' </proc/"${a/p/}"/cmdline)'"
@@ -937,7 +938,7 @@ InstallPythonPackages()
 	[[ $install_pip_deps = true ]] && no_pip_deps=''
 
 	if IsNotVirtualPythonEnvExist; then
-		DisplayErrCommitAllLogs "unable to install addons: 'virtual Python environment does not exist'"
+		DisplayErrCommitAllLogs "! unable to install addons: 'virtual Python environment does not exist'"
 
 		SetError; return 1
 	fi
@@ -1081,7 +1082,7 @@ RestoreConfig()
 	#	$r_qpkg_path
 
 	if [[ ! -f $qpkg_backup_pathfile ]]; then
-		DisplayErrCommitAllLogs "unable to restore configuration: 'no backup file was found'"
+		DisplayErrCommitAllLogs "! unable to restore configuration: 'no backup file was found'"
 
 		SetError; return 1
 	fi
@@ -1165,7 +1166,7 @@ LoadPorts()
 			DisplayCommitToLog OK
 			;;
 		*)
-			DisplayErrCommitAllLogs "unable to load ports: action '$1' is unrecognised"
+			DisplayErrCommitAllLogs "! unable to load ports: action '$1' is unrecognised"
 
 			SetError; return 1
 	esac
@@ -1341,12 +1342,12 @@ WatchForGit()
 	#   $PATH
 
 	if IsNotQPKGInstalled Entware; then
-		DisplayErrCommitAllLogs "'git' unavailable: 'Entware is not installed'"
+		DisplayErrCommitAllLogs "! 'git' unavailable: 'Entware is not installed'"
 		SetError; return 1
 	fi
 
 	if IsNotQPKGEnabled Entware; then
-		DisplayErrCommitAllLogs "'git' unavailable: 'Entware is not enabled'"
+		DisplayErrCommitAllLogs "! 'git' unavailable: 'Entware is not enabled'"
 		SetError; return 1
 	fi
 
@@ -1518,7 +1519,7 @@ WatchForAnyInterfaceUp()
 		)
 
 		if [[ $? -ne 0 ]]; then
-			DisplayErrCommitAllLogs "operational network interface not found! (exceeded timeout: $a second$(Pluralise "$a"))"
+			DisplayErrCommitAllLogs "! operational network interface not found! (exceeded timeout: $a second$(Pluralise "$a"))"
 			return 1
 		fi
 	fi
@@ -1565,7 +1566,7 @@ WatchForDaemon()
 		)
 
 		if [[ $? -ne 0 ]]; then
-			DisplayErrCommitAllLogs "process name not found! (exceeded timeout: $a second$(Pluralise "$a"))"
+			DisplayErrCommitAllLogs "! process name not found! (exceeded timeout: $a second$(Pluralise "$a"))"
 			return 1
 		fi
 	fi
@@ -1616,7 +1617,7 @@ WatchForFileToAppear()
 		)
 
 		if [[ $? -ne 0 ]]; then
-			DisplayErrCommitAllLogs "file $1 not found! (exceeded timeout: $a second$(Pluralise "$a"))"
+			DisplayErrCommitAllLogs "! file $1 not found (exceeded timeout: $a second$(Pluralise "$a"))"
 			return 1
 		fi
 	fi
