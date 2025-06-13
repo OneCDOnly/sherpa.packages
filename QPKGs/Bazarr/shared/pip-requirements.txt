@@ -1,0 +1,5 @@
+lxml>=4.3.0
+numpy==1.26.4			# sherpa: hold at this working version (to prevent compilation errors in 2.3.0 on arm64)
+webrtcvad-wheels>=2.0.10
+Pillow>=9.0.0 --only-binary=Pillow
+pywin32; platform_system == "Windows"
