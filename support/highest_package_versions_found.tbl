@@ -19,10 +19,10 @@ Headphones_250614.qpkg.md5           Headphones_250614.qpkg           Headphones
 HideThatBanner_240807.qpkg.md5       HideThatBanner_240807.qpkg       HideThatBanner       240807       all    629cd406d0ccf298602001bae7d120ce
 IncreaseTimeouts_240808.qpkg.md5     IncreaseTimeouts_240808.qpkg     IncreaseTimeouts     240808       all    0c76a11a0db6d43c75125e68faef04ae
 inxi_240813.qpkg.md5                 inxi_240813.qpkg                 inxi                 240813       all    91b0a77dbde5efb1a06093399c53310f
-Kapowarr_250614_arm_64.qpkg.md5      Kapowarr_250614_arm_64.qpkg      Kapowarr             250614       a64    8ae9a4d51cdc5fb18044e9edf96a2ede
-Kapowarr_250614_x86_64.qpkg.md5      Kapowarr_250614_x86_64.qpkg      Kapowarr             250614       i64    c04b1cad34aa6a8d329c6f8f37075657
-Kapowarr_250614_x86_ce53xx.qpkg.md5  Kapowarr_250614_x86_ce53xx.qpkg  Kapowarr             250614       i53    5867b5a75c7b5eb6d8d674b5a9d36dae
-Kapowarr_250614_x86.qpkg.md5         Kapowarr_250614_x86.qpkg         Kapowarr             250614       i86    ba9a535fefb4298bfa4d5567a7903d75
+Kapowarr_250615_arm_64.qpkg.md5      Kapowarr_250615_arm_64.qpkg      Kapowarr             250615       a64    a67621df28af6e4496833d7355e9f2b1
+Kapowarr_250615_x86_64.qpkg.md5      Kapowarr_250615_x86_64.qpkg      Kapowarr             250615       i64    6b26d83c80eb95babb0a39e55ee4b924
+Kapowarr_250615_x86_ce53xx.qpkg.md5  Kapowarr_250615_x86_ce53xx.qpkg  Kapowarr             250615       i53    24b3b1c82a8d0c19d6b03a6c6ead783a
+Kapowarr_250615_x86.qpkg.md5         Kapowarr_250615_x86.qpkg         Kapowarr             250615       i86    23cd4ec311f1dc36a16a9ad06b086750
 LazyLibrarian_250614.qpkg.md5        LazyLibrarian_250614.qpkg        LazyLibrarian        250614       all    e061df2d4f40d75261889b4f72b53a24
 Mylar3_250614.qpkg.md5               Mylar3_250614.qpkg               Mylar3               250614       all    c0cfacb8ce2f75da47376484f7aa0d52
 nzbget_25.0_arm_64.qpkg.md5          nzbget_25.0_arm_64.qpkg          nzbget               25.0         a64    af1c1c23fc6cce51c13b39c81de55d98
