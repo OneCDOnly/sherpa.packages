@@ -981,22 +981,12 @@ InstallPythonPackages()
 		module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(< "$excluded_modules_pathfile")")")
 		module_exclusions=${module_exclusions%* }
 
-		if [[ -n $module_exclusions ]]; then
-			if [[ -e /opt/bin/sed ]]; then
-				re="^(${module_exclusions// /|})$"			# Replace whitespace with pipes to match each word as whole line (extended regex).
-			else
-				re="^${module_exclusions// /\$\|^}$"		# Replace whitespace with regex to match each word as whole line.
-			fi
-		fi
+		[[ -n $module_exclusions ]] && [[ -e /opt/bin/sed ]] && re="${module_exclusions// /|}"	# Replace whitespace with pipes.
 
 		if [[ -n $re ]]; then
 			for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile; do
-				if [[ -e $a ]]; then
-					if [[ -e /opt/bin/sed ]]; then
-						cmd="/opt/bin/sed -i -E '/${re}/Id' $a"		# Perform extended and case-insensitive matching.
-					else
-						cmd="/bin/sed -i '/${re}/d' $a"				# Eh, hope for the best, but this should never run. If Entware isn't installed, Python applications can't be run anyway.
-					fi
+				if [[ -e $a && -e /opt/bin/sed ]]; then
+					cmd="/opt/bin/sed -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' $a"		# Perform extended and case-insensitive matching. First match = first word (or hyphenated-words) on each line. Second match = whole line. Delete line if matched.
 
 					DisplayRunAndLog "exclude problematic PyPI modules from $(/usr/bin/basename "$a")" "$cmd" log:failure-only
 				fi
