@@ -29,7 +29,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='250614'
+readonly r_service_library_version='250616'
 InitLibrary(){
 IsQNAP ||exit
 debug=${DEBUG_QPKG:=false}
@@ -490,21 +490,11 @@ fi
 if [[ -e $excluded_modules_pathfile ]];then
 module_exclusions=$(/bin/tr '\n' ' '<<<"$(StripComments "$(<"$excluded_modules_pathfile")")")
 module_exclusions=${module_exclusions%* }
-if [[ -n $module_exclusions ]];then
-if [[ -e /opt/bin/sed ]];then
-re="^(${module_exclusions// /|})$"
-else
-re="^${module_exclusions// /\$\|^}$"
-fi
-fi
+[[ -n $module_exclusions ]]&&[[ -e /opt/bin/sed ]]&&re="${module_exclusions// /|}"
 if [[ -n $re ]];then
 for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile;do
-if [[ -e $a ]];then
-if [[ -e /opt/bin/sed ]];then
-cmd="/opt/bin/sed -i -E '/${re}/Id' $a"
-else
-cmd="/bin/sed -i '/${re}/d' $a"
-fi
+if [[ -e $a &&-e /opt/bin/sed ]];then
+cmd="/opt/bin/sed -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' $a"
 DisplayRunAndLog "exclude problematic PyPI modules from $(/usr/bin/basename "$a")" "$cmd" log:failure-only
 fi
 done

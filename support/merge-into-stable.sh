@@ -27,5 +27,5 @@ git checkout "$unstable_branch" || exit
 
 cd "$qpkgs_support_path" || exit
 
-# ./reset-qpkg-datetimes.sh || exit
 git diff			# run this now so don't need to wait during manual (user) check.
+./reset-qpkg-datetimes.sh || exit
