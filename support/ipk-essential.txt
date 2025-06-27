@@ -11,4 +11,3 @@ git-http
 less
 nano
 sed
-sqlite3-cli

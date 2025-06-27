@@ -178,9 +178,10 @@ StartQPKGCustom()
 		eval "$r_target_service_pathfile" restart &>/dev/null
 	fi
 
-	/bin/grep -q freshclam /etc/profile || echo "alias freshclam='/opt/sbin/freshclam -u admin --config-file=/etc/config/freshclam.conf --datadir=/share/$(/sbin/getcfg Public path -f /etc/config/smb.conf | cut -d '/' -f 3)/.antivirus/usr/share/clamav -l /tmp/.freshclam.log'" >> /etc/profile
+	# shellcheck disable=2076
+	[[ "$(< /etc/profile)" =~ "freshclam" ]] || echo "alias freshclam='/opt/sbin/freshclam -u admin --config-file=/etc/config/freshclam.conf --datadir=/share/$(/sbin/getcfg Public path -f /etc/config/smb.conf | cut -d '/' -f 3)/.antivirus/usr/share/clamav -l /tmp/.freshclam.log'" >> /etc/profile
 
-	DisplayCommitToLog '> start: OK'		# squeezer-ignore
+	DisplayAndCommitInfoToLog 'start: OK'
 
 	return 0
 
@@ -198,7 +199,7 @@ StopQPKGCustom()
 	fi
 
 	/bin/sed -i '/freshclam/d' /etc/profile
-	DisplayCommitToLog '> stop: OK'			# squeezer-ignore
+	DisplayAndCommitInfoToLog 'stop: OK'
 
 	return 0
 
