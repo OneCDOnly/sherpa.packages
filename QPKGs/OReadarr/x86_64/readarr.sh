@@ -24,7 +24,7 @@
 #*	 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OReadarr
-readonly r_service_script_version='250628'
+readonly r_service_script_version='250629'
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_ini_file=config.xml
@@ -32,7 +32,6 @@ daemon_exec_pathfile=$qpkg_repo_path/Readarr/Readarr
 qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 allow_access_to_sys_packages=false
-can_restart_to_update=true
 compare_release_filename=true
 run_daemon_in_screen_session=true
 remote_arch=x64

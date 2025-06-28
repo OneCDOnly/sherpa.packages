@@ -49,8 +49,8 @@ OMedusa_250628_x86_64.qpkg.md5       OMedusa_250628_x86_64.qpkg       OMedusa   
 OMedusa_250628_x86_ce53xx.qpkg.md5   OMedusa_250628_x86_ce53xx.qpkg   OMedusa              250628       i53    86f6cb5349ba4d1b06ba47ceb96b701c
 OMedusa_250628_x86.qpkg.md5          OMedusa_250628_x86.qpkg          OMedusa              250628       i86    4c72f6e4655f3a1b5d05f244a26af819
 OqBittorrent_250628.qpkg.md5         OqBittorrent_250628.qpkg         OqBittorrent         250628       all    f3d77e2939aed785fd7da971203a560b
-OReadarr_250628_arm_64.qpkg.md5      OReadarr_250628_arm_64.qpkg      OReadarr             250628       a64    c4954bb30a603d21989efbefe44f7ee7
-OReadarr_250628_x86_64.qpkg.md5      OReadarr_250628_x86_64.qpkg      OReadarr             250628       i64    4c34032bf385f3322e16b01de04e6b19
+OReadarr_250629_arm_64.qpkg.md5      OReadarr_250629_arm_64.qpkg      OReadarr             250629       a64    797b696bcaa87a639e07a10d3038b193
+OReadarr_250629_x86_64.qpkg.md5      OReadarr_250629_x86_64.qpkg      OReadarr             250629       i64    1dc80c465ea068885c14f1931bd442b5
 OSickGear_250628_arm_64.qpkg.md5     OSickGear_250628_arm_64.qpkg     OSickGear            250628       a64    9a8ad78a8bdc428de87cbe54b720ef67
 OSickGear_250628_arm-x19.qpkg.md5    OSickGear_250628_arm-x19.qpkg    OSickGear            250628       a19    dfecca7bcb723c6117154736032d9677
 OSickGear_250628_arm-x31.qpkg.md5    OSickGear_250628_arm-x31.qpkg    OSickGear            250628       a31    8ba5b799a869b14093039a22884fab26
