@@ -1957,7 +1957,7 @@ DebugBulletSeparatorWithText()
 	local b=$(((r_debug_log_datawidth-${#a})/2))
 	local c=$((r_debug_log_datawidth-${#a}-b))
 
-	eval printf '%0.s•' "{1..$b}"; printf '%s' "$a"; eval printf '%0.s•' "{1..$c}"; echo 	# `seq` is unavailable in QTS, so must resort to `eval` trickery instead.
+	eval printf '%0.s•' "{1..$b}"; printf '%s' "$a"; eval printf '%0.s•' "{1..$c}"; echo	# `seq` is unavailable in QTS, so must resort to `eval` trickery instead.
 
 	}
 
@@ -2846,13 +2846,13 @@ IsPortResponds()
 				return 0
 				;;
 			28)			# Timed-out.
-				: 				# do nothing
+				:				# do nothing
 				;;
 			7)			# This code is returned immediately,
 				/bin/sleep 1	# ... so let's wait here a bit.
 				;;
 			*)
-				: 			# do nothing
+				:			# do nothing
 		esac
 
 		((c++))
@@ -2915,13 +2915,13 @@ IsPortSecureResponds()
 				break
 				;;
 			28)			# Timed-out.
-				: 			# do nothing
+				:			# do nothing
 				;;
 			7)			# This code is returned immediately,
 				/bin/sleep 1		# ... so let's wait here a bit.
 				;;
 			*)
-				: 			# do nothing
+				:			# do nothing
 		esac
 
 		((c++))
@@ -3854,8 +3854,8 @@ CommitToSysLog()
 	# Inputs: (local)
 	#	$1 = message to append to QTS system log
 	#	$2 = event type:
-	#	 	1 : Error
-	#	 	2 : Warning
+	#		1 : Error
+	#		2 : Warning
 	#		4 : Information
 
 	if IsNotStatus && IsNotLog && IsNotNone; then
@@ -4034,7 +4034,7 @@ FormatAsThous()
 	# Why? Because builtin `printf` in 32b ARM QTS versions doesn't follow locale. ¯\_(ツ)_/¯
 
 	# Inputs: (local)
-	# 	$1 = Integer value.
+	#	$1 = Integer value.
 
 	# Outputs: (local)
 	#	stdout = formatted number string
