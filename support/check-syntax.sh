@@ -16,7 +16,7 @@ b+=(1009,1036,1072,1073,1088,2034)
 # b+=(1036,1090,1091,2001,2006,2012,2016,2028,2034,2054,2086,2154,2155)
 
 for i in "${!a[@]}"; do
-	echo -n "checking '${a[i]}' ... "
+	echo -n "checking syntax '${a[i]}' ... "
 
 	if shellcheck --shell=bash --exclude="${b[i]}" "${a[i]}"; then
 		ShowPassed
