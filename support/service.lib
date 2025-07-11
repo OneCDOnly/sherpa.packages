@@ -5,8 +5,8 @@
 #* Contact:
 #*   one.cd.only@gmail.com
 #* Description:
-#*   A library of common bash functions used by many sherpa QPKG service-scripts.
-#*   Each QPKG has a copy for use only by that QPKG's service-script.
+#*	A library of common bash functions used by many sherpa QPKG service-scripts.
+#*	Each QPKG has a copy for use only by that QPKG's service-script.
 #* Project:
 #*	 https://git.io/sherpa
 #* Support forums:
@@ -29,7 +29,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version='250616'
+readonly r_service_library_version='250711'
 InitLibrary(){
 IsQNAP ||exit
 debug=${DEBUG_QPKG:=false}
@@ -870,7 +870,7 @@ FormatAsCommand "$1">>"$r_service_screen_log_pathfile"
 /usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 z=$?
 elif [[ $debug = true ]];then
-eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"
+		eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"
 z=${PIPESTATUS[0]}
 else
 (eval "$1">"$r_log_pathfile" 2>&1)
@@ -1475,7 +1475,7 @@ DisplayAndCommitToLog "~ ${1:-}";}
 DisplayAndCommitActionToLog(){
 [[ $service_action = unspecified ]]&&return
 starttime=$(ConvertNowToNanoseconds)
-local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
+	local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' '<<<"$msg") "
 local a=DisplayAndCommitToLog
 if IsNotStatus &&IsNotLog &&IsNotNone;then
@@ -1503,8 +1503,8 @@ DisplayAndCommitToLog(){
 Display "${1:-}"
 CommitToLog "${1:-}";}
 DisplayAndCommitWaitToLog(){
-DisplayWait "> ${1:-}:"
-CommitWaitToLog "> ${1:-}:";}
+	DisplayWait "> ${1:-}:"
+	CommitWaitToLog "> ${1:-}:";}
 CommitInfoToLog(){
 CommitToLog "- ${1:-}";}
 CommitDoneToLog(){
