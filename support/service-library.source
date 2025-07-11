@@ -1,19 +1,13 @@
 #!/usr/bin/env bash
-#* <?dont_edit?>
-#
-#* <?filename?>
-#
-#* <?copyright?>
-#
+#*
+#* <?preamble?>
+#*
 #* Description:
-#*	A library of common bash functions used by many sherpa QPKG service-scripts.
-#*	Each QPKG has a copy for use only by that QPKG's service-script.
-#
-#* <?project?>
-#
-#* <?tested?>
-#
-#* <?license?>
+#*	  A library of common bash functions used by many sherpa QPKG service-scripts.
+#*	  Each QPKG has a copy for use only by that QPKG's service-script.
+#*
+#* <?postamble?>
+#*
 
 set -o nounset -o pipefail
 shopt -s extglob

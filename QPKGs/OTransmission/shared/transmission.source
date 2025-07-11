@@ -1,16 +1,12 @@
 #!/usr/bin/env bash
-#* <?dont_edit?>
-#
-#* <?filename?>
-#
-#* <?copyright?>
-#
-#* <?project?>
-#
-#* <?tested?>
-#
-#* <?license?>
-
+#*
+#* <?preamble?>
+#*
+#* Description:
+#*	  This is the service-script for the QPKG name show below as $r_qpkg_name
+#*
+#* <?postamble?>
+#*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OTransmission
 readonly r_service_script_version='<?build_date?>'

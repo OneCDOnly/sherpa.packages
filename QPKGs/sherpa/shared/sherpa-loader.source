@@ -1,19 +1,12 @@
 #!/usr/bin/env bash
-#* <?dont_edit?>
-#
-#* <?filename?>
-#
-#* <?copyright?>
-#
+#*
+#* <?preamble?>
+#*
 #* Description:
-#*	 This is the loader script for the sherpa mini-package-manager and is part of the `sherpa` QPKG.
-#
-#* <?project?>
-#
-#* <?tested?>
-#
-#* <?license?>
-
+#*	  This is the loader script for the sherpa mini-package-manager and is part of the `sherpa` QPKG.
+#*
+#* <?postamble?>
+#*
 set -o nounset -o pipefail
 ln -fns /proc/self/fd /dev/fd		# KLUDGE: `/dev/fd` isn't always created by QTS.
 readonly r_user_args_raw=$*
