@@ -14,7 +14,7 @@ for i in "${!a[@]}"; do
 	sed -i 's|^[ ][\t]|\t|' "$qpkgs_support_path"/${a[i]}					# remove leading space char left by Kate line commenter/uncommenter
 	touch --reference=/tmp/"$i".tmp "$qpkgs_support_path"/"${a[i]}"
 
-	ShowPassed
+	ShowDone
 done
 
 exit 0

@@ -22,6 +22,7 @@ more_itertools
 pycurl
 pyjsparser
 pyload-ng
+pyzstd
 semver~=2.10
 setuptools
 werkzeug
