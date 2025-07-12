@@ -37,7 +37,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=ClamAV
-readonly r_service_script_version='250712'
+readonly r_service_script_version=250713
 InitService(){
 qpkg_ini_file=undefined
 qpkg_backup_pathfile=undefined
@@ -47,7 +47,7 @@ install_pip_deps=true
 readonly r_target_service_pathfile=/etc/init.d/antivirus.sh
 readonly r_backup_service_pathfile=$r_target_service_pathfile.bak;}
 StartQPKGCustom(){
-IsError &&return
+IsError&&return
 MakePaths
 WatchForGit ||{ SetError;return 1;}
 if [[ ! -e $r_backup_service_pathfile ]];then
@@ -63,7 +63,7 @@ fi
 DisplayAndCommitInfoToLog 'start: OK'
 return 0;}
 StopQPKGCustom(){
-IsError &&return
+IsError&&return
 if [[ -e $r_backup_service_pathfile ]];then
 mv "$r_backup_service_pathfile" "$r_target_service_pathfile"
 eval "$r_target_service_pathfile" restart &>/dev/null
@@ -72,7 +72,7 @@ fi
 DisplayAndCommitInfoToLog 'stop: OK'
 return 0;}
 StatusQPKGCustom(){
-IsNotError ||return
+IsNotError||return
 if [[ -e $r_backup_service_pathfile ]];then
 printf active
 exit 0
