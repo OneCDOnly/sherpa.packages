@@ -642,7 +642,7 @@ CleanLocalRepo
 fi
 fi
 if [[ ! -d $qpkg_repo_path/.git ]];then
-DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;/opt/bin/git clone --branch $source_git_branch $branch_depth -c advice.detachedHead=false $source_git_url $qpkg_repo_path" log:failure-only
+DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;/opt/bin/git clone --progress --branch $source_git_branch $branch_depth -c advice.detachedHead=false $source_git_url $qpkg_repo_path" log:failure-only
 new_branch=true
 else
 if IsAutoUpdate;then
