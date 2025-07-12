@@ -9,7 +9,11 @@ this_path=$PWD
 
 cd "$qpkgs_support_path" || exit
 ./clean-source.sh
-[[ ${1:-} != nocheck ]] && { ./check-syntax.sh || exit ;}
+
+if [[ ${1:-} != nocheck ]]; then
+	./check-syntax.sh || exit
+	./check-whitespace.sh || exit
+fi
 
 [[ -e $packages_file ]] && rm -f "$packages_file"
 

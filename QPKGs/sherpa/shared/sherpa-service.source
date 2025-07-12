@@ -1,19 +1,12 @@
 #!/usr/bin/env bash
-#* <?dont_edit?>
-#
-#* <?filename?>
-#
-#* <?copyright?>
-#
+#*
+#* <?preamble?>
+#*
 #* Description:
-#*	 This is the service-script for the sherpa mini-package-manager and is part of the `sherpa` QPKG.
-#
-#* <?project?>
-#
-#* <?tested?>
-#
-#* <?license?>
-
+#*	  This is the service-script for the QPKG name show below as $r_qpkg_name
+#*
+#* <?postamble?>
+#*
 set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]] || set +m			# Disable job control if-enabled (only needed for QTS 4.2.6).
