@@ -1255,8 +1255,9 @@ CloneGitRepo()
 	{
 
 	# Inputs: (global)
-	#	$r_qpkg_name
+	#	$debug
 	#	$qpkg_repo_path
+	#	$r_qpkg_name
 	#	$source_git_branch
 	#	$source_git_branch_depth
 	#	$source_git_url
@@ -1265,11 +1266,10 @@ CloneGitRepo()
 
 	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 	local branch_depth='--depth 1'
-	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
 	local branch_switch=false
-	local new_branch=false
 	local progress_opt=''
 
+	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
 	[[ $debug = true ]] && progress_opt=' --progress'
 
 	WatchForGit || return
@@ -1290,8 +1290,6 @@ CloneGitRepo()
 			DisplayAndCommitErrorToAllLogs "'git clone' failed"
 			SetError; return
 		fi
-
-		new_branch=true
 	else
 		if IsAutoUpdate; then
 			# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
@@ -1304,12 +1302,14 @@ CloneGitRepo()
 		fi
 	fi
 
-	if [[ -z $(GetPathGitBranch "$qpkg_repo_path") ]]; then
+	active_branch=$(GetPathGitBranch "$qpkg_repo_path")
+	DisplayAndCommitInfoToLog "active git branch: $active_branch"
+
+	if [[ -z $active_branch ]]; then
 		DisplayAndCommitErrorToAllLogs 'no active git branch found'
 		SetError; return
 	fi
 
-	IsAutoUpdate && [[ $new_branch = true || $branch_switch = true ]] && DisplayAndCommitInfoToLog "active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
 	[[ $branch_switch = true && $r_qpkg_name = nzbToMedia ]] && RestoreConfig
 
 	return 0
