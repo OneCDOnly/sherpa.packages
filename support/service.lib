@@ -629,10 +629,9 @@ CloneGitRepo(){
 IsGitApp||return 0
 local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 local branch_depth='--depth 1'
-[[ $source_git_branch_depth = single-branch ]]&&branch_depth='--single-branch'
 local branch_switch=false
-local new_branch=false
 local progress_opt=''
+[[ $source_git_branch_depth = single-branch ]]&&branch_depth='--single-branch'
 [[ $debug = true ]]&&progress_opt=' --progress'
 WatchForGit||return
 if [[ -d $qpkg_repo_path/.git ]];then
@@ -649,7 +648,6 @@ if [[ $? -ne 0 ]];then
 DisplayAndCommitErrorToAllLogs "'git clone' failed"
 SetError;return
 fi
-new_branch=true
 else
 if IsAutoUpdate;then
 DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;/opt/bin/git -C $qpkg_repo_path clean -f;/opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch;/opt/bin/git -C $qpkg_repo_path pull" log:failure-only
@@ -659,11 +657,12 @@ SetError;return
 fi
 fi
 fi
-if [[ -z $(GetPathGitBranch "$qpkg_repo_path") ]];then
+active_branch=$(GetPathGitBranch "$qpkg_repo_path")
+DisplayAndCommitInfoToLog "active git branch: $active_branch"
+if [[ -z $active_branch ]];then
 DisplayAndCommitErrorToAllLogs 'no active git branch found'
 SetError;return
 fi
-IsAutoUpdate &&[[ $new_branch = true ||$branch_switch = true ]]&&DisplayAndCommitInfoToLog "active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
 [[ $branch_switch = true &&$r_qpkg_name = nzbToMedia ]]&&RestoreConfig
 return 0;}
 CleanLocalRepo(){
