@@ -557,7 +557,7 @@ CreateUserlinkToExec()
 			else
 				DisplayAndCommitErrorToAllLogs "unable to create symlink to $r_qpkg_name launcher"
 
-				SetError; return 1
+				SetError; return
 			fi
 		else
 			DisplayAndCommitInfoToLog "symlink exists: $userlink_pathfile"
@@ -658,7 +658,7 @@ StartDaemon()
 
 			DisplayAndCommitErrorToAllLogs "tried to launch $c time$(Pluralise "$c"), no further retries are possible"
 
-			SetError; return 1
+			SetError; return
 		fi
 
 		break
@@ -717,7 +717,7 @@ StopDaemon()
 	PauseForKillPid
 
 	if IsDaemonActive; then
-		SetError; return 1
+		SetError; return
 	fi
 
 	}
@@ -832,12 +832,12 @@ RefreshReleasePackageFiles()
 		if IsPathEmpty "$qpkg_repo_path"; then
 			DisplayAndCommitErrorToAllLogs 'local repository files do not exist'
 
-			SetError; return 1
+			SetError; return
 		fi
 	else
 		DisplayAndCommitErrorToAllLogs 'local repository path does not exist'
 
-		SetError; return 1
+		SetError; return
 	fi
 
 	return 0
@@ -857,7 +857,7 @@ CheckPortsAvailable()
 	if [[ $daemon_port -le 0 && $ui_port -le 0 && $ui_port_secure -le 0 ]]; then
 		DisplayAndCommitErrorToAllLogs 'no port specified'
 
-		SetError; return 1
+		SetError; return
 	elif IsNotPortAvailable $ui_port || IsNotPortAvailable $ui_port_secure; then
 		DisplayAndCommitErrorToAllLogs "ports $ui_port or $ui_port_secure are already in-use"
 
@@ -867,7 +867,7 @@ CheckPortsAvailable()
 		a=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
 		DisplayAndCommitInfoToAllLogs "process details for secure port $ui_port_secure: PID ${a}: $([[ -n ${a:-} ]] && /bin/tr '\000' ' ' </proc/"${a/p/}"/cmdline)"
 
-		SetError; return 1
+		SetError; return
 	fi
 
 	}
@@ -942,7 +942,7 @@ InstallPythonPackages()
 	if IsNotVirtualPythonEnvExist; then
 		DisplayAndCommitErrorToAllLogs 'unable to install addons: virtual Python environment does not exist'
 
-		SetError; return 1
+		SetError; return
 	fi
 
 	IsNotAutoUpdate && [[ $new_env = false ]] && return 0
@@ -1061,7 +1061,7 @@ BackupConfig()
 	#	$r_qpkg_path
 
 	if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=$qpkg_backup_pathfile --directory=$r_qpkg_path/config ." log:failure-only; then
-		SetError; return 1
+		SetError; return
 	fi
 
 	}
@@ -1076,11 +1076,11 @@ RestoreConfig()
 	if [[ ! -f $qpkg_backup_pathfile ]]; then
 		DisplayAndCommitErrorToAllLogs "unable to restore configuration: no backup file was found"
 
-		SetError; return 1
+		SetError; return
 	fi
 
 	if ! DisplayRunAndLog 'restore configuration backup' "/bin/tar --extract --gzip --file=$qpkg_backup_pathfile --directory=$r_qpkg_path/config" log:failure-only; then
-		SetError; return 1
+		SetError; return
 	fi
 
 	}
@@ -1093,7 +1093,7 @@ ResetConfig()
 	#	$r_qpkg_path
 
 	if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $r_qpkg_path; rm -rf $r_qpkg_path/config/*; mkdir -p $(/usr/bin/dirname "$qpkg_ini_default_pathfile"); mv $r_qpkg_path/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only; then
-		SetError; return 1
+		SetError; return
 	fi
 
 	}
@@ -1162,7 +1162,7 @@ LoadPorts()
 		*)
 			DisplayAndCommitErrorToAllLogs "unable to load ports: action '$1' is unrecognised"
 
-			SetError; return 1
+			SetError; return
 	esac
 
 	# Always read these from the application configuration file.
@@ -1255,8 +1255,9 @@ CloneGitRepo()
 	{
 
 	# Inputs: (global)
-	#	$r_qpkg_name
+	#	$debug
 	#	$qpkg_repo_path
+	#	$r_qpkg_name
 	#	$source_git_branch
 	#	$source_git_branch_depth
 	#	$source_git_url
@@ -1265,9 +1266,11 @@ CloneGitRepo()
 
 	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 	local branch_depth='--depth 1'
-	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
 	local branch_switch=false
-	local new_branch=false
+	local progress_opt=''
+
+	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
+	[[ $debug = true ]] && progress_opt=' --progress'
 
 	WatchForGit || return
 
@@ -1281,16 +1284,32 @@ CloneGitRepo()
 	fi
 
 	if [[ ! -d $qpkg_repo_path/.git ]]; then
-		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git clone --progress --branch $source_git_branch $branch_depth -c advice.detachedHead=false $source_git_url $qpkg_repo_path" log:failure-only
-		new_branch=true
+		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git clone$progress_opt --branch $source_git_branch $branch_depth -c advice.detachedHead=false $source_git_url $qpkg_repo_path" log:failure-only
+
+		if [[ $? -ne 0 ]]; then
+			DisplayAndCommitErrorToAllLogs "'git clone' failed"
+			SetError; return
+		fi
 	else
 		if IsAutoUpdate; then
 			# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
 			DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git -C $qpkg_repo_path clean -f; /opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch; /opt/bin/git -C $qpkg_repo_path pull" log:failure-only
+
+			if [[ $? -ne 0 ]]; then
+				DisplayAndCommitErrorToAllLogs "'git pull' failed"
+				SetError; return
+			fi
 		fi
 	fi
 
-	IsAutoUpdate && [[ $new_branch = true || $branch_switch = true ]] && DisplayAndCommitInfoToLog "active git branch: '$(GetPathGitBranch "$qpkg_repo_path")'"
+	active_branch=$(GetPathGitBranch "$qpkg_repo_path")
+	DisplayAndCommitInfoToLog "active git branch: $active_branch"
+
+	if [[ -z $active_branch ]]; then
+		DisplayAndCommitErrorToAllLogs 'no active git branch found'
+		SetError; return
+	fi
+
 	[[ $branch_switch = true && $r_qpkg_name = nzbToMedia ]] && RestoreConfig
 
 	return 0
@@ -1312,7 +1331,7 @@ CleanLocalRepo()
 	#	$venv_path
 
 	if [[ -z $r_qpkg_path || -z $r_qpkg_name ]] || IsNotSourcedOnline; then
-		SetError; return 1
+		SetError; return
 	fi
 
 	(IsGitApp || IsOnlineReleasePackage) && DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
@@ -1338,12 +1357,12 @@ WatchForGit()
 
 	if IsNotQPKGInstalled Entware; then
 		DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not installed"
-		SetError; return 1
+		SetError; return
 	fi
 
 	if IsNotQPKGEnabled Entware; then
 		DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not enabled"
-		SetError; return 1
+		SetError; return
 	fi
 
 	if WatchForFileToAppear /opt/bin/git 300; then
@@ -1351,7 +1370,7 @@ WatchForGit()
 		return 0
 	fi
 
-	SetError; return 1
+	SetError; return
 
 	}
 
@@ -1638,7 +1657,7 @@ ViewLog()
 	else
 		Display "service log not found: $r_service_log_pathfile"
 
-		SetError; return 1
+		SetError; return
 	fi
 
 	return 0
@@ -1884,7 +1903,7 @@ FormatAsStdout()
 
 	}
 
-#FormatAsResult()
+# FormatAsResult() #
 #	{
 
 #	Display "result: $(FormatAsExitcode "${1:-}")"
@@ -1906,7 +1925,7 @@ FormatAsResultAndStdout()
 
 	}
 
-#FormatAsFuncMessages()
+# FormatAsFuncMessages() #
 #	{
 
 #	echo "= ${FUNCNAME[1]}()"
@@ -2079,7 +2098,7 @@ ReWriteUIPorts()
 
 	}
 
-#IsPortsAvailable()
+# IsPortsAvailable() #
 #	{
 
 #	# Inputs: (global)
@@ -2302,7 +2321,7 @@ IsQNAP()
 	if [[ ! -e /etc/init.d/functions ]]; then
 		Display 'QTS functions missing (is this a QNAP NAS?)'
 
-		SetError; return 1
+		SetError; return
 	fi
 
 	return 0
@@ -2351,7 +2370,7 @@ IsQPKGActive()
 
 	}
 
-#IsNotQPKGActive()
+# IsNotQPKGActive() #
 #	{
 
 #	! IsQPKGActive
@@ -2406,7 +2425,7 @@ IsSupportBackup()
 
 	}
 
-#IsNotSupportBackup()
+# IsNotSupportBackup() #
 #	{
 
 #	! IsSupportBackup
@@ -2449,7 +2468,7 @@ IsSupportActions()
 
 	}
 
-#IsNotSupportActions()
+# IsNotSupportActions() #
 #	{
 
 #	! IsSupportActions
@@ -2471,7 +2490,7 @@ IsSupportGetAppVersion()
 
 	}
 
-#IsNotSupportGetAppVersion()
+# IsNotSupportGetAppVersion() #
 #	{
 
 #	! IsSupportGetAppVersion
@@ -2492,7 +2511,7 @@ IsVirtualPythonEnv()
 
 	}
 
-#IsNotVirtualPythonEnv()
+# IsNotVirtualPythonEnv() #
 #	{
 
 #	! IsVirtualPythonEnv
@@ -2517,7 +2536,7 @@ IsGitApp()
 
 	}
 
-#IsNotGitApp()
+# IsNotGitApp() #
 #	{
 
 #	! IsGitApp
@@ -2538,7 +2557,7 @@ IsUsePipCache()
 
 	}
 
-#IsNotUsePipCache()
+# IsNotUsePipCache() #
 #	{
 
 #	! IsUsePipCache
@@ -2559,7 +2578,7 @@ IsOnlineReleasePackage()
 
 	}
 
-#IsNotOnlineReleasePackage()
+# IsNotOnlineReleasePackage() #
 #	{
 
 #	! IsOnlineReleasePackage
@@ -2580,7 +2599,7 @@ IsReleaseAnArchive()
 
 	}
 
-#IsNotReleaseAnArchive()
+# IsNotReleaseAnArchive() #
 #	{
 
 #	! IsReleaseAnArchive
@@ -2601,7 +2620,7 @@ IsSupportAutoUpdate()
 
 	}
 
-#IsNotSupportAutoUpdate()
+# IsNotSupportAutoUpdate() #
 #	{
 
 #	! IsSupportAutoUpdate
@@ -2738,20 +2757,20 @@ IsSysFilePresent()
 	#	$? = 1 : false
 
 	if [[ -z ${1:?pathfilename null} ]]; then
-		SetError; return 1
+		SetError; return
 	fi
 
 	if [[ ! -e $1 ]]; then
 		Display "A required NAS system file is missing: $1"
 
-		SetError; return 1
+		SetError; return
 	fi
 
 	return 0
 
 	}
 
-#IsNotSysFilePresent()
+# IsNotSysFilePresent() #
 #	{
 
 #	# Inputs: (local)
@@ -2971,7 +2990,7 @@ IsDefaultConfigFound()
 
 	}
 
-#IsNotDefaultConfigFound()
+# IsNotDefaultConfigFound() #
 #	{
 
 #	! IsDefaultConfigFound
@@ -3327,7 +3346,7 @@ SetServiceResultAsInProgress()
 
 	}
 
-#SetServiceResultAsUnsupported()
+# SetServiceResultAsUnsupported() #
 #	{
 
 #	# Selected action isn't supported by this QPKG.
@@ -3362,14 +3381,14 @@ SetDaemonWasActive()
 
 	}
 
-#UnsetDaemonWasActive()
+# UnsetDaemonWasActive() #
 #	{
 
 #	_daemon_was_active=false
 
 #	}
 
-#DaemonWasActive()
+# DaemonWasActive() #
 #	{
 
 #	[[ ${_daemon_was_active:=false} = true ]]
@@ -3390,7 +3409,7 @@ SetStatusGet()
 
 	}
 
-#UnsetStatusGet()
+# UnsetStatusGet() #
 #	{
 
 #	_get_status_flag=false
@@ -3416,6 +3435,7 @@ SetError()
 
 	IsError && return
 	_error_flag=true
+	false
 
 	}
 
@@ -3480,7 +3500,7 @@ IsStop()
 
 	}
 
-#IsNotStop()
+# IsNotStop() #
 #	{
 
 #	! IsStop
@@ -3550,7 +3570,7 @@ IsBackup()
 
 	}
 
-#IsNotBackup()
+# IsNotBackup() #
 #	{
 
 #	! IsBackup
@@ -3564,7 +3584,7 @@ IsRestore()
 
 	}
 
-#IsNotRestore()
+# IsNotRestore() #
 #	{
 
 #	! IsRestore
@@ -3578,7 +3598,7 @@ IsReset()
 
 	}
 
-#IsNotReset()
+# IsNotReset() #
 #	{
 
 #	! IsReset
@@ -3617,7 +3637,7 @@ IsPathEmpty()
 
 	}
 
-#IsNotPathEmpty()
+# IsNotPathEmpty() #
 #	{
 
 #	! IsPathEmpty "${1:-}"
@@ -3649,13 +3669,13 @@ CommitWarnToAllLogs()
 
 	}
 
-DisplayAndCommitWarnToAllLogs()
-	{
-
-	DisplayAndCommitWarnToLog "${1:-}"
-	CommitWarnToSysLog "${1:-}"
-
-	}
+# DisplayAndCommitWarnToAllLogs() #
+#	{
+#
+#	DisplayAndCommitWarnToLog "${1:-}"
+#	CommitWarnToSysLog "${1:-}"
+#
+#	}
 
 DisplayAndCommitErrorToAllLogs()
 	{
@@ -3854,7 +3874,7 @@ CommitToSysLog()
 
 	if IsNotStatus && IsNotLog && IsNotNone; then
 		if [[ -z ${1:-} || -z ${2:-} ]]; then
-			SetError; return 1
+			SetError; return
 		fi
 
 		/sbin/write_log "[$r_qpkg_name] $1" "$2"
