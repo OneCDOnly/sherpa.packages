@@ -1455,9 +1455,6 @@ CommitInfoToSysLog "${1:-}";}
 CommitWarnToAllLogs(){
 CommitWarnToLog "${1:-}"
 CommitWarnToSysLog "${1:-}";}
-DisplayAndCommitWarnToAllLogs(){
-DisplayAndCommitWarnToLog "${1:-}"
-CommitWarnToSysLog "${1:-}";}
 DisplayAndCommitErrorToAllLogs(){
 DisplayAndCommitErrorToLog "${1:-}"
 CommitErrorToSysLog "${1:-}";}
