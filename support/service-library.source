@@ -1903,7 +1903,7 @@ FormatAsStdout()
 
 	}
 
-#FormatAsResult()
+# FormatAsResult() #
 #	{
 
 #	Display "result: $(FormatAsExitcode "${1:-}")"
@@ -1925,7 +1925,7 @@ FormatAsResultAndStdout()
 
 	}
 
-#FormatAsFuncMessages()
+# FormatAsFuncMessages() #
 #	{
 
 #	echo "= ${FUNCNAME[1]}()"
@@ -2098,7 +2098,7 @@ ReWriteUIPorts()
 
 	}
 
-#IsPortsAvailable()
+# IsPortsAvailable() #
 #	{
 
 #	# Inputs: (global)
@@ -2370,7 +2370,7 @@ IsQPKGActive()
 
 	}
 
-#IsNotQPKGActive()
+# IsNotQPKGActive() #
 #	{
 
 #	! IsQPKGActive
@@ -2425,7 +2425,7 @@ IsSupportBackup()
 
 	}
 
-#IsNotSupportBackup()
+# IsNotSupportBackup() #
 #	{
 
 #	! IsSupportBackup
@@ -2468,7 +2468,7 @@ IsSupportActions()
 
 	}
 
-#IsNotSupportActions()
+# IsNotSupportActions() #
 #	{
 
 #	! IsSupportActions
@@ -2490,7 +2490,7 @@ IsSupportGetAppVersion()
 
 	}
 
-#IsNotSupportGetAppVersion()
+# IsNotSupportGetAppVersion() #
 #	{
 
 #	! IsSupportGetAppVersion
@@ -2511,7 +2511,7 @@ IsVirtualPythonEnv()
 
 	}
 
-#IsNotVirtualPythonEnv()
+# IsNotVirtualPythonEnv() #
 #	{
 
 #	! IsVirtualPythonEnv
@@ -2536,7 +2536,7 @@ IsGitApp()
 
 	}
 
-#IsNotGitApp()
+# IsNotGitApp() #
 #	{
 
 #	! IsGitApp
@@ -2557,7 +2557,7 @@ IsUsePipCache()
 
 	}
 
-#IsNotUsePipCache()
+# IsNotUsePipCache() #
 #	{
 
 #	! IsUsePipCache
@@ -2578,7 +2578,7 @@ IsOnlineReleasePackage()
 
 	}
 
-#IsNotOnlineReleasePackage()
+# IsNotOnlineReleasePackage() #
 #	{
 
 #	! IsOnlineReleasePackage
@@ -2599,7 +2599,7 @@ IsReleaseAnArchive()
 
 	}
 
-#IsNotReleaseAnArchive()
+# IsNotReleaseAnArchive() #
 #	{
 
 #	! IsReleaseAnArchive
@@ -2620,7 +2620,7 @@ IsSupportAutoUpdate()
 
 	}
 
-#IsNotSupportAutoUpdate()
+# IsNotSupportAutoUpdate() #
 #	{
 
 #	! IsSupportAutoUpdate
@@ -2770,7 +2770,7 @@ IsSysFilePresent()
 
 	}
 
-#IsNotSysFilePresent()
+# IsNotSysFilePresent() #
 #	{
 
 #	# Inputs: (local)
@@ -2990,7 +2990,7 @@ IsDefaultConfigFound()
 
 	}
 
-#IsNotDefaultConfigFound()
+# IsNotDefaultConfigFound() #
 #	{
 
 #	! IsDefaultConfigFound
@@ -3346,7 +3346,7 @@ SetServiceResultAsInProgress()
 
 	}
 
-#SetServiceResultAsUnsupported()
+# SetServiceResultAsUnsupported() #
 #	{
 
 #	# Selected action isn't supported by this QPKG.
@@ -3381,14 +3381,14 @@ SetDaemonWasActive()
 
 	}
 
-#UnsetDaemonWasActive()
+# UnsetDaemonWasActive() #
 #	{
 
 #	_daemon_was_active=false
 
 #	}
 
-#DaemonWasActive()
+# DaemonWasActive() #
 #	{
 
 #	[[ ${_daemon_was_active:=false} = true ]]
@@ -3409,7 +3409,7 @@ SetStatusGet()
 
 	}
 
-#UnsetStatusGet()
+# UnsetStatusGet() #
 #	{
 
 #	_get_status_flag=false
@@ -3500,7 +3500,7 @@ IsStop()
 
 	}
 
-#IsNotStop()
+# IsNotStop() #
 #	{
 
 #	! IsStop
@@ -3570,7 +3570,7 @@ IsBackup()
 
 	}
 
-#IsNotBackup()
+# IsNotBackup() #
 #	{
 
 #	! IsBackup
@@ -3584,7 +3584,7 @@ IsRestore()
 
 	}
 
-#IsNotRestore()
+# IsNotRestore() #
 #	{
 
 #	! IsRestore
@@ -3598,7 +3598,7 @@ IsReset()
 
 	}
 
-#IsNotReset()
+# IsNotReset() #
 #	{
 
 #	! IsReset
@@ -3637,7 +3637,7 @@ IsPathEmpty()
 
 	}
 
-#IsNotPathEmpty()
+# IsNotPathEmpty() #
 #	{
 
 #	! IsPathEmpty "${1:-}"
@@ -3669,13 +3669,13 @@ CommitWarnToAllLogs()
 
 	}
 
-DisplayAndCommitWarnToAllLogs()
-	{
-
-	DisplayAndCommitWarnToLog "${1:-}"
-	CommitWarnToSysLog "${1:-}"
-
-	}
+# DisplayAndCommitWarnToAllLogs() #
+#	{
+#
+#	DisplayAndCommitWarnToLog "${1:-}"
+#	CommitWarnToSysLog "${1:-}"
+#
+#	}
 
 DisplayAndCommitErrorToAllLogs()
 	{
