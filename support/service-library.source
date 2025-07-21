@@ -4230,17 +4230,17 @@ CalcAdaptiveSeconds()
 	{
 
 	# Inputs: (local)
-	#	$1 = Integer of base seconds (to suit 1m load average of 1.0 on a single-core CPU).
+	#	$1 = Integer of base seconds (to suit 1m load average of 1.0 on a single-core CPU). The minimum output value.
 
 	# Outputs: (local)
 	#	stdout = Integer of adapted seconds based-on present 1 minute load average. Maximum of 1800.
 
-	local a=$(GetSysLoad1MinAverage); a=${a/./}		# Convert to hundreds.
-	local b=$(($(GetCPUCores)*100))					# Match conversion amount for $a.
-	local c=$((10#$a/10#$b))
+	local a=$(GetSysLoad1MinAverage); a=${a/./}0	# Convert to thousands. Increase this to workaround decimal rounding.
+	local b=$(($(GetCPUCores)*100))					# Convert to hundreds.
+	local c=$((10#$a/10#$b))						# Multiplier.
 	local d=$((10#${1:-1}))
 
-	[[ $((10#$c)) -gt 1 ]] && d=$((c*d))
+	[[ $((10#$c)) -gt 10 ]] && d=$(((c*d)/10))		# Decrease this as decimal rounding is now a non-issue.
 	[[ $((10#$d)) -gt 1800 ]] && d=1800
 
 	printf '%s' "$d"
