@@ -40,7 +40,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=250717
+readonly r_service_library_version=250722
 InitLibrary(){
 IsQNAP||exit
 debug=${DEBUG_QPKG:=false}
@@ -1650,11 +1650,11 @@ CommitInfoToLog "specified action '$1' is unsupported."
 Display
 ShowHelp;}
 CalcAdaptiveSeconds(){
-local a=$(GetSysLoad1MinAverage);a=${a/./}
+local a=$(GetSysLoad1MinAverage);a=${a/./}0
 local b=$(($(GetCPUCores)*100))
 local c=$((10#$a/10#$b))
 local d=$((10#${1:-1}))
-[[ $((10#$c)) -gt 1 ]]&&d=$((c*d))
+[[ $((10#$c)) -gt 10 ]]&&d=$(((c*d)/10))
 [[ $((10#$d)) -gt 1800 ]]&&d=1800
 printf '%s' "$d";}
 GetSysLoad1MinAverage(){
