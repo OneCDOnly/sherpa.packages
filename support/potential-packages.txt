@@ -1,3 +1,6 @@
+* Releasarr?
+	- https://github.com/Makario1337/Releasarr
+
 * GhostHub?
 	- https://github.com/BleedingXiko/GhostHub
 
