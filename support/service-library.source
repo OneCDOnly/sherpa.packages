@@ -64,6 +64,11 @@ InitLibrary()
 			readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d unknown -f /etc/config/qpkg.conf)
 
+	SetNasArch
+	SetQpkgArch
+	SetOsFirmwareVer
+	SetHardwarePlatform
+
 	# NOTE: default session variables are set below, but may be customised in the InitService() function for each QPKG.
 
 	# >>> Paths <<<
@@ -332,7 +337,7 @@ InitLibrary()
 
 	InitService					# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
 
-	IsOsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
+	IsOsCanSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
 	get_remote_filename_timeout_seconds=5
 	new_env=false
 	pyver=''
@@ -1257,6 +1262,7 @@ CloneGitRepo()
 	# Inputs: (global)
 	#	$debug
 	#	$qpkg_repo_path
+	#	$r_nas_arch
 	#	$r_qpkg_name
 	#	$source_git_branch
 	#	$source_git_branch_depth
@@ -1265,12 +1271,16 @@ CloneGitRepo()
 	IsGitApp || return 0
 
 	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
-	local branch_depth='--depth 1'
+	local branch_depth=' --depth 1'
 	local branch_switch=false
+	local hide_advice_opt=' -c advice.detachedHead=false'
+	local opts=''
 	local progress_opt=''
+	local verify_ssl_opt=''
 
-	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
+	[[ $source_git_branch_depth = single-branch ]] && branch_depth=' --single-branch'
 	[[ $debug = true ]] && progress_opt=' --progress'
+	[[ $r_nas_qpkg_arch = a41 ]] && verify_ssl_opt=' -c http.sslVerify=false'
 
 	WatchForGit || return
 
@@ -1283,8 +1293,12 @@ CloneGitRepo()
 		fi
 	fi
 
+	local branch_opt=" --branch ${source_git_branch}${branch_depth}"
+
 	if [[ ! -d $qpkg_repo_path/.git ]]; then
-		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git clone$progress_opt --branch $source_git_branch $branch_depth -c advice.detachedHead=false $source_git_url $qpkg_repo_path" log:failure-only
+		opts=" clone${progress_opt}${branch_opt}${hide_advice_opt}${verify_ssl_opt} $source_git_url $qpkg_repo_path"
+
+		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git${opts}" log:failure-only
 
 		if [[ $? -ne 0 ]]; then
 			DisplayAndCommitErrorToAllLogs "'git clone' failed"
@@ -1293,7 +1307,9 @@ CloneGitRepo()
 	else
 		if IsAutoUpdate; then
 			# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
-			DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git -C $qpkg_repo_path clean -f; /opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch; /opt/bin/git -C $qpkg_repo_path pull" log:failure-only
+			opts=" -C $qpkg_repo_path clean -f; /opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch; /opt/bin/git -C $qpkg_repo_path pull"
+
+			DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git${opts}" log:failure-only
 
 			if [[ $? -ne 0 ]]; then
 				DisplayAndCommitErrorToAllLogs "'git pull' failed"
@@ -2238,7 +2254,7 @@ GetOriginalModuleSOFilename()
 	#	$pyver
 
 	[[ -z $pyver ]] && pyver=$(GetPythonVer)
-	[[ -n ${1:-} ]] && echo "$1.cpython-$pyver-$(/bin/uname -m)-linux-gnu.so"
+	[[ -n ${1:-} ]] && echo "$1.cpython-$pyver-$r_nas_arch-linux-gnu.so"
 
 	}
 
@@ -2280,6 +2296,134 @@ GetModulePath()
 
 	[[ -z $pyver ]] && pyver=$(GetPythonVer)
 	echo "$venv_path/lib/python${pyver:0:1}.${pyver:1:2}/site-packages"
+
+	}
+
+GetQpkgArch()
+	{
+
+	# Translate arch from local NAS (QTS/QuTS) to sherpa notation.
+
+	# sherpa arch for NAS is a single 3-character code.
+	# prefix is 'a' for ARM, 'i' for Intel.
+
+	# Inputs: (global)
+	#	$r_nas_arch
+	#	$r_nas_firmware_ver
+	#	$r_nas_platform
+
+	# Outputs: (local)
+	#	stdout = translated QPKG arch.
+
+	if [[ $(get_display_name) = 'TS-269H' ]]; then
+		printf i53
+		return
+	fi
+
+	SetNasArch
+	SetOsFirmwareVer
+	SetHardwarePlatform
+
+	case $r_nas_arch in
+		x86_64)
+			[[ $r_nas_firmware_ver -ge 430 ]] && printf i64 || printf i86
+			;;
+		i686|x86)
+			printf i86
+			;;
+		armv5tel)
+			printf a19
+			;;
+		armv7l)
+			case $r_nas_platform in
+				ARM_MS)
+					printf a31
+					;;
+				ARM_AL)
+					printf a41
+					;;
+				*)
+					printf unknown
+			esac
+			;;
+		aarch64)
+			printf a64
+			;;
+		*)
+			printf unknown
+	esac
+
+	}
+
+GetNasArch()
+	{
+
+	/bin/uname -m
+
+	}
+
+GetOsFirmwareVer()
+	{
+
+	# Same as firmware version, but an integer-only (no periods).
+
+	# Outputs: (local)
+	#	stdout = integer.
+	#	$? = 0 if found, 250 if not.
+
+	/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf | tr -d '.'
+
+	}
+
+GetHardwarePlatform()
+	{
+
+	# Outputs: (local)
+	#	$? = 0 if found, 250 if not.
+
+	/sbin/getcfg '' Platform -d undefined -f /etc/platform.conf
+
+	}
+
+SetNasArch()
+	{
+
+	# Outputs: (global)
+	#	$r_nas_arch
+
+	[[ ${r_nas_arch:-unset} = unset ]] && readonly r_nas_arch=$(GetNasArch)
+
+	}
+
+SetQpkgArch()
+	{
+
+	# Outputs: (global)
+	#	$r_nas_qpkg_arch
+
+	[[ ${r_nas_qpkg_arch:-unset} = unset ]] && readonly r_nas_qpkg_arch=$(GetQpkgArch)
+
+	}
+
+SetOsFirmwareVer()
+	{
+
+	# Same as firmware version, but as an integer-only (no periods).
+
+	# Outputs: (global)
+	#	$r_nas_firmware_ver
+
+	[[ ${r_nas_firmware_ver:-unset} = unset ]] && readonly r_nas_firmware_ver=$(GetOsFirmwareVer)
+
+	}
+
+SetHardwarePlatform()
+	{
+
+	# Outputs: (global)
+	#	$r_nas_platform
+
+	[[ ${r_nas_platform:-unset} = unset ]] && readonly r_nas_platform=$(GetHardwarePlatform)
 
 	}
 
@@ -3020,17 +3164,17 @@ IsNotVirtualPythonEnvExist()
 
 	}
 
-IsOsSupportSecureDownload()
+IsOsCanSecureDownload()
 	{
 
 	# Inputs: (global)
-	#	$r_nas_firmware_version
+	#	$r_nas_firmware_ver
 
 	# Outputs: (local)
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ ${r_nas_firmware_version//.} -ge 500 ]]
+	[[ $r_nas_firmware_ver -ge 500 ]]
 
 	}
 
