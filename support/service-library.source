@@ -632,8 +632,8 @@ StartDaemon()
 	# Inputs: (global)
 	#	$daemon_launch_cmd
 	#	$nice_daemon_to
-	#	$run_daemon_in_screen_session
 	#	$r_service_screen_log_pathfile
+	#	$run_daemon_in_screen_session
 	#	$start_retries
 
 	local a='start daemon'
@@ -916,11 +916,11 @@ InstallPythonPackages()
 
 	# Inputs: (global)
 	#	$app_version
-	#	$r_appl_version_store_pathfile
 	#	$install_pip_deps
 	#	$new_env
-	#	$r_qpkg_name
 	#	$qpkg_repo_path
+	#	$r_appl_version_store_pathfile
+	#	$r_qpkg_name
 	#	$silence_pypi_errors
 	#	$venv_pip_pathfile
 
@@ -1338,11 +1338,11 @@ CleanLocalRepo()
 	# For occasions where the local repo needs to be deleted and cloned again from source.
 
 	# Inputs: (global)
-	#	$r_appl_version_store_pathfile
 	#	$pip_cache_path
+	#	$qpkg_repo_path
+	#	$r_appl_version_store_pathfile
 	#	$r_qpkg_name
 	#	$r_qpkg_path
-	#	$qpkg_repo_path
 	#	$r_qpkg_temp_path
 	#	$venv_path
 
