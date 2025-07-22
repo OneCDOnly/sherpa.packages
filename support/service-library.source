@@ -2070,13 +2070,6 @@ Uppercase()
 
 	}
 
-Lowercase()
-	{
-
-	/bin/tr 'A-Z' 'a-z' <<< "$1"
-
-	}
-
 ReWriteUIPorts()
 	{
 
@@ -2534,7 +2527,7 @@ IsQPKGEnabled()
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ $(Lowercase "$(/sbin/getcfg ${1:-$r_qpkg_name} Enable -d false -f /etc/config/qpkg.conf)") = true ]]
+	[[ $(/sbin/getcfg ${1:-$r_qpkg_name} Enable -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]]
 
 	}
 
@@ -4280,7 +4273,7 @@ IsAutoUpdate()
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	IsSupportAutoUpdate && [[ $(Lowercase "$(/sbin/getcfg $r_qpkg_name Auto_Update -f /etc/config/qpkg.conf)") = true ]]
+	IsSupportAutoUpdate && [[ $(/sbin/getcfg $r_qpkg_name Auto_Update -u -f /etc/config/qpkg.conf) = TRUE ]]
 
 	}
 
