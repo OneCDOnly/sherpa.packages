@@ -337,7 +337,8 @@ InitLibrary()
 
 	InitService					# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
 
-	IsOsCanSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
+	curl_insecure_opt=''
+	IsOsCanSecureDownload || curl_insecure_opt=' --insecure'
 	get_remote_filename_timeout_seconds=5
 	new_env=false
 	pyver=''
@@ -651,7 +652,7 @@ StartDaemon()
 	fi
 
 	while true; do
-		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; IsDaemonActive &> /dev/null; WatchForDaemon; PauseForStartPid; ShowDaemonState) || ! IsDaemonActive &> /dev/null || ! WatchForPortsActive; then
+		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session" && IsDaemonActive &> /dev/null && WatchForDaemon && PauseForStartPid && ShowDaemonState) || ! IsDaemonActive &> /dev/null || ! WatchForPortsActive; then
 			DisplayAndCommitWarnToLog 'daemon PID check failed: there appears to have been a launch failure'
 			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
 			((c++))
@@ -3273,7 +3274,7 @@ RequestLatestReleaseFilename()
 	#	$2 (optional) = arch to match.
 
 	# Inputs: (global)
-	#	$curl_insecure_arg
+	#	$curl_insecure_opt
 	#	$get_remote_filename_timeout_seconds
 
 	# Outputs: (local)
@@ -3281,7 +3282,7 @@ RequestLatestReleaseFilename()
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 
-	local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
+	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
 	local b=$(/sbin/curl${a} "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b")
 
@@ -3299,7 +3300,7 @@ RequestLatestReleaseURL()
 	#	$2 (optional) = arch to match.
 
 	# Inputs: (global)
-	#	$curl_insecure_arg
+	#	$curl_insecure_opt
 	#	$get_remote_filename_timeout_seconds
 
 	# Outputs: (local)
@@ -3307,7 +3308,7 @@ RequestLatestReleaseURL()
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 
-	local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
+	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
 	local b=$(/sbin/curl${a} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b")
 
@@ -3325,14 +3326,14 @@ DownloadReleasePackage()
 	#	$2 = pathfilename to save the release package to.
 
 	# Inputs: (global)
-	#	$curl_insecure_arg
+	#	$curl_insecure_opt
 	#	$debug
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 	[[ -n ${2:-} && ${2:-} != undefined ]] || return
 
 	local a=''
-	local b=$curl_insecure_arg
+	local b=$curl_insecure_opt
 	local c=$2
 
 	[[ $debug = false ]] && b+=' --silent'
