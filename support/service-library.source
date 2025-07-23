@@ -1913,20 +1913,6 @@ FormatAsCommand()
 
 	}
 
-FormatAsStdout()
-	{
-
-	Display "output: \"${1:-}\""
-
-	}
-
-# FormatAsResult() #
-#	{
-
-#	Display "result: $(FormatAsExitcode "${1:-}")"
-
-#	}
-
 FormatAsResultAndStdout()
 	{
 
@@ -1941,15 +1927,6 @@ FormatAsResultAndStdout()
 	DebugBulletSeparatorWithText 'stdout & stderr is complete'
 
 	}
-
-# FormatAsFuncMessages() #
-#	{
-
-#	echo "= ${FUNCNAME[1]}()"
-#	FormatAsCommand "${1:?command null}"
-#	FormatAsStdout "${2:-}"
-
-#	}
 
 FormatAsExitcode()
 	{
@@ -2107,35 +2084,6 @@ ReWriteUIPorts()
 	DisplayAndCommitOutcomeToLog OK
 
 	}
-
-# IsPortsAvailable() #
-#	{
-
-#	# Inputs: (global)
-#	#	$daemon_port
-#	#	$ui_port
-#	#	$ui_port_secure
-
-#	if [[ $daemon_port -ne 0 ]]; then
-#		DisplayAndCommitToLog "- daemon port: '$daemon_port'"
-#		IsPortResponds $daemon_port
-#	else
-#		if IsSSLEnabled; then
-#			IsPortSecureResponds $ui_port_secure
-#		else
-#			IsPortResponds $ui_port
-#		fi
-#	fi
-
-#	if IsDaemonActive; then
-#		DisplayAndCommitToLog "- daemon PID: '$(< "$daemon_pid_pathfile")'"
-#		return 0
-#	fi
-
-#	DisplayAndCommitToLog '- daemon PID: none'
-#	return 1
-
-#	}
 
 WatchForPortsActive()
 	{
@@ -2501,20 +2449,6 @@ IsNotQPKGInstalled()
 
 	}
 
-IsQPKGActive()
-	{
-
-	IsDaemon && IsDaemonActive
-
-	}
-
-# IsNotQPKGActive() #
-#	{
-
-#	! IsQPKGActive
-
-#	}
-
 IsQPKGEnabled()
 	{
 
@@ -2563,13 +2497,6 @@ IsSupportBackup()
 
 	}
 
-# IsNotSupportBackup() #
-#	{
-
-#	! IsSupportBackup
-
-#	}
-
 IsSupportReset()
 	{
 
@@ -2606,13 +2533,6 @@ IsSupportActions()
 
 	}
 
-# IsNotSupportActions() #
-#	{
-
-#	! IsSupportActions
-
-#	}
-
 IsSupportGetAppVersion()
 	{
 
@@ -2628,13 +2548,6 @@ IsSupportGetAppVersion()
 
 	}
 
-# IsNotSupportGetAppVersion() #
-#	{
-
-#	! IsSupportGetAppVersion
-
-#	}
-
 IsVirtualPythonEnv()
 	{
 
@@ -2648,13 +2561,6 @@ IsVirtualPythonEnv()
 	[[ $venv_path != undefined ]]
 
 	}
-
-# IsNotVirtualPythonEnv() #
-#	{
-
-#	! IsVirtualPythonEnv
-
-#	}
 
 IsGitApp()
 	{
@@ -2674,13 +2580,6 @@ IsGitApp()
 
 	}
 
-# IsNotGitApp() #
-#	{
-
-#	! IsGitApp
-
-#	}
-
 IsUsePipCache()
 	{
 
@@ -2694,13 +2593,6 @@ IsUsePipCache()
 	[[ $pip_cache_path != undefined ]]
 
 	}
-
-# IsNotUsePipCache() #
-#	{
-
-#	! IsUsePipCache
-
-#	}
 
 IsOnlineReleasePackage()
 	{
@@ -2716,13 +2608,6 @@ IsOnlineReleasePackage()
 
 	}
 
-# IsNotOnlineReleasePackage() #
-#	{
-
-#	! IsOnlineReleasePackage
-
-#	}
-
 IsReleaseAnArchive()
 	{
 
@@ -2737,13 +2622,6 @@ IsReleaseAnArchive()
 
 	}
 
-# IsNotReleaseAnArchive() #
-#	{
-
-#	! IsReleaseAnArchive
-
-#	}
-
 IsSupportAutoUpdate()
 	{
 
@@ -2757,13 +2635,6 @@ IsSupportAutoUpdate()
 	[[ $can_restart_to_update = true ]]
 
 	}
-
-# IsNotSupportAutoUpdate() #
-#	{
-
-#	! IsSupportAutoUpdate
-
-#	}
 
 IsNotSourcedOnline()
 	{
@@ -2883,44 +2754,6 @@ IsDaemonActive()
 	fi
 
 	}
-
-IsSysFilePresent()
-	{
-
-	# Inputs: (local)
-	#	$1 = pathfilename to check.
-
-	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
-
-	if [[ -z ${1:?pathfilename null} ]]; then
-		SetError; return
-	fi
-
-	if [[ ! -e $1 ]]; then
-		Display "A required NAS system file is missing: $1"
-
-		SetError; return
-	fi
-
-	return 0
-
-	}
-
-# IsNotSysFilePresent() #
-#	{
-
-#	# Inputs: (local)
-#	#   $1 = pathfilename to check.
-
-#	# Outputs: (local)
-#	#   $? = 0 : true
-#	#   $? = 1 : false
-
-#	! IsSysFilePresent "${1:?pathfilename null}"
-
-#	}
 
 IsPortAvailable()
 	{
@@ -3127,13 +2960,6 @@ IsDefaultConfigFound()
 	[[ $qpkg_ini_default_pathfile != undefined && -e $qpkg_ini_default_pathfile ]]
 
 	}
-
-# IsNotDefaultConfigFound() #
-#	{
-
-#	! IsDefaultConfigFound
-
-#	}
 
 IsVirtualPythonEnvExist()
 	{
@@ -3484,16 +3310,6 @@ SetServiceResultAsInProgress()
 
 	}
 
-# SetServiceResultAsUnsupported() #
-#	{
-
-#	# Selected action isn't supported by this QPKG.
-
-#	service_result=unsupported
-#	CommitServiceResult
-
-#	}
-
 CommitServiceAction()
 	{
 
@@ -3519,20 +3335,6 @@ SetDaemonWasActive()
 
 	}
 
-# UnsetDaemonWasActive() #
-#	{
-
-#	_daemon_was_active=false
-
-#	}
-
-# DaemonWasActive() #
-#	{
-
-#	[[ ${_daemon_was_active:=false} = true ]]
-
-#	}
-
 DaemonWasNotActive()
 	{
 
@@ -3546,13 +3348,6 @@ SetStatusGet()
 	_get_status_flag=true
 
 	}
-
-# UnsetStatusGet() #
-#	{
-
-#	_get_status_flag=false
-
-#	}
 
 IsStatus()
 	{
@@ -3638,13 +3433,6 @@ IsStop()
 
 	}
 
-# IsNotStop() #
-#	{
-
-#	! IsStop
-
-#	}
-
 IsRestart()
 	{
 
@@ -3701,48 +3489,6 @@ IsNotClean()
 
 	}
 
-IsBackup()
-	{
-
-	[[ $service_action = backup ]]
-
-	}
-
-# IsNotBackup() #
-#	{
-
-#	! IsBackup
-
-#	}
-
-IsRestore()
-	{
-
-	[[ $service_action = restore ]]
-
-	}
-
-# IsNotRestore() #
-#	{
-
-#	! IsRestore
-
-#	}
-
-IsReset()
-	{
-
-	[[ $service_action = reset ]]
-
-	}
-
-# IsNotReset() #
-#	{
-
-#	! IsReset
-
-#	}
-
 IsUnsupported()
 	{
 
@@ -3775,13 +3521,6 @@ IsPathEmpty()
 
 	}
 
-# IsNotPathEmpty() #
-#	{
-
-#	! IsPathEmpty "${1:-}"
-
-#	}
-
 ShowAsError()
 	{
 
@@ -3806,14 +3545,6 @@ CommitWarnToAllLogs()
 	CommitWarnToSysLog "${1:-}"
 
 	}
-
-# DisplayAndCommitWarnToAllLogs() #
-#	{
-#
-#	DisplayAndCommitWarnToLog "${1:-}"
-#	CommitWarnToSysLog "${1:-}"
-#
-#	}
 
 DisplayAndCommitErrorToAllLogs()
 	{
