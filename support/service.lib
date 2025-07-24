@@ -152,9 +152,6 @@ echo -e "logfile ${r_service_screen_log_pathfile}\nlogfile flush 1\nlog on">"$r_
 fi;}
 StartQPKG(){
 IsNotError||return
-if IsReinstall ||IsUpgrade;then
-return
-fi
 IsStart &&ShowQPKGStates
 if IsDaemon&&IsNotRestart;then
 IsNotStart &&DaemonWasNotActive&&return
@@ -1739,6 +1736,9 @@ DisplayAndCommitWarnToLog 'caught EXIT: abort'
 SetServiceResultAsAborted
 fi;}
 ProcessArgs(){
+if IsReinstall ||IsUpgrade;then
+exit
+fi
 if IsGitApp;then
 local test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
 if [[ $test_branch = unknown ]];then
