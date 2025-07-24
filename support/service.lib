@@ -40,7 +40,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=250724
+readonly r_service_library_version=250725
 InitLibrary(){
 IsQNAP||exit
 debug=${DEBUG_QPKG:=false}
@@ -638,10 +638,8 @@ local branch_switch=false
 local hide_advice_opt=' -c advice.detachedHead=false'
 local opts=''
 local progress_opt=''
-local verify_ssl_opt=''
 [[ $source_git_branch_depth = single-branch ]]&&branch_depth=' --single-branch'
 [[ $debug = true ]]&&progress_opt=' --progress'
-[[ $r_nas_qpkg_arch = a41 ]]&&verify_ssl_opt=' -c http.sslVerify=false'
 WatchForGit||return
 if [[ -d $qpkg_repo_path/.git ]];then
 if [[ $active_branch != "$source_git_branch" ]];then
@@ -653,7 +651,7 @@ fi
 fi
 local branch_opt=" --branch ${source_git_branch}${branch_depth}"
 if [[ ! -d $qpkg_repo_path/.git ]];then
-opts=" clone${progress_opt}${branch_opt}${hide_advice_opt}${verify_ssl_opt} $source_git_url $qpkg_repo_path"
+opts=" clone${progress_opt}${branch_opt}${hide_advice_opt} $source_git_url $qpkg_repo_path"
 DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;/opt/bin/git${opts}" log:failure-only
 if [[ $? -ne 0 ]];then
 DisplayAndCommitErrorToAllLogs "'git clone' failed"
