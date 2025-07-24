@@ -40,7 +40,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=250722
+readonly r_service_library_version=250725
 InitLibrary(){
 IsQNAP||exit
 debug=${DEBUG_QPKG:=false}
@@ -72,6 +72,10 @@ readonly r_extended_datetime_format='+%a %-d %b %Y'
 readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
 readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d unknown -f /etc/config/qpkg.conf)
+SetNasArch
+SetQpkgArch
+SetOsFirmwareVer
+SetHardwarePlatform
 pip_cache_path=undefined
 qpkg_repo_path=undefined
 qpkg_wheels_path=undefined
@@ -130,7 +134,8 @@ get_ui_port_cmd=undefined
 get_ui_port_secure_cmd=undefined
 get_ui_port_secure_enabled_test_cmd=undefined
 InitService
-IsOsSupportSecureDownload &&curl_insecure_arg='' ||curl_insecure_arg=' --insecure'
+curl_insecure_opt=''
+IsOsCanSecureDownload ||curl_insecure_opt=' --insecure'
 get_remote_filename_timeout_seconds=5
 new_env=false
 pyver=''
@@ -291,7 +296,7 @@ b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 DisplayAndCommitInfoToLog "nice daemon to: $nice_daemon_to"
 fi
 while true;do
-if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";IsDaemonActive &>/dev/null;WatchForDaemon;PauseForStartPid;ShowDaemonState) ||! IsDaemonActive &>/dev/null ||! WatchForPortsActive;then
+if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"&&IsDaemonActive &>/dev/null;WatchForDaemon;PauseForStartPid;ShowDaemonState) ||! IsDaemonActive &>/dev/null ||! WatchForPortsActive;then
 DisplayAndCommitWarnToLog 'daemon PID check failed: there appears to have been a launch failure'
 [[ $run_daemon_in_screen_session = true ]]&&AddFileToDebug "$r_service_screen_log_pathfile"
 ((c++))
@@ -628,10 +633,12 @@ fi;}
 CloneGitRepo(){
 IsGitApp||return 0
 local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
-local branch_depth='--depth 1'
+local branch_depth=' --depth 1'
 local branch_switch=false
+local hide_advice_opt=' -c advice.detachedHead=false'
+local opts=''
 local progress_opt=''
-[[ $source_git_branch_depth = single-branch ]]&&branch_depth='--single-branch'
+[[ $source_git_branch_depth = single-branch ]]&&branch_depth=' --single-branch'
 [[ $debug = true ]]&&progress_opt=' --progress'
 WatchForGit||return
 if [[ -d $qpkg_repo_path/.git ]];then
@@ -642,15 +649,18 @@ branch_switch=true
 CleanLocalRepo
 fi
 fi
+local branch_opt=" --branch ${source_git_branch}${branch_depth}"
 if [[ ! -d $qpkg_repo_path/.git ]];then
-DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;/opt/bin/git clone$progress_opt --branch $source_git_branch $branch_depth -c advice.detachedHead=false $source_git_url $qpkg_repo_path" log:failure-only
+opts=" clone${progress_opt}${branch_opt}${hide_advice_opt} $source_git_url $qpkg_repo_path"
+DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;/opt/bin/git${opts}" log:failure-only
 if [[ $? -ne 0 ]];then
 DisplayAndCommitErrorToAllLogs "'git clone' failed"
 SetError;return
 fi
 else
 if IsAutoUpdate;then
-DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;/opt/bin/git -C $qpkg_repo_path clean -f;/opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch;/opt/bin/git -C $qpkg_repo_path pull" log:failure-only
+opts=" -C $qpkg_repo_path clean -f;/opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch;/opt/bin/git -C $qpkg_repo_path pull"
+DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;/opt/bin/git${opts}" log:failure-only
 if [[ $? -ne 0 ]];then
 DisplayAndCommitErrorToAllLogs "'git pull' failed"
 SetError;return
@@ -943,8 +953,6 @@ FormatAsLogFilename(){
 Display "log file: '${1:-}'";}
 FormatAsCommand(){
 Display "command: '${1:-}'";}
-FormatAsStdout(){
-Display "output: \"${1:-}\"";}
 FormatAsResultAndStdout(){
 if [[ ${1:-0} -eq 0 ]];then
 echo "= result_code: $(FormatAsExitcode "$1")"
@@ -988,8 +996,6 @@ Capitalise(){
 echo "$(Uppercase ${1:0:1})${1:1}";}
 Uppercase(){
 /bin/tr 'a-z' 'A-Z'<<<"$1";}
-Lowercase(){
-/bin/tr 'A-Z' 'a-z'<<<"$1";}
 ReWriteUIPorts(){
 [[ $get_daemon_port_cmd != undefined ]]&&return
 DisplayAndCommitWaitToLog 'update QPKG icon with UI ports'
@@ -1055,13 +1061,54 @@ fi
 return 0;}
 GetOriginalModuleSOFilename(){
 [[ -z $pyver ]]&&pyver=$(GetPythonVer)
-[[ -n ${1:-} ]]&&echo "$1.cpython-$pyver-$(/bin/uname -m)-linux-gnu.so";}
+[[ -n ${1:-} ]]&&echo "$1.cpython-$pyver-$r_nas_arch-linux-gnu.so";}
 GetFixedModuleSOFilename(){
 [[ -z $pyver ]]&&pyver=$(GetPythonVer)
 [[ -n ${1:-} ]]&&echo "$1.cpython-$pyver.so";}
 GetModulePath(){
 [[ -z $pyver ]]&&pyver=$(GetPythonVer)
 echo "$venv_path/lib/python${pyver:0:1}.${pyver:1:2}/site-packages";}
+GetQpkgArch(){
+if [[ $(get_display_name) = 'TS-269H' ]];then
+printf i53
+return
+fi
+SetNasArch
+SetOsFirmwareVer
+SetHardwarePlatform
+case $r_nas_arch in
+x86_64)
+[[ $r_nas_firmware_ver -ge 430 ]]&&printf i64||printf i86;;
+i686|x86)
+printf i86;;
+armv5tel)
+printf a19;;
+armv7l)
+case $r_nas_platform in
+ARM_MS)
+printf a31;;
+ARM_AL)
+printf a41;;
+*)printf unknown
+esac;;
+aarch64)
+printf a64;;
+*)printf unknown
+esac;}
+GetNasArch(){
+/bin/uname -m;}
+GetOsFirmwareVer(){
+/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf|tr -d '.';}
+GetHardwarePlatform(){
+/sbin/getcfg '' Platform -d undefined -f /etc/platform.conf;}
+SetNasArch(){
+[[ ${r_nas_arch:-unset} = unset ]]&&readonly r_nas_arch=$(GetNasArch);}
+SetQpkgArch(){
+[[ ${r_nas_qpkg_arch:-unset} = unset ]]&&readonly r_nas_qpkg_arch=$(GetQpkgArch);}
+SetOsFirmwareVer(){
+[[ ${r_nas_firmware_ver:-unset} = unset ]]&&readonly r_nas_firmware_ver=$(GetOsFirmwareVer);}
+SetHardwarePlatform(){
+[[ ${r_nas_platform:-unset} = unset ]]&&readonly r_nas_platform=$(GetHardwarePlatform);}
 parse_yaml(){
 local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
 /bin/sed -ne "s|^\($s\):|\1|" \
@@ -1085,10 +1132,8 @@ IsQPKGInstalled(){
 [[ "$(</etc/config/qpkg.conf)" =~ "[${1:-$r_qpkg_name}]" ]];}
 IsNotQPKGInstalled(){
 ! IsQPKGInstalled "${1:-$r_qpkg_name}";}
-IsQPKGActive(){
-IsDaemon&&IsDaemonActive;}
 IsQPKGEnabled(){
-[[ $(Lowercase "$(/sbin/getcfg ${1:-$r_qpkg_name} Enable -d false -f /etc/config/qpkg.conf)") = true ]];}
+[[ $(/sbin/getcfg ${1:-$r_qpkg_name} Enable -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]];}
 IsNotQPKGEnabled(){
 ! IsQPKGEnabled "${1:-$r_qpkg_name}";}
 IsSupportBackup(){
@@ -1145,15 +1190,6 @@ fi
 else
 false
 fi;}
-IsSysFilePresent(){
-if [[ -z ${1:?pathfilename null} ]];then
-SetError;return
-fi
-if [[ ! -e $1 ]];then
-Display "A required NAS system file is missing: $1"
-SetError;return
-fi
-return 0;}
 IsPortAvailable(){
 local port=${1//[!0-9]/}
 [[ -n $port &&$port -gt 0 ]]||return 0
@@ -1250,8 +1286,8 @@ IsVirtualPythonEnvExist(){
 [[ -e $venv_path/bin/activate ]];}
 IsNotVirtualPythonEnvExist(){
 ! IsVirtualPythonEnvExist;}
-IsOsSupportSecureDownload(){
-[[ ${r_nas_firmware_version//.} -ge 500 ]];}
+IsOsCanSecureDownload(){
+[[ $r_nas_firmware_ver -ge 500 ]];}
 IsSiteUp(){
 [[ -n $1 &&$1 != undefined ]]||return
 local a=$(cut -d'/' -f3<<<"$1"|cut -d':' -f1)
@@ -1291,14 +1327,14 @@ return 1
 } &>/dev/null
 RequestLatestReleaseFilename(){
 [[ -n ${1:-} &&${1:-} != undefined ]]||return
-local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"
+local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"
 local b=$(/sbin/curl${a} "${1/https/http}"|/bin/grep -v 'Location:'|/bin/grep filename|cut -d';' -f2|cut -d'=' -f2|/bin/sed -e 's|\r||g')
 [[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep "$2"<<<"$b")
 printf '%s' "$b"
 } 2>/dev/null
 RequestLatestReleaseURL(){
 [[ -n ${1:-} &&${1:-} != undefined ]]||return
-local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --location"
+local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"
 local b=$(/sbin/curl${a} "$1"|/bin/grep browser_download_url|cut -d\" -f4)
 [[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep "$2"<<<"$b")
 printf '%s' "$b"
@@ -1307,7 +1343,7 @@ DownloadReleasePackage(){
 [[ -n ${1:-} &&${1:-} != undefined ]]||return
 [[ -n ${2:-} &&${2:-} != undefined ]]||return
 local a=''
-local b=$curl_insecure_arg
+local b=$curl_insecure_opt
 local c=$2
 [[ $debug = false ]]&&b+=' --silent'
 if [[ -e $c ]];then
@@ -1432,12 +1468,6 @@ IsClean(){
 [[ $service_action = clean ]];}
 IsNotClean(){
 ! IsClean;}
-IsBackup(){
-[[ $service_action = backup ]];}
-IsRestore(){
-[[ $service_action = restore ]];}
-IsReset(){
-[[ $service_action = reset ]];}
 IsUnsupported(){
 [[ $service_action = unsupported ]];}
 IsServiceResultInProgress(){
@@ -1618,7 +1648,7 @@ printf '%01dh:%02dm:%02ds\n' "$h" "$m" "$s"
 IsAutoUpdateMissing(){
 [[ $(/sbin/getcfg $r_qpkg_name Auto_Update -f /etc/config/qpkg.conf) = '' ]];}
 IsAutoUpdate(){
-IsSupportAutoUpdate &&[[ $(Lowercase "$(/sbin/getcfg $r_qpkg_name Auto_Update -f /etc/config/qpkg.conf)") = true ]];}
+IsSupportAutoUpdate &&[[ $(/sbin/getcfg $r_qpkg_name Auto_Update -u -f /etc/config/qpkg.conf) = TRUE ]];}
 IsNotAutoUpdate(){
 ! IsAutoUpdate;}
 EnableAutoUpdate(){

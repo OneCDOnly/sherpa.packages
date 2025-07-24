@@ -8,7 +8,7 @@ editor
 inquirer>=2.7.0
 marshmallow~=3.22
 peewee>=3.14.4
-peewee_migrate==1.6.1
+peewee_migrate==1.13.0
 psutil~=6.0.0
 py-cpuinfo>=7.0.0
 readchar

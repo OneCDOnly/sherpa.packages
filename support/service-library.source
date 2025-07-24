@@ -64,6 +64,11 @@ InitLibrary()
 			readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d unknown -f /etc/config/qpkg.conf)
 
+	SetNasArch
+	SetQpkgArch
+	SetOsFirmwareVer
+	SetHardwarePlatform
+
 	# NOTE: default session variables are set below, but may be customised in the InitService() function for each QPKG.
 
 	# >>> Paths <<<
@@ -332,7 +337,8 @@ InitLibrary()
 
 	InitService					# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
 
-	IsOsSupportSecureDownload && curl_insecure_arg='' || curl_insecure_arg=' --insecure'
+	curl_insecure_opt=''
+	IsOsCanSecureDownload || curl_insecure_opt=' --insecure'
 	get_remote_filename_timeout_seconds=5
 	new_env=false
 	pyver=''
@@ -627,8 +633,8 @@ StartDaemon()
 	# Inputs: (global)
 	#	$daemon_launch_cmd
 	#	$nice_daemon_to
-	#	$run_daemon_in_screen_session
 	#	$r_service_screen_log_pathfile
+	#	$run_daemon_in_screen_session
 	#	$start_retries
 
 	local a='start daemon'
@@ -646,7 +652,7 @@ StartDaemon()
 	fi
 
 	while true; do
-		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; IsDaemonActive &> /dev/null; WatchForDaemon; PauseForStartPid; ShowDaemonState) || ! IsDaemonActive &> /dev/null || ! WatchForPortsActive; then
+		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session" && IsDaemonActive &> /dev/null; WatchForDaemon; PauseForStartPid; ShowDaemonState) || ! IsDaemonActive &> /dev/null || ! WatchForPortsActive; then
 			DisplayAndCommitWarnToLog 'daemon PID check failed: there appears to have been a launch failure'
 			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
 			((c++))
@@ -911,11 +917,11 @@ InstallPythonPackages()
 
 	# Inputs: (global)
 	#	$app_version
-	#	$r_appl_version_store_pathfile
 	#	$install_pip_deps
 	#	$new_env
-	#	$r_qpkg_name
 	#	$qpkg_repo_path
+	#	$r_appl_version_store_pathfile
+	#	$r_qpkg_name
 	#	$silence_pypi_errors
 	#	$venv_pip_pathfile
 
@@ -1257,6 +1263,7 @@ CloneGitRepo()
 	# Inputs: (global)
 	#	$debug
 	#	$qpkg_repo_path
+	#	$r_nas_arch
 	#	$r_qpkg_name
 	#	$source_git_branch
 	#	$source_git_branch_depth
@@ -1265,11 +1272,13 @@ CloneGitRepo()
 	IsGitApp || return 0
 
 	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
-	local branch_depth='--depth 1'
+	local branch_depth=' --depth 1'
 	local branch_switch=false
+	local hide_advice_opt=' -c advice.detachedHead=false'
+	local opts=''
 	local progress_opt=''
 
-	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
+	[[ $source_git_branch_depth = single-branch ]] && branch_depth=' --single-branch'
 	[[ $debug = true ]] && progress_opt=' --progress'
 
 	WatchForGit || return
@@ -1283,8 +1292,12 @@ CloneGitRepo()
 		fi
 	fi
 
+	local branch_opt=" --branch ${source_git_branch}${branch_depth}"
+
 	if [[ ! -d $qpkg_repo_path/.git ]]; then
-		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git clone$progress_opt --branch $source_git_branch $branch_depth -c advice.detachedHead=false $source_git_url $qpkg_repo_path" log:failure-only
+		opts=" clone${progress_opt}${branch_opt}${hide_advice_opt} $source_git_url $qpkg_repo_path"
+
+		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git${opts}" log:failure-only
 
 		if [[ $? -ne 0 ]]; then
 			DisplayAndCommitErrorToAllLogs "'git clone' failed"
@@ -1293,7 +1306,9 @@ CloneGitRepo()
 	else
 		if IsAutoUpdate; then
 			# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
-			DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git -C $qpkg_repo_path clean -f; /opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch; /opt/bin/git -C $qpkg_repo_path pull" log:failure-only
+			opts=" -C $qpkg_repo_path clean -f; /opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch; /opt/bin/git -C $qpkg_repo_path pull"
+
+			DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git${opts}" log:failure-only
 
 			if [[ $? -ne 0 ]]; then
 				DisplayAndCommitErrorToAllLogs "'git pull' failed"
@@ -1322,11 +1337,11 @@ CleanLocalRepo()
 	# For occasions where the local repo needs to be deleted and cloned again from source.
 
 	# Inputs: (global)
-	#	$r_appl_version_store_pathfile
 	#	$pip_cache_path
+	#	$qpkg_repo_path
+	#	$r_appl_version_store_pathfile
 	#	$r_qpkg_name
 	#	$r_qpkg_path
-	#	$qpkg_repo_path
 	#	$r_qpkg_temp_path
 	#	$venv_path
 
@@ -1896,20 +1911,6 @@ FormatAsCommand()
 
 	}
 
-FormatAsStdout()
-	{
-
-	Display "output: \"${1:-}\""
-
-	}
-
-# FormatAsResult() #
-#	{
-
-#	Display "result: $(FormatAsExitcode "${1:-}")"
-
-#	}
-
 FormatAsResultAndStdout()
 	{
 
@@ -1924,15 +1925,6 @@ FormatAsResultAndStdout()
 	DebugBulletSeparatorWithText 'stdout & stderr is complete'
 
 	}
-
-# FormatAsFuncMessages() #
-#	{
-
-#	echo "= ${FUNCNAME[1]}()"
-#	FormatAsCommand "${1:?command null}"
-#	FormatAsStdout "${2:-}"
-
-#	}
 
 FormatAsExitcode()
 	{
@@ -2054,13 +2046,6 @@ Uppercase()
 
 	}
 
-Lowercase()
-	{
-
-	/bin/tr 'A-Z' 'a-z' <<< "$1"
-
-	}
-
 ReWriteUIPorts()
 	{
 
@@ -2097,35 +2082,6 @@ ReWriteUIPorts()
 	DisplayAndCommitOutcomeToLog OK
 
 	}
-
-# IsPortsAvailable() #
-#	{
-
-#	# Inputs: (global)
-#	#	$daemon_port
-#	#	$ui_port
-#	#	$ui_port_secure
-
-#	if [[ $daemon_port -ne 0 ]]; then
-#		DisplayAndCommitToLog "- daemon port: '$daemon_port'"
-#		IsPortResponds $daemon_port
-#	else
-#		if IsSSLEnabled; then
-#			IsPortSecureResponds $ui_port_secure
-#		else
-#			IsPortResponds $ui_port
-#		fi
-#	fi
-
-#	if IsDaemonActive; then
-#		DisplayAndCommitToLog "- daemon PID: '$(< "$daemon_pid_pathfile")'"
-#		return 0
-#	fi
-
-#	DisplayAndCommitToLog '- daemon PID: none'
-#	return 1
-
-#	}
 
 WatchForPortsActive()
 	{
@@ -2238,7 +2194,7 @@ GetOriginalModuleSOFilename()
 	#	$pyver
 
 	[[ -z $pyver ]] && pyver=$(GetPythonVer)
-	[[ -n ${1:-} ]] && echo "$1.cpython-$pyver-$(/bin/uname -m)-linux-gnu.so"
+	[[ -n ${1:-} ]] && echo "$1.cpython-$pyver-$r_nas_arch-linux-gnu.so"
 
 	}
 
@@ -2280,6 +2236,134 @@ GetModulePath()
 
 	[[ -z $pyver ]] && pyver=$(GetPythonVer)
 	echo "$venv_path/lib/python${pyver:0:1}.${pyver:1:2}/site-packages"
+
+	}
+
+GetQpkgArch()
+	{
+
+	# Translate arch from local NAS (QTS/QuTS) to sherpa notation.
+
+	# sherpa arch for NAS is a single 3-character code.
+	# prefix is 'a' for ARM, 'i' for Intel.
+
+	# Inputs: (global)
+	#	$r_nas_arch
+	#	$r_nas_firmware_ver
+	#	$r_nas_platform
+
+	# Outputs: (local)
+	#	stdout = translated QPKG arch.
+
+	if [[ $(get_display_name) = 'TS-269H' ]]; then
+		printf i53
+		return
+	fi
+
+	SetNasArch
+	SetOsFirmwareVer
+	SetHardwarePlatform
+
+	case $r_nas_arch in
+		x86_64)
+			[[ $r_nas_firmware_ver -ge 430 ]] && printf i64 || printf i86
+			;;
+		i686|x86)
+			printf i86
+			;;
+		armv5tel)
+			printf a19
+			;;
+		armv7l)
+			case $r_nas_platform in
+				ARM_MS)
+					printf a31
+					;;
+				ARM_AL)
+					printf a41
+					;;
+				*)
+					printf unknown
+			esac
+			;;
+		aarch64)
+			printf a64
+			;;
+		*)
+			printf unknown
+	esac
+
+	}
+
+GetNasArch()
+	{
+
+	/bin/uname -m
+
+	}
+
+GetOsFirmwareVer()
+	{
+
+	# Same as firmware version, but an integer-only (no periods).
+
+	# Outputs: (local)
+	#	stdout = integer.
+	#	$? = 0 if found, 250 if not.
+
+	/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf | tr -d '.'
+
+	}
+
+GetHardwarePlatform()
+	{
+
+	# Outputs: (local)
+	#	$? = 0 if found, 250 if not.
+
+	/sbin/getcfg '' Platform -d undefined -f /etc/platform.conf
+
+	}
+
+SetNasArch()
+	{
+
+	# Outputs: (global)
+	#	$r_nas_arch
+
+	[[ ${r_nas_arch:-unset} = unset ]] && readonly r_nas_arch=$(GetNasArch)
+
+	}
+
+SetQpkgArch()
+	{
+
+	# Outputs: (global)
+	#	$r_nas_qpkg_arch
+
+	[[ ${r_nas_qpkg_arch:-unset} = unset ]] && readonly r_nas_qpkg_arch=$(GetQpkgArch)
+
+	}
+
+SetOsFirmwareVer()
+	{
+
+	# Same as firmware version, but as an integer-only (no periods).
+
+	# Outputs: (global)
+	#	$r_nas_firmware_ver
+
+	[[ ${r_nas_firmware_ver:-unset} = unset ]] && readonly r_nas_firmware_ver=$(GetOsFirmwareVer)
+
+	}
+
+SetHardwarePlatform()
+	{
+
+	# Outputs: (global)
+	#	$r_nas_platform
+
+	[[ ${r_nas_platform:-unset} = unset ]] && readonly r_nas_platform=$(GetHardwarePlatform)
 
 	}
 
@@ -2363,20 +2447,6 @@ IsNotQPKGInstalled()
 
 	}
 
-IsQPKGActive()
-	{
-
-	IsDaemon && IsDaemonActive
-
-	}
-
-# IsNotQPKGActive() #
-#	{
-
-#	! IsQPKGActive
-
-#	}
-
 IsQPKGEnabled()
 	{
 
@@ -2390,7 +2460,7 @@ IsQPKGEnabled()
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ $(Lowercase "$(/sbin/getcfg ${1:-$r_qpkg_name} Enable -d false -f /etc/config/qpkg.conf)") = true ]]
+	[[ $(/sbin/getcfg ${1:-$r_qpkg_name} Enable -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]]
 
 	}
 
@@ -2424,13 +2494,6 @@ IsSupportBackup()
 	[[ $qpkg_backup_pathfile != undefined ]]
 
 	}
-
-# IsNotSupportBackup() #
-#	{
-
-#	! IsSupportBackup
-
-#	}
 
 IsSupportReset()
 	{
@@ -2468,13 +2531,6 @@ IsSupportActions()
 
 	}
 
-# IsNotSupportActions() #
-#	{
-
-#	! IsSupportActions
-
-#	}
-
 IsSupportGetAppVersion()
 	{
 
@@ -2490,13 +2546,6 @@ IsSupportGetAppVersion()
 
 	}
 
-# IsNotSupportGetAppVersion() #
-#	{
-
-#	! IsSupportGetAppVersion
-
-#	}
-
 IsVirtualPythonEnv()
 	{
 
@@ -2510,13 +2559,6 @@ IsVirtualPythonEnv()
 	[[ $venv_path != undefined ]]
 
 	}
-
-# IsNotVirtualPythonEnv() #
-#	{
-
-#	! IsVirtualPythonEnv
-
-#	}
 
 IsGitApp()
 	{
@@ -2536,13 +2578,6 @@ IsGitApp()
 
 	}
 
-# IsNotGitApp() #
-#	{
-
-#	! IsGitApp
-
-#	}
-
 IsUsePipCache()
 	{
 
@@ -2556,13 +2591,6 @@ IsUsePipCache()
 	[[ $pip_cache_path != undefined ]]
 
 	}
-
-# IsNotUsePipCache() #
-#	{
-
-#	! IsUsePipCache
-
-#	}
 
 IsOnlineReleasePackage()
 	{
@@ -2578,13 +2606,6 @@ IsOnlineReleasePackage()
 
 	}
 
-# IsNotOnlineReleasePackage() #
-#	{
-
-#	! IsOnlineReleasePackage
-
-#	}
-
 IsReleaseAnArchive()
 	{
 
@@ -2599,13 +2620,6 @@ IsReleaseAnArchive()
 
 	}
 
-# IsNotReleaseAnArchive() #
-#	{
-
-#	! IsReleaseAnArchive
-
-#	}
-
 IsSupportAutoUpdate()
 	{
 
@@ -2619,13 +2633,6 @@ IsSupportAutoUpdate()
 	[[ $can_restart_to_update = true ]]
 
 	}
-
-# IsNotSupportAutoUpdate() #
-#	{
-
-#	! IsSupportAutoUpdate
-
-#	}
 
 IsNotSourcedOnline()
 	{
@@ -2745,44 +2752,6 @@ IsDaemonActive()
 	fi
 
 	}
-
-IsSysFilePresent()
-	{
-
-	# Inputs: (local)
-	#	$1 = pathfilename to check.
-
-	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
-
-	if [[ -z ${1:?pathfilename null} ]]; then
-		SetError; return
-	fi
-
-	if [[ ! -e $1 ]]; then
-		Display "A required NAS system file is missing: $1"
-
-		SetError; return
-	fi
-
-	return 0
-
-	}
-
-# IsNotSysFilePresent() #
-#	{
-
-#	# Inputs: (local)
-#	#   $1 = pathfilename to check.
-
-#	# Outputs: (local)
-#	#   $? = 0 : true
-#	#   $? = 1 : false
-
-#	! IsSysFilePresent "${1:?pathfilename null}"
-
-#	}
 
 IsPortAvailable()
 	{
@@ -2990,13 +2959,6 @@ IsDefaultConfigFound()
 
 	}
 
-# IsNotDefaultConfigFound() #
-#	{
-
-#	! IsDefaultConfigFound
-
-#	}
-
 IsVirtualPythonEnvExist()
 	{
 
@@ -3020,17 +2982,17 @@ IsNotVirtualPythonEnvExist()
 
 	}
 
-IsOsSupportSecureDownload()
+IsOsCanSecureDownload()
 	{
 
 	# Inputs: (global)
-	#	$r_nas_firmware_version
+	#	$r_nas_firmware_ver
 
 	# Outputs: (local)
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ ${r_nas_firmware_version//.} -ge 500 ]]
+	[[ $r_nas_firmware_ver -ge 500 ]]
 
 	}
 
@@ -3136,7 +3098,7 @@ RequestLatestReleaseFilename()
 	#	$2 (optional) = arch to match.
 
 	# Inputs: (global)
-	#	$curl_insecure_arg
+	#	$curl_insecure_opt
 	#	$get_remote_filename_timeout_seconds
 
 	# Outputs: (local)
@@ -3144,7 +3106,7 @@ RequestLatestReleaseFilename()
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 
-	local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
+	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
 	local b=$(/sbin/curl${a} "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b")
 
@@ -3162,7 +3124,7 @@ RequestLatestReleaseURL()
 	#	$2 (optional) = arch to match.
 
 	# Inputs: (global)
-	#	$curl_insecure_arg
+	#	$curl_insecure_opt
 	#	$get_remote_filename_timeout_seconds
 
 	# Outputs: (local)
@@ -3170,7 +3132,7 @@ RequestLatestReleaseURL()
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 
-	local a="$curl_insecure_arg --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
+	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
 	local b=$(/sbin/curl${a} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b")
 
@@ -3188,14 +3150,14 @@ DownloadReleasePackage()
 	#	$2 = pathfilename to save the release package to.
 
 	# Inputs: (global)
-	#	$curl_insecure_arg
+	#	$curl_insecure_opt
 	#	$debug
 
 	[[ -n ${1:-} && ${1:-} != undefined ]] || return
 	[[ -n ${2:-} && ${2:-} != undefined ]] || return
 
 	local a=''
-	local b=$curl_insecure_arg
+	local b=$curl_insecure_opt
 	local c=$2
 
 	[[ $debug = false ]] && b+=' --silent'
@@ -3346,16 +3308,6 @@ SetServiceResultAsInProgress()
 
 	}
 
-# SetServiceResultAsUnsupported() #
-#	{
-
-#	# Selected action isn't supported by this QPKG.
-
-#	service_result=unsupported
-#	CommitServiceResult
-
-#	}
-
 CommitServiceAction()
 	{
 
@@ -3381,20 +3333,6 @@ SetDaemonWasActive()
 
 	}
 
-# UnsetDaemonWasActive() #
-#	{
-
-#	_daemon_was_active=false
-
-#	}
-
-# DaemonWasActive() #
-#	{
-
-#	[[ ${_daemon_was_active:=false} = true ]]
-
-#	}
-
 DaemonWasNotActive()
 	{
 
@@ -3408,13 +3346,6 @@ SetStatusGet()
 	_get_status_flag=true
 
 	}
-
-# UnsetStatusGet() #
-#	{
-
-#	_get_status_flag=false
-
-#	}
 
 IsStatus()
 	{
@@ -3500,13 +3431,6 @@ IsStop()
 
 	}
 
-# IsNotStop() #
-#	{
-
-#	! IsStop
-
-#	}
-
 IsRestart()
 	{
 
@@ -3563,48 +3487,6 @@ IsNotClean()
 
 	}
 
-IsBackup()
-	{
-
-	[[ $service_action = backup ]]
-
-	}
-
-# IsNotBackup() #
-#	{
-
-#	! IsBackup
-
-#	}
-
-IsRestore()
-	{
-
-	[[ $service_action = restore ]]
-
-	}
-
-# IsNotRestore() #
-#	{
-
-#	! IsRestore
-
-#	}
-
-IsReset()
-	{
-
-	[[ $service_action = reset ]]
-
-	}
-
-# IsNotReset() #
-#	{
-
-#	! IsReset
-
-#	}
-
 IsUnsupported()
 	{
 
@@ -3637,13 +3519,6 @@ IsPathEmpty()
 
 	}
 
-# IsNotPathEmpty() #
-#	{
-
-#	! IsPathEmpty "${1:-}"
-
-#	}
-
 ShowAsError()
 	{
 
@@ -3668,14 +3543,6 @@ CommitWarnToAllLogs()
 	CommitWarnToSysLog "${1:-}"
 
 	}
-
-# DisplayAndCommitWarnToAllLogs() #
-#	{
-#
-#	DisplayAndCommitWarnToLog "${1:-}"
-#	CommitWarnToSysLog "${1:-}"
-#
-#	}
 
 DisplayAndCommitErrorToAllLogs()
 	{
@@ -4136,7 +4003,7 @@ IsAutoUpdate()
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	IsSupportAutoUpdate && [[ $(Lowercase "$(/sbin/getcfg $r_qpkg_name Auto_Update -f /etc/config/qpkg.conf)") = true ]]
+	IsSupportAutoUpdate && [[ $(/sbin/getcfg $r_qpkg_name Auto_Update -u -f /etc/config/qpkg.conf) = TRUE ]]
 
 	}
 
