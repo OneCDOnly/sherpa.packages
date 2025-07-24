@@ -1277,11 +1277,9 @@ CloneGitRepo()
 	local hide_advice_opt=' -c advice.detachedHead=false'
 	local opts=''
 	local progress_opt=''
-	local verify_ssl_opt=''
 
 	[[ $source_git_branch_depth = single-branch ]] && branch_depth=' --single-branch'
 	[[ $debug = true ]] && progress_opt=' --progress'
-	[[ $r_nas_qpkg_arch = a41 ]] && verify_ssl_opt=' -c http.sslVerify=false'
 
 	WatchForGit || return
 
@@ -1297,7 +1295,7 @@ CloneGitRepo()
 	local branch_opt=" --branch ${source_git_branch}${branch_depth}"
 
 	if [[ ! -d $qpkg_repo_path/.git ]]; then
-		opts=" clone${progress_opt}${branch_opt}${hide_advice_opt}${verify_ssl_opt} $source_git_url $qpkg_repo_path"
+		opts=" clone${progress_opt}${branch_opt}${hide_advice_opt} $source_git_url $qpkg_repo_path"
 
 		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git${opts}" log:failure-only
 
