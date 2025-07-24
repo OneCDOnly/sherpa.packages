@@ -40,7 +40,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=250723
+readonly r_service_library_version=250724
 InitLibrary(){
 IsQNAP||exit
 debug=${DEBUG_QPKG:=false}
@@ -296,7 +296,7 @@ b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 DisplayAndCommitInfoToLog "nice daemon to: $nice_daemon_to"
 fi
 while true;do
-if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"&&IsDaemonActive &>/dev/null &&WatchForDaemon &&PauseForStartPid &&ShowDaemonState) ||! IsDaemonActive &>/dev/null ||! WatchForPortsActive;then
+if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"&&IsDaemonActive &>/dev/null;WatchForDaemon;PauseForStartPid;ShowDaemonState) ||! IsDaemonActive &>/dev/null ||! WatchForPortsActive;then
 DisplayAndCommitWarnToLog 'daemon PID check failed: there appears to have been a launch failure'
 [[ $run_daemon_in_screen_session = true ]]&&AddFileToDebug "$r_service_screen_log_pathfile"
 ((c++))
@@ -955,8 +955,6 @@ FormatAsLogFilename(){
 Display "log file: '${1:-}'";}
 FormatAsCommand(){
 Display "command: '${1:-}'";}
-FormatAsStdout(){
-Display "output: \"${1:-}\"";}
 FormatAsResultAndStdout(){
 if [[ ${1:-0} -eq 0 ]];then
 echo "= result_code: $(FormatAsExitcode "$1")"
@@ -1136,8 +1134,6 @@ IsQPKGInstalled(){
 [[ "$(</etc/config/qpkg.conf)" =~ "[${1:-$r_qpkg_name}]" ]];}
 IsNotQPKGInstalled(){
 ! IsQPKGInstalled "${1:-$r_qpkg_name}";}
-IsQPKGActive(){
-IsDaemon&&IsDaemonActive;}
 IsQPKGEnabled(){
 [[ $(/sbin/getcfg ${1:-$r_qpkg_name} Enable -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]];}
 IsNotQPKGEnabled(){
@@ -1196,15 +1192,6 @@ fi
 else
 false
 fi;}
-IsSysFilePresent(){
-if [[ -z ${1:?pathfilename null} ]];then
-SetError;return
-fi
-if [[ ! -e $1 ]];then
-Display "A required NAS system file is missing: $1"
-SetError;return
-fi
-return 0;}
 IsPortAvailable(){
 local port=${1//[!0-9]/}
 [[ -n $port &&$port -gt 0 ]]||return 0
@@ -1483,12 +1470,6 @@ IsClean(){
 [[ $service_action = clean ]];}
 IsNotClean(){
 ! IsClean;}
-IsBackup(){
-[[ $service_action = backup ]];}
-IsRestore(){
-[[ $service_action = restore ]];}
-IsReset(){
-[[ $service_action = reset ]];}
 IsUnsupported(){
 [[ $service_action = unsupported ]];}
 IsServiceResultInProgress(){
