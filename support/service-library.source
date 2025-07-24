@@ -368,10 +368,6 @@ StartQPKG()
 
 #	MigrateQPKGName
 
-	if IsReinstall || IsUpgrade; then					# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade/reinstall is 'start', but probably better to see the upgrade/reinstall result instead).
-		return
-	fi
-
 	IsStart && ShowQPKGStates
 
 	if IsDaemon && IsNotRestart; then
@@ -4277,6 +4273,10 @@ CaughtEXIT()
 
 ProcessArgs()		# unused-ignore.
 	{
+
+	if IsReinstall || IsUpgrade; then			# Ignore 'start' and 'stop' requests issued by QTS during QPKG reinstallation or upgrade. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade/reinstall is 'start', but probably better to see the upgrade/reinstall result instead).
+		exit
+	fi
 
 	if IsGitApp; then
 		local test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
