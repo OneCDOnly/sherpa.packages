@@ -1794,7 +1794,7 @@ Executer()
 		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 		z=$?
 	elif [[ $debug = true ]]; then
-		eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"	# NOTE: 'tee' buffers stdout here.				# squeezer-ignore
+		eval "$1 2>&1 | /usr/bin/tee $r_log_pathfile"		# NOTE: stdout is buffered here.
 		z=${PIPESTATUS[0]}									# Must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
 	else
 		(eval "$1" > "$r_log_pathfile" 2>&1)				# Run in a subshell to suppress "Terminated" message later.
