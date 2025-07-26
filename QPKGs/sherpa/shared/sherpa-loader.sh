@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #*
 #* Please don't edit this file directly, it has been programmatically built or modified with the 'build-qpkgs.sh' script. (source: 'sherpa-loader.source')
 #*
@@ -23,9 +23,6 @@
 #*	  GNU bash, version 3.2.57(1)-release (x86_64-QNAP-linux-gnu)
 #*	  GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
-#* and periodically on:
-#*	  GNU bash, version 5.0.17(1)-release (aarch64-openwrt-linux-gnu)
-#*		 Copyright (C) 2019 Free Software Foundation, Inc.
 #*
 #* Notes:
 #*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox) as this is the native QNAP NAS shell. Be-careful reusing code in other shells, as these scripts contain syntax quirks often compatible only with bash.
@@ -36,6 +33,7 @@
 #*	  You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 #*
 set -o nounset -o pipefail
+[[ $- != *m* ]]||set +m
 ln -fns /proc/self/fd /dev/fd
 readonly r_user_args_raw=$*
 Init(){
@@ -44,8 +42,8 @@ readonly r_qpkg_name=sherpa
 readonly r_chars_regular_prompt='$ '
 readonly r_chars_sudo_prompt="${r_chars_regular_prompt}sudo "
 readonly r_chars_super_prompt='# '
-IsQNAP ||return
-IsSU ||return
+IsQNAP||return
+IsSU||return
 local source_git_branch=stable
 local test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
 if [[ $test_branch = unknown ]];then
@@ -125,6 +123,6 @@ TextBrightOrange(){
 printf '\033[1;38;5;214m%s\033[0m' "${1:-}";}
 TextBrightRed(){
 printf '\033[1;31m%s\033[0m' "${1:-}";}
-Init ||exit
+Init||exit
 EnsureFileIsCurrent "$r_manager_pathfile" "$r_manager_archive_url" "$r_manager_archive_pathfile"
 eval '/usr/bin/env bash' "$r_manager_pathfile" "$r_user_args_raw"

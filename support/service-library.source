@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #*
 #* <?preamble?>
 #*
@@ -368,10 +368,6 @@ StartQPKG()
 
 #	MigrateQPKGName
 
-	if IsReinstall || IsUpgrade; then					# Don't start QPKG when these actions are run from sherpa. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade/reinstall is 'start', but probably better to see the upgrade/reinstall result instead).
-		return
-	fi
-
 	IsStart && ShowQPKGStates
 
 	if IsDaemon && IsNotRestart; then
@@ -382,7 +378,7 @@ StartQPKG()
 
 	# Clear previous `screen.log` on each startup.
 
-	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog 'remove previous screen log' "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
+	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
 
 	[[ $(type -t PreStartQPKGCustom) = function ]] && PreStartQPKGCustom
 
@@ -1353,7 +1349,7 @@ CleanLocalRepo()
 	IsVirtualPythonEnv && [[ -d $venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$venv_path\"" log:failure-only
 	IsUsePipCache && [[ -d $pip_cache_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$pip_cache_path\"" log:failure-only
 	[[ -e $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
-	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog 'remove previous screen log' "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
+	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
 	IsUseTemp && [[ -d $r_qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$r_qpkg_temp_path\"" log:failure-only
 
 	MakePaths
@@ -4277,6 +4273,10 @@ CaughtEXIT()
 
 ProcessArgs()		# unused-ignore.
 	{
+
+	if IsReinstall || IsUpgrade; then			# Ignore 'start' and 'stop' requests issued by QTS during QPKG reinstallation or upgrade. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade/reinstall is 'start', but probably better to see the upgrade/reinstall result instead).
+		exit
+	fi
 
 	if IsGitApp; then
 		local test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
