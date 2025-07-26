@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #*
 #* Please don't edit this file directly, it has been programmatically built or modified with the 'build-qpkgs.sh' script. (source: 'nzbhydra2.source')
 #*
@@ -23,9 +23,6 @@
 #*	  GNU bash, version 3.2.57(1)-release (x86_64-QNAP-linux-gnu)
 #*	  GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
-#* and periodically on:
-#*	  GNU bash, version 5.0.17(1)-release (aarch64-openwrt-linux-gnu)
-#*		 Copyright (C) 2019 Free Software Foundation, Inc.
 #*
 #* Notes:
 #*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox) as this is the native QNAP NAS shell. Be-careful reusing code in other shells, as these scripts contain syntax quirks often compatible only with bash.
@@ -37,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version=250725
+readonly r_service_script_version=250726
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache

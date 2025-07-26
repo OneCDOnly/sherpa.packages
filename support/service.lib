@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #*
 #* Please don't edit this file directly, it has been programmatically built or modified with the 'build-qpkgs.sh' script. (source: 'service-library.source')
 #*
@@ -24,9 +24,6 @@
 #*	  GNU bash, version 3.2.57(1)-release (x86_64-QNAP-linux-gnu)
 #*	  GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
-#* and periodically on:
-#*	  GNU bash, version 5.0.17(1)-release (aarch64-openwrt-linux-gnu)
-#*		 Copyright (C) 2019 Free Software Foundation, Inc.
 #*
 #* Notes:
 #*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox) as this is the native QNAP NAS shell. Be-careful reusing code in other shells, as these scripts contain syntax quirks often compatible only with bash.
@@ -40,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=250725
+readonly r_service_library_version=250726
 InitLibrary(){
 IsQNAP||exit
 debug=${DEBUG_QPKG:=false}
@@ -158,7 +155,7 @@ IsNotStart &&DaemonWasNotActive&&return
 IsNotClean &&ShowDaemonState
 IsDaemonActive&&return
 fi
-[[ -e $r_service_screen_log_pathfile ]]&&DisplayRunAndLog 'remove previous screen log' "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
+[[ -e $r_service_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
 [[ $(type -t PreStartQPKGCustom) = function ]]&&PreStartQPKGCustom
 if [[ $(type -t StartQPKGCustom) = function ]];then
 StartQPKGCustom
@@ -680,7 +677,7 @@ fi
 IsVirtualPythonEnv &&[[ -d $venv_path ]]&&DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$venv_path\"" log:failure-only
 IsUsePipCache &&[[ -d $pip_cache_path ]]&&DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$pip_cache_path\"" log:failure-only
 [[ -e $r_appl_version_store_pathfile ]]&&DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
-[[ -e $r_service_screen_log_pathfile ]]&&DisplayRunAndLog 'remove previous screen log' "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
+[[ -e $r_service_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
 IsUseTemp &&[[ -d $r_qpkg_temp_path ]]&&DisplayRunAndLog 'clean temp path' "rm -rf \"$r_qpkg_temp_path\"" log:failure-only
 MakePaths;}
 WatchForGit(){
