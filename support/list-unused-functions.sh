@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. $HOME/scripts/nas/sherpa/support/vars.source || exit
+. $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
 a=$qpkgs_support_path/$service_library_source_file
 b=''

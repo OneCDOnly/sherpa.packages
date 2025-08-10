@@ -2,7 +2,7 @@
 
 # compiler for sherpa QPKG archives.
 
-. $HOME/scripts/nas/sherpa/support/vars.source || exit
+. $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
 echo -n 'building archives ... '
 
@@ -10,8 +10,8 @@ declare -a a
 declare -a b
 declare -i i=0
 
-a+=("$qpkgs_support_path/$packages_file")
-b+=("$qpkgs_root_path/$packages_archive_file")
+a+=($qpkgs_support_path/$packages_file)
+b+=($qpkgs_root_path/$packages_archive_file)
 
 [[ ! -e $qpkgs_support_path/$packages_file ]] && $qpkgs_support_path/build-packages.sh
 

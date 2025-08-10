@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. $HOME/scripts/nas/sherpa/support/vars.source || exit
+. $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
 [[ ! -f $highest_package_versions_found_sorted_pathfile ]] && ./build-packages.sh
 
