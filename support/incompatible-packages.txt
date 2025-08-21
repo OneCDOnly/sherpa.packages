@@ -1,3 +1,6 @@
+* TorrServer
+	- Now requires a newer GLIBC than offered by QTS. :(
+
 * Jackett
 	- failed, needs ICU
 
