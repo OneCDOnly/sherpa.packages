@@ -100,13 +100,6 @@ sha3sum_250706_x86_64.qpkg.md5       sha3sum_250706_x86_64.qpkg       sha3sum   
 sha3sum_250706_x86.qpkg.md5          sha3sum_250706_x86.qpkg          sha3sum              250706       i86    31b1fe16447344754c70d3df02179747
 sherpa_250726.qpkg.md5               sherpa_250726.qpkg               sherpa               250726       all    57d7e4591f62fb3bbc579ac5c4927d4c
 SortMyQPKGs_250705.qpkg.md5          SortMyQPKGs_250705.qpkg          SortMyQPKGs          250705       all    432955e4fee2c0a97e3cf92fe93fe1fc
-TorrServer_250822_arm_64.qpkg.md5    TorrServer_250822_arm_64.qpkg    TorrServer           250822       a64    a928e9b28e1d3ec1aa52711e7a7201d6
-TorrServer_250822_arm-x19.qpkg.md5   TorrServer_250822_arm-x19.qpkg   TorrServer           250822       a19    a59f52109d47ee53402ede028b15cc74
-TorrServer_250822_arm-x31.qpkg.md5   TorrServer_250822_arm-x31.qpkg   TorrServer           250822       a31    bbff990cccea2f7c8d32961b3e415e3f
-TorrServer_250822_arm-x41.qpkg.md5   TorrServer_250822_arm-x41.qpkg   TorrServer           250822       a41    0e602b9c63ef8d9da60bcac8acaee46b
-TorrServer_250822_x86_64.qpkg.md5    TorrServer_250822_x86_64.qpkg    TorrServer           250822       i64    a5b29d97c199221ae40698b159f467a5
-TorrServer_250822_x86_ce53xx.qpkg.md5 TorrServer_250822_x86_ce53xx.qpkg TorrServer           250822       i53    410e6a8dd0b8d8dc121538bf22901c46
-TorrServer_250822_x86.qpkg.md5       TorrServer_250822_x86.qpkg       TorrServer           250822       i86    d31797f0e0e162d084acc159e3708b70
 TrguiNG_250822.qpkg.md5              TrguiNG_250822.qpkg              TrguiNG              250822       all    bedc976a70404d0b89956403135d5700
 Unmanic_250822_arm_64.qpkg.md5       Unmanic_250822_arm_64.qpkg       Unmanic              250822       a64    bf0f354af73dfdadf8076e356b297313
 Unmanic_250822_arm-x19.qpkg.md5      Unmanic_250822_arm-x19.qpkg      Unmanic              250822       a19    635fa401f685bf540fc37b0dfe881a16
