@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=250726
+readonly r_service_library_version=250822
 InitLibrary(){
 IsQNAP||exit
 debug=${DEBUG_QPKG:=false}
@@ -278,6 +278,12 @@ fi
 fi
 return 0;}
 StartDaemon(){
+IsDaemon||return
+if IsDaemonActive;then
+DisplayAndCommitInfoToLog 'daemon is already active'
+ShowDaemonState
+return
+fi
 local a='start daemon'
 local b=$daemon_launch_cmd
 local -i c=0
@@ -898,7 +904,7 @@ FormatAsCommand "$1">>"$r_service_screen_log_pathfile"
 /usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 z=$?
 elif [[ $debug = true ]];then
-		eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"
+eval "$1 2>&1|/usr/bin/tee $r_log_pathfile"
 z=${PIPESTATUS[0]}
 else
 (eval "$1">"$r_log_pathfile" 2>&1)
@@ -912,9 +918,9 @@ fi
 if [[ $debug = true ]];then
 exec_msg='} exec: completed'
 if [[ $z -eq 0 ]];then
-Display "$exec_msg OK"
+Display "$exec_msg OK ($z)"
 else
-Display "$exec_msg, but with errors"
+Display "$exec_msg with errors ($z)"
 fi
 fi
 [[ -e $r_log_pathfile ]]&&rm -f "$r_log_pathfile"
