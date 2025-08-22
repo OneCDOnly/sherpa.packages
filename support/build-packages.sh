@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. $HOME/scripts/nas/sherpa/support/vars.source || exit
+. $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
 source=$qpkgs_support_path/$packages_source_file
 target=$qpkgs_support_path/$packages_file
@@ -28,15 +28,6 @@ TranslateQPKGArch()
 	# 'a' for ARM, 'i' for Intel.
 
 	case $1 in
-		x86_ce53xx)
-			printf i53			# For TS-269H only.
-			;;
-		i686|x86)
-			printf i86
-			;;
-		x86_64)
-			printf i64
-			;;
 		arm-x19)
 			printf a19
 			;;
@@ -48,6 +39,15 @@ TranslateQPKGArch()
 			;;
 		arm_64)
 			printf a64
+			;;
+		x86_ce53xx)
+			printf i53			# For TS-269H only.
+			;;
+		i686|x86)
+			printf i86
+			;;
+		x86_64)
+			printf i64
 			;;
 		'')
 			printf all

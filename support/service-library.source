@@ -633,6 +633,14 @@ StartDaemon()
 	#	$run_daemon_in_screen_session
 	#	$start_retries
 
+	IsDaemon || return
+
+	if IsDaemonActive; then
+		DisplayAndCommitInfoToLog 'daemon is already active'
+		ShowDaemonState
+		return
+	fi
+
 	local a='start daemon'
 	local b=$daemon_launch_cmd
 	local -i c=0
@@ -1794,10 +1802,10 @@ Executer()
 		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 		z=$?
 	elif [[ $debug = true ]]; then
-		eval "$1 > >(/usr/bin/tee $r_log_pathfile) 2>&1"	# NOTE: 'tee' buffers stdout here.				# squeezer-ignore
+		eval "$1 2>&1 | /usr/bin/tee $r_log_pathfile"		# NOTE: stdout is buffered here.
 		z=${PIPESTATUS[0]}									# Must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
 	else
-		(eval "$1" > "$r_log_pathfile" 2>&1)				# Run in a subshell to suppress "Terminated" message later.
+		(eval "$1" > "$r_log_pathfile" 2>&1)				# Run within a subshell to suppress "Terminated" message later.
 		z=$?
 	fi
 
@@ -1811,9 +1819,9 @@ Executer()
 		exec_msg='} exec: completed'
 
 		if [[ $z -eq 0 ]]; then
-			Display "$exec_msg OK"
+			Display "$exec_msg OK ($z)"
 		else
-			Display "$exec_msg, but with errors"
+			Display "$exec_msg with errors ($z)"
 		fi
 	fi
 

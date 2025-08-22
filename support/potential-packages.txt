@@ -1,3 +1,11 @@
+* puls?
+	- https://github.com/word-sys/puls
+
+* Chaptarr?
+	- to replace Readarr (no-longer maintained)
+	- no public repo yet.
+	- https://www.reddit.com/r/selfhosted/comments/1mimb0n/psa_readarr_replacement_chaptarr_under_very/
+
 * Releasarr?
 	- https://github.com/Makario1337/Releasarr
 

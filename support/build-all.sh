@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-. $HOME/scripts/nas/sherpa/support/vars.source || exit
+. $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
 declare -a a
 declare -i i=0
 
-a+=("$qpkg_support_path/$packages_file")
+a+=($qpkg_support_path/$packages_file)
 
 for i in "${!a[@]}"; do
 	[[ -e ${a[i]} ]] && rm -f "${a[i]}"

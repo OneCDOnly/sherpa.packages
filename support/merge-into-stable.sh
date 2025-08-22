@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. $HOME/scripts/nas/sherpa/support/vars.source || exit
+. $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
 echo -en "ready to merge '$(TextBrightRed "$unstable_branch")' branch into '$(TextBrightGreen "$stable_branch")' branch: proceed? "
 read -rn1 response
