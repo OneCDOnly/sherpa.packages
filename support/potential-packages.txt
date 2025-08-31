@@ -1,45 +1,48 @@
-* puls?
+* Termix
+	- https://github.com/LukeGus/Termix
+
+* puls
 	- https://github.com/word-sys/puls
 
-* Chaptarr?
+* Chaptarr
 	- to replace Readarr (no-longer maintained)
 	- no public repo yet.
 	- https://www.reddit.com/r/selfhosted/comments/1mimb0n/psa_readarr_replacement_chaptarr_under_very/
 
-* Releasarr?
+* Releasarr
 	- https://github.com/Makario1337/Releasarr
 
-* GhostHub?
+* GhostHub
 	- https://github.com/BleedingXiko/GhostHub
 
-* VERT?
+* VERT
 	- https://github.com/VERT-sh/VERT
 
-* cryptomator?
+* cryptomator
 	- https://github.com/cryptomator/cryptomator
 
-* FileBrowser?
+* FileBrowser
 	- https://filebrowser.org/
 		curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
 		filebrowser -r /path/to/your/files
 
-* CrowdSec?
+* CrowdSec
 	- https://github.com/crowdsecurity/crowdsec
 
-* NetAlertX?
+* NetAlertX
 	- https://github.com/jokob-sk/NetAlertX
 	- primarily a docker image, but can also be installed the hard way.
 
-* ftpgrab? (CLI)
+* ftpgrab (CLI)
 	- https://github.com/crazy-max/ftpgrab
 
-* nix package manager?
+* nix package manager
 	- https://nixos.org/download/
 
-* audiobookshelf?
+* audiobookshelf
 	- https://github.com/advplyr/audiobookshelf
 
-* Soulseek daemon?
+* Soulseek daemon
 	- https://github.com/slskd/slskd
 	- incompatible with QTS 5.1.8 on ARMv7:
 	------------------------------------------------------------------------------------------------------
@@ -53,28 +56,28 @@
 		./slskd: /lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by ./slskd)
 	------------------------------------------------------------------------------------------------------
 
-* Tdarr?
+* Tdarr
 	- https://docs.tdarr.io/docs/installation/windows-linux-macos
 
-* VueTorrent?
+* VueTorrent
 	- https://github.com/VueTorrent/VueTorrent
 	- available as a static QPKG here: https://github.com/Jay-Young/qpkg/tree/master/vuetorrent
 
-* it-tools?
+* it-tools
 	- https://github.com/CorentinTh/it-tools
 	- available as a static QPKG here: https://github.com/Jay-Young/qpkg/tree/master/it-tools (runs in Apache).
 
-* BlendFarm?
+* BlendFarm
 	- https://github.com/LogicReinc/LogicReinc.BlendFarm
 
-* NetBox?
+* NetBox
 	- https://docs.netbox.dev/en/stable/installation/
 
-* gpt-engineer?
+* gpt-engineer
 	- See compatibility-notes.txt
 
-* FlexGet?
+* FlexGet
 	- See compatibility-notes.txt
 
-* codex?
+* codex
 	- See compatibility-notes.txt
