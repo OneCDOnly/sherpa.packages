@@ -5,6 +5,7 @@
 		/share/CACHEDEV1_DATA/.qpkg/TorrServer/repo-cache/torrserver.package: /lib/libc.so.6: version `GLIBC_2.34' not found (required by /share/CACHEDEV1_DATA/.qpkg/TorrServer/repo-cache/torrserver.package)
 		--------------------------------------------------------------------------------------------------
 		- Not good. libc 2.34 isn't part of any QTS version, and isn't installable through Entware (only has 2.27 available). Looks like the end-of-the-road for TorrServer. :(
+	- Still launches fine on a64 (QTS 5.2.6.3195 with libc 2.23). Maybe devs are only compiling i64 version for a later libc? Wait and see if the other arches change this too.
 
 * Jackett
 	- failed, needs ICU
