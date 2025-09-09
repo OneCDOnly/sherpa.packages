@@ -2,11 +2,11 @@
 Bazarr_250822_arm_64.qpkg.md5        Bazarr_250822_arm_64.qpkg        Bazarr               250822       a64    04c979a8a40b60edc4533182599bda39
 Bazarr_250822_x86_64.qpkg.md5        Bazarr_250822_x86_64.qpkg        Bazarr               250822       i64    591370acde789b2ddeaf1b93313168e6
 ClamAV_250822.qpkg.md5               ClamAV_250822.qpkg               ClamAV               250822       all    ac43be2d925218d35930cffb3e6be073
-duf_250908_arm_64.qpkg.md5           duf_250908_arm_64.qpkg           duf                  250908       a64    aacd62b2d9a4dc7c09a1db0613deb398
-duf_250908_arm-x31.qpkg.md5          duf_250908_arm-x31.qpkg          duf                  250908       a31    7bbcfbffa341471095f9d948f9e17294
-duf_250908_arm-x41.qpkg.md5          duf_250908_arm-x41.qpkg          duf                  250908       a41    1863dfabff9cf8af862cb4a68cbd8960
-duf_250908_x86_64.qpkg.md5           duf_250908_x86_64.qpkg           duf                  250908       i64    72eebf7a6e78666c0125eaceaaa6dbe7
-duf_250908_x86.qpkg.md5              duf_250908_x86.qpkg              duf                  250908       i86    ae0f879a9311057c93cd70a3f5200776
+duf_250910_arm_64.qpkg.md5           duf_250910_arm_64.qpkg           duf                  250910       a64    f9a61e6dc5b834d744b98bcefb631ea7
+duf_250910_arm-x31.qpkg.md5          duf_250910_arm-x31.qpkg          duf                  250910       a31    64f79a357575e33be5c9fcaee8e54542
+duf_250910_arm-x41.qpkg.md5          duf_250910_arm-x41.qpkg          duf                  250910       a41    7a03577f5595c565bf800076dcc8abb8
+duf_250910_x86_64.qpkg.md5           duf_250910_x86_64.qpkg           duf                  250910       i64    6185392ec69315ce2b092e37ba427707
+duf_250910_x86.qpkg.md5              duf_250910_x86.qpkg              duf                  250910       i86    7666bf38b76fd3d574c479182b6900ea
 Entware_1.03a_std.qpkg.md5           Entware_1.03a_std.qpkg           Entware              1.03a        all    deb88a170716d39309d124ad77875b4d
 Glances_250823_arm_64.qpkg.md5       Glances_250823_arm_64.qpkg       Glances              250823       a64    ac0ad60e0f4e522f0e7220513a125685
 Glances_250823_arm-x19.qpkg.md5      Glances_250823_arm-x19.qpkg      Glances              250823       a19    d8bd3a5baeb5315ecc0397f1d15fbac5

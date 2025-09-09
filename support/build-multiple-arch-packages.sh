@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+exit
 . $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
 source=$qpkgs_support_path/$packages_source_file
