@@ -20,44 +20,6 @@ previous_arch=''
 match=false
 packages_epoch=$(date +%s)
 
-TranslateQPKGArch()
-	{
-
-	# Translate arch from QPKG filename to sherpa arch.
-	# sherpa arch for target NAS is a single 3 character-code.
-	# 'a' for ARM, 'i' for Intel.
-
-	case $1 in
-		arm-x19)
-			printf a19
-			;;
-		arm-x31)
-			printf a31
-			;;
-		arm-x41)
-			printf a41
-			;;
-		arm_64)
-			printf a64
-			;;
-		x86_ce53xx)
-			printf i53			# For TS-269H only.
-			;;
-		i686|x86)
-			printf i86
-			;;
-		x86_64)
-			printf i64
-			;;
-		'')
-			printf all
-			;;
-		*)
-			echo "${1::3}"		# passthru first 3 characters only.
-	esac
-
-	}
-
 StripComments()
 	{
 
@@ -174,10 +136,10 @@ buffer=$(<"$target")
 
 echo -n 'updating QPKG fields ... '
 
-# multi-line regex: https://superuser.com/questions/1766993/find-and-replace-text-in-a-file-only-after-2-different-patterns-match-using-sed
-
 while read -r checksum_filename qpkg_filename package_name version arch hash; do
 	for property in version package_name qpkg_filename hash; do
+		# multi-line regex: https://superuser.com/questions/1766993/find-and-replace-text-in-a-file-only-after-2-different-patterns-match-using-sed
+
 		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/^$/{/r_qpkg_arch+=(${arch})/,/r_qpkg_url+=/s/<?${property}?>/${!property}/}" <<< "$buffer")
 
 		case $package_name in

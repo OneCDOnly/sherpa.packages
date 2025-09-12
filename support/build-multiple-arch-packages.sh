@@ -2,21 +2,23 @@
 
 . $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
-checksum_pathfilename=''
-checksum_filename=''
-qpkg_filename=''
-package_name=''
-version=''
 arch=''
+declare -a arches
+checksum_filename=''
+checksum_pathfilename=''
+debug=false
 hash=''
+match=false
+package_name=''
+packages_epoch=$(date +%s)
+previous_arch=''
 previous_package_name=''
 previous_version=''
-previous_arch=''
-match=false
-packages_epoch=$(date +%s)
-debug=false
+qpkg_filename=''
+version=''
 
 [[ $1 = debug ]] && debug=true
+debug=true							# Force this for-now.
 
 StripComments()
 	{
@@ -40,57 +42,57 @@ StripComments()
 
 	}
 
-# echo -n 'locating QPKG checksum files ... '
-#
-# raw=$(find "$checksum_root_path" -name '*.qpkg.md5')
-#
-# ShowDone
-#
-# echo -n 'extracting highest QPKG version numbers ... '
-#
-# sorted=$(sort --version-sort --reverse <<< "$raw")
-#
-# while read -r checksum_pathfilename; do
-# 	checksum_filename=$(basename "$checksum_pathfilename")
-# 	qpkg_filename=${checksum_filename//.md5/}
-#
-# 	IFS='_' read -r package_name version arch tailend <<< "${checksum_filename//.qpkg.md5/}"
-#
-# 	if [[ $arch = std ]]; then     						# Exception for Entware.
-# 		arch=''
-# 		tailend=''
-# 	fi
-#
-# 	[[ -n $tailend ]] && arch+=_$tailend
-#
-# 	if [[ ${version##*.} = zip ]]; then					# Exception for QDK.
-# 		version=${version%.*}
-# 	fi
-#
-# 	if [[ ${qpkg_filename: -9} = .zip.qpkg ]]; then		# Another exception for QDK.
-# 		qpkg_filename=${qpkg_filename%.*}
-# 	fi
-#
-# 	if [[ $package_name != "$previous_package_name" ]]; then
-# 		match=true
-# 	elif [[ $version = "$previous_version" ]]; then
-# 		if [[ $arch != "$previous_arch" ]]; then
-# 			match=true
-# 		fi
-# 	else
-# 		match=false
-# 	fi
-#
-# 	if [[ $match = true ]]; then
-# 		printf '%-36s %-32s %-20s %-12s %-6s %s\n' "$checksum_filename" "$qpkg_filename" "$package_name" "$version" "$(TranslateQPKGArch "$arch")" "$(cut -d' ' -f1 < "$checksum_pathfilename")"
-# 		previous_package_name=$package_name
-# 		previous_version=$version
-# 		previous_arch=$arch
-# 	fi
-# done <<< "$sorted" | uniq > "$highest_package_versions_found_pathfile"
-#
-# ShowDone
-#
+echo -n 'locating QPKG checksum files ... '
+
+raw=$(find "$checksum_root_path" -name '*.qpkg.md5')
+
+ShowDone
+
+echo -n 'extracting highest QPKG version numbers ... '
+
+sorted=$(sort --version-sort --reverse <<< "$raw")
+
+while read -r checksum_pathfilename; do
+	checksum_filename=$(basename "$checksum_pathfilename")
+	qpkg_filename=${checksum_filename//.md5/}
+
+	IFS='_' read -r package_name version arch tailend <<< "${checksum_filename//.qpkg.md5/}"
+
+	if [[ $arch = std ]]; then     						# Exception for Entware.
+		arch=''
+		tailend=''
+	fi
+
+	[[ -n $tailend ]] && arch+=_$tailend
+
+	if [[ ${version##*.} = zip ]]; then					# Exception for QDK.
+		version=${version%.*}
+	fi
+
+	if [[ ${qpkg_filename: -9} = .zip.qpkg ]]; then		# Another exception for QDK.
+		qpkg_filename=${qpkg_filename%.*}
+	fi
+
+	if [[ $package_name != "$previous_package_name" ]]; then
+		match=true
+	elif [[ $version = "$previous_version" ]]; then
+		if [[ $arch != "$previous_arch" ]]; then
+			match=true
+		fi
+	else
+		match=false
+	fi
+
+	if [[ $match = true ]]; then
+		printf '%-36s %-32s %-20s %-12s %-6s %s\n' "$checksum_filename" "$qpkg_filename" "$package_name" "$version" "$(TranslateQPKGArch "$arch")" "$(cut -d' ' -f1 < "$checksum_pathfilename")"
+		previous_package_name=$package_name
+		previous_version=$version
+		previous_arch=$arch
+	fi
+done <<< "$sorted" | uniq > "$highest_package_versions_found_pathfile"
+
+ShowDone
+
 echo -n 'loading IPK essentials ... '
 
 a=$qpkgs_support_path/ipk-essential.txt
@@ -130,34 +132,32 @@ ShowDone
 echo -n 'updating QPKG fields ... '
 [[ $debug = true ]] && echo
 
-# multi-line regex: https://superuser.com/questions/1766993/find-and-replace-text-in-a-file-only-after-2-different-patterns-match-using-sed
-
-declare -a arches
-
 while read -r checksum_filename qpkg_filename package_name version arch hash; do
-	[[ $debug = true ]] && echo -en "found package_name: $package_name\tarch: $arch"
-
+	[[ $debug = true ]] && printf 'found: %-24s' "$package_name/$arch"
 	b=buffer_$arch
 
 	if [[ -z ${!b} ]]; then
 		arches+=($arch)
-		source=$qpkgs_support_path/packages-$arch.source
-		target=$qpkgs_support_path/packages-$arch.available
+		source=$qpkgs_support_path/$arch.packages.source
+		target=$qpkgs_support_path/$arch.packages
 		SwapTags "$source" "$target" > /dev/null
 		declare $b="$(StripComments "$(<$target)")"
-		[[ $debug = true ]] && echo -e "\tcreated new arch buffer: $b"
+
+		[[ $debug = true ]] && echo "(created new arch buffer)"
 	else
 		[[ $debug = true ]] && echo
 	fi
 
 	for property in version package_name qpkg_filename hash; do
+		# multi-line regex: https://superuser.com/questions/1766993/find-and-replace-text-in-a-file-only-after-2-different-patterns-match-using-sed
+
 		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/^$/{/r_qpkg_arch+=(${arch})/,/r_qpkg_url+=/s/<?${property}?>/${!property}/}" <<< "${!b}")
 		declare $b="$buffer"
 
 		case $package_name in
 			nzbget|QDK)
 				if [[ $property = version ]]; then
-					# Run this a second time as there are 2 version placeholders in 'packages.source' for nzbget and QDK.
+					# Run this a second time as there are 2 version placeholders in '*.packages.source' for nzbget and QDK.
 
 					# echo "running a second swap: QPKG '$package_name', arch '$arch', property '$property', value '${!property}'"
 					buffer=$(sed "/r_qpkg_name+=(${package_name})/,/^$/{/r_qpkg_arch+=(${arch})/,/r_qpkg_url+=/s/<?${property}?>/${!property}/}" <<< "${!b}")
@@ -173,10 +173,10 @@ while read -r checksum_filename qpkg_filename package_name version arch hash; do
 
 done <<< "$(sort "$highest_package_versions_found_pathfile")"
 
-[[ $debug = true ]] && echo "found ${#arches[@]} package arches"
+[[ $debug = true ]] && echo "found ${#arches[@]} package arches (including 'all')"
 
 for arch in "${arches[@]}"; do
-	target=$qpkgs_support_path/packages-$arch.available
+	target=$qpkgs_support_path/$arch.packages
 
 	if [[ $arch = all ]]; then
 		rm -f "$target"
@@ -186,24 +186,23 @@ for arch in "${arches[@]}"; do
 	[[ $debug = true ]] && echo -n "building $(basename $target) file ... "
 	buffer=buffer_$arch
 
-	# Add non-arch-specific packages to the end of each arch list.
+	# Add non-arch-specific ('all') packages to the end of each arch list.
 
 	declare buffer_$arch="${!buffer}"$'\n'"$buffer_all"
 	echo "${!buffer}" > "$target"
 	chmod 444 "$target"
+
 	[[ $debug = true ]] && ShowDone
 done
 
 [[ $debug = true ]] || ShowDone
 
-for f in $qpkgs_support_path/*.available; do
+for f in $qpkgs_support_path/*.packages; do
 	if grep -q '<?\|?>' "$f"; then
 		TextBrightRed "'$f' contains unswapped tags, can't continue"; echo
 		exit 1
 	fi
 done
-
-exit
 
 # Sort and add header line for easier viewing.
 
