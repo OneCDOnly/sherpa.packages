@@ -18,7 +18,7 @@ qpkg_filename=''
 version=''
 
 [[ $1 = debug ]] && debug=true
-debug=true							# Force this for-now.
+# debug=true							# Force this for-now.
 
 StripComments()
 	{
@@ -133,19 +133,24 @@ echo -n 'updating QPKG fields ... '
 [[ $debug = true ]] && echo
 
 while read -r checksum_filename qpkg_filename package_name version arch hash; do
-	[[ $debug = true ]] && printf 'found: %-24s' "$package_name/$arch"
+	[[ $debug = true ]] && echo "found: $package_name/$arch"
 	b=buffer_$arch
 
 	if [[ -z ${!b} ]]; then
+		[[ $debug = true ]] && echo "found new arch: $arch"
 		arches+=($arch)
 		source=$qpkgs_support_path/$arch.packages.source
 		target=$qpkgs_support_path/$arch.packages
-		SwapTags "$source" "$target" > /dev/null
+
+		if [[ $debug = true ]]; then
+			SwapTags "$source" "$target"
+		else
+			SwapTags "$source" "$target" > /dev/null
+		fi
+
 		declare $b="$(StripComments "$(<$target)")"
 
-		[[ $debug = true ]] && echo "(created new arch buffer)"
-	else
-		[[ $debug = true ]] && echo
+		[[ $debug = true ]] && echo "created new arch buffer: $arch and loaded with $(basename $target)"
 	fi
 
 	for property in version package_name qpkg_filename hash; do
