@@ -15,9 +15,9 @@ echo 'writing multiple arch archives ...'
 
 # Add source and target filenamepaths.
 
-for c in $qpkgs_support_path/*.packages; do
+for c in "$qpkgs_support_path"/*.packages; do
 	a+=($c)
-	b+=($qpkgs_root_path/$(basename "$c").tar.gz)
+	b+=($qpkgs_release_path/$(basename "$c").tar.gz)
 done
 
 for i in "${!a[@]}"; do
