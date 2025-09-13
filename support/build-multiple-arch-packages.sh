@@ -87,7 +87,7 @@ while read -r checksum_filename qpkg_filename package_name version arch hash; do
 	for property in version package_name qpkg_filename hash; do
 		# multi-line regex: https://superuser.com/questions/1766993/find-and-replace-text-in-a-file-only-after-2-different-patterns-match-using-sed
 
-		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/^$/{/r_qpkg_arch+=(${arch})/,/r_qpkg_url+=/s/<?${property}?>/${!property}/}" <<< "${!b}")
+		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/r_qpkg_url+=/s/<?${property}?>/${!property}/" <<< "${!b}")
 		declare $b="$buffer"
 
 		case $package_name in
@@ -95,15 +95,15 @@ while read -r checksum_filename qpkg_filename package_name version arch hash; do
 				if [[ $property = version ]]; then
 					# Run this a second time as there are 2 version placeholders in '*.packages.source' for nzbget and QDK.
 
-					# echo "running a second swap: QPKG '$package_name', arch '$arch', property '$property', value '${!property}'"
-					buffer=$(sed "/r_qpkg_name+=(${package_name})/,/^$/{/r_qpkg_arch+=(${arch})/,/r_qpkg_url+=/s/<?${property}?>/${!property}/}" <<< "${!b}")
+					[[ $debug = true ]] && echo "└─ running a second swap: QPKG '$package_name', arch '$arch', property '$property', value '${!property}'"
+					buffer=$(sed "/r_qpkg_name+=(${package_name})/,/r_qpkg_url+=/s/<?${property}?>/${!property}/" <<< "${!b}")
 					declare $b="$buffer"
 				fi
 		esac
 
 		# If arch = 'none' then package is not installable, so write 'none' to all fields.
 
-		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/^$/{/r_qpkg_arch+=(none)/,/r_qpkg_url+=/s/<?${property}?>/none/}" <<< "${!b}")
+		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/r_qpkg_url+=/s/<?${property}?>/none/" <<< "${!b}")
 		declare $b="$buffer"
 	done
 done <<< "$(StripComments "$(<"$highest_package_versions_found_pathfile")")"
