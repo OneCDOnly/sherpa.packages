@@ -12,6 +12,8 @@ for i in "${!a[@]}"; do
 done
 
 ./build-qpkgs.sh sherpa || exit
+./build-package-version-table || exit
 ./build-packages.sh || exit
+# ./build-multiple-arch-packages.sh || exit
 ./build-wiki-package-abbreviations.sh || exit
 ./build-archives.sh || exit
