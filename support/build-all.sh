@@ -13,8 +13,6 @@ done
 
 ./build-qpkgs.sh sherpa || exit
 ./build-package-version-table.sh || exit
-./build-packages.sh || exit
-./build-multiple-arch-packages.sh || exit
 ./build-wiki-package-abbreviations.sh || exit
 ./build-archives.sh || exit
 ./build-multiple-archives.sh || exit

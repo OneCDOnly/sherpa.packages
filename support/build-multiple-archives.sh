@@ -6,16 +6,19 @@
 
 declare -a a
 declare -a b
+c=''
 declare -i i=0
 
-[[ ! -e $qpkgs_support_path/$packages_file ]] && $qpkgs_support_path/build-packages.sh
+$qpkgs_support_path/build-multiple-arch-packages.sh
 
-echo 'writing archives ...'
+echo 'writing multiple arch archives ...'
 
 # Add source and target filenamepaths.
 
-a+=($qpkgs_support_path/$packages_file)
-b+=($qpkgs_root_path/$packages_archive_file)
+for c in $qpkgs_support_path/*.packages; do
+	a+=($c)
+	b+=($qpkgs_root_path/$(basename "$c").tar.gz)
+done
 
 for i in "${!a[@]}"; do
 	[[ -e ${b[i]} ]] && rm -f "${b[i]}"
@@ -29,7 +32,7 @@ for i in "${!a[@]}"; do
 	tar --create --gzip --numeric-owner --file="${b[i]}" --directory="$qpkgs_support_path" "$(basename "${a[i]}")"
 
 	if [[ ! -s ${b[i]} ]]; then
-		echo; TextBrightRed "'${b[i]}' was not written"; echo
+		TextBrightRed "'${b[i]}' was not written"; echo
 		exit 1
 	fi
 
