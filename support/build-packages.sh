@@ -5,6 +5,7 @@
 arch=''
 buffer=''
 checksum_filename=''
+debug=false
 hash=''
 package_name=''
 packages_epoch=$(date +%s)
@@ -56,13 +57,15 @@ ShowDone
 
 [[ -e $target ]] && chmod +w "$target"
 echo "$buffer" > "$target"
-SwapTags "$source" "$target"
+SwapTags "$source" "$target" > /dev/null
 buffer=$(<"$target")
 
-echo -n 'updating QPKG fields ... '
+echo -n 'replacing placeholders ... '
 [[ $debug = true ]] && echo
 
 while read -r checksum_filename qpkg_filename package_name version arch hash; do
+	[[ $debug = true ]] && echo "found new package_name/arch: '$package_name/$arch'"
+
 	for property in version package_name qpkg_filename hash; do
 		# multi-line regex: https://superuser.com/questions/1766993/find-and-replace-text-in-a-file-only-after-2-different-patterns-match-using-sed
 
@@ -86,7 +89,7 @@ done <<< "$(StripComments "$(<"$highest_package_versions_found_pathfile")")"
 
 [[ $debug = true ]] || ShowDone
 
-[[ $debug = true ]] && echo -n "building $(basename $target) file ... "
+echo -n "building '$(basename $target)' file ... "
 
 echo "$buffer" > "$target"
 
@@ -94,15 +97,19 @@ if [[ ! -e $target ]]; then
 	TextBrightRed "'$target' was not written to disk"; echo
 	exit 1
 else
-	Squeeze "$target" "$target"
-	[[ -f $target ]] && chmod 444 "$target"
-	[[ $debug = true ]] && ShowDone
+	Squeeze "$target" "$target" > /dev/null
+	chmod 444 "$target"
 fi
 
+ShowDone
+
+echo -n 'checking all placeholders have been replaced ... '
 
 if grep -q '<?\|?>' "$target"; then
-	TextBrightRed "'$target' contains unswapped tags, can't continue"; echo
+	echo; TextBrightRed "'$target' contains unprocessed placeholders, can't continue"; echo
 	exit 1
 fi
+
+ShowDone
 
 exit 0

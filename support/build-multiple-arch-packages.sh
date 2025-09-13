@@ -18,7 +18,7 @@ target=''
 version=''
 
 [[ $1 = debug ]] && debug=true
-debug=true							# Force this for-now.
+# debug=true							# Force this for-now.
 
 echo -n 'loading IPK essentials ... '
 
@@ -56,28 +56,32 @@ fi
 
 ShowDone
 
-echo -n 'updating QPKG fields ... '
+echo -n 'replacing placeholders ... '
 [[ $debug = true ]] && echo
 
 while read -r checksum_filename qpkg_filename package_name version arch hash; do
-	[[ $debug = true ]] && echo "found: $package_name/$arch"
+	[[ $debug = true ]] && echo "found new package_name/arch: '$package_name/$arch'"
 	b=buffer_$arch
 
 	if [[ -z ${!b} ]]; then
-		[[ $debug = true ]] && echo "found new arch: $arch"
+		[[ $debug = true ]] && echo "└─ found new arch: '$arch'"
 		arches+=($arch)
 		source=$qpkgs_support_path/$arch.packages.source
 		target=$qpkgs_support_path/$arch.packages
 
-		if [[ $debug = true ]]; then
-			SwapTags "$source" "$target"
+		if [[ ! -e $source ]]; then
+			echo; TextBrightRed "unable to load '$(basename $source)' as it doesn't exist"; echo
 		else
-			SwapTags "$source" "$target" > /dev/null
+			if [[ $debug = true ]]; then
+				echo -n "└─ "; SwapTags "$source" "$target"
+			else
+				SwapTags "$source" "$target" > /dev/null
+			fi
+
+			declare $b="$(StripComments "$(<$target)")"
+
+			[[ $debug = true ]] && echo "└─ created new arch buffer '$b' and loaded with contents of '$(basename $target)'"
 		fi
-
-		declare $b="$(StripComments "$(<$target)")"
-
-		[[ $debug = true ]] && echo "created new arch buffer: $arch and loaded with $(basename $target)"
 	fi
 
 	for property in version package_name qpkg_filename hash; do
@@ -104,17 +108,22 @@ while read -r checksum_filename qpkg_filename package_name version arch hash; do
 	done
 done <<< "$(StripComments "$(<"$highest_package_versions_found_pathfile")")"
 
+[[ $debug = true ]] || ShowDone
+
 [[ $debug = true ]] && echo "found ${#arches[@]} package arches (including 'all')"
+
+echo -n "building package files ... "
+[[ $debug = true ]] && echo
 
 for arch in "${arches[@]}"; do
 	target=$qpkgs_support_path/$arch.packages
 
-	if [[ $arch = all ]]; then
+	if [[ $arch = all ]]; then			# Don't build an 'all.packages' file. QPKGs to suit all arches are appended to each arch package list.
 		rm -f "$target"
 		continue
 	fi
 
-	[[ $debug = true ]] && echo -n "building $(basename $target) file ... "
+	[[ $debug = true ]] && echo -n "building '$(basename $target)' file ... "
 	buffer=buffer_$arch
 
 	# Add non-arch-specific ('all') packages to the end of each arch list.
@@ -123,9 +132,10 @@ for arch in "${arches[@]}"; do
 	echo "${!buffer}" > "$target"
 
 	if [[ ! -e $target ]]; then
-		TextBrightRed "'$target' was not written to disk"; echo
+		echo; TextBrightRed "'$target' was not written to disk"; echo
 		exit 1
 	else
+		Squeeze "$target" "$target" > /dev/null
 		chmod 444 "$target"
 		[[ $debug = true ]] && ShowDone
 	fi
@@ -133,11 +143,15 @@ done
 
 [[ $debug = true ]] || ShowDone
 
+echo -n 'checking all placeholders have been replaced ... '
+
 for f in $qpkgs_support_path/*.packages; do
 	if grep -q '<?\|?>' "$f"; then
-		TextBrightRed "'$f' contains unswapped tags, can't continue"; echo
+		echo; TextBrightRed "'$f' contains unprocessed placeholders, can't continue"; echo
 		exit 1
 	fi
 done
+
+ShowDone
 
 exit 0

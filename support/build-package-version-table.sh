@@ -67,10 +67,10 @@ ShowDone
 
 # Add header line for easier viewing.
 
-[[ -f $highest_package_versions_found_sorted_pathfile ]] && chmod 644 "$highest_package_versions_found_sorted_pathfile"
-printf '%-36s %-32s %-20s %-12s %-6s %s\n%s\n' '# checksum_filename' qpkg_filename package_name version arch hash "$(sort "$package_versions_raw_pathfile")" > "$highest_package_versions_found_sorted_pathfile"
+[[ -f $highest_package_versions_found_pathfile ]] && chmod 644 "$highest_package_versions_found_pathfile"
+printf '%-36s %-32s %-20s %-12s %-6s %s\n%s\n' '# checksum_filename' qpkg_filename package_name version arch hash "$(sort "$package_versions_raw_pathfile")" > "$highest_package_versions_found_pathfile"
 
 rm -f "$package_versions_raw_pathfile"
-[[ -f $highest_package_versions_found_sorted_pathfile ]] && chmod 444 "$highest_package_versions_found_sorted_pathfile"
+[[ -f $highest_package_versions_found_pathfile ]] && chmod 444 "$highest_package_versions_found_pathfile"
 
 exit 0
