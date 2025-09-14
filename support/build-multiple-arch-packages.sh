@@ -13,6 +13,7 @@ hash=''
 package_name=''
 packages_epoch=$(date +%s)
 qpkg_filename=''
+short_path=''
 source=''
 target=''
 version=''
@@ -59,7 +60,7 @@ ShowDone
 echo -n 'replacing placeholders ... '
 [[ $debug = true ]] && echo
 
-while read -r checksum_filename qpkg_filename package_name version arch hash; do
+while read -r checksum_filename qpkg_filename package_name version arch short_path hash; do
 	[[ $debug = true ]] && echo "found new package_name/arch: '$package_name/$arch'"
 	b=buffer_$arch
 
@@ -106,6 +107,10 @@ while read -r checksum_filename qpkg_filename package_name version arch hash; do
 		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/r_qpkg_url+=/s/<?${property}?>/none/" <<< "${!b}")
 		declare $b="$buffer"
 	done
+
+	# Copy highest build version of this QPKG to release path.
+
+	[[ -e "$checksum_root_path/$short_path/$qpkg_filename" ]] && cp "$checksum_root_path/$short_path/$qpkg_filename" "$qpkgs_release_path"
 done <<< "$(StripComments "$(<"$highest_package_versions_found_pathfile")")"
 
 [[ $debug = true ]] || ShowDone

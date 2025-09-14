@@ -10,6 +10,7 @@ hash=''
 package_name=''
 packages_epoch=$(date +%s)
 qpkg_filename=''
+short_path=''
 source=$qpkgs_support_path/$packages_source_file
 target=$qpkgs_support_path/$packages_file
 version=''
@@ -63,7 +64,7 @@ buffer=$(<"$target")
 echo -n 'replacing placeholders ... '
 [[ $debug = true ]] && echo
 
-while read -r checksum_filename qpkg_filename package_name version arch hash; do
+while read -r checksum_filename qpkg_filename package_name version arch short_path hash; do
 	[[ $debug = true ]] && echo "found new package_name/arch: '$package_name/$arch'"
 
 	for property in version package_name qpkg_filename hash; do
