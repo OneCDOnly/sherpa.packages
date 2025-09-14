@@ -6,4 +6,4 @@ release_tag=v${build_date}
 
 echo "release_tag: '$release_tag'"
 
-gh release upload "$release_tag" "$qpkgs_release_path"/* --clobber && rm -r "$qpkgs_release_path"/*
+gh release upload "$release_tag" "${qpkgs_staging_path:?undefined}"/* --clobber && rm -r "${qpkgs_staging_path:?undefined}"/*

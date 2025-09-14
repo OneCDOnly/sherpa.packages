@@ -110,7 +110,7 @@ while read -r checksum_filename qpkg_filename package_name version arch short_pa
 
 	# Copy highest build version of this QPKG to release path.
 
-	[[ -e "$checksum_root_path/$short_path/$qpkg_filename" ]] && cp "$checksum_root_path/$short_path/$qpkg_filename" "$qpkgs_release_path"
+	[[ -e "$checksum_root_path/$short_path/$qpkg_filename" ]] && cp "$checksum_root_path/$short_path/$qpkg_filename" "$qpkgs_staging_path"
 done <<< "$(StripComments "$(<"$highest_package_versions_found_pathfile")")"
 
 [[ $debug = true ]] || ShowDone
