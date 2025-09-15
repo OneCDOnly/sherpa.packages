@@ -6,7 +6,7 @@
 
 declare -a a
 declare -a b
-c=''
+f=''
 declare -i i=0
 
 $qpkgs_support_path/build-multiple-arch-packages.sh
@@ -15,9 +15,9 @@ echo 'writing multiple arch archives ...'
 
 # Add source and target filenamepaths.
 
-for c in "$qpkgs_support_path"/*.packages; do
-	a+=($c)
-	b+=($qpkgs_staging_path/$(basename "$c").tar.gz)
+for f in "$qpkgs_support_path"/*.packages; do
+	a+=($f)
+	b+=($qpkgs_staging_path/$(basename "$f").tar.gz)
 done
 
 for i in "${!a[@]}"; do
@@ -35,6 +35,8 @@ for i in "${!a[@]}"; do
 		TextBrightRed "'${b[i]}' was not written"; echo
 		exit 1
 	fi
+
+	rm -f "${a[i]}"
 
 	ShowDone
 
