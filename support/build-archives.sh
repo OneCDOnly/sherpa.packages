@@ -10,6 +10,8 @@ declare -i i=0
 
 [[ ! -e $qpkgs_support_path/$packages_file ]] && $qpkgs_support_path/build-packages.sh
 
+CheckPlaceholdersInPackages
+
 echo 'writing archives ...'
 
 # Add source and target filenamepaths.

@@ -10,6 +10,7 @@ checksum_filename=''
 debug=false
 f=''
 hash=''
+highest_table=''
 package_name=''
 packages_epoch=$(date +%s)
 qpkg_filename=''
@@ -19,9 +20,16 @@ target=''
 version=''
 
 [[ $1 = debug ]] && debug=true
-# debug=true							# Force this for-now.
+# debug=true
 
-echo -n 'loading IPK essentials ... '
+if [[ -e $highest_package_versions_found_pathfile ]]; then
+	highest_table="$(StripComments "$(<"$highest_package_versions_found_pathfile")")"
+else
+	echo; TextBrightRed "file '$highest_package_versions_found_pathfile' not found"; echo
+	exit 1
+fi
+
+rm -f "${qpkgs_support_path:?undefined}"/*.packages
 
 a=$qpkgs_support_path/ipk-essential.txt
 
@@ -31,10 +39,6 @@ if [[ -e $a ]]; then
 	essential_ipks=${essential_ipks,,}
 fi
 
-ShowDone
-
-echo -n 'loading PIP essentials ... '
-
 a=$qpkgs_support_path/pip-essential.txt
 
 if [[ -e $a ]]; then
@@ -42,10 +46,6 @@ if [[ -e $a ]]; then
 	essential_pips=${essential_pips%* }
 	essential_pips=${essential_pips,,}
 fi
-
-ShowDone
-
-echo -n 'loading PIP exclusions ... '
 
 a=$qpkgs_support_path/pip-exclusions.txt
 
@@ -55,9 +55,7 @@ if [[ -e $a ]]; then
 	exclusion_pips=${exclusion_pips,,}
 fi
 
-ShowDone
-
-echo -n 'replacing placeholders ... '
+echo -n 'find package arches and init package files ... '
 [[ $debug = true ]] && echo
 
 while read -r checksum_filename qpkg_filename package_name version arch short_path hash; do
@@ -84,6 +82,16 @@ while read -r checksum_filename qpkg_filename package_name version arch short_pa
 			[[ $debug = true ]] && echo "└─ created new arch buffer '$b' and loaded with contents of '$(basename $target)'"
 		fi
 	fi
+done <<< "$highest_table"
+
+[[ $debug = true ]] || ShowDone
+[[ $debug = true ]] && echo "found ${#arches[@]} package arches (including 'all')"
+
+echo -n 'process placeholders ... '
+[[ $debug = true ]] && echo
+
+while read -r checksum_filename qpkg_filename package_name version arch short_path hash; do
+	b=buffer_$arch
 
 	for property in version package_name qpkg_filename hash; do
 		# multi-line regex: https://superuser.com/questions/1766993/find-and-replace-text-in-a-file-only-after-2-different-patterns-match-using-sed
@@ -107,17 +115,11 @@ while read -r checksum_filename qpkg_filename package_name version arch short_pa
 		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/r_qpkg_url+=/s/<?${property}?>/none/" <<< "${!b}")
 		declare $b="$buffer"
 	done
-
-	# Copy highest build version of this QPKG to release path.
-
-	[[ -e "$checksum_root_path/$short_path/$qpkg_filename" ]] && cp "$checksum_root_path/$short_path/$qpkg_filename" "$qpkgs_staging_path"
-done <<< "$(StripComments "$(<"$highest_package_versions_found_pathfile")")"
+done <<< "$highest_table"
 
 [[ $debug = true ]] || ShowDone
 
-[[ $debug = true ]] && echo "found ${#arches[@]} package arches (including 'all')"
-
-echo -n "building package files ... "
+echo -n "write package files ... "
 [[ $debug = true ]] && echo
 
 for arch in "${arches[@]}"; do
@@ -128,7 +130,7 @@ for arch in "${arches[@]}"; do
 		continue
 	fi
 
-	[[ $debug = true ]] && echo -n "building '$(basename $target)' file ... "
+	[[ $debug = true ]] && echo -n "write file '$(basename $target)' ... "
 	buffer=buffer_$arch
 
 	# Add non-arch-specific ('all') packages to the end of each arch list.
@@ -137,7 +139,7 @@ for arch in "${arches[@]}"; do
 	echo "${!buffer}" > "$target"
 
 	if [[ ! -e $target ]]; then
-		echo; TextBrightRed "'$target' was not written to disk"; echo
+		echo; TextBrightRed "file '$target' was not written to disk"; echo
 		exit 1
 	else
 		Squeeze "$target" "$target" > /dev/null
@@ -148,15 +150,6 @@ done
 
 [[ $debug = true ]] || ShowDone
 
-echo -n 'checking all placeholders have been replaced ... '
-
-for f in $qpkgs_support_path/*.packages; do
-	if grep -q '<?\|?>' "$f"; then
-		echo; TextBrightRed "'$f' contains unprocessed placeholders, can't continue"; echo
-		exit 1
-	fi
-done
-
-ShowDone
+[[ $SHLVL -eq 2 ]] && CheckPlaceholdersInMultiplePackages			# Only check when running this script manually.
 
 exit 0

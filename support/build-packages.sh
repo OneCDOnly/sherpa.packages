@@ -7,20 +7,25 @@ buffer=''
 checksum_filename=''
 debug=false
 hash=''
+highest_table=''
 package_name=''
 packages_epoch=$(date +%s)
 qpkg_filename=''
 short_path=''
 source=$qpkgs_support_path/$packages_source_file
+	buffer=$(<"$source")
 target=$qpkgs_support_path/$packages_file
 version=''
 
-buffer=$(<"$source")
-
 [[ $1 = debug ]] && debug=true
-# debug=true							# Force this for-now.
+# debug=true
 
-echo -n 'loading IPK essentials ... '
+if [[ -e $highest_package_versions_found_pathfile ]]; then
+	highest_table="$(StripComments "$(<"$highest_package_versions_found_pathfile")")"
+else
+	echo; TextBrightRed "file '$highest_package_versions_found_pathfile' not found"; echo
+	exit 1
+fi
 
 a=$qpkgs_support_path/ipk-essential.txt
 
@@ -30,10 +35,6 @@ if [[ -e $a ]]; then
 	essential_ipks=${essential_ipks,,}
 fi
 
-ShowDone
-
-echo -n 'loading PIP essentials ... '
-
 a=$qpkgs_support_path/pip-essential.txt
 
 if [[ -e $a ]]; then
@@ -41,10 +42,6 @@ if [[ -e $a ]]; then
 	essential_pips=${essential_pips%* }
 	essential_pips=${essential_pips,,}
 fi
-
-ShowDone
-
-echo -n 'loading PIP exclusions ... '
 
 a=$qpkgs_support_path/pip-exclusions.txt
 
@@ -54,14 +51,12 @@ if [[ -e $a ]]; then
 	exclusion_pips=${exclusion_pips,,}
 fi
 
-ShowDone
-
 [[ -e $target ]] && chmod +w "$target"
 echo "$buffer" > "$target"
 SwapTags "$source" "$target" > /dev/null
 buffer=$(<"$target")
 
-echo -n 'replacing placeholders ... '
+echo -n 'process placeholders ... '
 [[ $debug = true ]] && echo
 
 while read -r checksum_filename qpkg_filename package_name version arch short_path hash; do
@@ -86,31 +81,25 @@ while read -r checksum_filename qpkg_filename package_name version arch short_pa
 
 		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/^$/{/r_qpkg_arch+=(none)/,/r_qpkg_url+=/s/<?${property}?>/none/}" <<< "$buffer")
 	done
-done <<< "$(StripComments "$(<"$highest_package_versions_found_pathfile")")"
+done <<< "$highest_table"
 
 [[ $debug = true ]] || ShowDone
 
-echo -n "building '$(basename $target)' file ... "
+echo -n "write package file ... "
+[[ $debug = true ]] && echo
 
 echo "$buffer" > "$target"
 
 if [[ ! -e $target ]]; then
-	TextBrightRed "'$target' was not written to disk"; echo
+	TextBrightRed "file '$target' was not written to disk"; echo
 	exit 1
 else
 	Squeeze "$target" "$target" > /dev/null
 	chmod 444 "$target"
 fi
 
-ShowDone
+[[ $debug = true ]] || ShowDone
 
-echo -n 'checking all placeholders have been replaced ... '
-
-if grep -q '<?\|?>' "$target"; then
-	echo; TextBrightRed "'$target' contains unprocessed placeholders, can't continue"; echo
-	exit 1
-fi
-
-ShowDone
+[[ $SHLVL -eq 2 ]] && CheckPlaceholdersInPackages			# Only check when running this script manually.
 
 exit 0

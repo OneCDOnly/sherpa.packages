@@ -9,9 +9,11 @@ declare -a b
 f=''
 declare -i i=0
 
-$qpkgs_support_path/build-multiple-arch-packages.sh
+$qpkgs_support_path/build-multiple-packages.sh
 
-echo 'writing multiple arch archives ...'
+CheckPlaceholdersInMultiplePackages
+
+echo 'writing multiple archives ...'
 
 # Add source and target filenamepaths.
 
@@ -35,8 +37,6 @@ for i in "${!a[@]}"; do
 		TextBrightRed "'${b[i]}' was not written"; echo
 		exit 1
 	fi
-
-	rm -f "${a[i]}"
 
 	ShowDone
 
