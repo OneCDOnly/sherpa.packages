@@ -694,7 +694,7 @@ StopDaemon()
 
 	[[ $d -gt 1 ]] || return
 
-	DisplayAndCommitWaitToLog "$a PID ${d} with SIGTERM (no-more than $b second$(Pluralise "$b"))"
+	DisplayAndCommitProcessWaitToLog "$a PID ${d} with SIGTERM (no-more than $b second$(Pluralise "$b"))"
 
 	kill "$d"
 
@@ -706,7 +706,7 @@ StopDaemon()
 
 			if [[ $c -ge $b ]]; then
 				DisplayAndCommitOutcomeToLog failed
-				DisplayAndCommitWaitToLog "$a PID ${d} with SIGKILL"
+				DisplayAndCommitProcessWaitToLog "$a PID ${d} with SIGKILL"
 
 				kill -9 "$d" 2> /dev/null
 
@@ -755,7 +755,7 @@ RefreshReleasePackageFiles()
 		if [[ $resolve_remote_url = true ]]; then
 			refresh_release_package=true
 
-			DisplayAndCommitWaitToLog 'get latest release package URL'
+			DisplayAndCommitProcessWaitToLog 'get latest release package URL'
 
 			if IsSiteUp "$remote_url"; then
 				release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_arch")
@@ -774,7 +774,7 @@ RefreshReleasePackageFiles()
 		fi
 
 		if [[ $compare_release_filename = true ]]; then
-			DisplayAndCommitWaitToLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
+			DisplayAndCommitProcessWaitToLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
 
 			if IsSiteUp "$remote_url"; then
 				release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
@@ -798,7 +798,7 @@ RefreshReleasePackageFiles()
 			fi
 
 			if [[ -n $release_package_filename && -n $release_package_name_ref_pathfilename ]]; then
-				DisplayAndCommitWaitToLog 'release package name reference exists locally'
+				DisplayAndCommitProcessWaitToLog 'release package name reference exists locally'
 
 				if [[ -e $release_package_name_ref_pathfilename ]]; then
 					DisplayAndCommitOutcomeToLog true
@@ -811,7 +811,7 @@ RefreshReleasePackageFiles()
 		fi
 	fi
 
-	DisplayAndCommitWaitToLog 'release package exists locally'
+	DisplayAndCommitProcessWaitToLog 'release package exists locally'
 
 	if [[ -e $release_package_pathfile ]]; then
 		DisplayAndCommitOutcomeToLog true
@@ -1156,7 +1156,7 @@ LoadPorts()
 		app)
 			# Read the current application UI ports from application configuration.
 
-			DisplayAndCommitWaitToLog 'load ports from configuration file'
+			DisplayAndCommitProcessWaitToLog 'load ports from configuration file'
 			[[ $get_ui_port_cmd != undefined ]] && ui_port=$(eval "$get_ui_port_cmd")
 			[[ $get_ui_port_secure_cmd != undefined ]] && ui_port_secure=$(eval "$get_ui_port_secure_cmd")
 			DisplayAndCommitOutcomeToLog OK
@@ -1164,7 +1164,7 @@ LoadPorts()
 		qts)
 			# Read the current application UI ports from QTS App Center.
 
-			DisplayAndCommitWaitToLog 'load UI ports from QPKG icon'
+			DisplayAndCommitProcessWaitToLog 'load UI ports from QPKG icon'
 			ui_port=$(/sbin/getcfg $r_qpkg_name Web_Port -d 0 -f /etc/config/qpkg.conf)
 			ui_port_secure=$(/sbin/getcfg $r_qpkg_name Web_SSL_Port -d 0 -f /etc/config/qpkg.conf)
 			DisplayAndCommitOutcomeToLog OK
@@ -1224,7 +1224,7 @@ ShowQPKGStates()
 	# Inputs: (global)
 	#	$qpkg_repo_path
 
-	DisplayAndCommitWaitToLog 'QPKG enabled'
+	DisplayAndCommitInfoWaitToLog 'QPKG enabled'
 
 	if IsQPKGEnabled; then
 		DisplayAndCommitOutcomeToLog true
@@ -1233,7 +1233,7 @@ ShowQPKGStates()
 	fi
 
 	if IsSupportAutoUpdate; then
-		DisplayAndCommitWaitToLog 'application auto-update'
+		DisplayAndCommitInfoWaitToLog 'application auto-update'
 
 		if IsAutoUpdate; then
 			DisplayAndCommitOutcomeToLog true
@@ -1478,7 +1478,7 @@ PauseForStartPid()
 	fi
 
 	if [[ $recheck_daemon_pid_after_launch = true ]]; then
-		DisplayAndCommitWaitToLog "wait $a second$(Pluralise "$a") to confirm PID is still alive"
+		DisplayAndCommitProcessWaitToLog "wait $a second$(Pluralise "$a") to confirm PID is still alive"
 
 		for ((i=1; i<=a; i++)); do
 			/bin/sleep 1
@@ -1503,7 +1503,7 @@ PauseForKillPid()
 	local -i i=0
 
 	if [[ $recheck_daemon_pid_after_kill = true ]]; then
-		DisplayAndCommitWaitToLog "wait $a second$(Pluralise "$a") to confirm PID is still dead"
+		DisplayAndCommitProcessWaitToLog "wait $a second$(Pluralise "$a") to confirm PID is still dead"
 
 		for ((i=1; i<=a; i++)); do
 			/bin/sleep 1
@@ -1532,7 +1532,7 @@ WatchForAnyInterfaceUp()
 	local found_interface=''
 
 	if ! IsAnyInterfaceUp; then
-		DisplayAndCommitWaitToLog "watch for a network interface to become operational (no-more than $a second$(Pluralise "$a"))"
+		DisplayAndCommitProcessWaitToLog "watch for a network interface to become operational (no-more than $a second$(Pluralise "$a"))"
 
 		(
 			for ((i=1; i<=a; i++)); do
@@ -1577,7 +1577,7 @@ WatchForDaemon()
 	local -i i=0
 
 	if [[ ! -e $daemon_pid_pathfile ]]; then
-		DisplayAndCommitWaitToLog "watch for daemon process name to appear (no-more than $a second$(Pluralise "$a"))"
+		DisplayAndCommitProcessWaitToLog "watch for daemon process name to appear (no-more than $a second$(Pluralise "$a"))"
 
 		(
 			for ((i=1; i<=a; i++)); do
@@ -1631,7 +1631,7 @@ WatchForFileToAppear()
 	fi
 
 	if [[ ! -e $1 ]]; then
-		DisplayAndCommitWaitToLog "watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a"))"
+		DisplayAndCommitProcessWaitToLog "watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a"))"
 
 		(
 			for ((i=1; i<=a; i++)); do
@@ -1728,7 +1728,7 @@ DisplayRunAndLog()
 	local -r r_log_pathfile=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 	local -i z=0
 
-	DisplayAndCommitWaitToLog "$1"
+	DisplayAndCommitProcessWaitToLog "$1"
 	Executer "${2:?empty}" "$r_log_pathfile" "${4:-false}"
 	z=$?
 
@@ -2074,7 +2074,7 @@ ReWriteUIPorts()
 
 	[[ $get_daemon_port_cmd != undefined ]] && return		# Don't need to rewrite QTS UI ports if this app has a daemon port, as UI ports are unused.
 
-	DisplayAndCommitWaitToLog 'update QPKG icon with UI ports'
+	DisplayAndCommitProcessWaitToLog 'update QPKG icon with UI ports'
 	/sbin/setcfg $r_qpkg_name Web_Port "$ui_port" -f /etc/config/qpkg.conf
 
 	if IsSSLEnabled; then
@@ -2107,7 +2107,7 @@ WatchForPortsActive()
 			a="daemon port $daemon_port"
 		fi
 	else
-		DisplayAndCommitWaitToLog 'HTTPS port enabled'
+		DisplayAndCommitInfoWaitToLog 'HTTPS port enabled'
 
 		if IsSSLEnabled; then
 			DisplayAndCommitOutcomeToLog true
@@ -2815,7 +2815,7 @@ IsPortResponds()
 		return 1
 	fi
 
-	DisplayAndCommitWaitToLog "test for port $a response (no-more than $b second$(Pluralise "$b"))"
+	DisplayAndCommitProcessWaitToLog "test for port $a response (no-more than $b second$(Pluralise "$b"))"
 
 	while true; do
 		if ! IsDaemonActive; then
@@ -2880,7 +2880,7 @@ IsPortSecureResponds()
 		return 1
 	fi
 
-	DisplayAndCommitWaitToLog "test for secure port $a response (no-more than $b second$(Pluralise "$b"))"
+	DisplayAndCommitProcessWaitToLog "test for secure port $a response (no-more than $b second$(Pluralise "$b"))"
 
 	while true; do
 		if ! IsDaemonActive; then
@@ -3616,7 +3616,7 @@ DisplayAndCommitActionToLog()
 	[[ $service_action = unspecified ]] && return
 
 	starttime=$(ConvertNowToNanoseconds)
-	local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"		# squeezer-ignore
+	local msg="- source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
 	local a=DisplayAndCommitToLog
 
@@ -3669,11 +3669,19 @@ DisplayAndCommitToLog()
 
 	}
 
-DisplayAndCommitWaitToLog()
+DisplayAndCommitProcessWaitToLog()
 	{
 
 	DisplayWait "> ${1:-}:"					# squeezer-ignore
 	CommitWaitToLog "> ${1:-}:"				# squeezer-ignore
+
+	}
+
+DisplayAndCommitInfoWaitToLog()
+	{
+
+	DisplayWait "- ${1:-}:"
+	CommitWaitToLog "- ${1:-}:"
 
 	}
 
