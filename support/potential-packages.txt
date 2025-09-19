@@ -1,3 +1,12 @@
+* UsrGrp-Manager-TUI
+	- https://github.com/Firstp1ck/UsrGrp-Manager-TUI
+
+* Autobrr
+	- https://autobrr.com/installation/linux
+
+* rustnet
+	- https://github.com/domcyrus/rustnet
+
 * Termix
 	- https://github.com/LukeGus/Termix
 
