@@ -14,6 +14,8 @@ readonly r_service_script_version='<?build_date?>'
 InitService()
 	{
 
+	ShowAsImportant "Medusa support to be discontinued: $(ShowAsURL 'https://github.com/OneCDOnly/sherpa/discussions/318')"
+
 	# This is a type 1 service-script.
 
 	# NOTE: default session values are set in service function library: uncomment to update, or copy to change.
