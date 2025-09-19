@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=250822
+readonly r_service_library_version=250919
 InitLibrary(){
 IsQNAP||exit
 debug=${DEBUG_QPKG:=false}
@@ -143,6 +143,7 @@ EnsureConfigFileExists
 GetAppVersion
 DisableOpkgDaemonStart
 IsSupportAutoUpdate&&IsAutoUpdateMissing &&EnableAutoUpdate>/dev/null
+readonly e_nourl='undefined URL'
 rm -f "$r_screen_conf_pathfile"
 if [[ $run_daemon_in_screen_session = true &&! -e $r_screen_conf_pathfile ]];then
 echo -e "logfile ${r_service_screen_log_pathfile}\nlogfile flush 1\nlog on">"$r_screen_conf_pathfile"
@@ -317,7 +318,7 @@ local -i b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
 local -i c=0
 local -i d=$(<$daemon_pid_pathfile)
 [[ $d -gt 1 ]]||return
-DisplayAndCommitWaitToLog "$a PID ${d} with SIGTERM (no-more than $b second$(Pluralise "$b"))"
+DisplayAndCommitProcessWaitToLog "$a PID ${d} with SIGTERM (no-more than $b second$(Pluralise "$b"))"
 kill "$d"
 while true;do
 while [[ -d /proc/$d ]];do
@@ -326,7 +327,7 @@ while [[ -d /proc/$d ]];do
 DisplayWait "$c,"
 if [[ $c -ge $b ]];then
 DisplayAndCommitOutcomeToLog failed
-DisplayAndCommitWaitToLog "$a PID ${d} with SIGKILL"
+DisplayAndCommitProcessWaitToLog "$a PID ${d} with SIGKILL"
 kill -9 "$d" 2>/dev/null
 [[ -f $daemon_pid_pathfile ]]&&rm -f "$daemon_pid_pathfile"
 DisplayAndCommitOutcomeToLog OK
@@ -353,7 +354,7 @@ local release_package_url=''
 if IsAutoUpdate ||[[ ! -e $release_package_pathfile ]];then
 if [[ $resolve_remote_url = true ]];then
 refresh_release_package=true
-DisplayAndCommitWaitToLog 'get latest release package URL'
+DisplayAndCommitProcessWaitToLog 'get latest release package URL'
 if IsSiteUp "$remote_url";then
 release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_arch")
 if [[ -n $release_package_url ]];then
@@ -369,7 +370,7 @@ else
 release_package_url=$remote_url
 fi
 if [[ $compare_release_filename = true ]];then
-DisplayAndCommitWaitToLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
+DisplayAndCommitProcessWaitToLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
 if IsSiteUp "$remote_url";then
 release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
 if [[ -n $release_package_filename ]];then
@@ -388,7 +389,7 @@ if [[ -z $release_package_name_ref_pathfilename &&-n $release_package_filename &
 release_package_name_ref_pathfilename=$(/usr/bin/dirname "$release_package_pathfile")/$release_package_filename
 fi
 if [[ -n $release_package_filename &&-n $release_package_name_ref_pathfilename ]];then
-DisplayAndCommitWaitToLog 'release package name reference exists locally'
+DisplayAndCommitProcessWaitToLog 'release package name reference exists locally'
 if [[ -e $release_package_name_ref_pathfilename ]];then
 DisplayAndCommitOutcomeToLog true
 else
@@ -399,7 +400,7 @@ fi
 fi
 fi
 fi
-DisplayAndCommitWaitToLog 'release package exists locally'
+DisplayAndCommitProcessWaitToLog 'release package exists locally'
 if [[ -e $release_package_pathfile ]];then
 DisplayAndCommitOutcomeToLog true
 else
@@ -577,12 +578,12 @@ fi
 LoadPorts(){
 case $1 in
 app)
-DisplayAndCommitWaitToLog 'load ports from configuration file'
+DisplayAndCommitProcessWaitToLog 'load ports from configuration file'
 [[ $get_ui_port_cmd != undefined ]]&&ui_port=$(eval "$get_ui_port_cmd")
 [[ $get_ui_port_secure_cmd != undefined ]]&&ui_port_secure=$(eval "$get_ui_port_secure_cmd")
 DisplayAndCommitOutcomeToLog OK;;
 qts)
-DisplayAndCommitWaitToLog 'load UI ports from QPKG icon'
+DisplayAndCommitProcessWaitToLog 'load UI ports from QPKG icon'
 ui_port=$(/sbin/getcfg $r_qpkg_name Web_Port -d 0 -f /etc/config/qpkg.conf)
 ui_port_secure=$(/sbin/getcfg $r_qpkg_name Web_SSL_Port -d 0 -f /etc/config/qpkg.conf)
 DisplayAndCommitOutcomeToLog OK;;
@@ -608,14 +609,14 @@ app_version=unknown
 return 1
 fi;}
 ShowQPKGStates(){
-DisplayAndCommitWaitToLog 'QPKG enabled'
+DisplayAndCommitInfoWaitToLog 'QPKG enabled'
 if IsQPKGEnabled;then
 DisplayAndCommitOutcomeToLog true
 else
 DisplayAndCommitOutcomeToLog false
 fi
 if IsSupportAutoUpdate;then
-DisplayAndCommitWaitToLog 'application auto-update'
+DisplayAndCommitInfoWaitToLog 'application auto-update'
 if IsAutoUpdate;then
 DisplayAndCommitOutcomeToLog true
 else
@@ -737,7 +738,7 @@ if WatchForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$watch_pi
 fi
 fi
 if [[ $recheck_daemon_pid_after_launch = true ]];then
-DisplayAndCommitWaitToLog "wait $a second$(Pluralise "$a") to confirm PID is still alive"
+DisplayAndCommitProcessWaitToLog "wait $a second$(Pluralise "$a") to confirm PID is still alive"
 for((i=1;i<=a;i++));do
 /bin/sleep 1
 DisplayWait "$i,"
@@ -749,7 +750,7 @@ PauseForKillPid(){
 local -i a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
 local -i i=0
 if [[ $recheck_daemon_pid_after_kill = true ]];then
-DisplayAndCommitWaitToLog "wait $a second$(Pluralise "$a") to confirm PID is still dead"
+DisplayAndCommitProcessWaitToLog "wait $a second$(Pluralise "$a") to confirm PID is still dead"
 for((i=1;i<=a;i++));do
 /bin/sleep 1
 DisplayWait "$i,"
@@ -762,7 +763,7 @@ local -i a=$(CalcAdaptiveSeconds "$watch_interface_up_seconds")
 local -i i=0
 local found_interface=''
 if ! IsAnyInterfaceUp;then
-DisplayAndCommitWaitToLog "watch for a network interface to become operational (no-more than $a second$(Pluralise "$a"))"
+DisplayAndCommitProcessWaitToLog "watch for a network interface to become operational (no-more than $a second$(Pluralise "$a"))"
 (
 for((i=1;i<=a;i++));do
 /bin/sleep 1
@@ -787,7 +788,7 @@ WatchForDaemon(){
 local -i a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
 local -i i=0
 if [[ ! -e $daemon_pid_pathfile ]];then
-DisplayAndCommitWaitToLog "watch for daemon process name to appear (no-more than $a second$(Pluralise "$a"))"
+DisplayAndCommitProcessWaitToLog "watch for daemon process name to appear (no-more than $a second$(Pluralise "$a"))"
 (
 for((i=1;i<=a;i++));do
 /bin/sleep 1
@@ -818,7 +819,7 @@ else
 a=30
 fi
 if [[ ! -e $1 ]];then
-DisplayAndCommitWaitToLog "watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a"))"
+DisplayAndCommitProcessWaitToLog "watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a"))"
 (
 for((i=1;i<=a;i++));do
 /bin/sleep 1
@@ -862,7 +863,7 @@ SaveAppVersion(){
 DisplayRunAndLog(){
 local -r r_log_pathfile=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 local -i z=0
-DisplayAndCommitWaitToLog "$1"
+DisplayAndCommitProcessWaitToLog "$1"
 Executer "${2:?empty}" "$r_log_pathfile" "${4:-false}"
 z=$?
 if [[ $z -eq 0 ]];then
@@ -998,7 +999,7 @@ Uppercase(){
 /bin/tr 'a-z' 'A-Z'<<<"$1";}
 ReWriteUIPorts(){
 [[ $get_daemon_port_cmd != undefined ]]&&return
-DisplayAndCommitWaitToLog 'update QPKG icon with UI ports'
+DisplayAndCommitProcessWaitToLog 'update QPKG icon with UI ports'
 /sbin/setcfg $r_qpkg_name Web_Port "$ui_port" -f /etc/config/qpkg.conf
 if IsSSLEnabled;then
 /sbin/setcfg $r_qpkg_name Web_SSL_Port "$ui_port_secure" -f /etc/config/qpkg.conf
@@ -1015,7 +1016,7 @@ if IsPortResponds $daemon_port;then
 a="daemon port $daemon_port"
 fi
 else
-DisplayAndCommitWaitToLog 'HTTPS port enabled'
+DisplayAndCommitInfoWaitToLog 'HTTPS port enabled'
 if IsSSLEnabled;then
 DisplayAndCommitOutcomeToLog true
 DisplayAndCommitInfoToLog "HTTPS port: $ui_port_secure"
@@ -1208,7 +1209,7 @@ elif [[ $a -eq 0 ]];then
 Display 'port 0: not testing for response'
 return 1
 fi
-DisplayAndCommitWaitToLog "test for port $a response (no-more than $b second$(Pluralise "$b"))"
+DisplayAndCommitProcessWaitToLog "test for port $a response (no-more than $b second$(Pluralise "$b"))"
 while true;do
 if ! IsDaemonActive;then
 DisplayAndCommitToLog 'process not active'
@@ -1246,7 +1247,7 @@ elif [[ $a -eq 0 ]];then
 Display 'port 0: not testing for response'
 return 1
 fi
-DisplayAndCommitWaitToLog "test for secure port $a response (no-more than $b second$(Pluralise "$b"))"
+DisplayAndCommitProcessWaitToLog "test for secure port $a response (no-more than $b second$(Pluralise "$b"))"
 while true;do
 if ! IsDaemonActive;then
 DisplayAndCommitToLog 'process not active'
@@ -1476,9 +1477,17 @@ IsPathEmpty(){
 local a=${1:-}
 [[ -n $a &&-d $a ]]||return
 rmdir "$a" &>/dev/null &&mkdir "$a";}
+ShowAsNote(){
+Display "$(TextBrightYellow note): ${1:-}"
+}>&2
+ShowAsImportant(){
+Display "$(TextBrightYellowBlink note): ${1:-}"
+}>&2
 ShowAsError(){
 Display "$(TextBrightRed derp): ${1:-}"
 }>&2
+ShowAsURL(){
+TextUnderlinedCyan "${1:?${FUNCNAME[0]}(): $e_nourl}";}
 DisplayAndCommitInfoToAllLogs(){
 DisplayAndCommitInfoToLog "${1:-}"
 CommitInfoToSysLog "${1:-}";}
@@ -1503,7 +1512,7 @@ DisplayAndCommitToLog "~ ${1:-}";}
 DisplayAndCommitActionToLog(){
 [[ $service_action = unspecified ]]&&return
 starttime=$(ConvertNowToNanoseconds)
-	local msg="> source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
+local msg="- source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' '<<<"$msg") "
 local a=DisplayAndCommitToLog
 if IsNotStatus&&IsNotLog&&IsNotNone;then
@@ -1530,9 +1539,12 @@ fi;}
 DisplayAndCommitToLog(){
 Display "${1:-}"
 CommitToLog "${1:-}";}
-DisplayAndCommitWaitToLog(){
+DisplayAndCommitProcessWaitToLog(){
 	DisplayWait "> ${1:-}:"
 	CommitWaitToLog "> ${1:-}:";}
+DisplayAndCommitInfoWaitToLog(){
+DisplayWait "- ${1:-}:"
+CommitWaitToLog "- ${1:-}:";}
 CommitInfoToLog(){
 CommitToLog "- ${1:-}";}
 CommitDoneToLog(){
@@ -1570,6 +1582,12 @@ printf '\033[1;97m%s\033[0m' "${1:-}"
 TextBrightRed(){
 printf '\033[1;31m%s\033[0m' "${1:-}"
 } 2>/dev/null
+TextBrightYellow(){
+printf '\033[1;33m%s\033[0m' "${1:-}"
+} 2>/dev/null
+TextBrightYellowBlink(){
+printf '\033[1;5;33m%s\033[0m' "${1:-}"
+} 2>/dev/null
 TextBlackOnGreen(){
 printf '\033[30;42m%s\033[0m' "${1:-}"
 } 2>/dev/null
@@ -1578,6 +1596,9 @@ printf '\033[30;41m%s\033[0m' "${1:-}"
 } 2>/dev/null
 TextBlackOnYellow(){
 printf '\033[30;43m%s\033[0m' "${1:-}"
+} 2>/dev/null
+TextUnderlinedCyan(){
+printf '\033[4;36m%s\033[0m' "${1:-}"
 } 2>/dev/null
 TextInverse(){
 printf '\033[7m%s\033[0m' "${1:-}"
