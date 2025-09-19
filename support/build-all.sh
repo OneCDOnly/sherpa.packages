@@ -12,7 +12,7 @@ for i in "${!a[@]}"; do
 done
 
 ./build-qpkgs.sh sherpa || exit
-./build-package-version-table.sh || exit
+./build-qpkg-version-table.sh || exit
 ./build-wiki-package-abbreviations.sh || exit
 ./build-archives.sh || exit
-# ./build-multiple-archives.sh || exit			# Don't build this yet: need to calculate release version first.
+# ./build-multiple-archives.sh || exit

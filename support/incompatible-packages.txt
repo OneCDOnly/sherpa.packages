@@ -1,3 +1,17 @@
+* Soulseek daemon
+	- https://github.com/slskd/slskd
+	- incompatible with QTS 5.1.8 on ARMv7:
+	------------------------------------------------------------------------------------------------------
+		[/share/Public] # ./slskd
+		./slskd: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.20' not found (required by ./slskd)
+		./slskd: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by ./slskd)
+	------------------------------------------------------------------------------------------------------
+	- incompatible with QTS 5.1.8 on x86-64:
+	------------------------------------------------------------------------------------------------------
+		[/share/Public] # ./slskd
+		./slskd: /lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by ./slskd)
+	------------------------------------------------------------------------------------------------------
+
 * TorrServer
 	- Now requires a newer GLIBC than offered by QTS. :(
 	- i64 (siena) not starting TorrServer due to GLIBC version error:
@@ -41,3 +55,12 @@
 	----------------------------------------------------------------------------
 	- Try with NodeJS 14 QPKG from myQNAP.
 	- Nope, far-too-many outdated packages.
+
+* gpt-engineer
+	- See sherpa.packages/dev/gpt-engineer/compatibility-notes.txt
+
+* FlexGet
+	- See sherpa.packages/dev/OFlexGet/compatibility-notes.txt
+
+* codex
+	- See sherpa.packages/dev/Codex/compatibility-notes.txt
