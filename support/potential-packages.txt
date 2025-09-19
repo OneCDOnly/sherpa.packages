@@ -1,3 +1,6 @@
+* Autobrr
+	- https://autobrr.com/installation/linux
+
 * rustnet
 	- https://github.com/domcyrus/rustnet
 
