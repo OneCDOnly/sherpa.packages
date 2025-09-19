@@ -4,7 +4,6 @@
 
 arch=''
 buffer=''
-checksum_filename=''
 debug=false
 hash=''
 highest_table=''
@@ -59,7 +58,7 @@ buffer=$(<"$target")
 echo -n 'process placeholders ... '
 [[ $debug = true ]] && echo
 
-while read -r checksum_filename qpkg_filename package_name version arch short_path hash; do
+while read -r qpkg_filename package_name version arch short_path hash; do
 	[[ $debug = true ]] && echo "found new package_name/arch: '$package_name/$arch'"
 
 	for property in version package_name qpkg_filename hash; do

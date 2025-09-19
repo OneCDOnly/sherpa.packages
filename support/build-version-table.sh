@@ -60,7 +60,8 @@ while read -r checksum_pathfilename; do
 	if [[ $match = true ]]; then
 		short_path=$(dirname "$checksum_pathfilename"); short_path=${short_path#$checksum_root_path$'/'}
 
-		printf '%-36s %-32s %-20s %-12s %-6s %-40s %s\n' "$checksum_filename" "$qpkg_filename" "$package_name" "$version" "$(TranslateQPKGArch "$arch")" "$short_path" "$(cut -d' ' -f1 < "$checksum_pathfilename")"
+# 		printf '%-36s %-32s %-20s %-12s %-6s %-40s %s\n' "$checksum_filename" "$qpkg_filename" "$package_name" "$version" "$(TranslateQPKGArch "$arch")" "$short_path" "$(cut -d' ' -f1 < "$checksum_pathfilename")"
+		printf '%-32s %-20s %-12s %-6s %-40s %s\n' "$qpkg_filename" "$package_name" "$version" "$(TranslateQPKGArch "$arch")" "$short_path" "$(cut -d' ' -f1 < "$checksum_pathfilename")"
 
 		previous_package_name=$package_name
 		previous_version=$version
@@ -73,7 +74,8 @@ ShowDone
 # Add header line for easier viewing.
 
 [[ -f $highest_package_versions_found_pathfile ]] && chmod 644 "$highest_package_versions_found_pathfile"
-printf '%-36s %-32s %-20s %-12s %-6s %-40s %s\n%s\n' '# checksum_filename' qpkg_filename package_name version arch short_path hash "$(sort "$package_versions_raw_pathfile")" > "$highest_package_versions_found_pathfile"
+# printf '%-36s %-32s %-20s %-12s %-6s %-40s %s\n%s\n' '# checksum_filename' qpkg_filename package_name version arch short_path hash "$(sort "$package_versions_raw_pathfile")" > "$highest_package_versions_found_pathfile"
+printf '%-32s %-20s %-12s %-6s %-40s %s\n%s\n' '# qpkg_filename' package_name version arch short_path hash "$(sort "$package_versions_raw_pathfile")" > "$highest_package_versions_found_pathfile"
 
 rm -f "$package_versions_raw_pathfile"
 [[ -f $highest_package_versions_found_pathfile ]] && chmod 444 "$highest_package_versions_found_pathfile"
