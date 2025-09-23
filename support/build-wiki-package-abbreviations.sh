@@ -51,7 +51,6 @@ LoadPackages()
 	readonly r_qpkg_appl_author
 	readonly r_qpkg_appl_author_email
 	readonly r_qpkg_appl_version
-	readonly r_qpkg_arch
 	readonly r_qpkg_author
 	readonly r_qpkg_author_email
 	readonly r_qpkg_can_backup
@@ -67,7 +66,6 @@ LoadPackages()
 	readonly r_qpkg_min_os_version
 	readonly r_qpkg_min_ram_kb
 	readonly r_qpkg_name
-	readonly r_qpkg_note
 	readonly r_qpkg_requires_ipks
 	readonly r_qpkg_test_for_active
 	readonly r_qpkg_url

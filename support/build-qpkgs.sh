@@ -58,6 +58,7 @@ for d in "$qpkgs_path"/*; do
 			echo "service library: no link"
 		fi
 	else
+		[[ ! -d $d/build ]] && mkdir "$d/build"
 		a=$(cd "$d/build" || exit; ls -t1 --reverse | tail -n1)
 
 		if [[ -n $a ]]; then
