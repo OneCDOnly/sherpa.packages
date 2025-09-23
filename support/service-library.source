@@ -2331,6 +2331,74 @@ GetHardwarePlatform()
 
 	}
 
+parse_yaml()
+	{
+
+	# a nice bit of coding! https://stackoverflow.com/a/21189044
+
+	# Inputs: (local)
+	#	$1 = filename to parse.
+	#	$2 (optional) = key prefix.
+
+	# Outputs: (local)
+	#	stdout = parsed YAML
+
+	local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+
+	/bin/sed -ne "s|^\($s\):|\1|" \
+		-e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+		-e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+		/bin/awk -F$fs '{
+			indent = length($1)/2;
+			vname[indent] = $2;
+			for (i in vname) {if (i > indent) {delete vname[i]}}
+				if (length($3) > 0) {
+				vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+				printf("%s%s%s=\"%s\"\n", "'${2:-}'",vn, $2, $3);
+				}
+			}'
+	}
+
+GetKeyFromYAML()						# unused-ignore
+	{
+
+	# Inputs: (local)
+	#	$1 = key to return value for.
+	#	$2 = pathfilename to YAML structure.
+
+	# Outputs: (local)
+	#	stdout = value.
+	#	$? = 0 if key was found, !0 if not.
+
+	[[ -n ${1:-} && -n ${2:-} ]] || return
+	[[ -e $2 ]] || return
+
+	set -o pipefail
+
+	parse_yaml "$2" | grep "${1/:/_}" | cut -d '"' -f2
+
+	}
+
+GetKeyFromTOML()						# unused-ignore
+	{
+
+	# Inputs: (local)
+	#	$1 = key to return value for.
+	#	$2 = pathfilename to TOML structure.
+
+	# Outputs: (local)
+	#	stdout = value.
+	#	$? = 0 if key was found, !0 if not.
+
+	[[ -n ${1:-} && -n ${2:-} ]] || return
+	[[ -e $2 ]] || return
+
+	set -o pipefail
+
+	/bin/grep "^$1 " "$2" | cut -d '=' -f2 | tr -d ' \"'
+
+	}
+
 SetNasArch()
 	{
 
@@ -2371,34 +2439,6 @@ SetHardwarePlatform()
 
 	[[ ${r_nas_platform:-unset} = unset ]] && readonly r_nas_platform=$(GetHardwarePlatform)
 
-	}
-
-parse_yaml()						# unused-ignore
-	{
-
-	# a nice bit of coding! https://stackoverflow.com/a/21189044
-
-	# Inputs: (local)
-	#	$1 = filename to parse.
-	#	$2 (optional) = key prefix.
-
-	# Outputs:
-	#	stdout = parsed YAML
-
-	local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
-
-	/bin/sed -ne "s|^\($s\):|\1|" \
-		-e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
-		-e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
-		/bin/awk -F$fs '{
-			indent = length($1)/2;
-			vname[indent] = $2;
-			for (i in vname) {if (i > indent) {delete vname[i]}}
-				if (length($3) > 0) {
-				vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
-				printf("%s%s%s=\"%s\"\n", "'${2:-}'",vn, $2, $3);
-				}
-			}'
 	}
 
 IsQNAP()
@@ -3140,7 +3180,7 @@ RequestLatestReleaseURL()
 
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
 	local b=$(/sbin/curl${a} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
-	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b")
+	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b" | head -n1)
 
 	printf '%s' "$b"
 
@@ -4287,6 +4327,15 @@ CleanDependencyField()
 	[[ -n $a && ${a: -1:1} = ':' ]] && a=${a%?}
 
 	printf '%s' "$a"
+
+	}
+
+Lowercase()
+	{
+
+	[[ -n ${1:-} ]] || return
+
+	tr 'A-Z' 'a-z' <<< "$1"
 
 	}
 

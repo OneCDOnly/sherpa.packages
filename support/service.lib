@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=250919
+readonly r_service_library_version=250924
 InitLibrary(){
 IsQNAP||exit
 debug=${DEBUG_QPKG:=false}
@@ -1102,14 +1102,6 @@ GetOsFirmwareVer(){
 /sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf|tr -d '.';}
 GetHardwarePlatform(){
 /sbin/getcfg '' Platform -d undefined -f /etc/platform.conf;}
-SetNasArch(){
-[[ ${r_nas_arch:-unset} = unset ]]&&readonly r_nas_arch=$(GetNasArch);}
-SetQpkgArch(){
-[[ ${r_nas_qpkg_arch:-unset} = unset ]]&&readonly r_nas_qpkg_arch=$(GetQpkgArch);}
-SetOsFirmwareVer(){
-[[ ${r_nas_firmware_ver:-unset} = unset ]]&&readonly r_nas_firmware_ver=$(GetOsFirmwareVer);}
-SetHardwarePlatform(){
-[[ ${r_nas_platform:-unset} = unset ]]&&readonly r_nas_platform=$(GetHardwarePlatform);}
 parse_yaml(){
 local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
 /bin/sed -ne "s|^\($s\):|\1|" \
@@ -1123,6 +1115,24 @@ if (length($3)>0) {
 vn="";for (i=0;i<indent;i++) {vn=(vn)(vname[i])("_")}
 printf("%s%s%s=\"%s\"\n", "'${2:-}'",vn, $2, $3);;}
 }';}
+GetKeyFromYAML(){
+[[ -n ${1:-} &&-n ${2:-} ]]||return
+[[ -e $2 ]]||return
+set -o pipefail
+parse_yaml "$2"|grep "${1/:/_}"|cut -d '"' -f2;}
+GetKeyFromTOML(){
+[[ -n ${1:-} &&-n ${2:-} ]]||return
+[[ -e $2 ]]||return
+set -o pipefail
+/bin/grep "^$1 " "$2"|cut -d '=' -f2|tr -d ' \"';}
+SetNasArch(){
+[[ ${r_nas_arch:-unset} = unset ]]&&readonly r_nas_arch=$(GetNasArch);}
+SetQpkgArch(){
+[[ ${r_nas_qpkg_arch:-unset} = unset ]]&&readonly r_nas_qpkg_arch=$(GetQpkgArch);}
+SetOsFirmwareVer(){
+[[ ${r_nas_firmware_ver:-unset} = unset ]]&&readonly r_nas_firmware_ver=$(GetOsFirmwareVer);}
+SetHardwarePlatform(){
+[[ ${r_nas_platform:-unset} = unset ]]&&readonly r_nas_platform=$(GetHardwarePlatform);}
 IsQNAP(){
 if [[ ! -e /etc/init.d/functions ]];then
 Display 'QTS functions missing (is this a QNAP NAS?)'
@@ -1337,7 +1347,7 @@ RequestLatestReleaseURL(){
 [[ -n ${1:-} &&${1:-} != undefined ]]||return
 local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"
 local b=$(/sbin/curl${a} "$1"|/bin/grep browser_download_url|cut -d\" -f4)
-[[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep "$2"<<<"$b")
+[[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep "$2"<<<"$b"|head -n1)
 printf '%s' "$b"
 } 2>/dev/null
 DownloadReleasePackage(){
@@ -1739,6 +1749,9 @@ local a=$(/bin/tr -s ':'<<<"$1")
 [[ -n $a &&${a:0:1} = ':' ]]&&a=${a#?}
 [[ -n $a &&${a: -1:1} = ':' ]]&&a=${a%?}
 printf '%s' "$a";}
+Lowercase(){
+[[ -n ${1:-} ]]||return
+tr 'A-Z' 'a-z'<<<"$1";}
 SetTraps(){
 trap CaughtSIGHUP SIGHUP
 trap CaughtSIGINT SIGINT
