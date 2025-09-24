@@ -1,9 +1,9 @@
+annotated-types
 babel
 bitmath
 blinker
 brotli
 cachelib<0.10.0,>=0.9.0
-certifi
 cheroot~=8.4
 click
 filetype
@@ -19,11 +19,14 @@ jaraco.functools
 jinja2
 js2py
 more_itertools
-pycurl
+py_mini_racer
+pydantic
+pydantic_core==2.33.2
 pyjsparser
 pyload-ng
 pyzstd
 semver~=2.10
-setuptools
+typing-extensions
+typing-inspection
 werkzeug
 zstandard
