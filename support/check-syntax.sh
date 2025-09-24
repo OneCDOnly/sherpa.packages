@@ -9,8 +9,8 @@ declare -i i=0
 a+=("$qpkgs_support_path/$service_library_source_file")
 b+=(1087,1090,1117,2012,2015,2016,2018,2019,2034,2086,2119,2120,2128,2154,2155,2181,2194,2206,2207,2254)
 
-a+=("$qpkgs_support_path/$packages_source_file")
-b+=(1009,1036,1072,1073,1088,2034)
+# a+=("$qpkgs_support_path/$packages_source_file")
+# b+=(1009,1036,1072,1073,1088,2034)
 
 # a+=("$qpkgs_support_path/*.sh")
 # b+=(1036,1090,1091,2001,2006,2012,2016,2028,2034,2054,2086,2154,2155)

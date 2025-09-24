@@ -141,10 +141,10 @@ InitService()
 		# get_daemon_port_cmd=undefined
 
 		# get_ui_listening_address_cmd=undefined
-		get_ui_listening_address_cmd='GetKeyFromYAML listenAddressSingleHTTPFrontend '$qpkg_ini_pathfile' | cut -d: -f1'
+		get_ui_listening_address_cmd="GetKeyFromYAML listenAddressSingleHTTPFrontend $qpkg_ini_pathfile | cut -d: -f1"
 
 		# get_ui_port_cmd=undefined
-		get_ui_port_cmd='GetKeyFromYAML listenAddressSingleHTTPFrontend '$qpkg_ini_pathfile' | cut -d: -f2'
+		get_ui_port_cmd="GetKeyFromYAML listenAddressSingleHTTPFrontend $qpkg_ini_pathfile | cut -d: -f2"
 
 		# get_ui_port_secure_cmd=undefined
 		get_ui_port_secure_cmd='echo 0'

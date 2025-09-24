@@ -140,10 +140,10 @@ InitService()
 		# get_daemon_port_cmd=undefined
 
 		# get_ui_listening_address_cmd=undefined
-		get_ui_listening_address_cmd='GetKeyFromTOML host '$qpkg_ini_pathfile
+		get_ui_listening_address_cmd="GetKeyFromTOML host $qpkg_ini_pathfile"
 
 		# get_ui_port_cmd=undefined
-		get_ui_port_cmd='GetKeyFromTOML port '$qpkg_ini_pathfile
+		get_ui_port_cmd="GetKeyFromTOML port $qpkg_ini_pathfile"
 
 		# get_ui_port_secure_cmd=undefined
 		get_ui_port_secure_cmd=false

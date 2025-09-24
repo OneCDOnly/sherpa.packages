@@ -129,7 +129,7 @@ InitService()
 	# >>> URLs <<<
 
 		# remote_url=undefined
-		remote_url='https://api.github.com/repos/autobrr/autobrr/releases/latest'
+		remote_url=https://api.github.com/repos/autobrr/autobrr/releases/latest
 
 		# source_git_url=undefined
 
@@ -140,16 +140,16 @@ InitService()
 		# get_daemon_port_cmd=undefined
 
 		# get_ui_listening_address_cmd=undefined
-		get_ui_listening_address_cmd="/bin/grep '^host ' '$qpkg_ini_pathfile' | cut -d '=' -f2 | tr -d ' \"'"
+		get_ui_listening_address_cmd="GetKeyFromTOML host $qpkg_ini_pathfile"
 
 		# get_ui_port_cmd=undefined
-		get_ui_port_cmd="/bin/grep '^port ' '$qpkg_ini_pathfile' | cut -d '=' -f2 | tr -d ' \"'"
+		get_ui_port_cmd="GetKeyFromTOML port $qpkg_ini_pathfile"
 
 		# get_ui_port_secure_cmd=undefined
-		get_ui_port_secure_cmd='false'
+		get_ui_port_secure_cmd=false
 
 		# get_ui_port_secure_enabled_test_cmd=undefined
-		get_ui_port_secure_enabled_test_cmd='false'
+		get_ui_port_secure_enabled_test_cmd=false
 
 		# daemon_launch_cmd=undefined
 		daemon_launch_cmd="$daemon_exec_pathfile --config=$r_qpkg_config_path"
