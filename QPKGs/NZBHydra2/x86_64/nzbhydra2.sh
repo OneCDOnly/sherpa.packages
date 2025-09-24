@@ -55,10 +55,10 @@ nice_daemon_to=15
 remote_arch=amd64-linux
 start_retries=3
 remote_url=https://api.github.com/repos/theotherp/nzbhydra2/releases/latest
-get_ui_listening_address_cmd='GetKeyFromYAML main_host '$qpkg_ini_pathfile
-get_ui_port_cmd='GetKeyFromYAML main:port '$qpkg_ini_pathfile
-get_ui_port_cmd='GetKeyFromYAML main:port '$qpkg_ini_pathfile
-get_ui_port_secure_enabled_test_cmd='[[ $(GetKeyFromYAML main:ssl "$qpkg_ini_pathfile") = true ]]'
+get_ui_listening_address_cmd="GetKeyFromYAML main_host $qpkg_ini_pathfile"
+get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_ini_pathfile"
+get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_ini_pathfile"
+get_ui_port_secure_enabled_test_cmd='[[ $(GetKeyFromYAML main:ssl '$qpkg_ini_pathfile') = true ]]'
 daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $r_qpkg_config_path --pidfile $daemon_pid_pathfile";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0

@@ -43,7 +43,7 @@ can_restart_to_update=true
 resolve_remote_url=true
 remote_arch=web
 start_retries=3
-remote_url='https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest';}
+remote_url=https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest;}
 StatusQPKGCustom(){
 IsNotError||return
 IsQPKGEnabled

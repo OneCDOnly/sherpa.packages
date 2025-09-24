@@ -47,8 +47,8 @@ run_daemon_in_screen_session=true
 remote_arch=linux_x86_64
 watch_port_check_seconds=360
 remote_url=https://api.github.com/repos/autobrr/autobrr/releases/latest
-get_ui_listening_address_cmd='GetKeyFromTOML host '$qpkg_ini_pathfile
-get_ui_port_cmd='GetKeyFromTOML port '$qpkg_ini_pathfile
+get_ui_listening_address_cmd="GetKeyFromTOML host $qpkg_ini_pathfile"
+get_ui_port_cmd="GetKeyFromTOML port $qpkg_ini_pathfile"
 get_ui_port_secure_cmd=false
 get_ui_port_secure_enabled_test_cmd=false
 daemon_launch_cmd="$daemon_exec_pathfile --config=$r_qpkg_config_path";}

@@ -49,15 +49,15 @@ venv_python_pathfile=$venv_path/bin/python3
 can_restart_to_update=true
 interpreter=/opt/bin/python3
 start_retries=3
-get_ui_listening_address_cmd="GetPyloadConfig $qpkg_ini_pathfile webui host"
-get_ui_port_cmd="GetPyloadConfig $qpkg_ini_pathfile webui port"
-get_ui_port_secure_cmd="GetPyloadConfig $qpkg_ini_pathfile webui port"
-get_ui_port_secure_enabled_test_cmd="[[ $(GetPyloadConfig "$qpkg_ini_pathfile" webui use_ssl) = True ]]"
+get_ui_listening_address_cmd="GetKeyFromPyload webui host $qpkg_ini_pathfile"
+get_ui_port_cmd="GetKeyFromPyload webui port $qpkg_ini_pathfile"
+get_ui_port_secure_cmd="GetKeyFromPyload webui port $qpkg_ini_pathfile"
+get_ui_port_secure_enabled_test_cmd="[[ $(GetKeyFromPyload webui use_ssl "$qpkg_ini_pathfile") = True ]]"
 daemon_launch_cmd="export TEMP=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $r_qpkg_path/config";}
-GetPyloadConfig(){
-local source_pathfile=${1:?no pathfilename supplied}
-local target_section_name=${2:?no section supplied}
-local target_var_name=${3:?no variable supplied}
+GetKeyFromPyload(){
+local target_section_name=${1:?no section supplied}
+local target_var_name=${2:?no variable supplied}
+local source_pathfile=${3:?no pathfilename supplied}
 if [[ ! -e $source_pathfile ]];then
 echo false
 return
