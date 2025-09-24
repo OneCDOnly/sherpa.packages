@@ -102,7 +102,13 @@
 # Define any package specific operations that shall be performed when
 # the package is installed.
 ######################################################################
-#pkg_post_install()
-#	{
+pkg_post_install()
+	{
 
-#	}
+	# Set a new sessionSecret.
+
+	if [[ $($CMD_GETCFG $QPKG_NAME '' sessionSecret -f $SYS_QPKG_DIR/config/config.toml.def) = unset ]]; then
+		$CMD_SETCFG $QPKG_NAME '' sessionSecret $(head /dev/urandom | tr -dc A-Za-z0-9 | head -c16) -f $SYS_QPKG_DIR/config/config.toml.def
+	fi
+
+	}
