@@ -35,7 +35,7 @@ baseUrlModeLegacy = true
 #
 # Optional
 #
-#logPath = "log/autobrr.log"
+logPath = "default"
 #
 # Log level
 #
@@ -51,7 +51,7 @@ logLevel = "INFO"
 #
 # Max log size in megabytes
 #
-#logMaxSize = 50
+logMaxSize = 10
 #
 # Log Max Backups
 #
@@ -59,7 +59,7 @@ logLevel = "INFO"
 #
 # Max amount of old log files
 #
-#logMaxBackups = 3
+logMaxBackups = 5
 #
 # Check for updates
 #
@@ -73,7 +73,7 @@ sessionSecret = "default"
 #
 # Default: 5
 #
-#databaseMaxBackups = 5
+databaseMaxBackups = 5
 #
 # Golang pprof profiling and tracing
 #
