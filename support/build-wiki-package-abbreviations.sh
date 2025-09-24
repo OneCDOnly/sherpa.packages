@@ -71,7 +71,7 @@ LoadPackages()
 	readonly r_qpkg_url
 	readonly r_qpkg_version
 
-	QPKGs-GRall:Add "${r_qpkg_name[*]}"
+	QPKGs-GRall:Add "$(SortNames "${r_qpkg_name[*]}")"
 
 	}
 
