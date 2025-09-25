@@ -1,3 +1,54 @@
+* audiobookshelf
+	- https://github.com/advplyr/audiobookshelf
+	- no developer compiled binary available. Only packages for common distros.
+
+* nix package manager
+	- https://nixos.org/download/
+	- nope, wants to run from /nix and won't accept a symlink.
+
+* Tdarr
+	- https://docs.tdarr.io/docs/installation/windows-linux-macos
+	- glibc in QTS too old.
+
+* NetBox
+	- https://docs.netbox.dev/en/stable/installation/
+	- far too-complicated to configure.
+
+* CrowdSec
+	- https://github.com/crowdsecurity/crowdsec
+	- far too-complicated to configure.
+
+* cryptomator
+	- https://github.com/cryptomator/cryptomator
+	- free, and paid.
+
+* VERT
+	- https://github.com/VERT-sh/VERT
+	- requires nginx to serve pages.
+
+* GhostHub
+	- https://github.com/BleedingXiko/GhostHub
+	- unable to install missing python module 'tkinter'
+	- project development seems to have stopped in May 2025.
+
+* Releasarr (not production ready, docker-only)
+	- https://github.com/Makario1337/Releasarr
+
+* Termix (docker-only)
+	- https://github.com/LukeGus/Termix
+
+* puls
+	- https://github.com/word-sys/puls
+	- glibc in QTS too old.
+
+* UsrGrp-Manager-TUI
+	- https://github.com/Firstp1ck/UsrGrp-Manager-TUI
+	- glibc in QTS too old.
+
+* rustnet
+	- https://github.com/domcyrus/rustnet
+	- libpcap-dev unavailable for QTS
+
 * Soulseek daemon
 	- https://github.com/slskd/slskd
 	- incompatible with QTS 5.1.8 on ARMv7:
