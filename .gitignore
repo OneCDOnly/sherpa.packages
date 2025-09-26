@@ -1,2 +1,5 @@
 *.qpkg
 *.md5
+*.packages
+*.tar.gz
+*.tab
