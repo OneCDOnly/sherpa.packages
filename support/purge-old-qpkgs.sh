@@ -2,7 +2,12 @@
 
 . $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
-[[ ! -f $highest_package_versions_found_sorted_pathfile ]] && ./build-packages.sh
+[[ ! -f $highest_package_versions_found_sorted_pathfile ]] && ./build-multiple-packages.sh
+
+if ! [[ -f $highest_package_versions_found_sorted_pathfile ]]; then
+	echo "QPKG version table doesn't exist"
+	exit 1
+fi
 
 echo -n 'loading latest QPKG versions ... '
 
@@ -40,6 +45,8 @@ for file_to_delete in ${files_to_delete[*]}; do
 done
 
 ShowDone
+
+exit
 
 this_path=$PWD
 cd "$qpkgs_root_path" || exit
