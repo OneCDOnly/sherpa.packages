@@ -1,49 +1,81 @@
 #!/usr/bin/env bash
 
+set -o nounset -o pipefail
+
 . $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
-[[ ! -f $highest_package_versions_found_sorted_pathfile ]] && ./build-packages.sh
+arch=''
+checksum_filename=''
+checksum_pathfilename=''
+hash=''
+declare -a highest_qpkg_pathfilenames=''
+highest_table=''
+package_name=''
+declare -a pathfiles_to_delete=''
+qpkg_filename=''
+qpkg_pathfilename=''
+re=''
+short_path=''
+this_path=''
+version=''
+
+[[ ! -f $highest_package_versions_found_pathfile ]] && ./build-multiple-packages.sh
+
+if [[ -e $highest_package_versions_found_pathfile ]]; then
+	highest_table="$(StripComments "$(<"$highest_package_versions_found_pathfile")")"
+else
+	echo; TextBrightRed "file '$highest_package_versions_found_pathfile' not found"; echo
+	exit 1
+fi
 
 echo -n 'loading latest QPKG versions ... '
 
-while read -r checksum_filename qpkg_filename package_name version arch hash; do
-	highest_checksum_filenames+=($checksum_filename)
-	highest_qpkg_filenames+=($qpkg_filename)
-done <<< "$(sed -e '/^#[[:space:]].*/d;/#$/d;s/[[:space:]]#[[:space:]].*//' "$highest_package_versions_found_sorted_pathfile")"
-
-ShowDone
-
-echo -n 'scanning QPKG files ... '
-
-raw=$(find "$qpkgs_root_path" -name '*.qpkg.md5')
+while read -r qpkg_filename package_name version arch short_path hash; do
+	highest_qpkg_pathfilenames+=($checksum_root_path/$short_path/$qpkg_filename)
+done <<< "$highest_table"
 
 ShowDone
 
 echo -n 'looking for obsolete QPKG versions ... '
 
 while read -r checksum_pathfilename; do
-	checksum_filename=$(basename "$checksum_pathfilename")
-	re=\\b$checksum_filename\\b
+	qpkg_pathfilename=${checksum_pathfilename//.md5/}
 
-	if ! [[ ${highest_checksum_filenames[*]} =~ $re ]]; then
-		files_to_delete+=($checksum_pathfilename)
-		files_to_delete+=(${checksum_pathfilename//.md5/})
+	[[ -e $qpkg_pathfilename ]] || continue			# Ignore MD5 files without QPKG files like QDK.
+
+ 	checksum_filename=$(basename "$checksum_pathfilename")
+	qpkg_filename=${checksum_filename//.md5/}
+	re=\\b$qpkg_filename\\b
+
+	if ! [[ ${highest_qpkg_pathfilenames[*]} =~ $re ]]; then
+		[[ -e $qpkg_pathfilename ]] && pathfiles_to_delete+=($qpkg_pathfilename)
+		[[ -e $checksum_pathfilename ]] && pathfiles_to_delete+=($checksum_pathfilename)
 	fi
-done <<< "$raw"
+done <<< "$(find "$qpkgs_root_path" -name '*.qpkg.md5')"	# Scan for MD5 files only. If an MD5 doesn't exist for a QPKG file, ignore the QPKG file.
 
 ShowDone
 
+# echo "pathfiles_to_delete: [${pathfiles_to_delete[*]}]" | tr ' ' '\n'
+
 echo -n 'deleting obsolete QPKG versions ... '
 
-for file_to_delete in ${files_to_delete[*]}; do
-	rm -f "$file_to_delete"
+for f in ${pathfiles_to_delete[*]}; do
+	rm -f "$f"
+# 	echo "deleted: '$f'"
 done
 
 ShowDone
 
-this_path=$PWD
+exit		# QPKGs are no-longer included in repository, so there's no-need to garbage collect anymore.
+
+echo 'running garbage collection ... '
+
+this_path="$PWD"
 cd "$qpkgs_root_path" || exit
-git gc --aggressive || exit
+# git gc --aggressive || exit
+git gc || exit
 cd "$this_path" || exit
+
+ShowDone
 
 exit 0

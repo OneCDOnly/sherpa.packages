@@ -126,7 +126,7 @@ InitService()
 	# >>> URLs <<<
 
 		# remote_url=undefined
-		remote_url='https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest'
+		remote_url=https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest
 
 		# source_git_url=undefined
 

@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=ClamAV
-readonly r_service_script_version=250919
+readonly r_service_script_version=250926
 InitService(){
 qpkg_ini_file=undefined
 qpkg_backup_pathfile=undefined

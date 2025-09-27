@@ -137,7 +137,7 @@ InitService()
 	# >>> URLs <<<
 
 		# remote_url=undefined
-		remote_url='https://api.github.com/repos/theotherp/nzbhydra2/releases/latest'
+		remote_url=https://api.github.com/repos/theotherp/nzbhydra2/releases/latest
 
 		# source_git_url=undefined
 
@@ -148,16 +148,16 @@ InitService()
 		# get_daemon_port_cmd=undefined
 
 		# get_ui_listening_address_cmd=undefined
-		get_ui_listening_address_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_host= | cut -d\" -f2'
+		get_ui_listening_address_cmd="GetKeyFromYAML main_host $qpkg_ini_pathfile"
 
 		# get_ui_port_cmd=undefined
-		get_ui_port_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_port= | cut -d\" -f2'
+		get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_ini_pathfile"
 
 		# get_ui_port_secure_cmd=undefined
-		get_ui_port_secure_cmd='parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_port= | cut -d\" -f2'
+		get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_ini_pathfile"
 
 		# get_ui_port_secure_enabled_test_cmd=undefined
-		get_ui_port_secure_enabled_test_cmd='[[ $(parse_yaml '$qpkg_ini_pathfile' | /bin/grep main_ssl= | cut -d\" -f2) = true ]]'
+		get_ui_port_secure_enabled_test_cmd='[[ $(GetKeyFromYAML main:ssl '$qpkg_ini_pathfile') = true ]]'
 
 		# daemon_launch_cmd=undefined
 		daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$r_qpkg_temp_path; $daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $r_qpkg_config_path --pidfile $daemon_pid_pathfile"
