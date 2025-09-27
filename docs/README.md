@@ -13,7 +13,7 @@
 (over the last 30 releases)<br>
 <sub>* Don't read too-much into these, they're only to give me an idea which NAS arches are in-use.</sub><br><br>
 
-| <sup>latest release only</sup> <sub>[![Latest Release](https://img.shields.io/github/v/release/OneCDOnly/sherpa.packages?label=&style=flat-square)]()</sub> | all releases (including <sub>[![Latest Release](https://img.shields.io/badge/testing-8A2BE2?style=flat-square)]()</sub>)|
+| <sup>latest release only</sup> [![Latest Release](https://img.shields.io/github/v/release/OneCDOnly/sherpa.packages?label=&style=flat-square)]() | all releases (including <sub>[![Latest Release](https://img.shields.io/badge/testing-8A2BE2?style=flat-square)]()</sub>)|
 | :--- | :--- |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a19.packages.tar.gz?label=downloads&style=for-the-badge)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a19.packages.tar.gz?label=downloads&style=for-the-badge)]() |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a31.packages.tar.gz?label=downloads&style=for-the-badge)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a31.packages.tar.gz?label=downloads&style=for-the-badge)]() |
