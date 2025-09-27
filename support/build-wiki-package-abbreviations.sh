@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+exit 			# Needs to be modified to work with multiple arch package files.
+
 . $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
 objects_built=false
