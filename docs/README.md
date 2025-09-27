@@ -11,7 +11,7 @@
 
 <h2>Package archive download statistics per-architecture</h2>
 (started 250921)<br>
-<sub>Don't read too-much into these, they're only to give me an idea which arches are being used.</sub><br>
+<sub>Don't read too-much into these, they're only to give me an idea which arches are being used.</sub><br><br>
 
 | latest release only | all releases (including pre-release)|
 | :---: | :---: |
