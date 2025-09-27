@@ -10,10 +10,10 @@
 
 Total latest release asset downloads:
 
-[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a19.packages.tar.gz?style=flat-square&logo=github)]()
-[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a31.packages.tar.gz?style=flat-square&logo=github)]()
-[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a41.packages.tar.gz?style=flat-square&logo=github)]()
-[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a64.packages.tar.gz?style=flat-square&logo=github)]()
-[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i53.packages.tar.gz?style=flat-square&logo=github)]()
-[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i64.packages.tar.gz?style=flat-square&logo=github)]()
-[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i86.packages.tar.gz?style=flat-square&logo=github)]()
+[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a19.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a31.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a41.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a64.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i53.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i64.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i86.packages.tar.gz?style=flat-square&logo=github)]()<br>
