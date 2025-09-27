@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-# jump into each QPKG base dir.
-# check './build' path and find most-recent .qpkg file to use as a datetime reference.
-# check last changed datetime of all QPKG files, and if any are newer than the reference file, update date tags and run a 'qbuild'.
+# Jump into each QPKG base dir.
+# Check './build' path and find most-recent .qpkg file to use as a datetime reference.
+# Check last changed datetime of all QPKG files, and if any are newer than the reference file, update date tags and run a 'qbuild'.
+
+# Specify $1 as 'dry' to perform a dry-run only (no package building).
 
 . $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
@@ -86,6 +88,8 @@ for d in "$qpkgs_path"/*; do
 			rebuild_package=true
 		fi
 	fi
+
+	[[ $1 != dry ]] || continue
 
 	if [[ $rebuild_package = false ]]; then
 		echo "rebuild: not required"
