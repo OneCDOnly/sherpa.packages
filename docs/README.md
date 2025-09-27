@@ -8,7 +8,7 @@
 
 <b>[Click here for the management repository](https://github.com/OneCDOnly/sherpa)</b>
 
-Total latest release asset downloads:
+Total package archives:
 
 [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a19.packages.tar.gz?style=flat-square&logo=github)]()<br>
 [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a31.packages.tar.gz?style=flat-square&logo=github)]()<br>
