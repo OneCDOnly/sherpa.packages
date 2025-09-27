@@ -15,7 +15,7 @@
 
 | latest release only <sub>[![Latest Release](https://img.shields.io/github/v/release/OneCDOnly/sherpa.packages?label=&style=flat-square)]()</sub> | all releases (including 'testing')|
 | :--- | :--- |
-| [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a19.packages.tar.gz?label=&style=for-the-badge)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a19.packages.tar.gz?label=&style=for-the-badge)]() |
+| [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a19.packages.tar.gz?label=downloads&style=for-the-badge)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a19.packages.tar.gz?label=downloads&style=for-the-badge)]() |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a31.packages.tar.gz?style=for-the-badge&logo=github)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a31.packages.tar.gz?style=for-the-badge&logo=github)]() |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a41.packages.tar.gz?style=for-the-badge&logo=github)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a41.packages.tar.gz?style=for-the-badge&logo=github)]() |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a64.packages.tar.gz?style=for-the-badge&logo=github)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a64.packages.tar.gz?style=for-the-badge&logo=github)]() |
