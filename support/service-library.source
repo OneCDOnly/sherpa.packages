@@ -4387,7 +4387,13 @@ CaughtEXIT()
 ProcessArgs()						# unused-ignore.
 	{
 
-	if IsReinstall || IsUpgrade; then			# Ignore 'start' and 'stop' requests issued by QTS during QPKG reinstallation or upgrade. If QPKG is disabled, then upgraded/reinstalled, the service result will be 'failed' (which is technically correct as the last action after upgrade/reinstall is 'start', but probably better to see the upgrade/reinstall result instead).
+	if IsReinstall; then			# Ignore 'start' and 'stop' requests issued by QTS during QPKG reinstallation. If QPKG is disabled, then reinstalled, the service result will be 'failed' (which is technically correct as the last action after reinstall is 'start', but probably better to see the reinstall result instead).
+		echo "Detected 'reinstall' in-progress, so not processing internal QPKG actions further."
+		exit
+	fi
+
+	if IsUpgrade; then				# Ignore 'start' and 'stop' requests issued by QTS during QPKG upgrade. If QPKG is disabled, then upgraded, the service result will be 'failed' (which is technically correct as the last action after upgrade is 'start', but probably better to see the upgrade result instead).
+		echo "Detected 'upgrade' in-progress, so not processing internal QPKG actions further."
 		exit
 	fi
 
