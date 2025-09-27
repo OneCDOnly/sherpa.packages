@@ -14,7 +14,7 @@
 <sub>Don't read too-much into these, they're only to give me an idea which NAS arches are in-use.</sub><br><br>
 
 | latest release only | all releases (including 'testing')|
-| :---: | :---: |
+| :--- | :--- |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a19.packages.tar.gz?style=for-the-badge&logo=github)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a19.packages.tar.gz?style=for-the-badge&logo=github)]() |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a31.packages.tar.gz?style=for-the-badge&logo=github)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a31.packages.tar.gz?style=for-the-badge&logo=github)]() |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a41.packages.tar.gz?style=for-the-badge&logo=github)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a41.packages.tar.gz?style=for-the-badge&logo=github)]() |
