@@ -16,3 +16,13 @@ Total package downloads per-arch:
 [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i53.packages.tar.gz?style=flat-square&logo=github)]()<br>
 [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i64.packages.tar.gz?style=flat-square&logo=github)]()<br>
 [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i86.packages.tar.gz?style=flat-square&logo=github)]()<br>
+
+
+
+[![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a19.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a31.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a41.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a64.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/i53.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/i64.packages.tar.gz?style=flat-square&logo=github)]()<br>
+[![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/i86.packages.tar.gz?style=flat-square&logo=github)]()<br>
