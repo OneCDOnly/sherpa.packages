@@ -105,10 +105,16 @@
 pkg_post_install()
 	{
 
-	# Generate a new sessionSecret.
+	local a=''
+
+	# Generate a new sessionSecret value.
 
 	if [[ $($CMD_GETCFG '' sessionSecret -f $SYS_QPKG_DIR/config/config.toml.def | tr -d '"') = default ]]; then
-		$CMD_SETCFG '' sessionSecret \"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c16)\" -f $SYS_QPKG_DIR/config/config.toml.def
+# 		$CMD_SETCFG '' sessionSecret \"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c16)\" -f $SYS_QPKG_DIR/config/config.toml.def
+		# `head -c` isn't supported in BusyBox 1.01 so use bash to truncate string instead.
+
+		a=$(head /dev/urandom | tr -dc A-Za-z0-9)
+		$CMD_SETCFG '' sessionSecret \"${a::16}\" -f $SYS_QPKG_DIR/config/config.toml.def
 	fi
 
 	# Update log path.
