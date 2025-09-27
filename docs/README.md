@@ -8,9 +8,8 @@
 > <b>[Click here for the management repository](https://github.com/OneCDOnly/sherpa)</b>
 
 <br>
-<br>
 
-| Total package downloads per-arch: latest release | Total package downloads per-arch: all releases |
+| package archives, per-arch: latest release | package archives, per-arch: all releases |
 | :---: | :---: |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a19.packages.tar.gz?style=flat-square&logo=github)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a19.packages.tar.gz?style=flat-square&logo=github)]() |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a31.packages.tar.gz?style=flat-square&logo=github)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a31.packages.tar.gz?style=flat-square&logo=github)]() |
