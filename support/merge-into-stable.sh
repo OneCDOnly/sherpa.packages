@@ -14,10 +14,10 @@ case ${response:0:1} in
 		exit 0
 esac
 
-cd "$qpkgs_support_path" || exit
+# cd "$qpkgs_support_path" || exit
 
-./build-all.sh || exit
-./commit.sh '[update] archives [pre-merge]' || exit
+# ./build-all.sh || exit
+# ./commit.sh '[update] archives [pre-merge]' || exit
 
 cd "$qpkgs_root_path" || exit
 
@@ -27,5 +27,5 @@ git checkout "$unstable_branch" || exit
 
 cd "$qpkgs_support_path" || exit
 
-git diff			# run this now so don't need to wait during manual (user) check.
-./reset-qpkg-datetimes.sh || exit
+# git diff			# run this now so don't need to wait during manual (user) check.
+# ./reset-qpkg-datetimes.sh || exit
