@@ -10,8 +10,8 @@
 <br>
 
 <h2>Package archive download statistics per-architecture</h2>
-(started with release v250921)<br>
-<sub>Don't read too-much into these, they're only to give me an idea which NAS arches are in-use.</sub><br><br>
+(started with release v250921, maximum of 30 releases)<br>
+<sub>* Don't read too-much into these, they're only to give me an idea which NAS arches are in-use.</sub><br><br>
 
 | latest release only | all releases (including 'testing')|
 | :--- | :--- |
