@@ -1,17 +1,22 @@
 #!/usr/bin/env bash
 
+set -o nounset -o pipefail
+
 . $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
 arch=''
 checksum_filename=''
 checksum_pathfilename=''
 hash=''
+declare -a highest_qpkg_pathfilenames=''
 highest_table=''
 package_name=''
+declare -a pathfiles_to_delete=''
 qpkg_filename=''
 qpkg_pathfilename=''
 re=''
 short_path=''
+this_path=''
 version=''
 
 [[ ! -f $highest_package_versions_found_pathfile ]] && ./build-multiple-packages.sh
@@ -60,6 +65,8 @@ for f in ${pathfiles_to_delete[*]}; do
 done
 
 ShowDone
+
+exit		# QPKGs are no-longer included in repository, so there's no-need to garbage collect anymore.
 
 echo 'running garbage collection ... '
 
