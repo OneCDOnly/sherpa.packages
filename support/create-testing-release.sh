@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
-. $HOME/scripts/nas/sherpa/support/environment.sourced || exit
+set -o nounset
 
-./create-release.sh testing
+release_tag=testing
+
+echo "release_tag: '$release_tag'"
+
+gh release create "$release_tag" --prerelease --title testing --notes 'changelog unavailable at this time'
