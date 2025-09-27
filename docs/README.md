@@ -7,6 +7,8 @@
 > This is the package repository for **sherpa**.<br><br>
 > <b>[Click here for the management repository](https://github.com/OneCDOnly/sherpa)</b>
 
+<br>
+<br>
 
 | Total package downloads per-arch: latest release | Total package downloads per-arch: all releases |
 | :---: | :---: |
