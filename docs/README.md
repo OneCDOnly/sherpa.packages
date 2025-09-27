@@ -13,7 +13,7 @@
 (started with release v250921)<br>
 <sub>Don't read too-much into these, they're only to give me an idea which NAS arches are in-use.</sub><br><br>
 
-| latest release only | all releases (including pre-release)|
+| latest release only | all releases (including 'testing')|
 | :---: | :---: |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a19.packages.tar.gz?style=flat-square&logo=github)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a19.packages.tar.gz?style=flat-square&logo=github)]() |
 | [![Latest Release](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a31.packages.tar.gz?style=flat-square&logo=github)]() | [![All Releases](https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a31.packages.tar.gz?style=flat-square&logo=github)]() |
