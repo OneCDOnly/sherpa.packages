@@ -10,9 +10,9 @@
 <br>
 
 <h2>Package archive download counts per-architecture</h2>
-Count for 'all' are only for the last 30 archive releases. Counting commenced 2025-09-21.<br>
-Counts for 'latest' and 'testing' reset on each new release.<br>
-<sub>* Don't read too-much into these, they're only to give me an idea which NAS arches are in-use.</sub><br><br>
+Counts for 'all' are across the last 30 archive releases only. Counting commenced 2025-09-21.<br>
+Counts for 'latest' and 'testing' reset to zero on each new release.<br>
+<sub>* Don't read too-much into these, they're to give me an idea which NAS arches are actually in-use.</sub><br><br>
 
 | [![Latest Release](https://img.shields.io/github/v/release/OneCDOnly/sherpa.packages?label=&style=flat-square)]() <sup>(latest) release only</sup>| <sup>all releases (including</sup> [![Latest Release](https://img.shields.io/badge/testing-8A2BE2?style=flat-square)]()<sup>)</sup> | [![testing Release](https://img.shields.io/badge/testing-8A2BE2?style=flat-square)]() <sup>release only</sup> |
 | :--- | :--- | :--- |
