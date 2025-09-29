@@ -1,3 +1,6 @@
+* pxehost
+	- https://github.com/pxehost/pxehost
+
 * FileBrowser
 	- https://filebrowser.org/
 		curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
