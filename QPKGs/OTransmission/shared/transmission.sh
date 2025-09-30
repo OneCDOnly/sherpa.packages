@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OTransmission
-readonly r_service_script_version=250930
+readonly r_service_script_version=251001
 InitService(){
 qpkg_ini_file=settings.json
 daemon_exec_pathfile=/opt/bin/transmission-daemon
@@ -50,12 +50,13 @@ get_ui_port_secure_enabled_test_cmd='false'
 daemon_launch_cmd="$daemon_exec_pathfile --config-dir $(/usr/bin/dirname "$qpkg_ini_pathfile") --pid-file $daemon_pid_pathfile";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
-readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
-if [[ -e $r_service_library_pathfile ]];then
-. $r_service_library_pathfile
-else
-printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
+library_path=$(/usr/bin/dirname "$library_path")
+service_library_pathfile=$library_path/service-library.source
+[[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
+if [[ ! -e $service_library_pathfile ]];then
+printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
 exit 1
 fi
+. $service_library_pathfile
 [[ $(/sbin/getcfg TrguiNG Use -d FALSE -u -f /etc/config/qpkg.conf) = TRUE ]]&&export TRANSMISSION_WEB_HOME=$(/sbin/getcfg TrguiNG Install_Path -f /etc/config/qpkg.conf)/repo-cache
 ProcessArgs

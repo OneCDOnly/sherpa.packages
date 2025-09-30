@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=pyLoad
-readonly r_service_script_version=250930
+readonly r_service_script_version=251001
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
@@ -113,11 +113,12 @@ fi
 echo "$value";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
-readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
-if [[ -e $r_service_library_pathfile ]];then
-. $r_service_library_pathfile
-else
-printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
+library_path=$(/usr/bin/dirname "$library_path")
+service_library_pathfile=$library_path/service-library.source
+[[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
+if [[ ! -e $service_library_pathfile ]];then
+printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
 exit 1
 fi
+. $service_library_pathfile
 ProcessArgs
