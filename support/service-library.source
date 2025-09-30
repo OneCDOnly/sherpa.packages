@@ -149,6 +149,8 @@ InitLibrary()
 
 		remote_arch=undefined
 
+		remote_match=undefined									# Longest string to match in URL to determine filename.
+
 		source_arch=undefined
 
 		source_git_branch=undefined
@@ -282,6 +284,8 @@ InitLibrary()
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
 		# remote_arch=undefined
+
+		# remote_match=undefined									# Longest string to match in URL to determine filename.
 
 		# source_arch=undefined
 
@@ -742,7 +746,7 @@ RefreshReleasePackageFiles()
 	#	$get_remote_filename_timeout_seconds
 	#	$qpkg_repo_path
 	#	$r_qpkg_temp_path
-	#	$remote_arch
+	#	$remote_match
 	#	$remote_url
 	#	$resolve_remote_url
 
@@ -760,13 +764,15 @@ RefreshReleasePackageFiles()
 			DisplayAndCommitProcessWaitToLog 'get latest release package URL'
 
 			if IsSiteUp "$remote_url"; then
-				release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_arch")
+				release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_match")
 
-				if [[ -n $release_package_url ]]; then
+				if [[ $? -eq 0 ]]; then
 					DisplayAndCommitOutcomeToLog OK
 					DisplayAndCommitDoneToLog "release package URL: $release_package_url"
 				else
-					DisplayAndCommitErrorToAllLogs 'unable to get latest remote release package URL'
+					DisplayAndCommitOutcomeToLog failed
+					DisplayAndCommitErrorToAllLogs "$release_package_url"
+					release_package_url=''
 				fi
 			else
 				DisplayAndCommitErrorToAllLogs 'unable to access remote site'
@@ -781,11 +787,13 @@ RefreshReleasePackageFiles()
 			if IsSiteUp "$remote_url"; then
 				release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
 
-				if [[ -n $release_package_filename ]]; then
+				if [[ $? -eq 0 ]]; then
 					DisplayAndCommitOutcomeToLog OK
 					DisplayAndCommitDoneToLog "release package filename: $release_package_filename"
 				else
-					DisplayAndCommitErrorToAllLogs 'unable to get latest remote release package filename'
+					DisplayAndCommitOutcomeToLog failed
+					DisplayAndCommitErrorToAllLogs "$release_package_filename"
+					release_package_filename=''
 				fi
 			else
 				DisplayAndCommitErrorToAllLogs 'unable to access remote site'
@@ -3154,9 +3162,22 @@ RequestLatestReleaseFilename()
 
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
 	local b=$(/sbin/curl${a} "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
-	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b")
+	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
+	local -i c=$(wc -l <<< "$b")
 
-	printf '%s' "$b"
+	case $c in
+		0)
+			printf "${FUNCNAME[0]}(): zero filenames matched"
+			return 1
+			;;
+		1)
+			printf '%s' "$b"
+			return 0
+			;;
+		*)
+			printf "${FUNCNAME[0]}(): multiple filenames matched"
+			return 1
+	esac
 
 	} 2> /dev/null
 
@@ -3167,7 +3188,7 @@ RequestLatestReleaseURL()
 
 	# Inputs: (local)
 	#	$1 = URL to check.
-	#	$2 (optional) = arch to match.
+	#	$2 (optional) = longest string to match.
 
 	# Inputs: (global)
 	#	$curl_insecure_opt
@@ -3180,9 +3201,22 @@ RequestLatestReleaseURL()
 
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
 	local b=$(/sbin/curl${a} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
-	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep "$2" <<< "$b" | head -n1)
+	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
+	local -i c=$(wc -l <<< "$b")
 
-	printf '%s' "$b"
+	case $c in
+		0)
+			printf "${FUNCNAME[0]}(): zero URLs matched"
+			return 1
+			;;
+		1)
+			printf '%s' "$b"
+			return 0
+			;;
+		*)
+			printf "${FUNCNAME[0]}(): multiple URLs matched"
+			return 1
+	esac
 
 	} 2> /dev/null
 
@@ -3540,7 +3574,7 @@ IsUnsupported()
 
 	}
 
-IsServiceResultInProgress()
+IsInProgress()
 	{
 
 	[[ $service_result = in-progress ]]
@@ -4353,8 +4387,11 @@ CaughtSIGHUP()
 
 	trap - SIGHUP
 
-	DisplayAndCommitWarnToLog 'caught SIGHUP: abort'
-	SetServiceResultAsAborted
+	if IsInProgress; then
+		Display
+		DisplayAndCommitWarnToLog 'caught SIGHUP: abort'
+		SetServiceResultAsAborted
+	fi
 
 	exit
 
@@ -4365,8 +4402,11 @@ CaughtSIGINT()
 
 	trap - SIGINT
 
-	DisplayAndCommitWarnToLog 'caught SIGINT: abort'
-	SetServiceResultAsAborted
+	if IsInProgress; then
+		Display
+		DisplayAndCommitWarnToLog 'caught SIGINT: abort'
+		SetServiceResultAsAborted
+	fi
 
 	exit
 
@@ -4377,7 +4417,8 @@ CaughtEXIT()
 
 	trap - EXIT
 
-	if IsServiceResultInProgress; then
+	if IsInProgress; then
+		Display
 		DisplayAndCommitWarnToLog 'caught EXIT: abort'
 		SetServiceResultAsAborted
 	fi
