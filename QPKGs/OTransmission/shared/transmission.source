@@ -150,16 +150,17 @@ InitService()
 
 	}
 
-library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
+library_path=$(/usr/bin/dirname "$(/usr/bin/readlink "$0")") 2>/dev/null
 [[ -z $library_path ]] && library_path=$0
-readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
+service_library_pathfile=$library_path/service-library.source
+[[ ! -e $service_library_pathfile ]] && service_library_pathfile=$library_path/service.lib
 
-if [[ -e $r_service_library_pathfile ]]; then
-	. $r_service_library_pathfile
-else
-	printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
+if [[ ! -e $service_library_pathfile ]]; then
+	printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
 	exit 1
 fi
+
+. $service_library_pathfile
 
 [[ $(/sbin/getcfg TrguiNG Use -d FALSE -u -f /etc/config/qpkg.conf) = TRUE ]] && export TRANSMISSION_WEB_HOME=$(/sbin/getcfg TrguiNG Install_Path -f /etc/config/qpkg.conf)/repo-cache
 
