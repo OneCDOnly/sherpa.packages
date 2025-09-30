@@ -3167,7 +3167,7 @@ RequestLatestReleaseFilename()
 
 	case $c in
 		0)
-			printf "${FUNCNAME[0]}(): zero filenames matched"
+			printf '%s' "${FUNCNAME[0]}(): zero filenames matched"
 			return 1
 			;;
 		1)
@@ -3175,7 +3175,7 @@ RequestLatestReleaseFilename()
 			return 0
 			;;
 		*)
-			printf "${FUNCNAME[0]}(): multiple filenames matched"
+			printf '%s' "${FUNCNAME[0]}(): multiple filenames matched"
 			return 1
 	esac
 
@@ -3206,7 +3206,7 @@ RequestLatestReleaseURL()
 
 	case $c in
 		0)
-			printf "${FUNCNAME[0]}(): zero URLs matched"
+			printf '%s' "${FUNCNAME[0]}(): zero URLs matched"
 			return 1
 			;;
 		1)
@@ -3214,7 +3214,7 @@ RequestLatestReleaseURL()
 			return 0
 			;;
 		*)
-			printf "${FUNCNAME[0]}(): multiple URLs matched"
+			printf '%s' "${FUNCNAME[0]}(): multiple URLs matched"
 			return 1
 	esac
 
