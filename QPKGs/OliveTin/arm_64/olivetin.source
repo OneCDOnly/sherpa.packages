@@ -97,8 +97,11 @@ InitService()
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
 		# remote_arch=undefined
-		remote_arch=linux-arm64
-		daemon_exec_pathfile=$qpkg_repo_path/OliveTin-$remote_arch/OliveTin
+		remote_arch=arm64
+		daemon_exec_pathfile=$qpkg_repo_path/OliveTin-linux-$remote_arch/OliveTin
+
+		# remote_match=undefined									# Longest string to match in URL to determine filename.
+		remote_match=-linux-${remote_arch}.tar.gz
 
 		# source_arch=undefined
 
@@ -153,7 +156,7 @@ InitService()
 		get_ui_port_secure_enabled_test_cmd=false
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-$remote_arch && $daemon_exec_pathfile -configdir $r_qpkg_config_path"
+		daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-linux-$remote_arch && $daemon_exec_pathfile -configdir $r_qpkg_config_path"
 
 	}
 

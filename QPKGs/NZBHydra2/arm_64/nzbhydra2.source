@@ -105,7 +105,10 @@ InitService()
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
 		# remote_arch=undefined
-		remote_arch=arm64-linux
+		remote_arch=arm64
+
+		# remote_match=undefined									# Longest string to match in URL to determine filename.
+		remote_match=-${remote_arch}-linux.zip
 
 		# source_arch=undefined
 

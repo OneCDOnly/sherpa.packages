@@ -101,6 +101,9 @@ InitService()
 		# remote_arch=undefined
 		remote_arch=arm64
 
+		# remote_match=undefined									# Longest string to match in URL to determine filename.
+		remote_match=.linux-core-${remote_arch}.tar.gz
+
 		# source_arch=undefined
 
 		# source_git_branch=undefined
