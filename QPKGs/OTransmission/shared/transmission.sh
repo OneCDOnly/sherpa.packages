@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OTransmission
-readonly r_service_script_version=250927
+readonly r_service_script_version=250930
 InitService(){
 qpkg_ini_file=settings.json
 daemon_exec_pathfile=/opt/bin/transmission-daemon

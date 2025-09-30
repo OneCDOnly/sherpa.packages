@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=250927
+readonly r_service_library_version=250930
 InitLibrary(){
 IsQNAP||exit
 debug=${DEBUG_QPKG:=false}
@@ -107,6 +107,7 @@ interpreter=undefined
 nice_daemon_to=0
 orig_daemon_service_script=undefined
 remote_arch=undefined
+remote_match=undefined
 source_arch=undefined
 source_git_branch=undefined
 source_git_branch_depth=undefined
@@ -356,12 +357,14 @@ if [[ $resolve_remote_url = true ]];then
 refresh_release_package=true
 DisplayAndCommitProcessWaitToLog 'get latest release package URL'
 if IsSiteUp "$remote_url";then
-release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_arch")
-if [[ -n $release_package_url ]];then
+release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_match")
+if [[ $? -eq 0 ]];then
 DisplayAndCommitOutcomeToLog OK
 DisplayAndCommitDoneToLog "release package URL: $release_package_url"
 else
-DisplayAndCommitErrorToAllLogs 'unable to get latest remote release package URL'
+DisplayAndCommitOutcomeToLog failed
+DisplayAndCommitErrorToAllLogs "$release_package_url"
+release_package_url=''
 fi
 else
 DisplayAndCommitErrorToAllLogs 'unable to access remote site'
@@ -373,11 +376,13 @@ if [[ $compare_release_filename = true ]];then
 DisplayAndCommitProcessWaitToLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
 if IsSiteUp "$remote_url";then
 release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
-if [[ -n $release_package_filename ]];then
+if [[ $? -eq 0 ]];then
 DisplayAndCommitOutcomeToLog OK
 DisplayAndCommitDoneToLog "release package filename: $release_package_filename"
 else
-DisplayAndCommitErrorToAllLogs 'unable to get latest remote release package filename'
+DisplayAndCommitOutcomeToLog failed
+DisplayAndCommitErrorToAllLogs "$release_package_filename"
+release_package_filename=''
 fi
 else
 DisplayAndCommitErrorToAllLogs 'unable to access remote site'
@@ -1340,15 +1345,35 @@ RequestLatestReleaseFilename(){
 [[ -n ${1:-} &&${1:-} != undefined ]]||return
 local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"
 local b=$(/sbin/curl${a} "${1/https/http}"|/bin/grep -v 'Location:'|/bin/grep filename|cut -d';' -f2|cut -d'=' -f2|/bin/sed -e 's|\r||g')
-[[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep "$2"<<<"$b")
+[[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep -e "$2"<<<"$b")
+local -i c=$(wc -l<<<"$b")
+case $c in
+0)
+printf '%s' "${FUNCNAME[0]}(): zero filenames matched"
+return 1;;
+1)
 printf '%s' "$b"
+return 0;;
+*)printf '%s' "${FUNCNAME[0]}(): multiple filenames matched"
+return 1
+esac
 } 2>/dev/null
 RequestLatestReleaseURL(){
 [[ -n ${1:-} &&${1:-} != undefined ]]||return
 local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"
 local b=$(/sbin/curl${a} "$1"|/bin/grep browser_download_url|cut -d\" -f4)
-[[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep "$2"<<<"$b"|head -n1)
+[[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep -e "$2"<<<"$b")
+local -i c=$(wc -l<<<"$b")
+case $c in
+0)
+printf '%s' "${FUNCNAME[0]}(): zero URLs matched"
+return 1;;
+1)
 printf '%s' "$b"
+return 0;;
+*)printf '%s' "${FUNCNAME[0]}(): multiple URLs matched"
+return 1
+esac
 } 2>/dev/null
 DownloadReleasePackage(){
 [[ -n ${1:-} &&${1:-} != undefined ]]||return
@@ -1481,7 +1506,7 @@ IsNotClean(){
 ! IsClean;}
 IsUnsupported(){
 [[ $service_action = unsupported ]];}
-IsServiceResultInProgress(){
+IsInProgress(){
 [[ $service_result = in-progress ]];}
 IsPathEmpty(){
 local a=${1:-}
@@ -1758,17 +1783,24 @@ trap CaughtSIGINT SIGINT
 trap CaughtEXIT EXIT;}
 CaughtSIGHUP(){
 trap - SIGHUP
+if IsInProgress;then
+Display
 DisplayAndCommitWarnToLog 'caught SIGHUP: abort'
 SetServiceResultAsAborted
+fi
 exit;}
 CaughtSIGINT(){
 trap - SIGINT
+if IsInProgress;then
+Display
 DisplayAndCommitWarnToLog 'caught SIGINT: abort'
 SetServiceResultAsAborted
+fi
 exit;}
 CaughtEXIT(){
 trap - EXIT
-if IsServiceResultInProgress;then
+if IsInProgress;then
+Display
 DisplayAndCommitWarnToLog 'caught EXIT: abort'
 SetServiceResultAsAborted
 fi;}

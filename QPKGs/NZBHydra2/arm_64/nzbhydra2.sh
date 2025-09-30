@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version=250927
+readonly r_service_script_version=250930
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -52,7 +52,8 @@ daemon_pidfile_is_managed_by_app=true
 resolve_remote_url=true
 interpreter=/opt/bin/python3
 nice_daemon_to=15
-remote_arch=arm64-linux
+remote_arch=arm64
+remote_match=-${remote_arch}-linux.zip
 start_retries=3
 remote_url=https://api.github.com/repos/theotherp/nzbhydra2/releases/latest
 get_ui_listening_address_cmd="GetKeyFromYAML main_host $qpkg_ini_pathfile"
