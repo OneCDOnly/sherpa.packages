@@ -109,7 +109,7 @@ while read -r qpkg_filename package_name version arch short_path hash; do
 				fi
 		esac
 
-		# If arch = 'none' then package is not installable, so write 'none' to all fields.
+		# If arch is 'none' then package is not installable, so write 'none' to all fields.
 
 		buffer=$(sed "/r_qpkg_name+=(${package_name})/,/r_qpkg_url+=/s/<?${property}?>/none/" <<< "${!b}")
 		declare $b="$buffer"
