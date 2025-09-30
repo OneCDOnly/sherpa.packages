@@ -18,6 +18,8 @@ readonly r_service_library_version='<?build_date?>'
 InitLibrary()
 	{
 
+	[[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]] && ShowAsNote 'using source library'
+
 	IsQNAP || exit
 
 	debug=${DEBUG_QPKG:=false}

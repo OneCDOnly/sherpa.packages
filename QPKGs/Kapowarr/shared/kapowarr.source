@@ -171,8 +171,9 @@ InitService()
 
 	}
 
-library_path=$(/usr/bin/dirname "$(/usr/bin/readlink "$0")") 2>/dev/null
+library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
+library_path=$(/usr/bin/dirname "$library_path")
 service_library_pathfile=$library_path/service-library.source
 [[ ! -e $service_library_pathfile ]] && service_library_pathfile=$library_path/service.lib
 
