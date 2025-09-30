@@ -1,6 +1,6 @@
 * arm distribution runtime fails on armv5tel (TS-220) with QTS 4.3.3, armv7 (TS-231P2) with QTS 5.1.4
 
-	armv5tel (TS-220) with QTS 4.3.3
+	ARMv5tel (TS-220) with QTS 4.3.3
 		-------------------------------------------------------------------------------------------------------------------------
 		# ./Sonarr
 		-sh: ./Sonarr: No such file or directory
@@ -43,7 +43,7 @@
 		lrwxrwxrwx    1 admin    administ        11 Nov 24  2022 /lib/libc.so.6 -> libc-2.5.so*
 		-------------------------------------------------------------------------------------------------------------------------
 
-	armv7 (TS-231P2) with QTS 5.1.4
+	ARMv7 (TS-231P2) with QTS 5.1.4
 		-------------------------------------------------------------------------------------------------------------------------
 		# ./Sonarr
 		./Sonarr: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.20' not found (required by ./Sonarr)
@@ -85,6 +85,27 @@
 		# ll /lib/libc*
 		-rwxr-xr-x    1 admin    administ    873.3k Mar 23  2015 /lib/libc-2.17.so*
 		lrwxrwxrwx    1 admin    administ        12 Jan 14  2024 /lib/libc.so.6 -> libc-2.17.so*
+		-------------------------------------------------------------------------------------------------------------------------
+
+	x86 (TS-559 Pro+) with QTS 4.2.6
+		-------------------------------------------------------------------------------------------------------------------------
+		# ./Lidarr
+		./Lidarr: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.20' not found (required by ./Lidarr)
+		./Lidarr: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.11' not found (required by ./Lidarr)
+		./Lidarr: /usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by ./Lidarr)
+
+		# strings /usr/lib/libstdc++.so.6 | grep GLIBCXX
+		GLIBCXX_3.4
+		GLIBCXX_3.4.1
+		GLIBCXX_3.4.2
+		GLIBCXX_3.4.3
+		GLIBCXX_3.4.4
+		GLIBCXX_3.4.5
+		GLIBCXX_3.4.6
+		GLIBCXX_3.4.7
+		GLIBCXX_3.4.8
+		GLIBCXX_3.4.9
+		GLIBCXX_FORCE_NEW
 		-------------------------------------------------------------------------------------------------------------------------
 
 	Appears 'glibc' version is too-old in these NAS models.
