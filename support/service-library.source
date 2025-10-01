@@ -520,9 +520,9 @@ StatusQPKG()
 	IsDaemon && ShowDaemonState
 
 	if [[ $(type -t StatusQPKGCustom) = function ]]; then
-		StatusQPKGCustom
+		StatusQPKGCustom				# <-- NOTE: Processing will terminate in this function (no-return).
 	else
-		StatusQPKGLibrary
+		StatusQPKGLibrary				# <-- NOTE: Processing will terminate in this function (no-return).
 	fi
 
 	}
@@ -532,6 +532,8 @@ StatusQPKGLibrary()
 
 	# The following only checks for daemon services, and only HTTP/S port responses (where-applicable).
 	# Any other status checks must be customised for the application and placed in StatusQPKGCustom() in the QPKG service-script.
+
+	# NOTE: Processing will terminate in this function (no-return).
 
 	RefreshPidFile
 
@@ -4387,6 +4389,8 @@ SetTraps()
 CaughtSIGHUP()
 	{
 
+	# NOTE: Processing will terminate in this function (no-return).
+
 	trap - SIGHUP
 
 	if IsInProgress; then
@@ -4401,6 +4405,8 @@ CaughtSIGHUP()
 
 CaughtSIGINT()
 	{
+
+	# NOTE: Processing will terminate in this function (no-return).
 
 	trap - SIGINT
 
@@ -4417,6 +4423,8 @@ CaughtSIGINT()
 CaughtEXIT()
 	{
 
+	# NOTE: Processing will terminate in this function (no-return).
+
 	trap - EXIT
 
 	if IsInProgress; then
@@ -4429,6 +4437,8 @@ CaughtEXIT()
 
 ProcessArgs()						# unused-ignore.
 	{
+
+	# NOTE: Processing will terminate in this function (no-return).
 
 	if IsReinstall; then			# Ignore 'start' and 'stop' requests issued by QTS during QPKG reinstallation. If QPKG is disabled, then reinstalled, the service result will be 'failed' (which is technically correct as the last action after reinstall is 'start', but probably better to see the reinstall result instead).
 		echo "Detected 'reinstall' in-progress, so not processing internal QPKG actions further."
