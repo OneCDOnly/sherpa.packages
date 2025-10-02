@@ -133,7 +133,7 @@ InitLibrary()
 
 		recheck_daemon_pid_after_launch=false					# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another. Some just take a while to start.
 
-		resolve_remote_url=false								# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+		resolve_source_url=false								# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
 		run_daemon_in_screen_session=false						# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
 
@@ -183,9 +183,9 @@ InitLibrary()
 
 	# >>> URLs <<<
 
-		remote_url=undefined
-
 		source_git_url=undefined
+
+		source_url=undefined
 
 	# >>> CMDs <<<
 
@@ -269,7 +269,7 @@ InitLibrary()
 
 		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another. Some just take a while to start.
 
-		# resolve_remote_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+		# resolve_source_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
 		# run_daemon_in_screen_session=false						# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
 
@@ -319,9 +319,9 @@ InitLibrary()
 
 	# >>> URLs <<<
 
-		# remote_url=undefined
-
 		# source_git_url=undefined
+
+		# source_url=undefined
 
 	# >>> CMDs <<<
 
@@ -751,8 +751,8 @@ RefreshReleasePackageFiles()
 	#	$qpkg_repo_path
 	#	$r_qpkg_temp_path
 	#	$remote_match
-	#	$remote_url
-	#	$resolve_remote_url
+	#	$resolve_source_url
+	#	$source_url
 
 	local extract_release_package=false
 	local refresh_release_package=false
@@ -762,13 +762,13 @@ RefreshReleasePackageFiles()
 	local release_package_url=''
 
 	if IsAutoUpdate || [[ ! -e $release_package_pathfile ]]; then			# Get remote package - even when auto-update is disabled - if one doesn't exist locally.
-		if [[ $resolve_remote_url = true ]]; then
+		if [[ $resolve_source_url = true ]]; then
 			refresh_release_package=true
 
 			DisplayAndCommitProcessWaitToLog 'get latest release package URL'
 
-			if IsSiteUp "$remote_url"; then
-				release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_match")
+			if IsSiteUp "$source_url"; then
+				release_package_url=$(RequestLatestReleaseURL "$source_url" "$remote_match")
 
 				if [[ $? -eq 0 ]]; then
 					DisplayAndCommitOutcomeToLog OK
@@ -782,14 +782,14 @@ RefreshReleasePackageFiles()
 				DisplayAndCommitErrorToAllLogs 'unable to access remote site'
 			fi
 		else
-			release_package_url=$remote_url
+			release_package_url=$source_url
 		fi
 
 		if [[ $compare_release_filename = true ]]; then
 			DisplayAndCommitProcessWaitToLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
 
-			if IsSiteUp "$remote_url"; then
-				release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
+			if IsSiteUp "$source_url"; then
+				release_package_filename=$(RequestLatestReleaseFilename "$source_url" "$remote_arch")
 
 				if [[ $? -eq 0 ]]; then
 					DisplayAndCommitOutcomeToLog OK
@@ -2654,13 +2654,13 @@ IsOnlineReleasePackage()
 	{
 
 	# Inputs: (global)
-	#	$remote_url
+	#	$source_url
 
 	# Outputs: (local)
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ $remote_url != undefined ]]
+	[[ $source_url != undefined ]]
 
 	}
 

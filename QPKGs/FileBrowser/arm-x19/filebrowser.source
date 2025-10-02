@@ -84,8 +84,8 @@ InitService()
 
 		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 
-		# resolve_remote_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
-		resolve_remote_url=true
+		# resolve_source_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+		resolve_source_url=true
 
 		# run_daemon_in_screen_session=false						# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
 		run_daemon_in_screen_session=true
@@ -138,8 +138,8 @@ InitService()
 
 	# >>> URLs <<<
 
-		# remote_url=undefined
-		remote_url=https://api.github.com/repos/filebrowser/filebrowser/releases/latest
+		# source_url=undefined
+		source_url=https://api.github.com/repos/filebrowser/filebrowser/releases/latest
 
 		# source_git_url=undefined
 

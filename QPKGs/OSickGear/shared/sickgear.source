@@ -83,7 +83,7 @@ InitService()
 
 		# recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 
-		# resolve_remote_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+		# resolve_source_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 
 		# run_daemon_in_screen_session=false
 
@@ -135,7 +135,7 @@ InitService()
 
 	# >>> URLs <<<
 
-		# remote_url=undefined
+		# source_url=undefined
 
 		# source_git_url=undefined
 		source_git_url=https://github.com/SickGear/SickGear.git
