@@ -32,7 +32,7 @@ InitService()
 	# >>> Filenames <<<
 
 		# qpkg_ini_file=config.ini
-		qpkg_ini_file=config.json
+		qpkg_ini_file=filebrowser.db
 
 	# >>> Pathfilenames <<<
 
@@ -70,15 +70,21 @@ InitService()
 		# can_restart_to_update=false								# If 'true', application can be updated by restarting service-script.
 		can_restart_to_update=true
 
+		# check_network_before_start=false							# If 'true', at-least one network interface must be operational before starting application daemon.
+
+		# compare_release_filename=false							# If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
+
 		# daemon_pidfile_is_managed_by_app=false
 
 		# install_pip_deps=false
+
+		# package_is_exec=false										# If 'true', downloadable package is an executable file. If 'false', downloadable package is an archive that must be extracted-from.
 
 		# recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
 
 		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
 
-	# resolve_remote_url=false										# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+		# resolve_remote_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
 		resolve_remote_url=true
 
 		# run_daemon_in_screen_session=false						# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
@@ -97,7 +103,10 @@ InitService()
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
 		# remote_arch=undefined
-		remote_arch=linux_x86_64
+		remote_arch=arm64
+
+		# remote_match=undefined									# Longest string to match in URL to determine filename.
+		remote_match=linux-${remote_arch}-filebrowser.tar.gz
 
 		# source_arch=undefined
 
@@ -113,6 +122,8 @@ InitService()
 
 		# ui_port_secure=0
 
+		# watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
+
 		# wait_pid_kill_seconds=10									# This value is adaptive (increases with system load average).
 
 		# wait_pid_start_seconds=10									# This value is adaptive (increases with system load average).
@@ -124,12 +135,11 @@ InitService()
 		# watch_pidfile_start_seconds=60							# This value is adaptive (increases with system load average).
 
 		# watch_port_check_seconds=120								# This value is adaptive (increases with system load average).
-		watch_port_check_seconds=360								# TS-230 responded in 300 seconds during a high-load 'restart'.
 
 	# >>> URLs <<<
 
 		# remote_url=undefined
-		remote_url=https://github.com/filebrowser/filebrowser/releases/latest
+		remote_url=https://api.github.com/repos/filebrowser/filebrowser/releases/latest
 
 		# source_git_url=undefined
 
@@ -140,10 +150,10 @@ InitService()
 		# get_daemon_port_cmd=undefined
 
 		# get_ui_listening_address_cmd=undefined
-		get_ui_listening_address_cmd="GetKeyFromTOML host $qpkg_ini_pathfile"
+		get_ui_listening_address_cmd="echo '0.0.0.0'"
 
 		# get_ui_port_cmd=undefined
-		get_ui_port_cmd="GetKeyFromTOML port $qpkg_ini_pathfile"
+		get_ui_port_cmd='echo 8641'
 
 		# get_ui_port_secure_cmd=undefined
 		get_ui_port_secure_cmd=false
@@ -152,19 +162,21 @@ InitService()
 		get_ui_port_secure_enabled_test_cmd=false
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="$daemon_exec_pathfile --config=$r_qpkg_config_path"
+		daemon_launch_cmd="$daemon_exec_pathfile --database $qpkg_ini_pathfile --address $($get_ui_listening_address_cmd) --port $($get_ui_port_cmd) --root /"
 
 	}
 
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]] && library_path=$0
-readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
+library_path=$(/usr/bin/dirname "$library_path")
+service_library_pathfile=$library_path/service-library.source
+[[ ! -e $service_library_pathfile ]] && service_library_pathfile=$library_path/service.lib
 
-if [[ -e $r_service_library_pathfile ]]; then
-	. $r_service_library_pathfile
-else
-	printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
+if [[ ! -e $service_library_pathfile ]]; then
+	printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
 	exit 1
 fi
+
+. $service_library_pathfile
 
 ProcessArgs

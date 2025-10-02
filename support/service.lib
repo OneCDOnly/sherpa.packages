@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251002
+readonly r_service_library_version=251003
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -1483,6 +1483,8 @@ IsReinstall(){
 [[ ${REINSTALL_QPKG:=false} = true ]];}
 IsUpgrade(){
 [[ ${UPGRADE_QPKG:=false} = true ]];}
+IsUninstall(){
+[[ ${UNINSTALL_QPKG:=false} = true ]];}
 IsStart(){
 [[ $service_action = start ]];}
 IsNotStart(){
@@ -1863,6 +1865,7 @@ ShowUnsupportedAction "$user_arg"
 fi;;
 ?(--)deactivate|?(--)stop)
 IsSU||exit
+IsUninstall &&exit
 SetServiceAction stop
 SetTraps
 StopQPKG;;

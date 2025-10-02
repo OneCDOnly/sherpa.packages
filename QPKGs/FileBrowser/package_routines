@@ -104,17 +104,4 @@
 ######################################################################
 # pkg_post_install()
 # 	{
-#
-# 	# Generate a new sessionSecret.
-#
-# 	if [[ $($CMD_GETCFG '' sessionSecret -f $SYS_QPKG_DIR/config/config.toml.def | tr -d '"') = default ]]; then
-# 		$CMD_SETCFG '' sessionSecret \"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c16)\" -f $SYS_QPKG_DIR/config/config.toml.def
-# 	fi
-#
-# 	# Update log path.
-#
-# 	if [[ $($CMD_GETCFG '' logPath -f $SYS_QPKG_DIR/config/config.toml.def | tr -d '"') = default ]]; then
-# 		$CMD_SETCFG '' logPath \"$SYS_QPKG_DIR/config/log/autobrr.log\" -f $SYS_QPKG_DIR/config/config.toml.def
-# 	fi
-#
 # 	}

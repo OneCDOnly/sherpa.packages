@@ -34,31 +34,32 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=FileBrowser
-readonly r_service_script_version=250926
+readonly r_service_script_version=251003
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
-qpkg_ini_file=config.json
+qpkg_ini_file=filebrowser.db
 daemon_exec_pathfile=$qpkg_repo_path/filebrowser
 qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 can_restart_to_update=true
 resolve_remote_url=true
 run_daemon_in_screen_session=true
-remote_arch=linux_x86_64
-watch_port_check_seconds=360
-remote_url=https://github.com/filebrowser/filebrowser/releases/latest
-get_ui_listening_address_cmd="GetKeyFromTOML host $qpkg_ini_pathfile"
-get_ui_port_cmd="GetKeyFromTOML port $qpkg_ini_pathfile"
+remote_arch=armv7
+remote_match=linux-${remote_arch}-filebrowser.tar.gz
+remote_url=https://api.github.com/repos/filebrowser/filebrowser/releases/latest
+get_ui_listening_address_cmd="echo '0.0.0.0'"
+get_ui_port_cmd='echo 8641'
 get_ui_port_secure_cmd=false
 get_ui_port_secure_enabled_test_cmd=false
-daemon_launch_cmd="$daemon_exec_pathfile --config=$r_qpkg_config_path";}
+daemon_launch_cmd="$daemon_exec_pathfile --database $qpkg_ini_pathfile --address $($get_ui_listening_address_cmd) --port $($get_ui_port_cmd) --root /";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
-readonly r_service_library_pathfile=$(/usr/bin/dirname "$library_path")/service.lib
-if [[ -e $r_service_library_pathfile ]];then
-. $r_service_library_pathfile
-else
-printf '\033[1;31m%s\033[0m: %s\n' 'derp' "QPKG service function library not found, can't continue."
+library_path=$(/usr/bin/dirname "$library_path")
+service_library_pathfile=$library_path/service-library.source
+[[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
+if [[ ! -e $service_library_pathfile ]];then
+printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
 exit 1
 fi
+. $service_library_pathfile
 ProcessArgs
