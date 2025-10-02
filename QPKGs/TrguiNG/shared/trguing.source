@@ -154,9 +154,11 @@ InitService()
 StatusQPKGCustom()
 	{
 
-	IsNotError || return
+	# NOTE: Processing will terminate in this function (no-return).
 
-	IsQPKGEnabled
+	IsNotError || exit
+
+	IsQPKGEnabled || exit
 
 	exit
 
@@ -191,4 +193,4 @@ fi
 
 . $service_library_pathfile
 
-ProcessArgs
+ProcessArgs								# <-- NOTE: Processing will terminate in this function (no-return).
