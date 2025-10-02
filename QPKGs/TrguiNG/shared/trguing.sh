@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrguiNG
-readonly r_service_script_version=251001
+readonly r_service_script_version=251002
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_backup_pathfile=undefined
@@ -46,8 +46,8 @@ remote_match=-${remote_arch}-
 start_retries=3
 remote_url=https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest;}
 StatusQPKGCustom(){
-IsNotError||return
-IsQPKGEnabled
+IsNotError||exit
+IsQPKGEnabled||exit
 exit;}
 PreStartQPKGCustom(){
 IsQPKGInstalled OTransmission &&AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
