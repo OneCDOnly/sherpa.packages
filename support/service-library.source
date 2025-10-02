@@ -3494,6 +3494,15 @@ IsUpgrade()
 
 	}
 
+IsUninstall()
+	{
+
+	# `UNINSTALL_QPKG=true` is set in sherpa management script when action 'uninstall' is run.
+
+	[[ ${UNINSTALL_QPKG:=false} = true ]]
+
+	}
+
 IsStart()
 	{
 
@@ -4509,6 +4518,7 @@ ProcessArgs()						# unused-ignore.
 				;;
 			?(--)deactivate|?(--)stop)
 				IsSU || exit
+				IsUninstall && exit					# No-need to 'stop' during 'uninstall' from sherpa, as 'stop' has already been done by sherpa.
 
 				SetServiceAction stop
 				SetTraps
