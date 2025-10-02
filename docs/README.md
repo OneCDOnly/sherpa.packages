@@ -25,3 +25,20 @@ Counts for 'latest' and 'testing' reset to zero on each new release.<br>
 | <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i86.packages.tar.gz?label=&style=for-the-badge"></picture> | <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/i86.packages.tar.gz?label=&style=for-the-badge"></picture> | <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/testing/i86.packages.tar.gz?label=&style=for-the-badge"></picture> |
 
 More details (including QPKG download counts per-release) <b>[here](https://tooomm.github.io/github-release-stats/?username=onecdonly&repository=sherpa.packages)</b>.<br>
+
+
+| <sup>all releases (including</sup> [![testing Release](https://img.shields.io/badge/testing-8A2BE2?style=flat-square)](https://github.com/OneCDOnly/sherpa.packages/releases/tag/testing)<sup>)</sup> | [![Latest Release](https://img.shields.io/github/v/release/OneCDOnly/sherpa.packages?label=&style=flat-square)](https://github.com/OneCDOnly/sherpa.packages/releases/latest) <sup>(latest) release only</sup> |
+| :--- | :--- | :--- |
+| <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a19.packages.tar.gz?label=&style=for-the-badge"></picture> | <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a19.packages.tar.gz?label=&style=for-the-badge"></picture> |
+
+| <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a31.packages.tar.gz?label=&style=for-the-badge"></picture> | <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a31.packages.tar.gz?label=&style=for-the-badge"></picture> | 
+
+| <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a41.packages.tar.gz?label=&style=for-the-badge"></picture> | <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a41.packages.tar.gz?label=&style=for-the-badge"></picture> | 
+
+| <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/a64.packages.tar.gz?label=&style=for-the-badge"></picture> | <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/a64.packages.tar.gz?label=&style=for-the-badge"></picture> | 
+
+| <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/i53.packages.tar.gz?label=&style=for-the-badge"></picture> | <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i53.packages.tar.gz?label=&style=for-the-badge"></picture> | 
+
+| <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/i64.packages.tar.gz?label=&style=for-the-badge"></picture> | <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i64.packages.tar.gz?label=&style=for-the-badge"></picture> | 
+
+| <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/i86.packages.tar.gz?label=&style=for-the-badge"></picture> | <picture><img src="https://img.shields.io/github/downloads/OneCDOnly/sherpa.packages/latest/i86.packages.tar.gz?label=&style=for-the-badge"></picture> |
