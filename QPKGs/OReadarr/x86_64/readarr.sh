@@ -44,11 +44,11 @@ qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 allow_access_to_sys_packages=false
 compare_release_filename=true
 run_daemon_in_screen_session=true
-remote_arch=x64
-remote_match=.linux-core-${remote_arch}.tar.gz
+source_url_arch=x64
+source_url_match=.linux-core-${source_url_arch}.tar.gz
 start_retries=3
 ui_listening_address=0.0.0.0
-source_url='https://readarr.servarr.com/v1/update/develop/updatefile?os=linux&runtime=netcore&arch='$remote_arch
+source_url='https://readarr.servarr.com/v1/update/develop/updatefile?os=linux&runtime=netcore&arch='$source_url_arch
 get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd='grep "<Port>" $qpkg_ini_pathfile|sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
 get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_ini_pathfile|sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'

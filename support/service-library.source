@@ -3203,6 +3203,9 @@ RequestLatestReleaseURL()
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
 	local b=$(/sbin/curl${a} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
+
+	# Need to trim whitespace from beginning-and-end of $b, then test length.
+
 	local -i c=$(wc -l <<< "$b")
 
 	case $c in

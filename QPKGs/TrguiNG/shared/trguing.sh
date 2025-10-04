@@ -41,8 +41,8 @@ qpkg_backup_pathfile=undefined
 qpkg_ini_pathfile=undefined
 can_restart_to_update=true
 resolve_source_url=true
-remote_arch=web
-remote_match=-${remote_arch}-
+source_url_arch=web
+source_url_match=-${source_url_arch}-
 start_retries=3
 source_url=https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest;}
 StatusQPKGCustom(){

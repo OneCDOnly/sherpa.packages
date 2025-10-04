@@ -107,11 +107,10 @@ daemon_port=0
 interpreter=undefined
 nice_daemon_to=0
 orig_daemon_service_script=undefined
-remote_arch=undefined
-remote_match=undefined
-source_arch=undefined
 source_git_branch=undefined
 source_git_branch_depth=undefined
+source_url_arch=undefined
+source_url_match=undefined
 start_retries=0
 ui_listening_address=undefined
 ui_port=0
@@ -358,7 +357,7 @@ if [[ $resolve_source_url = true ]];then
 refresh_release_package=true
 DisplayAndCommitProcessWaitToLog 'get latest release package URL'
 if IsSiteUp "$source_url";then
-release_package_url=$(RequestLatestReleaseURL "$source_url" "$remote_match")
+release_package_url=$(RequestLatestReleaseURL "$source_url" "$source_url_match")
 if [[ $? -eq 0 ]];then
 DisplayAndCommitOutcomeToLog OK
 DisplayAndCommitDoneToLog "release package URL: $release_package_url"
@@ -376,7 +375,7 @@ fi
 if [[ $compare_release_filename = true ]];then
 DisplayAndCommitProcessWaitToLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
 if IsSiteUp "$source_url";then
-release_package_filename=$(RequestLatestReleaseFilename "$source_url" "$remote_arch")
+release_package_filename=$(RequestLatestReleaseFilename "$source_url" "$source_url_arch")
 if [[ $? -eq 0 ]];then
 DisplayAndCommitOutcomeToLog OK
 DisplayAndCommitDoneToLog "release package filename: $release_package_filename"
