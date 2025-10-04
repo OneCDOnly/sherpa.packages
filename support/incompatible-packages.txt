@@ -1,3 +1,7 @@
+* pxehost
+	- https://github.com/pxehost/pxehost
+	- Won't run as UID:0. https://github.com/pxehost/pxehost/issues/1
+
 * audiobookshelf
 	- https://github.com/advplyr/audiobookshelf
 	- no developer compiled binary available. Only packages for common distros.
