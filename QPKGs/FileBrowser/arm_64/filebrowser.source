@@ -102,31 +102,31 @@ InitService()
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
-		# remote_arch=undefined
-		remote_arch=arm64
-
-		# remote_match=undefined									# Longest string to match in URL to determine filename.
-		remote_match=linux-${remote_arch}-filebrowser.tar.gz
-
-		# source_arch=undefined
-
 		# source_git_branch=undefined
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
 
+		# source_url_arch=undefined
+		source_url_arch=arm64
+
+		# source_url_match=undefined								# Longest string to match in URL to determine filename.
+		source_url_match=linux-${source_url_arch}-filebrowser.tar.gz
+
 		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
 
 		# ui_listening_address=undefined
+		ui_listening_address=0.0.0.0
 
 		# ui_port=0
+		ui_port=8641
 
 		# ui_port_secure=0
-
-		# watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
 
 		# wait_pid_kill_seconds=10									# This value is adaptive (increases with system load average).
 
 		# wait_pid_start_seconds=10									# This value is adaptive (increases with system load average).
+
+		# watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
 
 		# watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
 
@@ -150,10 +150,10 @@ InitService()
 		# get_daemon_port_cmd=undefined
 
 		# get_ui_listening_address_cmd=undefined
-		get_ui_listening_address_cmd="echo '0.0.0.0'"
+		get_ui_listening_address_cmd="echo $ui_listening_address"
 
 		# get_ui_port_cmd=undefined
-		get_ui_port_cmd='echo 8641'
+		get_ui_port_cmd="echo $ui_port"
 
 		# get_ui_port_secure_cmd=undefined
 		get_ui_port_secure_cmd=false

@@ -34,17 +34,17 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrguiNG
-readonly r_service_script_version=251003
+readonly r_service_script_version=251004
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_backup_pathfile=undefined
 qpkg_ini_pathfile=undefined
 can_restart_to_update=true
-resolve_remote_url=true
+resolve_source_url=true
 remote_arch=web
 remote_match=-${remote_arch}-
 start_retries=3
-remote_url=https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest;}
+source_url=https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest;}
 StatusQPKGCustom(){
 IsNotError||exit
 IsQPKGEnabled||exit

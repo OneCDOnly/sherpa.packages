@@ -106,13 +106,13 @@ InitService()
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
-		# remote_arch=undefined
-
-		# source_arch=undefined
-
 		# source_git_branch=undefined
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		# source_url_arch=undefined
+
+		# source_url_match=undefined								# Longest string to match in URL to determine filename.
 
 		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
 		start_retries=3
@@ -128,6 +128,8 @@ InitService()
 		# wait_pid_kill_seconds=10									# This value is adaptive (increases with system load average).
 
 		# wait_pid_start_seconds=10									# This value is adaptive (increases with system load average).
+
+		# watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
 
 		# watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
 
@@ -160,7 +162,7 @@ InitService()
 		get_ui_port_secure_cmd='echo 0'
 
 		# get_ui_port_secure_enabled_test_cmd=undefined
-		get_ui_port_secure_enabled_test_cmd='false'
+		get_ui_port_secure_enabled_test_cmd=false
 
 		# daemon_launch_cmd=undefined
 		daemon_launch_cmd="export TEMP=$r_qpkg_temp_path; $daemon_exec_pathfile $daemon_script_pathfile --webserver"

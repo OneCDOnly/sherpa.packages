@@ -99,17 +99,15 @@ InitService()
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
-		# remote_arch=undefined
-		remote_arch=arm64
-
-		# remote_match=undefined									# Longest string to match in URL to determine filename.
-		remote_match=.linux-core-${remote_arch}.tar.gz
-
-		# source_arch=undefined
-
 		# source_git_branch=undefined
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		# source_url_arch=undefined
+		source_url_arch=arm64
+
+		# source_url_match=undefined								# Longest string to match in URL to determine filename.
+		source_url_match=.linux-core-${source_url_arch}.tar.gz
 
 		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
 		start_retries=3
@@ -125,6 +123,8 @@ InitService()
 
 		# wait_pid_start_seconds=10									# This value is adaptive (increases with system load average).
 
+		# watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
+
 		# watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
 
 		# watch_pid_start_seconds=120								# This value is adaptive (increases with system load average).
@@ -136,7 +136,7 @@ InitService()
 	# >>> URLs <<<
 
 		# source_url=undefined
-		source_url='https://lidarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&arch='$remote_arch
+		source_url='https://lidarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&arch='$source_url_arch
 
 		# source_git_url=undefined
 

@@ -105,9 +105,9 @@ InitService()
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
-		# remote_arch=undefined
+		# source_url_arch=undefined
 
-		# source_arch=undefined
+		# source_url_match=undefined								# Longest string to match in URL to determine filename.
 
 		# source_git_branch=undefined
 

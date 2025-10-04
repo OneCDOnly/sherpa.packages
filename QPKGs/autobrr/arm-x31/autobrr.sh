@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=autobrr
-readonly r_service_script_version=251003
+readonly r_service_script_version=251004
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_ini_file=config.toml
@@ -42,12 +42,12 @@ daemon_exec_pathfile=$qpkg_repo_path/autobrr
 qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
 qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
 can_restart_to_update=true
-resolve_remote_url=true
+resolve_source_url=true
 run_daemon_in_screen_session=true
 remote_arch=arm
 remote_match=_linux_${remote_arch}.tar.gz
 watch_port_check_seconds=360
-remote_url=https://api.github.com/repos/autobrr/autobrr/releases/latest
+source_url=https://api.github.com/repos/autobrr/autobrr/releases/latest
 get_ui_listening_address_cmd="GetKeyFromTOML host $qpkg_ini_pathfile"
 get_ui_port_cmd="GetKeyFromTOML port $qpkg_ini_pathfile"
 get_ui_port_secure_cmd=false

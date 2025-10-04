@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OWhisparr
-readonly r_service_script_version=251003
+readonly r_service_script_version=251004
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_ini_file=config.xml
@@ -48,7 +48,7 @@ run_daemon_in_screen_session=true
 remote_arch=x64
 start_retries=3
 ui_listening_address=0.0.0.0
-remote_url='https://whisparr.servarr.com/v1/update/nightly/updatefile?os=linux&runtime=netcore&arch='$remote_arch
+source_url='https://whisparr.servarr.com/v1/update/nightly/updatefile?os=linux&runtime=netcore&arch='$remote_arch
 get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd='grep "<Port>" $qpkg_ini_pathfile|sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
 get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_ini_pathfile|sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'

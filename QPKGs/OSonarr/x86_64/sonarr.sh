@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OSonarr
-readonly r_service_script_version=251003
+readonly r_service_script_version=251004
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_ini_file=config.xml
@@ -49,7 +49,7 @@ remote_arch=x64
 remote_match=.linux-${remote_arch}.tar.gz
 start_retries=3
 ui_listening_address=0.0.0.0
-remote_url='https://services.sonarr.tv/v1/download/main/latest?version=4&os=linux&arch='$remote_arch
+source_url='https://services.sonarr.tv/v1/download/main/latest?version=4&os=linux&arch='$remote_arch
 get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd='grep "<Port>" $qpkg_ini_pathfile|sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
 get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_ini_pathfile|sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'

@@ -102,17 +102,15 @@ InitService()
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
-		# remote_arch=undefined
-		remote_arch=amd64
-
-		# remote_match=undefined									# Longest string to match in URL to determine filename.
-		remote_match=linux-${remote_arch}-filebrowser.tar.gz
-
-		# source_arch=undefined
-
 		# source_git_branch=undefined
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		# source_url_arch=undefined
+		source_url_arch=amd64
+
+		# source_url_match=undefined								# Longest string to match in URL to determine filename.
+		source_url_match=linux-${source_url_arch}-filebrowser.tar.gz
 
 		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
 

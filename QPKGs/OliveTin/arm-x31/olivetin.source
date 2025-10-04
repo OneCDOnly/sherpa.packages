@@ -96,18 +96,16 @@ InitService()
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
-		# remote_arch=undefined
-		remote_arch=arm7
-		daemon_exec_pathfile=$qpkg_repo_path/OliveTin-linux-$remote_arch/OliveTin
-
-		# remote_match=undefined									# Longest string to match in URL to determine filename.
-		remote_match=-linux-${remote_arch}.tar.gz
-
-		# source_arch=undefined
-
 		# source_git_branch=undefined
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		# source_url_arch=undefined
+		source_url_arch=arm7
+		daemon_exec_pathfile=$qpkg_repo_path/OliveTin-linux-$source_url_arch/OliveTin
+
+		# source_url_match=undefined								# Longest string to match in URL to determine filename.
+		source_url_match=-linux-${source_url_arch}.tar.gz
 
 		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
 		start_retries=3
@@ -122,6 +120,8 @@ InitService()
 
 		# wait_pid_start_seconds=10									# This value is adaptive (increases with system load average).
 
+		# watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
+
 		# watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
 
 		# watch_pid_start_seconds=120								# This value is adaptive (increases with system load average).
@@ -132,10 +132,10 @@ InitService()
 
 	# >>> URLs <<<
 
+		# source_git_url=undefined
+
 		# source_url=undefined
 		source_url=https://api.github.com/repos/OliveTin/OliveTin/releases/latest
-
-		# source_git_url=undefined
 
 	# >>> CMDs <<<
 
@@ -156,7 +156,7 @@ InitService()
 		get_ui_port_secure_enabled_test_cmd=false
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-linux-$remote_arch && $daemon_exec_pathfile -configdir $r_qpkg_config_path"
+		daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-linux-$source_url_arch && $daemon_exec_pathfile -configdir $r_qpkg_config_path"
 
 	}
 

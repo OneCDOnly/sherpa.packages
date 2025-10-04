@@ -149,15 +149,13 @@ InitLibrary()
 
 		orig_daemon_service_script=undefined					# Specific to Entware binaries only.
 
-		remote_arch=undefined
-
-		remote_match=undefined									# Longest string to match in URL to determine filename.
-
-		source_arch=undefined
-
 		source_git_branch=undefined
 
 		source_git_branch_depth=undefined						# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		source_url_arch=undefined
+
+		source_url_match=undefined								# Longest string to match in URL to determine filename.
 
 		start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
 
@@ -285,15 +283,13 @@ InitLibrary()
 
 		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
 
-		# remote_arch=undefined
-
-		# remote_match=undefined									# Longest string to match in URL to determine filename.
-
-		# source_arch=undefined
-
 		# source_git_branch=undefined
 
 		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+
+		# source_url_arch=undefined
+
+		# source_url_match=undefined								# Longest string to match in URL to determine filename.
 
 		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
 
@@ -750,9 +746,10 @@ RefreshReleasePackageFiles()
 	#	$get_remote_filename_timeout_seconds
 	#	$qpkg_repo_path
 	#	$r_qpkg_temp_path
-	#	$remote_match
 	#	$resolve_source_url
 	#	$source_url
+	#	$source_url_arch
+	#	$source_url_match
 
 	local extract_release_package=false
 	local refresh_release_package=false
@@ -768,7 +765,7 @@ RefreshReleasePackageFiles()
 			DisplayAndCommitProcessWaitToLog 'get latest release package URL'
 
 			if IsSiteUp "$source_url"; then
-				release_package_url=$(RequestLatestReleaseURL "$source_url" "$remote_match")
+				release_package_url=$(RequestLatestReleaseURL "$source_url" "$source_url_match")
 
 				if [[ $? -eq 0 ]]; then
 					DisplayAndCommitOutcomeToLog OK
@@ -789,7 +786,7 @@ RefreshReleasePackageFiles()
 			DisplayAndCommitProcessWaitToLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
 
 			if IsSiteUp "$source_url"; then
-				release_package_filename=$(RequestLatestReleaseFilename "$source_url" "$remote_arch")
+				release_package_filename=$(RequestLatestReleaseFilename "$source_url" "$source_url_arch")
 
 				if [[ $? -eq 0 ]]; then
 					DisplayAndCommitOutcomeToLog OK

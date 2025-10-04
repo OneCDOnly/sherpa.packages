@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251003
+readonly r_service_library_version=251004
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -100,7 +100,7 @@ install_pip_deps=false
 package_is_exec=false
 recheck_daemon_pid_after_kill=false
 recheck_daemon_pid_after_launch=false
-resolve_remote_url=false
+resolve_source_url=false
 run_daemon_in_screen_session=false
 silence_pypi_errors=true
 daemon_port=0
@@ -123,8 +123,8 @@ watch_pid_kill_seconds=120
 watch_pid_start_seconds=120
 watch_pidfile_start_seconds=60
 watch_port_check_seconds=120
-remote_url=undefined
 source_git_url=undefined
+source_url=undefined
 daemon_launch_cmd=undefined
 get_app_version_cmd=undefined
 get_daemon_port_cmd=undefined
@@ -354,11 +354,11 @@ local release_package_name_ref_pathfilename=''
 local release_package_pathfile=$r_qpkg_temp_path/source.package
 local release_package_url=''
 if IsAutoUpdate ||[[ ! -e $release_package_pathfile ]];then
-if [[ $resolve_remote_url = true ]];then
+if [[ $resolve_source_url = true ]];then
 refresh_release_package=true
 DisplayAndCommitProcessWaitToLog 'get latest release package URL'
-if IsSiteUp "$remote_url";then
-release_package_url=$(RequestLatestReleaseURL "$remote_url" "$remote_match")
+if IsSiteUp "$source_url";then
+release_package_url=$(RequestLatestReleaseURL "$source_url" "$remote_match")
 if [[ $? -eq 0 ]];then
 DisplayAndCommitOutcomeToLog OK
 DisplayAndCommitDoneToLog "release package URL: $release_package_url"
@@ -371,12 +371,12 @@ else
 DisplayAndCommitErrorToAllLogs 'unable to access remote site'
 fi
 else
-release_package_url=$remote_url
+release_package_url=$source_url
 fi
 if [[ $compare_release_filename = true ]];then
 DisplayAndCommitProcessWaitToLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
-if IsSiteUp "$remote_url";then
-release_package_filename=$(RequestLatestReleaseFilename "$remote_url" "$remote_arch")
+if IsSiteUp "$source_url";then
+release_package_filename=$(RequestLatestReleaseFilename "$source_url" "$remote_arch")
 if [[ $? -eq 0 ]];then
 DisplayAndCommitOutcomeToLog OK
 DisplayAndCommitDoneToLog "release package filename: $release_package_filename"
@@ -1170,7 +1170,7 @@ IsGitApp(){
 IsUsePipCache(){
 [[ $pip_cache_path != undefined ]];}
 IsOnlineReleasePackage(){
-[[ $remote_url != undefined ]];}
+[[ $source_url != undefined ]];}
 IsReleaseAnArchive(){
 [[ $package_is_exec != undefined &&$package_is_exec = false ]];}
 IsSupportAutoUpdate(){
