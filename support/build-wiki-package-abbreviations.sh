@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-exit 			# Needs to be modified to work with multiple arch package files.
-
 . $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
 objects_built=false
@@ -30,48 +28,11 @@ LoadObjects()
 LoadPackages()
 	{
 
-	readonly r_packages_pathfile=$qpkgs_support_path/$packages_source_file
+	local f=''
 
-	if [[ ! -e $r_packages_pathfile ]]; then
-		echo 'package list missing'
-		exit 1
-	fi
-
-	. "$r_packages_pathfile"
-
-	readonly r_base_qpkg_conflicts_with
-	readonly r_base_qpkg_warnings
-	readonly r_essential_ipks
-	readonly r_essential_pips
-	readonly r_exclusion_pips
-	readonly r_min_perl_version
-	readonly r_min_python_version
-	readonly r_packages_epoch
-
-	# Package list arrays are now full, so lock them.
-	readonly r_qpkg_abbrvs
-	readonly r_qpkg_appl_author
-	readonly r_qpkg_appl_author_email
-	readonly r_qpkg_appl_version
-	readonly r_qpkg_author
-	readonly r_qpkg_author_email
-	readonly r_qpkg_can_backup
-	readonly r_qpkg_can_clean
-	readonly r_qpkg_can_log
-	readonly r_qpkg_can_restart_to_update
-	readonly r_qpkg_conflicts_with
-	readonly r_qpkg_depends_on
-	readonly r_qpkg_description
-	readonly r_qpkg_hash
-	readonly r_qpkg_is_sherpa_compatible
-	readonly r_qpkg_max_os_version
-	readonly r_qpkg_min_os_version
-	readonly r_qpkg_min_ram_kb
-	readonly r_qpkg_name
-	readonly r_qpkg_requires_ipks
-	readonly r_qpkg_test_for_active
-	readonly r_qpkg_url
-	readonly r_qpkg_version
+	for f in "$qpkgs_support_path"/*.packages.source; do
+		. "$f"
+	done
 
 	QPKGs-GRall:Add "$(SortNames "${r_qpkg_name[*]}")"
 

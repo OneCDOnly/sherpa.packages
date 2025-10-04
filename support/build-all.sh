@@ -13,6 +13,5 @@ done
 
 ./build-qpkgs.sh sherpa || exit
 ./build-qpkg-version-table.sh || exit
-# ./build-wiki-package-abbreviations.sh || exit					# still coded to read from single packages file.
-# ./build-archives.sh || exit
+./build-wiki-package-abbreviations.sh || exit
 ./build-multiple-archives.sh || exit
