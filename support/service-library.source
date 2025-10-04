@@ -3164,6 +3164,9 @@ RequestLatestReleaseFilename()
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
 	local b=$(/sbin/curl${a} "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
+
+	# Need to trim whitespace from beginning-and-end of $b, then test length.
+
 	local -i c=$(wc -l <<< "$b")
 
 	case $c in
