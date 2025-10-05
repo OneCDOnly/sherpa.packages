@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OSonarr
-readonly r_service_script_version=251004
+readonly r_service_script_version=251005
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_ini_file=config.xml
