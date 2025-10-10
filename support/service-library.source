@@ -65,6 +65,7 @@ InitLibrary()
 			readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
 			readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d unknown -f /etc/config/qpkg.conf)
+			readonly r_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
 
 	SetNasArch
 	SetQpkgArch
@@ -369,9 +370,6 @@ StartQPKG()
 	{
 
 	IsNotError || return
-
-#	MigrateQPKGName
-
 	IsStart && ShowQPKGStates
 
 	if IsDaemon && IsNotRestart; then
@@ -1104,6 +1102,8 @@ RestoreConfig()
 		SetError; return
 	fi
 
+	IsQpkgMigrated && MigrateConfig
+
 	}
 
 ResetConfig()
@@ -1116,6 +1116,20 @@ ResetConfig()
 	if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $r_qpkg_path; rm -rf $r_qpkg_path/config/*; mkdir -p $(/usr/bin/dirname "$qpkg_ini_default_pathfile"); mv $r_qpkg_path/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only; then
 		SetError; return
 	fi
+
+	}
+
+MigrateConfig()
+	{
+
+	IsNotConfigMigrated || return
+
+	# KLUDGE: update old paths in application config (and default config).
+
+	[[ -e $qpkg_ini_pathfile ]] && /bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_ini_pathfile"
+	[[ -e $qpkg_ini_default_pathfile ]] && /bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_ini_default_pathfile"
+
+	/sbin/setcfg $r_qpkg_name Migrated TRUE -f /etc/config/qpkg.conf
 
 	}
 
@@ -2533,6 +2547,61 @@ IsNotQPKGEnabled()
 	#	$? = 1 : false
 
 	! IsQPKGEnabled "${1:-$r_qpkg_name}"
+
+	}
+
+IsConfigMigrated()
+	{
+
+	# Check if specified QPKG is in the migration list (from leading 'O' QPKGs).
+
+	# Inputs: (local)
+	#	$1 (optional) = package name to check. If unspecified, default is $r_qpkg_name
+
+	# Inputs: (global)
+	#	$qpkg_name (default for $1)
+
+	# Outputs: (local)
+	#	$? = true/false
+
+	[[ $(/sbin/getcfg ${1:-$r_qpkg_name} Migrated -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]]
+
+	}
+
+IsNotConfigMigrated()
+	{
+
+	# Inputs: (local)
+	#	$1 (optional) = package name to check. If unspecified, default is $r_qpkg_name
+
+	# Inputs: (global)
+	#	$r_qpkg_name
+
+	# Outputs: (local)
+	#	$? = 0 : true
+	#	$? = 1 : false
+
+	! IsConfigMigrated "${1:-$r_qpkg_name}"
+
+	}
+
+IsQpkgMigrated()
+	{
+
+	# Check if specified QPKG has been migrated from a prohibited QPKG name (leading 'O').
+
+	# Inputs: (local)
+	#	$1 (optional) = package name to check. If unspecified, default is $r_qpkg_name
+
+	# Inputs: (global)
+	#	$r_qpkg_name
+
+	# Outputs: (local)
+	#	$? = true/false
+
+	local re=\\b${1:-$r_qpkg_name}\\b			# bash 3.2 regex with word boundaries: https://stackoverflow.com/a/9793094
+
+	[[ ${r_qpkgs_name_migrated[*]} =~ $re ]]
 
 	}
 
