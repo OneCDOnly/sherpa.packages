@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251005
+readonly r_service_library_version=251011
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -70,6 +70,8 @@ readonly r_extended_datetime_format='+%a %-d %b %Y'
 readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
 readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d unknown -f /etc/config/qpkg.conf)
+r_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
+readonly r_qpkgs_name_migrated
 SetNasArch
 SetQpkgArch
 SetOsFirmwareVer
@@ -567,11 +569,17 @@ SetError;return
 fi
 if ! DisplayRunAndLog 'restore configuration backup' "/bin/tar --extract --gzip --file=$qpkg_backup_pathfile --directory=$r_qpkg_path/config" log:failure-only;then
 SetError;return
-fi;}
+fi
+IsQpkgMigrated &&MigrateConfig;}
 ResetConfig(){
 if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $r_qpkg_path;rm -rf $r_qpkg_path/config/*;mkdir -p $(/usr/bin/dirname "$qpkg_ini_default_pathfile");mv $r_qpkg_path/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only;then
 SetError;return
 fi;}
+MigrateConfig(){
+IsNotConfigMigrated||return
+[[ -e $qpkg_ini_pathfile ]]&&/bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_ini_pathfile"
+[[ -e $qpkg_ini_default_pathfile ]]&&/bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_ini_default_pathfile"
+/sbin/setcfg $r_qpkg_name Migrated TRUE -f /etc/config/qpkg.conf;}
 MakePaths(){
 local a=''
 if [[ -d $r_qpkg_path ]];then
@@ -1152,6 +1160,13 @@ IsQPKGEnabled(){
 [[ $(/sbin/getcfg ${1:-$r_qpkg_name} Enable -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]];}
 IsNotQPKGEnabled(){
 ! IsQPKGEnabled "${1:-$r_qpkg_name}";}
+IsConfigMigrated(){
+[[ $(/sbin/getcfg ${1:-$r_qpkg_name} Migrated -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]];}
+IsNotConfigMigrated(){
+! IsConfigMigrated "${1:-$r_qpkg_name}";}
+IsQpkgMigrated(){
+local re=\\b${1:-$r_qpkg_name}\\b
+[[ ${r_qpkgs_name_migrated[*]} =~ $re ]];}
 IsSupportBackup(){
 [[ $qpkg_backup_pathfile != undefined ]];}
 IsSupportReset(){

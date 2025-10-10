@@ -65,8 +65,8 @@ InitLibrary()
 			readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
 			readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d unknown -f /etc/config/qpkg.conf)
-			readonly r_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
-
+			r_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
+				readonly r_qpkgs_name_migrated
 	SetNasArch
 	SetQpkgArch
 	SetOsFirmwareVer
