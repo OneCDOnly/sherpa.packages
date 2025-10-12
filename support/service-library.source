@@ -366,15 +366,15 @@ InitLibrary()
 
 	}
 
-StartQPKG()
+StartQpkg()
 	{
 
-	IsNotError || return
-	IsStart && ShowQPKGStates
+	IsNtError || return
+	IsStart && ShowQpkgStates
 
-	if IsDaemon && IsNotRestart; then
-		IsNotStart && DaemonWasNotActive && return		# Don't start (after running actions like 'backup') if daemon wasn't active before.
-		IsNotClean && ShowDaemonState
+	if IsDaemon && IsNtRestart; then
+		IsNtStart && DaemonWasNotActive && return		# Don't start (after running actions like 'backup') if daemon wasn't active before.
+		IsNtClean && ShowDaemonState
 		IsDaemonActive && return						# No-need to check for an active daemon during 'restart' as it has already been killed.
 	fi
 
@@ -382,52 +382,17 @@ StartQPKG()
 
 	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
 
-	[[ $(type -t PreStartQPKGCustom) = function ]] && PreStartQPKGCustom
+	[[ $(type -t PreStartQpkgCustom) = function ]] && PreStartQpkgCustom
 
-	if [[ $(type -t StartQPKGCustom) = function ]]; then
-		StartQPKGCustom
+	if [[ $(type -t StartQpkgCustom) = function ]]; then
+		StartQpkgCustom
 	else
-		StartQPKGLibrary
+		StartQpkgLibrary
 	fi
 
 	}
 
-MigrateQPKGName()
-	{
-
-	# Will need to modify (example):
-	#	'qpkg.conf'
-	#		[OTransmission]
-	#		Name = OTransmission
-	#		QPKG_File = OTransmission.qpkg
-	#		Shell = /share/CACHEDEV1_DATA/.qpkg/OTransmission/otransmission.sh
-	#		Install_Path = /share/CACHEDEV1_DATA/.qpkg/OTransmission
-
-	# 1. stop QPKG,
-	# 2. rename service script,
-	# 3. rename installation path,
-	# 4. 'sed' replace all remaining occurrences in 'qpkg.conf',
-	# 5. application config files? internal paths, etc...
-	# 6. start QPKG.
-
-	local migration_qpkgs=(OLidarr OMedusa OqBittorrent OReadarr OSickGear OSonarr OTautulli OTransmission OWatcher3 OWhisparr)
-
-	if [[ "${migration_qpkgs[*]}" =~ [[:space:]]${r_qpkg_name}[[:space:]] ]]; then
-		# 1. rename service script,
-		# 2. rename installation path,
-		# 3. 'sed' replace all remaining occurrences in 'qpkg.conf',
-		# 4. application config files? internal paths, etc...
-
-		echo "found a migratable QPKG name!"
-
-#		mv "$(getcfg "$r_qpkg_name" Shell -f /etc/config/qpkg.conf)" "$(getcfg "$r_qpkg_name" Shell -f /etc/config/qpkg.conf)"
-
-
-	fi
-
-	}
-
-StartQPKGLibrary()
+StartQpkgLibrary()
 	{
 
 	if IsGitApp; then
@@ -438,12 +403,12 @@ StartQPKGLibrary()
 		RefreshReleasePackageFiles || return
 	fi
 
-	if IsVirtualPythonEnv && IsNotVirtualPythonEnvExist; then
+	if IsVirtualPythonEnv && IsNtVirtualPythonEnvExist; then
 		CreateVirtualPythonEnv || return
 		InstallPythonPackages || return
 	fi
 
-	if IsNotDaemon; then
+	if IsNtDaemon; then
 		CreateUserlinkToExec
 		return
 	fi
@@ -462,34 +427,34 @@ StartQPKGLibrary()
 
 	}
 
-StopQPKG()
+StopQpkg()
 	{
 
-	IsNotError || return
+	IsNtError || return
 
 	if IsStop || IsRestart || IsClean; then
-		ShowQPKGStates
+		ShowQpkgStates
 	fi
 
 	if IsDaemon; then
 		ShowDaemonState
-		IsNotRestart && IsNotDaemonActive && return
+		IsNtRestart && IsNtDaemonActive && return
 	fi
 
-	[[ $(type -t PreStopQPKGCustom) = function ]] && PreStopQPKGCustom
+	[[ $(type -t PreStopQpkgCustom) = function ]] && PreStopQpkgCustom
 
-	if [[ $(type -t StopQPKGCustom) = function ]]; then
-		StopQPKGCustom
+	if [[ $(type -t StopQpkgCustom) = function ]]; then
+		StopQpkgCustom
 	else
-		StopQPKGLibrary
+		StopQpkgLibrary
 	fi
 
 	}
 
-StopQPKGLibrary()
+StopQpkgLibrary()
 	{
 
-	if IsNotDaemon; then
+	if IsNtDaemon; then
 		RemoveUserlinkToExec
 		return
 	fi
@@ -506,26 +471,26 @@ StopQPKGLibrary()
 
 	}
 
-StatusQPKG()
+StatusQpkg()
 	{
 
-	IsNotError || return
-	ShowQPKGStates
+	IsNtError || return
+	ShowQpkgStates
 	IsDaemon && ShowDaemonState
 
-	if [[ $(type -t StatusQPKGCustom) = function ]]; then
-		StatusQPKGCustom				# <-- NOTE: Processing will terminate in this function (no-return).
+	if [[ $(type -t StatusQpkgCustom) = function ]]; then
+		StatusQpkgCustom				# <-- NOTE: Processing will terminate in this function (no-return).
 	else
-		StatusQPKGLibrary				# <-- NOTE: Processing will terminate in this function (no-return).
+		StatusQpkgLibrary				# <-- NOTE: Processing will terminate in this function (no-return).
 	fi
 
 	}
 
-StatusQPKGLibrary()
+StatusQpkgLibrary()
 	{
 
 	# The following only checks for daemon services, and only HTTP/S port responses (where-applicable).
-	# Any other status checks must be customised for the application and placed in StatusQPKGCustom() in the QPKG service-script.
+	# Any other status checks must be customised for the application and placed in StatusQpkgCustom() in the QPKG service-script.
 
 	# NOTE: Processing will terminate in this function (no-return).
 
@@ -609,7 +574,7 @@ CreateVirtualPythonEnv()
 
 	[[ $allow_access_to_sys_packages = true ]] && a=' --system-site-packages'
 
-	if IsNotVirtualPythonEnvExist; then
+	if IsNtVirtualPythonEnvExist; then
 		DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$pip_cache_path VIRTUALENV_OVERRIDE_APP_DATA=$pip_cache_path; $interpreter -m virtualenv ${venv_path}${a}" log:failure-only
 		new_env=true
 
@@ -877,7 +842,7 @@ CheckPortsAvailable()
 		DisplayAndCommitErrorToAllLogs 'no port specified'
 
 		SetError; return
-	elif IsNotPortAvailable $ui_port || IsNotPortAvailable $ui_port_secure; then
+	elif IsNtPortAvailable $ui_port || IsNtPortAvailable $ui_port_secure; then
 		DisplayAndCommitErrorToAllLogs "ports $ui_port or $ui_port_secure are already in-use"
 
 		a=$(/usr/sbin/lsof -i :$ui_port -Fp)
@@ -958,13 +923,13 @@ InstallPythonPackages()
 
 	[[ $install_pip_deps = true ]] && no_pip_deps=''
 
-	if IsNotVirtualPythonEnvExist; then
+	if IsNtVirtualPythonEnvExist; then
 		DisplayAndCommitErrorToAllLogs 'unable to install addons: virtual Python environment does not exist'
 
 		SetError; return
 	fi
 
-	IsNotAutoUpdate && [[ $new_env = false ]] && return 0
+	IsNtAutoUpdate && [[ $new_env = false ]] && return 0
 
 	if [[ $r_qpkg_name = OWatcher3 ]]; then
 		# Need to install `m2r` PyPI module first.
@@ -1122,7 +1087,7 @@ ResetConfig()
 MigrateConfig()
 	{
 
-	IsNotConfigMigrated || return
+	IsNtConfigMigrated || return
 
 	# KLUDGE: update old paths in application config (and default config).
 
@@ -1243,7 +1208,7 @@ GetAppVersion()
 
 	}
 
-ShowQPKGStates()
+ShowQpkgStates()
 	{
 
 	# Inputs: (global)
@@ -1251,7 +1216,7 @@ ShowQPKGStates()
 
 	DisplayAndCommitInfoWaitToLog 'QPKG enabled'
 
-	if IsQPKGEnabled; then
+	if IsQpkgEnabled; then
 		DisplayAndCommitOutcomeToLog true
 	else
 		DisplayAndCommitOutcomeToLog false
@@ -1374,7 +1339,7 @@ CleanLocalRepo()
 	#	$r_qpkg_temp_path
 	#	$venv_path
 
-	if [[ -z $r_qpkg_path || -z $r_qpkg_name ]] || IsNotSourcedOnline; then
+	if [[ -z $r_qpkg_path || -z $r_qpkg_name ]] || IsNtSourcedOnline; then
 		SetError; return
 	fi
 
@@ -1399,12 +1364,12 @@ WatchForGit()
 	# Outputs: (global)
 	#	$PATH
 
-	if IsNotQPKGInstalled Entware; then
+	if IsNtQpkgInstalled Entware; then
 		DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not installed"
 		SetError; return
 	fi
 
-	if IsNotQPKGEnabled Entware; then
+	if IsNtQpkgEnabled Entware; then
 		DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not enabled"
 		SetError; return
 	fi
@@ -1715,9 +1680,9 @@ EnsureConfigFileExists()
 	#	$qpkg_ini_default_pathfile
 	#	$qpkg_ini_pathfile
 
-	IsNotSupportReset && return
+	IsNtSupportReset && return
 
-	if IsNotConfigFound && IsDefaultConfigFound; then
+	if IsNtConfigFound && IsDefaultConfigFound; then
 		DisplayAndCommitInfoToLog 'no configuration file found: using default'
 		cp "${qpkg_ini_default_pathfile:?undefined}" "${qpkg_ini_pathfile:?undefined}"
 	fi
@@ -2481,7 +2446,7 @@ IsQNAP()
 
 	}
 
-IsQPKGInstalled()
+IsQpkgInstalled()
 	{
 
 	# Inputs: (local)
@@ -2499,7 +2464,7 @@ IsQPKGInstalled()
 
 	}
 
-IsNotQPKGInstalled()
+IsNtQpkgInstalled()
 	{
 
 	# Inputs: (local)
@@ -2512,11 +2477,11 @@ IsNotQPKGInstalled()
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	! IsQPKGInstalled "${1:-$r_qpkg_name}"
+	! IsQpkgInstalled "${1:-$r_qpkg_name}"
 
 	}
 
-IsQPKGEnabled()
+IsQpkgEnabled()
 	{
 
 	# Inputs: (local)
@@ -2533,7 +2498,7 @@ IsQPKGEnabled()
 
 	}
 
-IsNotQPKGEnabled()
+IsNtQpkgEnabled()
 	{
 
 	# Inputs: (local)
@@ -2546,7 +2511,7 @@ IsNotQPKGEnabled()
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	! IsQPKGEnabled "${1:-$r_qpkg_name}"
+	! IsQpkgEnabled "${1:-$r_qpkg_name}"
 
 	}
 
@@ -2568,7 +2533,7 @@ IsConfigMigrated()
 
 	}
 
-IsNotConfigMigrated()
+IsNtConfigMigrated()
 	{
 
 	# Inputs: (local)
@@ -2633,7 +2598,7 @@ IsSupportReset()
 
 	}
 
-IsNotSupportReset()
+IsNtSupportReset()
 	{
 
 	! IsSupportReset
@@ -2758,7 +2723,7 @@ IsSupportAutoUpdate()
 
 	}
 
-IsNotSourcedOnline()
+IsNtSourcedOnline()
 	{
 
 	! IsSourcedOnline
@@ -2800,7 +2765,7 @@ IsSSLEnabled()
 
 	}
 
-IsNotDaemon()
+IsNtDaemon()
 	{
 
 	! IsDaemon
@@ -2846,7 +2811,7 @@ ShowDaemonState()
 
 	}
 
-IsNotDaemonActive()
+IsNtDaemonActive()
 	{
 
 	! IsDaemonActive
@@ -2896,7 +2861,7 @@ IsPortAvailable()
 
 	}
 
-IsNotPortAvailable()
+IsNtPortAvailable()
 	{
 
 	# Inputs: (local)
@@ -3060,7 +3025,7 @@ IsConfigFound()
 
 	}
 
-IsNotConfigFound()
+IsNtConfigFound()
 	{
 
 	! IsConfigFound
@@ -3099,7 +3064,7 @@ IsVirtualPythonEnvExist()
 
 	}
 
-IsNotVirtualPythonEnvExist()
+IsNtVirtualPythonEnvExist()
 	{
 
 	! IsVirtualPythonEnvExist
@@ -3467,7 +3432,7 @@ SetServiceResultAsInProgress()
 CommitServiceAction()
 	{
 
-	if IsNotStatus && IsNotLog && IsNotNone; then
+	if IsNtStatus && IsNtLog && IsNtNone; then
 		[[ $r_service_action_pathfile != undefined ]] && echo "$service_action" > "$r_service_action_pathfile"
 	fi
 
@@ -3476,7 +3441,7 @@ CommitServiceAction()
 CommitServiceResult()
 	{
 
-	if IsNotStatus && IsNotLog && IsNotNone; then
+	if IsNtStatus && IsNtLog && IsNtNone; then
 		[[ $r_service_result_pathfile != undefined ]] && echo "$service_result" > "$r_service_result_pathfile"
 	fi
 
@@ -3510,7 +3475,7 @@ IsStatus()
 
 	}
 
-IsNotStatus()
+IsNtStatus()
 	{
 
 	! IsStatus
@@ -3529,7 +3494,7 @@ SetError()
 UnsetError()
 	{
 
-	IsNotError && return
+	IsNtError && return
 	_error_flag=false
 
 	}
@@ -3541,7 +3506,7 @@ IsError()
 
 	}
 
-IsNotError()
+IsNtError()
 	{
 
 	! IsError
@@ -3582,7 +3547,7 @@ IsStart()
 
 	}
 
-IsNotStart()
+IsNtStart()
 	{
 
 	! IsStart
@@ -3603,7 +3568,7 @@ IsRestart()
 
 	}
 
-IsNotRestart()
+IsNtRestart()
 	{
 
 	! IsRestart
@@ -3617,7 +3582,7 @@ IsLog()
 
 	}
 
-IsNotLog()
+IsNtLog()
 	{
 
 	! IsLog
@@ -3631,7 +3596,7 @@ IsNone()
 
 	}
 
-IsNotNone()
+IsNtNone()
 	{
 
 	! IsNone
@@ -3645,7 +3610,7 @@ IsClean()
 
 	}
 
-IsNotClean()
+IsNtClean()
 	{
 
 	! IsClean
@@ -3806,7 +3771,7 @@ DisplayAndCommitActionToLog()
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
 	local a=DisplayAndCommitToLog
 
-	if IsNotStatus && IsNotLog && IsNotNone; then
+	if IsNtStatus && IsNtLog && IsNtNone; then
 		IsUnsupported && a=CommitToLog
 		CommitToLog '•'
 
@@ -3830,7 +3795,7 @@ DisplayAndCommitResultToLog()
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
 	local a=DisplayAndCommitToLog
 
-	if IsNotStatus && IsNotLog && IsNotNone; then
+	if IsNtStatus && IsNtLog && IsNtNone; then
 		IsUnsupported && a=CommitToLog
 
 		case $service_result in
@@ -3909,7 +3874,7 @@ CommitErrorToSysLog()
 CommitToLog()
 	{
 
-	if IsNotStatus && IsNotLog && IsNotNone; then
+	if IsNtStatus && IsNtLog && IsNtNone; then
 		[[ ${1:-} = '•' && ! -s "$r_service_log_pathfile" ]] || echo -e "${1:-}" >> "$r_service_log_pathfile"
 	fi
 
@@ -3918,7 +3883,7 @@ CommitToLog()
 CommitWaitToLog()
 	{
 
-	if IsNotStatus && IsNotLog && IsNotNone; then
+	if IsNtStatus && IsNtLog && IsNtNone; then
 		printf '%s' "${1:-} " >> "$r_service_log_pathfile"
 	fi
 
@@ -3937,7 +3902,7 @@ CommitToSysLog()
 	#		2 : Warning
 	#		4 : Information
 
-	if IsNotStatus && IsNotLog && IsNotNone; then
+	if IsNtStatus && IsNtLog && IsNtNone; then
 		if [[ -z ${1:-} || -z ${2:-} ]]; then
 			SetError; return
 		fi
@@ -4226,7 +4191,7 @@ IsAutoUpdate()
 
 	}
 
-IsNotAutoUpdate()
+IsNtAutoUpdate()
 	{
 
 	! IsAutoUpdate
@@ -4351,7 +4316,7 @@ GetCPUCores()
 
 	}
 
-AddToQPKGPostInstallDeps()			# unused-ignore
+AddToQpkgPostInstallDeps()			# unused-ignore
 	{
 
 	# Inputs: (local)
@@ -4363,13 +4328,13 @@ AddToQPKGPostInstallDeps()			# unused-ignore
 
 	[[ -n ${1:-} && -n ${2:-} ]] || return
 
-	RemoveFromQPKGPostInstallDeps "$1" "$2"
+	RemoveFromQpkgPostInstallDeps "$1" "$2"
 
-	SetQPKGPostInstallDeps "$1" "$(GetQPKGPostInstallDeps "$1"):$2"
+	SetQpkgPostInstallDeps "$1" "$(GetQpkgPostInstallDeps "$1"):$2"
 
 	}
 
-GetQPKGPostInstallDeps()
+GetQpkgPostInstallDeps()
 	{
 
 	# Inputs: (local)
@@ -4387,7 +4352,7 @@ GetQPKGPostInstallDeps()
 
 	}
 
-RemoveFromQPKGPostInstallDeps()
+RemoveFromQpkgPostInstallDeps()
 	{
 
 	# Inputs: (local)
@@ -4401,11 +4366,11 @@ RemoveFromQPKGPostInstallDeps()
 
 	local re=\\b${2}\\b
 
-	SetQPKGPostInstallDeps "$1" "$(/bin/sed "s|${re}||g" <<< "$(GetQPKGPostInstallDeps "$1")")"
+	SetQpkgPostInstallDeps "$1" "$(/bin/sed "s|${re}||g" <<< "$(GetQpkgPostInstallDeps "$1")")"
 
 	}
 
-SetQPKGPostInstallDeps()
+SetQpkgPostInstallDeps()
 	{
 
 	# Inputs: (local)
@@ -4446,15 +4411,6 @@ CleanDependencyField()
 	[[ -n $a && ${a: -1:1} = ':' ]] && a=${a%?}
 
 	printf '%s' "$a"
-
-	}
-
-Lowercase()
-	{
-
-	[[ -n ${1:-} ]] || return
-
-	tr 'A-Z' 'a-z' <<< "$1"
 
 	}
 
@@ -4541,7 +4497,7 @@ ProcessArgs()						# unused-ignore.
 		fi
 	fi
 
-	if IsNotError; then
+	if IsNtError; then
 		local user_arg=${r_user_args_raw%% *}		# Only process first argument.
 
 		case $user_arg in
@@ -4550,9 +4506,9 @@ ProcessArgs()						# unused-ignore.
 
 				SetServiceAction start
 
-				if IsQPKGEnabled; then
+				if IsQpkgEnabled; then
 					SetTraps
-					StartQPKG
+					StartQpkg
 				else
 					ShowDisabledPrompt
 					SetError
@@ -4564,9 +4520,9 @@ ProcessArgs()						# unused-ignore.
 				if IsSupportBackup; then
 					SetServiceAction backup
 					SetTraps
-					StopQPKG
+					StopQpkg
 					BackupConfig
-					IsQPKGEnabled && StartQPKG
+					IsQpkgEnabled && StartQpkg
 				else
 					SetServiceAction unsupported
 					ShowUnsupportedAction "$user_arg"
@@ -4578,10 +4534,10 @@ ProcessArgs()						# unused-ignore.
 				if IsSourcedOnline; then
 					SetServiceAction clean
 					SetTraps
-					StopQPKG
+					StopQpkg
 					[[ $r_qpkg_name = nzbToMedia ]] && BackupConfig
 					CleanLocalRepo
-					IsQPKGEnabled && StartQPKG
+					IsQpkgEnabled && StartQpkg
 					[[ $r_qpkg_name = nzbToMedia ]] && RestoreConfig
 				else
 					SetServiceAction unsupported
@@ -4594,7 +4550,7 @@ ProcessArgs()						# unused-ignore.
 
 				SetServiceAction stop
 				SetTraps
-				StopQPKG
+				StopQpkg
 				;;
 			?(--)disable)
 				IsSU || exit
@@ -4602,11 +4558,11 @@ ProcessArgs()						# unused-ignore.
 				SetServiceAction disable
 				SetTraps
 
-				[[ $(type -t PreDisableQPKGCustom) = function ]] && PreDisableQPKGCustom
+				[[ $(type -t PreDisableQpkgCustom) = function ]] && PreDisableQpkgCustom
 
 				/sbin/qpkg_service disable "$r_qpkg_name"
 
-				if IsNotQPKGEnabled; then
+				if IsNtQpkgEnabled; then
 					ShowDisabled
 				else
 					ShowDisableFailed
@@ -4631,11 +4587,11 @@ ProcessArgs()						# unused-ignore.
 				SetServiceAction enable
 				SetTraps
 
-				[[ $(type -t PreEnableQPKGCustom) = function ]] && PreEnableQPKGCustom
+				[[ $(type -t PreEnableQpkgCustom) = function ]] && PreEnableQpkgCustom
 
 				/sbin/qpkg_service enable "$r_qpkg_name"
 
-				if IsQPKGEnabled; then
+				if IsQpkgEnabled; then
 					ShowEnabled
 				else
 					ShowEnableFailed
@@ -4666,9 +4622,9 @@ ProcessArgs()						# unused-ignore.
 
 				SetServiceAction restart
 
-				if IsQPKGEnabled; then
+				if IsQpkgEnabled; then
 					SetTraps
-					StopQPKG && StartQPKG
+					StopQpkg && StartQpkg
 				else
 					ShowDisabledPrompt
 					SetError
@@ -4694,9 +4650,9 @@ ProcessArgs()						# unused-ignore.
 				if IsSupportReset; then
 					SetServiceAction reset
 					SetTraps
-					StopQPKG
+					StopQpkg
 					ResetConfig
-					IsQPKGEnabled && StartQPKG
+					IsQpkgEnabled && StartQpkg
 				else
 					SetServiceAction unsupported
 					ShowUnsupportedAction "$user_arg"
@@ -4708,9 +4664,9 @@ ProcessArgs()						# unused-ignore.
 				if IsSupportBackup; then
 					SetServiceAction restore
 					SetTraps
-					StopQPKG
+					StopQpkg
 					RestoreConfig
-					IsQPKGEnabled && StartQPKG
+					IsQpkgEnabled && StartQpkg
 				else
 					SetServiceAction unsupported
 					ShowUnsupportedAction "$user_arg"
@@ -4720,7 +4676,7 @@ ProcessArgs()						# unused-ignore.
 				IsSU || exit
 
 				SetStatusGet
-				StatusQPKG
+				StatusQpkg
 				;;
 			uninstall)
 				: # Ignore.
@@ -4740,7 +4696,7 @@ ProcessArgs()						# unused-ignore.
 		esac
 	fi
 
-	if IsNotLog && IsNotNone; then
+	if IsNtLog && IsNtNone; then
 		if IsError; then
 			SetServiceResultAsFailed
 
