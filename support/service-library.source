@@ -2449,18 +2449,20 @@ IsQNAP()
 IsQpkgInstalled()
 	{
 
+	# Check if specified QPKG is installed.
+
 	# Inputs: (local)
-	#	$1 (optional) = package name to check. If unspecified, default is $r_qpkg_name
+	#	$1 (optional) (string) = QPKG name.
 
 	# Inputs: (global)
-	#	$r_qpkg_name
+	#	$r_qpkg_name (default for $1)
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
-	# shellcheck disable=2076
-	[[ "$(< /etc/config/qpkg.conf)" =~ "[${1:-$r_qpkg_name}]" ]]
+	local a=${1:-$r_qpkg_name}
+
+	[[ $(/sbin/getcfg $a Name -d undefined -f /etc/config/qpkg.conf) = "$a" ]]
 
 	}
 
@@ -2468,14 +2470,13 @@ IsNtQpkgInstalled()
 	{
 
 	# Inputs: (local)
-	#	$1 (optional) = package name to check. If unspecified, default is $r_qpkg_name
+	#	$1 (optional) (string) = QPKG name.
 
 	# Inputs: (global)
-	#	$r_qpkg_name
+	#	$r_qpkg_name (default for $1)
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	! IsQpkgInstalled "${1:-$r_qpkg_name}"
 
@@ -2485,14 +2486,13 @@ IsQpkgEnabled()
 	{
 
 	# Inputs: (local)
-	#	$1 (optional) = package name to check. If unspecified, default is $r_qpkg_name
+	#	$1 (optional) (string) = QPKG name.
 
 	# Inputs: (global)
-	#	$r_qpkg_name
+	#	$r_qpkg_name (default for $1)
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $(/sbin/getcfg ${1:-$r_qpkg_name} Enable -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]]
 
@@ -2502,14 +2502,13 @@ IsNtQpkgEnabled()
 	{
 
 	# Inputs: (local)
-	#	$1 (optional) = package name to check. If unspecified, default is $r_qpkg_name
+	#	$1 (optional) (string) = QPKG name.
 
 	# Inputs: (global)
-	#	$r_qpkg_name
+	#	$r_qpkg_name (default for $1)
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	! IsQpkgEnabled "${1:-$r_qpkg_name}"
 
@@ -2521,10 +2520,10 @@ IsConfigMigrated()
 	# Check if specified QPKG is in the migration list (from leading 'O' QPKGs).
 
 	# Inputs: (local)
-	#	$1 (optional) = package name to check. If unspecified, default is $r_qpkg_name
+	#	$1 (optional) (string) = QPKG name.
 
 	# Inputs: (global)
-	#	$qpkg_name (default for $1)
+	#	$r_qpkg_name (default for $1)
 
 	# Outputs: (local)
 	#	$? = true/false
@@ -2537,14 +2536,13 @@ IsNtConfigMigrated()
 	{
 
 	# Inputs: (local)
-	#	$1 (optional) = package name to check. If unspecified, default is $r_qpkg_name
+	#	$1 (optional) (string) = QPKG name.
 
 	# Inputs: (global)
-	#	$r_qpkg_name
+	#	$r_qpkg_name (default for $1)
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	! IsConfigMigrated "${1:-$r_qpkg_name}"
 
@@ -2556,10 +2554,10 @@ IsQpkgMigrated()
 	# Check if specified QPKG has been migrated from a prohibited QPKG name (leading 'O').
 
 	# Inputs: (local)
-	#	$1 (optional) = package name to check. If unspecified, default is $r_qpkg_name
+	#	$1 (optional) (string) = QPKG name.
 
 	# Inputs: (global)
-	#	$r_qpkg_name
+	#	$r_qpkg_name (default for $1)
 
 	# Outputs: (local)
 	#	$? = true/false
@@ -2577,8 +2575,7 @@ IsSupportBackup()
 	#	$qpkg_backup_pathfile
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $qpkg_backup_pathfile != undefined ]]
 
@@ -2591,8 +2588,7 @@ IsSupportReset()
 	#	$qpkg_ini_pathfile
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $qpkg_ini_pathfile != undefined ]]
 
@@ -2613,8 +2609,7 @@ IsSupportActions()
 	#	$r_service_result_pathfile
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ -e $r_service_action_pathfile || -e $r_service_result_pathfile ]]
 
@@ -2628,8 +2623,7 @@ IsSupportGetAppVersion()
 	#	$app_version_pathfile
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $get_app_version_cmd != undefined && $app_version_pathfile != undefined ]]
 
@@ -2642,8 +2636,7 @@ IsVirtualPythonEnv()
 	#	$venv_path
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $venv_path != undefined ]]
 
@@ -2660,8 +2653,7 @@ IsGitApp()
 	#	$qpkg_repo_path
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $source_git_url != undefined && $source_git_branch != undefined && $qpkg_repo_path != undefined ]]
 
@@ -2674,8 +2666,7 @@ IsUsePipCache()
 	#	$pip_cache_path
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $pip_cache_path != undefined ]]
 
@@ -2688,8 +2679,7 @@ IsOnlineReleasePackage()
 	#	$source_url
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $source_url != undefined ]]
 
@@ -2702,8 +2692,7 @@ IsReleaseAnArchive()
 	#	$package_is_exec
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $package_is_exec != undefined && $package_is_exec = false ]]
 
@@ -2716,17 +2705,9 @@ IsSupportAutoUpdate()
 	#	$can_restart_to_update
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $can_restart_to_update = true ]]
-
-	}
-
-IsNtSourcedOnline()
-	{
-
-	! IsSourcedOnline
 
 	}
 
@@ -2737,6 +2718,13 @@ IsSourcedOnline()
 
 	}
 
+IsNtSourcedOnline()
+	{
+
+	! IsSourcedOnline
+
+	}
+
 IsUseTemp()
 	{
 
@@ -2744,8 +2732,7 @@ IsUseTemp()
 	#	$r_qpkg_temp_path
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $r_qpkg_temp_path != undefined ]]
 
@@ -2758,17 +2745,9 @@ IsSSLEnabled()
 	#	$get_ui_port_secure_enabled_test_cmd
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	eval "$get_ui_port_secure_enabled_test_cmd"
-
-	}
-
-IsNtDaemon()
-	{
-
-	! IsDaemon
 
 	}
 
@@ -2779,10 +2758,22 @@ IsDaemon()
 	#	$daemon_exec_pathfile
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $daemon_exec_pathfile != undefined ]]
+
+	}
+
+IsNtDaemon()
+	{
+
+	# Inputs: (global)
+	#	$daemon_exec_pathfile
+
+	# Outputs: (local)
+	#	$? = true/false
+
+	! IsDaemon
 
 	}
 
@@ -2793,8 +2784,7 @@ IsDaemonCheck()
 	#	$daemon_check_pathfile
 
 	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	#	$? = true/false
 
 	[[ $daemon_check_pathfile != undefined ]]
 
@@ -2811,13 +2801,6 @@ ShowDaemonState()
 
 	}
 
-IsNtDaemonActive()
-	{
-
-	! IsDaemonActive
-
-	}
-
 IsDaemonActive()
 	{
 
@@ -2827,8 +2810,8 @@ IsDaemonActive()
 	#	$daemon_pid_pathfile
 
 	# Outputs: (local)
-	#	$? = 0 : $daemon_exec_pathfile is in memory
-	#	$? = 1 : $daemon_exec_pathfile is not in memory
+	#	$? = true  : $daemon_exec_pathfile is in memory.
+	#	$? = false : $daemon_exec_pathfile is not in memory.
 
 	if [[ -e $daemon_pid_pathfile && -d /proc/"$(< $daemon_pid_pathfile)" ]]; then
 		if IsDaemonCheck; then
@@ -2842,6 +2825,17 @@ IsDaemonActive()
 
 	}
 
+IsNtDaemonActive()
+	{
+
+	# Outputs: (local)
+	#	$? = true  : $daemon_exec_pathfile is not in memory.
+	#	$? = false : $daemon_exec_pathfile is in memory.
+
+	! IsDaemonActive
+
+	}
+
 IsPortAvailable()
 	{
 
@@ -2849,8 +2843,8 @@ IsPortAvailable()
 	#	$1 = port to check.
 
 	# Outputs: (local)
-	#	$? = 0 : available.
-	#	$? = 1 : already used.
+	#	$? = true  : available.
+	#	$? = false : already used.
 
 	local port=${1//[!0-9]/}			# Strip all non-numerals.
 	[[ -n $port && $port -gt 0 ]] || return 0
@@ -2868,8 +2862,8 @@ IsNtPortAvailable()
 	#	$1 = port to check.
 
 	# Outputs: (local)
-	#	$? = 1 : port available.
-	#	$? = 0 : already used.
+	#	$? = true  : already used.
+	#	$? = false : port available.
 
 	! IsPortAvailable "${1:-0}"
 
@@ -4348,7 +4342,7 @@ GetQpkgPostInstallDeps()
 
 	[[ -n ${1:-} ]] || return
 
-	CleanDependencyField "$(/sbin/getcfg "$1" Dependency -f /etc/config/qpkg.conf)"
+	CleanDependencyField "$(/sbin/getcfg $1 Dependency -f /etc/config/qpkg.conf)"
 
 	}
 
