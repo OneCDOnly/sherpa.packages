@@ -1,7 +1,18 @@
+* Weewx
+	- https://github.com/weewx/weewx
+	- python-based.
+
+* Navidrome
+	- https://www.navidrome.org/
+
+* SmokePing
+	- https://github.com/oetiker/SmokePing
+	- requires Perl.
+
 * Chaptarr
-	- to replace Readarr (no-longer maintained)
-	- no public repo yet.
 	- https://www.reddit.com/r/selfhosted/comments/1mimb0n/psa_readarr_replacement_chaptarr_under_very/
+	- to replace Readarr (no-longer maintained).
+	- no public repo yet.
 
 * NetAlertX
 	- https://github.com/jokob-sk/NetAlertX
@@ -23,4 +34,5 @@
 
 * pxehost
 	- https://github.com/pxehost/pxehost
-	- Won't run as UID:0. https://github.com/pxehost/pxehost/issues/1 - possibly fixed now.
+	- Won't run as UID:0
+		- possibly fixed now: https://github.com/pxehost/pxehost/issues/1

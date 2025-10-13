@@ -73,13 +73,21 @@
 	- Still launches fine on a64 (QTS 5.2.6.3195 with libc 2.23). Maybe devs are only compiling i64 version for a later libc? Wait and see if the other arches change this too.
 
 * Jackett
-	- failed, needs ICU
+	- i64 with QTS 5.2.7
+		----------------------------------------------------------------------------
+		[/share/Public/Jackett] # ./jackett
+		./jackett: /lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by ./jackett)
+		----------------------------------------------------------------------------
 
 * Prowlarr
-	- epic fail
+	- i64 with QTS 5.2.7
+		----------------------------------------------------------------------------
+		[/share/Public/Prowlarr] # ./Prowlarr
+		./Prowlarr: /lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by ./Prowlarr)
+		----------------------------------------------------------------------------
 
 * Radarr
-	- epic fail
+	- epic fail, need ICU.
 
 * pigallery2
 	- https://github.com/bpatrik/pigallery2
