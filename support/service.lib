@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251011
+readonly r_service_library_version=251013
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -151,38 +151,33 @@ rm -f "$r_screen_conf_pathfile"
 if [[ $run_daemon_in_screen_session = true &&! -e $r_screen_conf_pathfile ]];then
 echo -e "logfile ${r_service_screen_log_pathfile}\nlogfile flush 1\nlog on">"$r_screen_conf_pathfile"
 fi;}
-StartQPKG(){
-IsNotError||return
-IsStart &&ShowQPKGStates
-if IsDaemon&&IsNotRestart;then
-IsNotStart &&DaemonWasNotActive&&return
-IsNotClean &&ShowDaemonState
+StartQpkg(){
+IsNtError||return
+IsStart &&ShowQpkgStates
+if IsDaemon&&IsNtRestart;then
+IsNtStart &&DaemonWasNotActive&&return
+IsNtClean &&ShowDaemonState
 IsDaemonActive&&return
 fi
 [[ -e $r_service_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
-[[ $(type -t PreStartQPKGCustom) = function ]]&&PreStartQPKGCustom
-if [[ $(type -t StartQPKGCustom) = function ]];then
-StartQPKGCustom
+[[ $(type -t PreStartQpkgCustom) = function ]]&&PreStartQpkgCustom
+if [[ $(type -t StartQpkgCustom) = function ]];then
+StartQpkgCustom
 else
-StartQPKGLibrary
+StartQpkgLibrary
 fi;}
-MigrateQPKGName(){
-local migration_qpkgs=(OLidarr OMedusa OqBittorrent OReadarr OSickGear OSonarr OTautulli OTransmission OWatcher3 OWhisparr)
-if [[ "${migration_qpkgs[*]}" =~ [[:space:]]${r_qpkg_name}[[:space:]] ]];then
-echo "found a migratable QPKG name!"
-fi;}
-StartQPKGLibrary(){
+StartQpkgLibrary(){
 if IsGitApp;then
 CloneGitRepo||return
 fi
 if IsOnlineReleasePackage;then
 RefreshReleasePackageFiles||return
 fi
-if IsVirtualPythonEnv&&IsNotVirtualPythonEnvExist;then
+if IsVirtualPythonEnv&&IsNtVirtualPythonEnvExist;then
 CreateVirtualPythonEnv||return
 InstallPythonPackages||return
 fi
-if IsNotDaemon;then
+if IsNtDaemon;then
 CreateUserlinkToExec
 return
 fi
@@ -194,23 +189,23 @@ WatchForAnyInterfaceUp||return
 fi
 StartDaemon
 return;}
-StopQPKG(){
-IsNotError||return
+StopQpkg(){
+IsNtError||return
 if IsStop ||IsRestart ||IsClean;then
-ShowQPKGStates
+ShowQpkgStates
 fi
 if IsDaemon;then
 ShowDaemonState
-IsNotRestart&&IsNotDaemonActive&&return
+IsNtRestart&&IsNtDaemonActive&&return
 fi
-[[ $(type -t PreStopQPKGCustom) = function ]]&&PreStopQPKGCustom
-if [[ $(type -t StopQPKGCustom) = function ]];then
-StopQPKGCustom
+[[ $(type -t PreStopQpkgCustom) = function ]]&&PreStopQpkgCustom
+if [[ $(type -t StopQpkgCustom) = function ]];then
+StopQpkgCustom
 else
-StopQPKGLibrary
+StopQpkgLibrary
 fi;}
-StopQPKGLibrary(){
-if IsNotDaemon;then
+StopQpkgLibrary(){
+if IsNtDaemon;then
 RemoveUserlinkToExec
 return
 fi
@@ -221,16 +216,16 @@ StopDaemon
 ShowDaemonState
 fi
 return;}
-StatusQPKG(){
-IsNotError||return
-ShowQPKGStates
+StatusQpkg(){
+IsNtError||return
+ShowQpkgStates
 IsDaemon &&ShowDaemonState
-if [[ $(type -t StatusQPKGCustom) = function ]];then
-StatusQPKGCustom
+if [[ $(type -t StatusQpkgCustom) = function ]];then
+StatusQpkgCustom
 else
-StatusQPKGLibrary
+StatusQpkgLibrary
 fi;}
-StatusQPKGLibrary(){
+StatusQpkgLibrary(){
 RefreshPidFile
 if IsDaemon&&IsDaemonActive;then
 LoadPorts app
@@ -269,7 +264,7 @@ new_env=false
 local a=''
 local b=$venv_path/pip.conf
 [[ $allow_access_to_sys_packages = true ]]&&a=' --system-site-packages'
-if IsNotVirtualPythonEnvExist;then
+if IsNtVirtualPythonEnvExist;then
 DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$pip_cache_path VIRTUALENV_OVERRIDE_APP_DATA=$pip_cache_path;$interpreter -m virtualenv ${venv_path}${a}" log:failure-only
 new_env=true
 if [[ ! -e $b ]];then
@@ -443,7 +438,7 @@ local a=''
 if [[ $daemon_port -le 0 &&$ui_port -le 0 &&$ui_port_secure -le 0 ]];then
 DisplayAndCommitErrorToAllLogs 'no port specified'
 SetError;return
-elif IsNotPortAvailable $ui_port ||IsNotPortAvailable $ui_port_secure;then
+elif IsNtPortAvailable $ui_port ||IsNtPortAvailable $ui_port_secure;then
 DisplayAndCommitErrorToAllLogs "ports $ui_port or $ui_port_secure are already in-use"
 a=$(/usr/sbin/lsof -i :$ui_port -Fp)
 DisplayAndCommitInfoToAllLogs "process details for port $ui_port: ${a}: PID $([[ -n ${a:-} ]]&&/bin/tr '\000' ' '</proc/"${a/p/}"/cmdline)"
@@ -494,11 +489,11 @@ local recommended_modules_pathfile=$qpkg_repo_path/recommended.txt
 local rename_modules_pathfile=$r_qpkg_path/pip-rename.txt
 local requirements_modules_pathfile=$qpkg_repo_path/requirements.txt
 [[ $install_pip_deps = true ]]&&no_pip_deps=''
-if IsNotVirtualPythonEnvExist;then
+if IsNtVirtualPythonEnvExist;then
 DisplayAndCommitErrorToAllLogs 'unable to install addons: virtual Python environment does not exist'
 SetError;return
 fi
-IsNotAutoUpdate &&[[ $new_env = false ]]&&return 0
+IsNtAutoUpdate &&[[ $new_env = false ]]&&return 0
 if [[ $r_qpkg_name = OWatcher3 ]];then
 DisplayRunAndLog "KLUDGE: install 'm2r' PyPI module first" "$venv_pip_pathfile install${no_pip_deps} --no-input m2r" log:failure-only
 if [[ $? -gt 0 &&$silence_pypi_errors = false ]];then
@@ -576,7 +571,7 @@ if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $r_qp
 SetError;return
 fi;}
 MigrateConfig(){
-IsNotConfigMigrated||return
+IsNtConfigMigrated||return
 [[ -e $qpkg_ini_pathfile ]]&&/bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_ini_pathfile"
 [[ -e $qpkg_ini_default_pathfile ]]&&/bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_ini_default_pathfile"
 /sbin/setcfg $r_qpkg_name Migrated TRUE -f /etc/config/qpkg.conf;}
@@ -621,9 +616,9 @@ else
 app_version=unknown
 return 1
 fi;}
-ShowQPKGStates(){
+ShowQpkgStates(){
 DisplayAndCommitInfoWaitToLog 'QPKG enabled'
-if IsQPKGEnabled;then
+if IsQpkgEnabled;then
 DisplayAndCommitOutcomeToLog true
 else
 DisplayAndCommitOutcomeToLog false
@@ -690,7 +685,7 @@ fi
 [[ $branch_switch = true &&$r_qpkg_name = nzbToMedia ]]&&RestoreConfig
 return 0;}
 CleanLocalRepo(){
-if [[ -z $r_qpkg_path ||-z $r_qpkg_name ]]||IsNotSourcedOnline;then
+if [[ -z $r_qpkg_path ||-z $r_qpkg_name ]]||IsNtSourcedOnline;then
 SetError;return
 fi
 (IsGitApp ||IsOnlineReleasePackage) &&DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
@@ -701,11 +696,11 @@ IsUsePipCache &&[[ -d $pip_cache_path ]]&&DisplayRunAndLog 'clean PyPI cache' "r
 IsUseTemp &&[[ -d $r_qpkg_temp_path ]]&&DisplayRunAndLog 'clean temp path' "rm -rf \"$r_qpkg_temp_path\"" log:failure-only
 MakePaths;}
 WatchForGit(){
-if IsNotQPKGInstalled Entware;then
+if IsNtQpkgInstalled Entware;then
 DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not installed"
 SetError;return
 fi
-if IsNotQPKGEnabled Entware;then
+if IsNtQpkgEnabled Entware;then
 DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not enabled"
 SetError;return
 fi
@@ -866,8 +861,8 @@ SetError;return
 fi
 return 0;}
 EnsureConfigFileExists(){
-IsNotSupportReset&&return
-if IsNotConfigFound&&IsDefaultConfigFound;then
+IsNtSupportReset&&return
+if IsNtConfigFound&&IsDefaultConfigFound;then
 DisplayAndCommitInfoToLog 'no configuration file found: using default'
 cp "${qpkg_ini_default_pathfile:?undefined}" "${qpkg_ini_pathfile:?undefined}"
 fi;}
@@ -1152,17 +1147,18 @@ Display 'QTS functions missing (is this a QNAP NAS?)'
 SetError;return
 fi
 return 0;}
-IsQPKGInstalled(){
-[[ "$(</etc/config/qpkg.conf)" =~ "[${1:-$r_qpkg_name}]" ]];}
-IsNotQPKGInstalled(){
-! IsQPKGInstalled "${1:-$r_qpkg_name}";}
-IsQPKGEnabled(){
+IsQpkgInstalled(){
+local a=${1:-$r_qpkg_name}
+[[ $(/sbin/getcfg $a Name -d undefined -f /etc/config/qpkg.conf) = "$a" ]];}
+IsNtQpkgInstalled(){
+! IsQpkgInstalled "${1:-$r_qpkg_name}";}
+IsQpkgEnabled(){
 [[ $(/sbin/getcfg ${1:-$r_qpkg_name} Enable -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]];}
-IsNotQPKGEnabled(){
-! IsQPKGEnabled "${1:-$r_qpkg_name}";}
+IsNtQpkgEnabled(){
+! IsQpkgEnabled "${1:-$r_qpkg_name}";}
 IsConfigMigrated(){
 [[ $(/sbin/getcfg ${1:-$r_qpkg_name} Migrated -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]];}
-IsNotConfigMigrated(){
+IsNtConfigMigrated(){
 ! IsConfigMigrated "${1:-$r_qpkg_name}";}
 IsQpkgMigrated(){
 local re=\\b${1:-$r_qpkg_name}\\b
@@ -1171,7 +1167,7 @@ IsSupportBackup(){
 [[ $qpkg_backup_pathfile != undefined ]];}
 IsSupportReset(){
 [[ $qpkg_ini_pathfile != undefined ]];}
-IsNotSupportReset(){
+IsNtSupportReset(){
 ! IsSupportReset;}
 IsSupportActions(){
 [[ -e $r_service_action_pathfile ||-e $r_service_result_pathfile ]];}
@@ -1189,18 +1185,18 @@ IsReleaseAnArchive(){
 [[ $package_is_exec != undefined &&$package_is_exec = false ]];}
 IsSupportAutoUpdate(){
 [[ $can_restart_to_update = true ]];}
-IsNotSourcedOnline(){
-! IsSourcedOnline;}
 IsSourcedOnline(){
 IsGitApp ||IsUsePipCache ||IsOnlineReleasePackage;}
+IsNtSourcedOnline(){
+! IsSourcedOnline;}
 IsUseTemp(){
 [[ $r_qpkg_temp_path != undefined ]];}
 IsSSLEnabled(){
 eval "$get_ui_port_secure_enabled_test_cmd";}
-IsNotDaemon(){
-! IsDaemon;}
 IsDaemon(){
 [[ $daemon_exec_pathfile != undefined ]];}
+IsNtDaemon(){
+! IsDaemon;}
 IsDaemonCheck(){
 [[ $daemon_check_pathfile != undefined ]];}
 ShowDaemonState(){
@@ -1209,8 +1205,6 @@ DisplayAndCommitInfoToLog "daemon PID: $(<"$daemon_pid_pathfile")"
 else
 DisplayAndCommitInfoToLog 'daemon PID: none'
 fi;}
-IsNotDaemonActive(){
-! IsDaemonActive;}
 IsDaemonActive(){
 if [[ -e $daemon_pid_pathfile &&-d /proc/"$(<$daemon_pid_pathfile)" ]];then
 if IsDaemonCheck;then
@@ -1221,12 +1215,14 @@ fi
 else
 false
 fi;}
+IsNtDaemonActive(){
+! IsDaemonActive;}
 IsPortAvailable(){
 local port=${1//[!0-9]/}
 [[ -n $port &&$port -gt 0 ]]||return 0
 /usr/sbin/lsof -i :"$port" -sTCP:LISTEN>/dev/null 2>&1&&return 1
 return 0;}
-IsNotPortAvailable(){
+IsNtPortAvailable(){
 ! IsPortAvailable "${1:-0}";}
 IsPortResponds(){
 local -i a=${1//[!0-9]/}
@@ -1309,13 +1305,13 @@ done
 return 1;}
 IsConfigFound(){
 [[ $qpkg_ini_pathfile != undefined &&-e $qpkg_ini_pathfile ]];}
-IsNotConfigFound(){
+IsNtConfigFound(){
 ! IsConfigFound;}
 IsDefaultConfigFound(){
 [[ $qpkg_ini_default_pathfile != undefined &&-e $qpkg_ini_default_pathfile ]];}
 IsVirtualPythonEnvExist(){
 [[ -e $venv_path/bin/activate ]];}
-IsNotVirtualPythonEnvExist(){
+IsNtVirtualPythonEnvExist(){
 ! IsVirtualPythonEnvExist;}
 IsOsCanSecureDownload(){
 [[ $r_nas_firmware_ver -ge 500 ]];}
@@ -1465,11 +1461,11 @@ SetServiceResultAsInProgress(){
 service_result=in-progress
 CommitServiceResult;}
 CommitServiceAction(){
-if IsNotStatus&&IsNotLog&&IsNotNone;then
+if IsNtStatus&&IsNtLog&&IsNtNone;then
 [[ $r_service_action_pathfile != undefined ]]&&echo "$service_action">"$r_service_action_pathfile"
 fi;}
 CommitServiceResult(){
-if IsNotStatus&&IsNotLog&&IsNotNone;then
+if IsNtStatus&&IsNtLog&&IsNtNone;then
 [[ $r_service_result_pathfile != undefined ]]&&echo "$service_result">"$r_service_result_pathfile"
 fi;}
 SetDaemonWasActive(){
@@ -1480,18 +1476,18 @@ SetStatusGet(){
 _get_status_flag=true;}
 IsStatus(){
 [[ ${_get_status_flag:=false} = true ]];}
-IsNotStatus(){
+IsNtStatus(){
 ! IsStatus;}
 SetError(){
 IsError&&return
 _error_flag=true
 false;}
 UnsetError(){
-IsNotError&&return
+IsNtError&&return
 _error_flag=false;}
 IsError(){
 [[ ${_error_flag:=false} = true ]];}
-IsNotError(){
+IsNtError(){
 ! IsError;}
 IsReinstall(){
 [[ ${REINSTALL_QPKG:=false} = true ]];}
@@ -1501,25 +1497,25 @@ IsUninstall(){
 [[ ${UNINSTALL_QPKG:=false} = true ]];}
 IsStart(){
 [[ $service_action = start ]];}
-IsNotStart(){
+IsNtStart(){
 ! IsStart;}
 IsStop(){
 [[ $service_action = stop ]];}
 IsRestart(){
 [[ $service_action = restart ]];}
-IsNotRestart(){
+IsNtRestart(){
 ! IsRestart;}
 IsLog(){
 [[ $service_action = log ]];}
-IsNotLog(){
+IsNtLog(){
 ! IsLog;}
 IsNone(){
 [[ $service_action = none ]];}
-IsNotNone(){
+IsNtNone(){
 ! IsNone;}
 IsClean(){
 [[ $service_action = clean ]];}
-IsNotClean(){
+IsNtClean(){
 ! IsClean;}
 IsUnsupported(){
 [[ $service_action = unsupported ]];}
@@ -1567,7 +1563,7 @@ starttime=$(ConvertNowToNanoseconds)
 local msg="- source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' '<<<"$msg") "
 local a=DisplayAndCommitToLog
-if IsNotStatus&&IsNotLog&&IsNotNone;then
+if IsNtStatus&&IsNtLog&&IsNtNone;then
 IsUnsupported &&a=CommitToLog
 CommitToLog '•'
 $a "$(TextInverse "$msg")"
@@ -1578,7 +1574,7 @@ DisplayAndCommitResultToLog(){
 local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' '<<<"$msg") "
 local a=DisplayAndCommitToLog
-if IsNotStatus&&IsNotLog&&IsNotNone;then
+if IsNtStatus&&IsNtLog&&IsNtNone;then
 IsUnsupported &&a=CommitToLog
 case $service_result in
 ok)
@@ -1608,15 +1604,15 @@ CommitToSysLog "${1:-}. Please check the service log for more information." 2;}
 CommitErrorToSysLog(){
 CommitToSysLog "${1:-}. Please check the service log for more information." 1;}
 CommitToLog(){
-if IsNotStatus&&IsNotLog&&IsNotNone;then
+if IsNtStatus&&IsNtLog&&IsNtNone;then
 [[ ${1:-} = '•' &&! -s "$r_service_log_pathfile" ]]||echo -e "${1:-}">>"$r_service_log_pathfile"
 fi;}
 CommitWaitToLog(){
-if IsNotStatus&&IsNotLog&&IsNotNone;then
+if IsNtStatus&&IsNtLog&&IsNtNone;then
 printf '%s' "${1:-} ">>"$r_service_log_pathfile"
 fi;}
 CommitToSysLog(){
-if IsNotStatus&&IsNotLog&&IsNotNone;then
+if IsNtStatus&&IsNtLog&&IsNtNone;then
 if [[ -z ${1:-} ||-z ${2:-} ]];then
 SetError;return
 fi
@@ -1722,7 +1718,7 @@ IsAutoUpdateMissing(){
 [[ $(/sbin/getcfg $r_qpkg_name Auto_Update -f /etc/config/qpkg.conf) = '' ]];}
 IsAutoUpdate(){
 IsSupportAutoUpdate &&[[ $(/sbin/getcfg $r_qpkg_name Auto_Update -u -f /etc/config/qpkg.conf) = TRUE ]];}
-IsNotAutoUpdate(){
+IsNtAutoUpdate(){
 ! IsAutoUpdate;}
 EnableAutoUpdate(){
 StoreAutoUpdateSelection true;}
@@ -1766,18 +1762,18 @@ GetCPUCores(){
 local a=$(/bin/grep -c '^processor' /proc/cpuinfo)
 [[ $a -eq 0 ]]&&a=$(/bin/grep -c '^Processor' /proc/cpuinfo)
 printf '%s' "$a";}
-AddToQPKGPostInstallDeps(){
+AddToQpkgPostInstallDeps(){
 [[ -n ${1:-} &&-n ${2:-} ]]||return
-RemoveFromQPKGPostInstallDeps "$1" "$2"
-SetQPKGPostInstallDeps "$1" "$(GetQPKGPostInstallDeps "$1"):$2";}
-GetQPKGPostInstallDeps(){
+RemoveFromQpkgPostInstallDeps "$1" "$2"
+SetQpkgPostInstallDeps "$1" "$(GetQpkgPostInstallDeps "$1"):$2";}
+GetQpkgPostInstallDeps(){
 [[ -n ${1:-} ]]||return
-CleanDependencyField "$(/sbin/getcfg "$1" Dependency -f /etc/config/qpkg.conf)";}
-RemoveFromQPKGPostInstallDeps(){
+CleanDependencyField "$(/sbin/getcfg $1 Dependency -f /etc/config/qpkg.conf)";}
+RemoveFromQpkgPostInstallDeps(){
 [[ -n ${1:-} &&-n ${2:-} ]]||return
 local re=\\b${2}\\b
-SetQPKGPostInstallDeps "$1" "$(/bin/sed "s|${re}||g"<<<"$(GetQPKGPostInstallDeps "$1")")";}
-SetQPKGPostInstallDeps(){
+SetQpkgPostInstallDeps "$1" "$(/bin/sed "s|${re}||g"<<<"$(GetQpkgPostInstallDeps "$1")")";}
+SetQpkgPostInstallDeps(){
 [[ -n ${1:-} ]]||return
 local a=$(CleanDependencyField "${2:-}")
 if [[ -n $a ]];then
@@ -1791,9 +1787,6 @@ local a=$(/bin/tr -s ':'<<<"$1")
 [[ -n $a &&${a:0:1} = ':' ]]&&a=${a#?}
 [[ -n $a &&${a: -1:1} = ':' ]]&&a=${a%?}
 printf '%s' "$a";}
-Lowercase(){
-[[ -n ${1:-} ]]||return
-tr 'A-Z' 'a-z'<<<"$1";}
 SetTraps(){
 trap CaughtSIGHUP SIGHUP
 trap CaughtSIGINT SIGINT
@@ -1838,15 +1831,15 @@ else
 source_git_branch=$test_branch
 fi
 fi
-if IsNotError;then
+if IsNtError;then
 local user_arg=${r_user_args_raw%% *}
 case $user_arg in
 ?(--)activate|?(--)start)
 IsSU||exit
 SetServiceAction start
-if IsQPKGEnabled;then
+if IsQpkgEnabled;then
 SetTraps
-StartQPKG
+StartQpkg
 else
 ShowDisabledPrompt
 SetError
@@ -1856,9 +1849,9 @@ IsSU||exit
 if IsSupportBackup;then
 SetServiceAction backup
 SetTraps
-StopQPKG
+StopQpkg
 BackupConfig
-IsQPKGEnabled &&StartQPKG
+IsQpkgEnabled &&StartQpkg
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
@@ -1868,10 +1861,10 @@ IsSU||exit
 if IsSourcedOnline;then
 SetServiceAction clean
 SetTraps
-StopQPKG
+StopQpkg
 [[ $r_qpkg_name = nzbToMedia ]]&&BackupConfig
 CleanLocalRepo
-IsQPKGEnabled &&StartQPKG
+IsQpkgEnabled &&StartQpkg
 [[ $r_qpkg_name = nzbToMedia ]]&&RestoreConfig
 else
 SetServiceAction unsupported
@@ -1882,14 +1875,14 @@ IsSU||exit
 IsUninstall &&exit
 SetServiceAction stop
 SetTraps
-StopQPKG;;
+StopQpkg;;
 ?(--)disable)
 IsSU||exit
 SetServiceAction disable
 SetTraps
-[[ $(type -t PreDisableQPKGCustom) = function ]]&&PreDisableQPKGCustom
+[[ $(type -t PreDisableQpkgCustom) = function ]]&&PreDisableQpkgCustom
 /sbin/qpkg_service disable "$r_qpkg_name"
-if IsNotQPKGEnabled;then
+if IsNtQpkgEnabled;then
 ShowDisabled
 else
 ShowDisableFailed
@@ -1909,9 +1902,9 @@ fi;;
 IsSU||exit
 SetServiceAction enable
 SetTraps
-[[ $(type -t PreEnableQPKGCustom) = function ]]&&PreEnableQPKGCustom
+[[ $(type -t PreEnableQpkgCustom) = function ]]&&PreEnableQpkgCustom
 /sbin/qpkg_service enable "$r_qpkg_name"
-if IsQPKGEnabled;then
+if IsQpkgEnabled;then
 ShowEnabled
 else
 ShowEnableFailed
@@ -1935,9 +1928,9 @@ ViewLog;;
 ?(-)r|?(--)reactivate|?(--)restart)
 IsSU||exit
 SetServiceAction restart
-if IsQPKGEnabled;then
+if IsQpkgEnabled;then
 SetTraps
-StopQPKG &&StartQPKG
+StopQpkg &&StartQpkg
 else
 ShowDisabledPrompt
 SetError
@@ -1958,9 +1951,9 @@ IsSU||exit
 if IsSupportReset;then
 SetServiceAction reset
 SetTraps
-StopQPKG
+StopQpkg
 ResetConfig
-IsQPKGEnabled &&StartQPKG
+IsQpkgEnabled &&StartQpkg
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
@@ -1970,9 +1963,9 @@ IsSU||exit
 if IsSupportBackup;then
 SetServiceAction restore
 SetTraps
-StopQPKG
+StopQpkg
 RestoreConfig
-IsQPKGEnabled &&StartQPKG
+IsQpkgEnabled &&StartQpkg
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
@@ -1980,7 +1973,7 @@ fi;;
 ?(-)s|?(--)status)
 IsSU||exit
 SetStatusGet
-StatusQPKG;;
+StatusQpkg;;
 uninstall)
 :;;
 ?(-)+(v|V)|?(--)version?(s))
@@ -1995,7 +1988,7 @@ ShowUnsupportedAction "$user_arg"
 fi
 esac
 fi
-if IsNotLog&&IsNotNone;then
+if IsNtLog&&IsNtNone;then
 if IsError;then
 SetServiceResultAsFailed
 exit 1

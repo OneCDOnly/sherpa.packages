@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Watcher3
-readonly r_service_script_version=251011
+readonly r_service_script_version=251013
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache

@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrguiNG
-readonly r_service_script_version=251011
+readonly r_service_script_version=251013
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_backup_pathfile=undefined
@@ -45,15 +45,18 @@ source_url_arch=web
 source_url_match=-${source_url_arch}-
 start_retries=3
 source_url=https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest;}
-StatusQPKGCustom(){
-IsNotError||exit
-IsQPKGEnabled||exit
-exit;}
-PreStartQPKGCustom(){
-IsQPKGInstalled OTransmission &&AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
+StatusQpkgCustom(){
+if IsNtError&&IsQpkgEnabled;then
+printf active
+exit 0
+fi
+printf inactive
+exit 1;}
+PreStartQpkgCustom(){
+IsQpkgInstalled OTransmission &&AddToQpkgPostInstallDeps OTransmission $r_qpkg_name
 /sbin/setcfg $r_qpkg_name Use TRUE -f /etc/config/qpkg.conf;}
-PreStopQPKGCustom(){
-RemoveFromQPKGPostInstallDeps OTransmission $r_qpkg_name
+PreStopQpkgCustom(){
+RemoveFromQpkgPostInstallDeps OTransmission $r_qpkg_name
 /sbin/setcfg $r_qpkg_name Use FALSE -f /etc/config/qpkg.conf;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
