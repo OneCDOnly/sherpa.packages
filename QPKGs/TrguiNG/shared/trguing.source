@@ -151,31 +151,35 @@ InitService()
 
 	}
 
-StatusQPKGCustom()
+StatusQpkgCustom()
 	{
 
 	# NOTE: Processing will terminate in this function (no-return).
 
-	IsNotError || exit
+	if IsNtError && IsQpkgEnabled; then
+		printf active
 
-	IsQPKGEnabled || exit
+		exit 0
+	fi
 
-	exit
+	printf inactive
+
+	exit 1
 
 	}
 
-PreStartQPKGCustom()
+PreStartQpkgCustom()
 	{
 
-	IsQPKGInstalled OTransmission && AddToQPKGPostInstallDeps OTransmission $r_qpkg_name
+	IsQpkgInstalled OTransmission && AddToQpkgPostInstallDeps OTransmission $r_qpkg_name
 	/sbin/setcfg $r_qpkg_name Use TRUE -f /etc/config/qpkg.conf
 
 	}
 
-PreStopQPKGCustom()
+PreStopQpkgCustom()
 	{
 
-	RemoveFromQPKGPostInstallDeps OTransmission $r_qpkg_name
+	RemoveFromQpkgPostInstallDeps OTransmission $r_qpkg_name
 	/sbin/setcfg $r_qpkg_name Use FALSE -f /etc/config/qpkg.conf
 
 	}
