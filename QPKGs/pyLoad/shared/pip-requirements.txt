@@ -21,7 +21,7 @@ js2py
 more_itertools
 py_mini_racer
 pydantic
-pydantic_core==2.33.2
+pydantic_core
 pyjsparser
 pyload-ng
 pyzstd
