@@ -1,10 +1,6 @@
-* pxehost
-	- https://github.com/pxehost/pxehost
-	- Won't run as UID:0. https://github.com/pxehost/pxehost/issues/1
-
 * audiobookshelf
 	- https://github.com/advplyr/audiobookshelf
-	- no developer compiled binary available. Only packages for common distros.
+	- no developer compiled binary available. Only packages for common distros. Might be able to extract from one of these.
 
 * nix package manager
 	- https://nixos.org/download/
@@ -43,7 +39,7 @@
 
 * puls
 	- https://github.com/word-sys/puls
-	- glibc in QTS too old.
+	- glibc in QTS too-old.
 
 * UsrGrp-Manager-TUI
 	- https://github.com/Firstp1ck/UsrGrp-Manager-TUI
@@ -51,7 +47,7 @@
 
 * rustnet
 	- https://github.com/domcyrus/rustnet
-	- libpcap-dev unavailable for QTS
+	- 'libpcap-dev' unavailable for QTS
 
 * Soulseek daemon
 	- https://github.com/slskd/slskd
@@ -110,6 +106,7 @@
 	----------------------------------------------------------------------------
 	- Try with NodeJS 14 QPKG from myQNAP.
 	- Nope, far-too-many outdated packages.
+	- It's possible pigallery has been updated to handle a later nodejs version: https://github.com/bpatrik/pigallery2/blob/master/.tool-versions
 
 * gpt-engineer
 	- See sherpa.packages/dev/gpt-engineer/compatibility-notes.txt

@@ -21,3 +21,6 @@
 * BlendFarm
 	- https://github.com/LogicReinc/LogicReinc.BlendFarm
 
+* pxehost
+	- https://github.com/pxehost/pxehost
+	- Won't run as UID:0. https://github.com/pxehost/pxehost/issues/1 - possibly fixed now.
