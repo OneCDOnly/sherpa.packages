@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-./repo-cache/filebrowser config init -d ./config/filebrowser.db
-./repo-cache/filebrowser config set -p 8641 -a '0.0.0.0' -d ./config/filebrowser.db
-./repo-cache/filebrowser users add admin 'iwillchangethispassword' -d ./config/filebrowser.db		# To add an 'admin' user with a password.
-./repo-cache/filebrowser config set --auth.method=noauth -d ./config/filebrowser.db					# For LAN-only access with no-login required.
+./repo-cache/filebrowser config init --database ./config/filebrowser.db
+./repo-cache/filebrowser config set --port 8641 --address '0.0.0.0' --root / --singleClick --database ./config/filebrowser.db
+./repo-cache/filebrowser users add admin 'iwillchangethispassword' --database ./config/filebrowser.db		# To add an 'admin' user with a password.
+./repo-cache/filebrowser config set --auth.method=noauth --database ./config/filebrowser.db					# For LAN-only access with no-login required.
