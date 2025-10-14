@@ -124,3 +124,7 @@
 
 * codex
 	- See sherpa.packages/dev/Codex/compatibility-notes.txt
+
+* SmokePing
+	- https://github.com/oetiker/SmokePing
+	- See sherpa.packages/dev/SmokePing/compatibility-notes.txt

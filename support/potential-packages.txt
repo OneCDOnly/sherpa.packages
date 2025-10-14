@@ -1,9 +1,14 @@
+* Stirling-PDF
+	- https://github.com/Stirling-Tools/Stirling-PDF
+	- https://docs.stirlingpdf.com/Installation/Unix%20Installation
+
+* BentoPDF
+	- https://github.com/alam00000/bentopdf
+	- needs NodeJS v18 or-higher
+	- npm
+
 * Navidrome
 	- https://www.navidrome.org/
-
-* SmokePing
-	- https://github.com/oetiker/SmokePing
-	- requires Perl.
 
 * Chaptarr
 	- https://www.reddit.com/r/selfhosted/comments/1mimb0n/psa_readarr_replacement_chaptarr_under_very/
