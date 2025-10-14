@@ -34,20 +34,22 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WeeWX
-readonly r_service_script_version=251014
+readonly r_service_script_version=251015
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
 venv_path=$r_qpkg_path/venv
+qpkg_config_file=weewx.conf
 daemon_exec_pathfile=$venv_path/bin/python3
 daemon_script_pathfile=$venv_path/bin/weewxd
+qpkg_config_pathfile=$qpkg_config_path/weewx-data/$qpkg_config_file
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true
 install_pip_deps=true
 interpreter=/opt/bin/python3
-daemon_launch_cmd="export TEMP=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --daemon --config $qpkg_ini_pathfile --pidfile $daemon_pid_pathfile --exit";}
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --pidfile $daemon_pid_pathfile --exit";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

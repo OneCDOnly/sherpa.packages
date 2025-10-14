@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Watcher3
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -51,11 +51,11 @@ source_git_branch=master
 source_git_branch_depth=shallow
 start_retries=3
 source_git_url=https://github.com/barbequesauce/Watcher3.git
-get_ui_listening_address_cmd="/opt/bin/jq -r .Server.serverhost<$qpkg_ini_pathfile"
-get_ui_port_cmd="/opt/bin/jq -r .Server.serverport<$qpkg_ini_pathfile"
-get_ui_port_secure_cmd="/opt/bin/jq -r .Server.serverport<$qpkg_ini_pathfile"
+get_ui_listening_address_cmd="/opt/bin/jq -r .Server.serverhost<$qpkg_config_pathfile"
+get_ui_port_cmd="/opt/bin/jq -r .Server.serverport<$qpkg_config_pathfile"
+get_ui_port_secure_cmd="/opt/bin/jq -r .Server.serverport<$qpkg_config_pathfile"
 get_ui_port_secure_enabled_test_cmd=''
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdata $(/usr/bin/dirname "$qpkg_ini_pathfile") --conf $qpkg_ini_pathfile --pid $daemon_pid_pathfile";}
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdata $(/usr/bin/dirname "$qpkg_config_pathfile") --conf $qpkg_config_pathfile --pid $daemon_pid_pathfile";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

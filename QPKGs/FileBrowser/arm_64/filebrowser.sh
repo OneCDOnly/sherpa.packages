@@ -34,13 +34,13 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=FileBrowser
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
-qpkg_ini_file=filebrowser.db
+qpkg_config_file=filebrowser.db
 daemon_exec_pathfile=$qpkg_repo_path/filebrowser
-qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
-qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
+qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 can_restart_to_update=true
 resolve_source_url=true
 run_daemon_in_screen_session=true
@@ -53,7 +53,7 @@ get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="echo $ui_port"
 get_ui_port_secure_cmd=false
 get_ui_port_secure_enabled_test_cmd=false
-daemon_launch_cmd="$daemon_exec_pathfile --database $qpkg_ini_pathfile --address $($get_ui_listening_address_cmd) --port $($get_ui_port_cmd) --root /";}
+daemon_launch_cmd="$daemon_exec_pathfile --database $qpkg_config_pathfile --address $($get_ui_listening_address_cmd) --port $($get_ui_port_cmd) --root /";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

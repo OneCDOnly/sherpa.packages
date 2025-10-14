@@ -34,17 +34,17 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
 venv_path=$r_qpkg_path/venv
-qpkg_ini_file=nzbhydra.yml
+qpkg_config_file=nzbhydra.yml
 daemon_check_pathfile=$qpkg_repo_path/core
 daemon_exec_pathfile=$venv_path/bin/python3
 daemon_script_pathfile=$qpkg_repo_path/nzbhydra2wrapperPy3.py
-qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
-qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
+qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=
 can_restart_to_update=true
@@ -56,11 +56,11 @@ source_url_arch=arm64
 source_url_match=-${source_url_arch}-linux.zip
 start_retries=3
 source_url=https://api.github.com/repos/theotherp/nzbhydra2/releases/latest
-get_ui_listening_address_cmd="GetKeyFromYAML main_host $qpkg_ini_pathfile"
-get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_ini_pathfile"
-get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_ini_pathfile"
-get_ui_port_secure_enabled_test_cmd='[[ $(GetKeyFromYAML main:ssl '$qpkg_ini_pathfile') = true ]]'
-daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $r_qpkg_config_path --pidfile $daemon_pid_pathfile";}
+get_ui_listening_address_cmd="GetKeyFromYAML main_host $qpkg_config_pathfile"
+get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_config_pathfile"
+get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_config_pathfile"
+get_ui_port_secure_enabled_test_cmd='[[ $(GetKeyFromYAML main:ssl '$qpkg_config_pathfile') = true ]]'
+daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $qpkg_config_path --pidfile $daemon_pid_pathfile";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

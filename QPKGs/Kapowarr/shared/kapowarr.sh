@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Kapowarr
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -56,11 +56,11 @@ start_retries=3
 ui_listening_address=0.0.0.0
 ui_port=5656
 source_git_url=https://github.com/Casvt/Kapowarr.git
-get_ui_listening_address_cmd="/sbin/getcfg misc host -d $ui_listening_address -f $qpkg_ini_pathfile"
-get_ui_port_cmd="/sbin/getcfg General http_port -d $ui_port -f $qpkg_ini_pathfile"
-get_ui_port_secure_cmd="/sbin/getcfg General http_port -d $ui_port -f $qpkg_ini_pathfile"
-get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg General https_enabled -d 0 -f '$qpkg_ini_pathfile') = 1 ]]'
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile -d $(/usr/bin/dirname "$qpkg_ini_pathfile")"
+get_ui_listening_address_cmd="/sbin/getcfg misc host -d $ui_listening_address -f $qpkg_config_pathfile"
+get_ui_port_cmd="/sbin/getcfg General http_port -d $ui_port -f $qpkg_config_pathfile"
+get_ui_port_secure_cmd="/sbin/getcfg General http_port -d $ui_port -f $qpkg_config_pathfile"
+get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg General https_enabled -d 0 -f '$qpkg_config_pathfile') = 1 ]]'
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile -d $(/usr/bin/dirname "$qpkg_config_pathfile")"
 IsSupportGetAppVersion &&app_version_cmd="/bin/grep '__version__ =' $app_version_pathfile|/bin/sed 's|^.*\"\(.*\)\"|\1|'";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0

@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Glances
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -43,8 +43,8 @@ venv_path=$r_qpkg_path/venv
 daemon_exec_pathfile=$venv_path/bin/python3
 daemon_script_pathfile=$venv_path/bin/glances
 qpkg_backup_pathfile=undefined
-qpkg_ini_pathfile=undefined
-qpkg_ini_default_pathfile=undefined
+qpkg_config_pathfile=undefined
+qpkg_config_default_pathfile=undefined
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
 can_restart_to_update=true
@@ -60,7 +60,7 @@ get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="echo $ui_port"
 get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd=false
-daemon_launch_cmd="export TEMP=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --webserver";}
+daemon_launch_cmd="export TEMP=$qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --webserver";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

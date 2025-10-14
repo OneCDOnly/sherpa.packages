@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=SickGear
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -52,18 +52,18 @@ source_git_branch=main
 source_git_branch_depth=single-branch
 start_retries=3
 source_git_url=https://github.com/SickGear/SickGear.git
-get_ui_listening_address_cmd="/sbin/getcfg General web_host -d undefined -f $qpkg_ini_pathfile"
-get_ui_port_cmd="/sbin/getcfg General web_port -d 0 -f $qpkg_ini_pathfile"
-get_ui_port_secure_cmd="/sbin/getcfg General web_port -d 0 -f $qpkg_ini_pathfile"
-get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg General enable_https -d 0 -f '$qpkg_ini_pathfile') = 1 ]]'
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_ini_pathfile")"
-if [[ -e $qpkg_ini_default_pathfile ]];then
-/sbin/setcfg General log_dir "$r_qpkg_config_path"/logs -f "$qpkg_ini_default_pathfile"
-/sbin/setcfg General cache_dir "$r_qpkg_config_path"/cache -f "$qpkg_ini_default_pathfile"
+get_ui_listening_address_cmd="/sbin/getcfg General web_host -d undefined -f $qpkg_config_pathfile"
+get_ui_port_cmd="/sbin/getcfg General web_port -d 0 -f $qpkg_config_pathfile"
+get_ui_port_secure_cmd="/sbin/getcfg General web_port -d 0 -f $qpkg_config_pathfile"
+get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg General enable_https -d 0 -f '$qpkg_config_pathfile') = 1 ]]'
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_config_pathfile")"
+if [[ -e $qpkg_config_default_pathfile ]];then
+/sbin/setcfg General log_dir "$qpkg_config_path"/logs -f "$qpkg_config_default_pathfile"
+/sbin/setcfg General cache_dir "$qpkg_config_path"/cache -f "$qpkg_config_default_pathfile"
 fi
-if [[ -e $qpkg_ini_pathfile ]];then
-/sbin/setcfg General log_dir "$r_qpkg_config_path"/logs -f "$qpkg_ini_pathfile"
-/sbin/setcfg General cache_dir "$r_qpkg_config_path"/cache -f "$qpkg_ini_pathfile"
+if [[ -e $qpkg_config_pathfile ]];then
+/sbin/setcfg General log_dir "$qpkg_config_path"/logs -f "$qpkg_config_pathfile"
+/sbin/setcfg General cache_dir "$qpkg_config_path"/cache -f "$qpkg_config_pathfile"
 fi;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0

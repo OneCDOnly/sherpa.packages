@@ -34,12 +34,12 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OliveTin
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
-qpkg_ini_file=config.yaml
-qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
-qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+qpkg_config_file=config.yaml
+qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
+qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 allow_access_to_sys_packages=false
 can_restart_to_update=true
 resolve_source_url=true
@@ -49,11 +49,11 @@ daemon_exec_pathfile=$qpkg_repo_path/OliveTin-linux-$source_url_arch/OliveTin
 source_url_match=-linux-${source_url_arch}.tar.gz
 start_retries=3
 source_url=https://api.github.com/repos/OliveTin/OliveTin/releases/latest
-get_ui_listening_address_cmd="GetKeyFromYAML listenAddressSingleHTTPFrontend $qpkg_ini_pathfile|cut -d: -f1"
-get_ui_port_cmd="GetKeyFromYAML listenAddressSingleHTTPFrontend $qpkg_ini_pathfile|cut -d: -f2"
+get_ui_listening_address_cmd="GetKeyFromYAML listenAddressSingleHTTPFrontend $qpkg_config_pathfile|cut -d: -f1"
+get_ui_port_cmd="GetKeyFromYAML listenAddressSingleHTTPFrontend $qpkg_config_pathfile|cut -d: -f2"
 get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd=false
-daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-linux-$source_url_arch &&$daemon_exec_pathfile -configdir $r_qpkg_config_path";}
+daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-linux-$source_url_arch &&$daemon_exec_pathfile -configdir $qpkg_config_path";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

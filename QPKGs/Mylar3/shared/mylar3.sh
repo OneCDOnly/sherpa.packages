@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Mylar3
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -51,16 +51,16 @@ source_git_branch=master
 source_git_branch_depth=shallow
 start_retries=3
 source_git_url=https://github.com/mylar3/mylar3.git
-get_ui_listening_address_cmd="/sbin/getcfg interface http_host -d undefined -f $qpkg_ini_pathfile"
-get_ui_port_cmd="/sbin/getcfg interface http_port -d 0 -f $qpkg_ini_pathfile"
-get_ui_port_secure_cmd="/sbin/getcfg interface http_port -d 0 -f $qpkg_ini_pathfile"
-get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg interface enable_https -d 0 -f '$qpkg_ini_pathfile') = 1 ]]'
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_ini_pathfile") --config $qpkg_ini_pathfile"
-if [[ -e $qpkg_ini_default_pathfile ]];then
-/sbin/setcfg Metatagging ct_settingspath "$r_qpkg_config_path"/ComicTagger -f "$qpkg_ini_default_pathfile"
+get_ui_listening_address_cmd="/sbin/getcfg interface http_host -d undefined -f $qpkg_config_pathfile"
+get_ui_port_cmd="/sbin/getcfg interface http_port -d 0 -f $qpkg_config_pathfile"
+get_ui_port_secure_cmd="/sbin/getcfg interface http_port -d 0 -f $qpkg_config_pathfile"
+get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg interface enable_https -d 0 -f '$qpkg_config_pathfile') = 1 ]]'
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_config_pathfile") --config $qpkg_config_pathfile"
+if [[ -e $qpkg_config_default_pathfile ]];then
+/sbin/setcfg Metatagging ct_settingspath "$qpkg_config_path"/ComicTagger -f "$qpkg_config_default_pathfile"
 fi
-if [[ -e $qpkg_ini_pathfile ]];then
-/sbin/setcfg Metatagging ct_settingspath "$r_qpkg_config_path"/ComicTagger -f "$qpkg_ini_pathfile"
+if [[ -e $qpkg_config_pathfile ]];then
+/sbin/setcfg Metatagging ct_settingspath "$qpkg_config_path"/ComicTagger -f "$qpkg_config_pathfile"
 fi;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0

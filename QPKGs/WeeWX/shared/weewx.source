@@ -99,7 +99,6 @@ InitService()
 		# daemon_port=0
 
 		# export HOME=$qpkg_config_path
-		export HOME=$qpkg_config_path/weewx-data
 
 		# interpreter=undefined
 		interpreter=/opt/bin/python3
@@ -159,7 +158,7 @@ InitService()
 		# get_ui_port_secure_enabled_test_cmd=undefined
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="export TEMP=$qpkg_temp_path; $daemon_exec_pathfile $daemon_script_pathfile --daemon --config $qpkg_config_pathfile --pidfile $daemon_pid_pathfile --exit"
+		daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --pidfile $daemon_pid_pathfile --exit"
 
 	}
 

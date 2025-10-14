@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251013
+readonly r_service_library_version=251014
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -53,9 +53,6 @@ readonly r_backup_path=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_shar
 readonly r_opkg_path=/opt/bin:/opt/sbin
 export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||"<<<"$PATH")
 readonly r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
-readonly r_qpkg_config_path=$r_qpkg_path/config
-export HOME=$r_qpkg_config_path
-readonly r_qpkg_temp_path=$r_qpkg_path/tmp
 readonly r_appl_version_store_pathfile=$r_qpkg_path/version.stored
 readonly r_screen_conf_pathfile=$r_qpkg_path/screen.conf
 readonly r_service_action_pathfile=/var/log/$r_qpkg_name.action
@@ -77,10 +74,12 @@ SetQpkgArch
 SetOsFirmwareVer
 SetHardwarePlatform
 pip_cache_path=undefined
+qpkg_config_path=$r_qpkg_path/config
 qpkg_repo_path=undefined
+qpkg_temp_path=$r_qpkg_path/tmp
 qpkg_wheels_path=undefined
 venv_path=undefined
-qpkg_ini_file=config.ini
+qpkg_config_file=config.ini
 app_version_pathfile=undefined
 daemon_check_pathfile=undefined
 daemon_exec_pathfile=undefined
@@ -88,8 +87,8 @@ daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 daemon_script_pathfile=undefined
 launcher_pathfile=undefined
 qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
-qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
-qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
+qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 userlink_pathfile=undefined
 venv_pip_pathfile=undefined
 venv_python_pathfile=undefined
@@ -106,6 +105,7 @@ resolve_source_url=false
 run_daemon_in_screen_session=false
 silence_pypi_errors=true
 daemon_port=0
+export HOME=$qpkg_config_path
 interpreter=undefined
 nice_daemon_to=0
 orig_daemon_service_script=undefined
@@ -182,8 +182,10 @@ CreateUserlinkToExec
 return
 fi
 EnsureConfigFileExists
+if IsWebUi;then
 LoadPorts app||return
 CheckPortsAvailable||return
+fi
 if IsCheckNetworkBeforeStart;then
 WatchForAnyInterfaceUp||return
 fi
@@ -228,10 +230,12 @@ fi;}
 StatusQpkgLibrary(){
 RefreshPidFile
 if IsDaemon&&IsDaemonActive;then
+if IsWebUi;then
 LoadPorts app
 if ! WatchForPortsActive;then
 Display '! no response from port(s)'
 exit 1
+fi
 fi
 else
 exit 1
@@ -295,7 +299,7 @@ b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 DisplayAndCommitInfoToLog "nice daemon to: $nice_daemon_to"
 fi
 while true;do
-if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"&&IsDaemonActive &>/dev/null;WatchForDaemon;PauseForStartPid;ShowDaemonState) ||! IsDaemonActive &>/dev/null ||! WatchForPortsActive;then
+if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"&&IsDaemonActive &>/dev/null;WatchForDaemon;PauseForStartPid;ShowDaemonState) ||! IsDaemonActive &>/dev/null ||(IsWebUi &&! WatchForPortsActive);then
 DisplayAndCommitWarnToLog 'daemon PID check failed: there appears to have been a launch failure'
 [[ $run_daemon_in_screen_session = true ]]&&AddFileToDebug "$r_service_screen_log_pathfile"
 ((c++))
@@ -347,7 +351,7 @@ local extract_release_package=false
 local refresh_release_package=false
 local release_package_filename=''
 local release_package_name_ref_pathfilename=''
-local release_package_pathfile=$r_qpkg_temp_path/source.package
+local release_package_pathfile=$qpkg_temp_path/source.package
 local release_package_url=''
 if IsAutoUpdate ||[[ ! -e $release_package_pathfile ]];then
 if [[ $resolve_source_url = true ]];then
@@ -567,18 +571,18 @@ SetError;return
 fi
 IsQpkgMigrated &&MigrateConfig;}
 ResetConfig(){
-if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $r_qpkg_path;rm -rf $r_qpkg_path/config/*;mkdir -p $(/usr/bin/dirname "$qpkg_ini_default_pathfile");mv $r_qpkg_path/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only;then
+if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_config_default_pathfile $r_qpkg_path;rm -rf $r_qpkg_path/config/*;mkdir -p $(/usr/bin/dirname "$qpkg_config_default_pathfile");mv $r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile") $qpkg_config_default_pathfile" log:failure-only;then
 SetError;return
 fi;}
 MigrateConfig(){
 IsNtConfigMigrated||return
-[[ -e $qpkg_ini_pathfile ]]&&/bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_ini_pathfile"
-[[ -e $qpkg_ini_default_pathfile ]]&&/bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_ini_default_pathfile"
+[[ -e $qpkg_config_pathfile ]]&&/bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_config_pathfile"
+[[ -e $qpkg_config_default_pathfile ]]&&/bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_config_default_pathfile"
 /sbin/setcfg $r_qpkg_name Migrated TRUE -f /etc/config/qpkg.conf;}
 MakePaths(){
 local a=''
 if [[ -d $r_qpkg_path ]];then
-for a in "$r_qpkg_temp_path" "$qpkg_repo_path" "$pip_cache_path" "$venv_path";do
+for a in "$qpkg_temp_path" "$qpkg_repo_path" "$pip_cache_path" "$venv_path";do
 [[ $a != undefined &&! -d $a ]]&&mkdir -p "$a"
 done
 fi
@@ -693,7 +697,7 @@ IsVirtualPythonEnv &&[[ -d $venv_path ]]&&DisplayRunAndLog 'clean virtual Python
 IsUsePipCache &&[[ -d $pip_cache_path ]]&&DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$pip_cache_path\"" log:failure-only
 [[ -e $r_appl_version_store_pathfile ]]&&DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
 [[ -e $r_service_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
-IsUseTemp &&[[ -d $r_qpkg_temp_path ]]&&DisplayRunAndLog 'clean temp path' "rm -rf \"$r_qpkg_temp_path\"" log:failure-only
+IsUseTemp &&[[ -d $qpkg_temp_path ]]&&DisplayRunAndLog 'clean temp path' "rm -rf \"$qpkg_temp_path\"" log:failure-only
 MakePaths;}
 WatchForGit(){
 if IsNtQpkgInstalled Entware;then
@@ -864,7 +868,7 @@ EnsureConfigFileExists(){
 IsNtSupportReset&&return
 if IsNtConfigFound&&IsDefaultConfigFound;then
 DisplayAndCommitInfoToLog 'no configuration file found: using default'
-cp "${qpkg_ini_default_pathfile:?undefined}" "${qpkg_ini_pathfile:?undefined}"
+cp "${qpkg_config_default_pathfile:?undefined}" "${qpkg_config_pathfile:?undefined}"
 fi;}
 SaveAppVersion(){
 [[ $r_appl_version_store_pathfile != undefined ]]&&echo "$app_version">"$r_appl_version_store_pathfile";}
@@ -1166,7 +1170,7 @@ local re=\\b${1:-$r_qpkg_name}\\b
 IsSupportBackup(){
 [[ $qpkg_backup_pathfile != undefined ]];}
 IsSupportReset(){
-[[ $qpkg_ini_pathfile != undefined ]];}
+[[ $qpkg_config_pathfile != undefined ]];}
 IsNtSupportReset(){
 ! IsSupportReset;}
 IsSupportActions(){
@@ -1183,6 +1187,8 @@ IsOnlineReleasePackage(){
 [[ $source_url != undefined ]];}
 IsReleaseAnArchive(){
 [[ $package_is_exec != undefined &&$package_is_exec = false ]];}
+IsWebUi(){
+[[ $get_ui_port_cmd != undefined ||$get_ui_port_secure_cmd != undefined ||$get_ui_listening_address_cmd != undefined ||$ui_port -ne 0 ||$ui_port_secure -ne 0 ||$ui_listening_address != undefined ]];}
 IsSupportAutoUpdate(){
 [[ $can_restart_to_update = true ]];}
 IsSourcedOnline(){
@@ -1190,9 +1196,9 @@ IsGitApp ||IsUsePipCache ||IsOnlineReleasePackage;}
 IsNtSourcedOnline(){
 ! IsSourcedOnline;}
 IsUseTemp(){
-[[ $r_qpkg_temp_path != undefined ]];}
+[[ $qpkg_temp_path != undefined ]];}
 IsSSLEnabled(){
-eval "$get_ui_port_secure_enabled_test_cmd";}
+[[ $get_ui_port_secure_enabled_test_cmd != undefined ]]&&eval "$get_ui_port_secure_enabled_test_cmd";}
 IsDaemon(){
 [[ $daemon_exec_pathfile != undefined ]];}
 IsNtDaemon(){
@@ -1304,11 +1310,11 @@ fi
 done
 return 1;}
 IsConfigFound(){
-[[ $qpkg_ini_pathfile != undefined &&-e $qpkg_ini_pathfile ]];}
+[[ $qpkg_config_pathfile != undefined &&-e $qpkg_config_pathfile ]];}
 IsNtConfigFound(){
 ! IsConfigFound;}
 IsDefaultConfigFound(){
-[[ $qpkg_ini_default_pathfile != undefined &&-e $qpkg_ini_default_pathfile ]];}
+[[ $qpkg_config_default_pathfile != undefined &&-e $qpkg_config_default_pathfile ]];}
 IsVirtualPythonEnvExist(){
 [[ -e $venv_path/bin/activate ]];}
 IsNtVirtualPythonEnvExist(){

@@ -34,26 +34,26 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=pyLoad
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
 venv_path=$r_qpkg_path/venv
-qpkg_ini_file=pyload.cfg
+qpkg_config_file=pyload.cfg
 daemon_exec_pathfile=$venv_path/bin/python3
 daemon_script_pathfile=$venv_path/bin/pyload
-qpkg_ini_pathfile=$r_qpkg_config_path/settings/$qpkg_ini_file
-qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+qpkg_config_pathfile=$qpkg_config_path/settings/$qpkg_config_file
+qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
 can_restart_to_update=true
 interpreter=/opt/bin/python3
 start_retries=3
-get_ui_listening_address_cmd="GetKeyFromPyload webui host $qpkg_ini_pathfile"
-get_ui_port_cmd="GetKeyFromPyload webui port $qpkg_ini_pathfile"
-get_ui_port_secure_cmd="GetKeyFromPyload webui port $qpkg_ini_pathfile"
-get_ui_port_secure_enabled_test_cmd="[[ $(GetKeyFromPyload webui use_ssl "$qpkg_ini_pathfile") = True ]]"
-daemon_launch_cmd="export TEMP=$r_qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $r_qpkg_path/config";}
+get_ui_listening_address_cmd="GetKeyFromPyload webui host $qpkg_config_pathfile"
+get_ui_port_cmd="GetKeyFromPyload webui port $qpkg_config_pathfile"
+get_ui_port_secure_cmd="GetKeyFromPyload webui port $qpkg_config_pathfile"
+get_ui_port_secure_enabled_test_cmd="[[ $(GetKeyFromPyload webui use_ssl "$qpkg_config_pathfile") = True ]]"
+daemon_launch_cmd="export TEMP=$qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $r_qpkg_path/config";}
 GetKeyFromPyload(){
 local target_section_name=${1:?no section supplied}
 local target_var_name=${2:?no variable supplied}

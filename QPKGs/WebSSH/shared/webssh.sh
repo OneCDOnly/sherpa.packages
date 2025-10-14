@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WebSSH
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
@@ -42,8 +42,8 @@ venv_path=$r_qpkg_path/venv
 daemon_exec_pathfile=$venv_path/bin/python
 daemon_script_pathfile=$venv_path/bin/wssh
 qpkg_backup_pathfile=undefined
-qpkg_ini_pathfile=undefined
-qpkg_ini_default_pathfile=undefined
+qpkg_config_pathfile=undefined
+qpkg_config_default_pathfile=undefined
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python
 can_restart_to_update=true

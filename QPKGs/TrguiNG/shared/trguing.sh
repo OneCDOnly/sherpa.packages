@@ -34,11 +34,11 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrguiNG
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_backup_pathfile=undefined
-qpkg_ini_pathfile=undefined
+qpkg_config_pathfile=undefined
 can_restart_to_update=true
 resolve_source_url=true
 source_url_arch=web

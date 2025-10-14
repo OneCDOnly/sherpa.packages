@@ -77,6 +77,6 @@ ShowDone
 printf '%-32s %-20s %-12s %-6s %-40s %s\n%s\n' '# qpkg_filename' package_name version arch short_path hash "$(sort "$package_versions_raw_pathfile")" > "$highest_package_versions_found_pathfile"
 
 rm -f "$package_versions_raw_pathfile"
-[[ -f $highest_package_versions_found_pathfile ]] && chmod 444 "$highest_package_versions_found_pathfile"
+[[ -f $highest_package_versions_found_pathfile ]] && chmod 666 "$highest_package_versions_found_pathfile"
 
 exit 0

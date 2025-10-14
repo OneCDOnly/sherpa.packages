@@ -34,19 +34,19 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=qBittorrent
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
-qpkg_ini_file=qBittorrent.conf
+qpkg_config_file=qBittorrent.conf
 daemon_exec_pathfile=/opt/bin/qbittorrent-nox
-qpkg_ini_pathfile=$r_qpkg_config_path/qBittorrent/config/$qpkg_ini_file
-qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+qpkg_config_pathfile=$qpkg_config_path/qBittorrent/config/$qpkg_config_file
+qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 daemon_pidfile_is_managed_by_app=true
 run_daemon_in_screen_session=false
 orig_daemon_service_script=/opt/etc/init.d/S89qbittorrent
 ui_listening_address=0.0.0.0
 get_ui_listening_address_cmd="echo $ui_listening_address"
-get_ui_port_cmd="/sbin/getcfg Preferences 'WebUI\Port' -d 0 -f $qpkg_ini_pathfile"
-get_ui_port_secure_cmd="/sbin/getcfg Preferences 'WebUI\Port' -d 0 -f $qpkg_ini_pathfile"
+get_ui_port_cmd="/sbin/getcfg Preferences 'WebUI\Port' -d 0 -f $qpkg_config_pathfile"
+get_ui_port_secure_cmd="/sbin/getcfg Preferences 'WebUI\Port' -d 0 -f $qpkg_config_pathfile"
 get_ui_port_secure_enabled_test_cmd='false'
 daemon_launch_cmd="$daemon_exec_pathfile --profile=$r_qpkg_path/config --daemon";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)

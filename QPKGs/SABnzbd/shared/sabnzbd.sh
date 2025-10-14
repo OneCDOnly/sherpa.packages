@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=SABnzbd
-readonly r_service_script_version=251013
+readonly r_service_script_version=251014
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
@@ -55,11 +55,11 @@ source_git_branch_depth=shallow
 start_retries=3
 source_git_url=https://github.com/sabnzbd/sabnzbd.git
 get_app_version_cmd="/bin/grep '__version__ =' $app_version_pathfile|/bin/sed 's|^.*\"\(.*\)\"|\1|'"
-get_ui_listening_address_cmd="/sbin/getcfg misc host -d undefined -f $qpkg_ini_pathfile"
-get_ui_port_cmd="/sbin/getcfg misc port -d $ui_port -f $qpkg_ini_pathfile"
-get_ui_port_secure_cmd="/sbin/getcfg misc https_port -d $ui_port_secure -f $qpkg_ini_pathfile"
-get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg misc enable_https -d 0 -f '$qpkg_ini_pathfile') = 1 ]]'
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --browser 0 --config-file $qpkg_ini_pathfile --pidfile $daemon_pid_pathfile";}
+get_ui_listening_address_cmd="/sbin/getcfg misc host -d undefined -f $qpkg_config_pathfile"
+get_ui_port_cmd="/sbin/getcfg misc port -d $ui_port -f $qpkg_config_pathfile"
+get_ui_port_secure_cmd="/sbin/getcfg misc https_port -d $ui_port_secure -f $qpkg_config_pathfile"
+get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg misc enable_https -d 0 -f '$qpkg_config_pathfile') = 1 ]]'
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --browser 0 --config-file $qpkg_config_pathfile --pidfile $daemon_pid_pathfile";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")
