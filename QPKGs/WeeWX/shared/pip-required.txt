@@ -1,0 +1,6 @@
+configobj
+CT3
+ephem
+PyMySQL
+pyserial
+pyusb

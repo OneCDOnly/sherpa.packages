@@ -1,0 +1,28 @@
+# systemd service template file for running multiple instances of weewxd
+#
+# Each instance XXX must have its own config, database, and HTML_ROOT:
+#
+#  item            name                           where to specify
+#  --------        -----------------------------  ----------------------------
+#  config          ~/weewx-data/XXX.conf          configuration directory
+#  database_name   ~/weewx-data/archive/XXX.sdb   specified in XXX.conf
+#  HTML_ROOT       ~/weewx-data/public_html/XXX   specified in XXX.conf
+
+[Unit]
+Description=WeeWX %i
+Documentation=https://weewx.com/docs
+Requires=time-sync.target
+After=time-sync.target
+Wants=network-online.target
+After=network-online.target
+PartOf=weewx.service
+
+[Service]
+ExecStart=/share/CACHEDEV1_DATA/.qpkg/WeeWX/venv/bin/python /share/CACHEDEV1_DATA/.qpkg/WeeWX/venv/lib/python3.11/site-packages/weewxd.py --log-label weewxd-%i /root/weewx-data/%i.conf
+StandardOutput=null
+StandardError=journal+console
+User=admin
+Group=administrators
+
+[Install]
+WantedBy=multi-user.target

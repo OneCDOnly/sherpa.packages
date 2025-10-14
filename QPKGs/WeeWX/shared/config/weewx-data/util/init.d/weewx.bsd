@@ -1,0 +1,69 @@
+#!/bin/sh
+#
+# PROVIDE: weewx
+# REQUIRE: DAEMON
+# KEYWORD: shutdown
+#
+# install this file as /usr/local/etc/rc.d/weewx
+#
+# to enable it:
+#   sudo sysrc weewx_enable=YES
+#
+# to start/stop it:
+#   sudo service weewx start
+#   sudo service weewx stop
+
+. /etc/rc.subr
+
+# *BSD does not add /usr/local to PATH during boot therefore the PATH used by
+# Python os.environ['PATH'] will not be able to find third party apps such as
+# /usr/local/bin/rsync, so we add /usr/local/bin here.
+PATH=${PATH}:/usr/local/bin
+export PATH
+
+name="weewx"
+rcvar=${name}_enable
+
+load_rc_config $name
+
+# override these by setting values in /etc/rc.conf.local
+: ${weewx_enable="NO"}
+: ${weewx_daemon="/usr/local/weewx/bin/weewxd"}
+: ${weewx_pid="/var/run/weewx.pid"}
+: ${weewx_config="/usr/local/etc/weewx/weewx.conf"}
+
+command=${weewx_daemon}
+procname=${weewx_procname:-/usr/local/bin/python3}
+
+start_cmd=${name}_start
+stop_cmd=${name}_stop
+stop_postcmd=${name}_poststop
+
+weewx_start() {
+  echo "starting ${name}"
+  ${weewx_daemon} --daemon --pidfile=${weewx_pid} ${weewx_config}
+}
+
+weewx_stop() {
+  if check_pidfile ${weewx_pid} ${weewx_daemon} ; then
+    echo "stopping ${name}"
+    pkill -F "${weewx_pid}"
+  else
+    echo "${name} is not running"
+    exit 1
+  fi
+}
+
+# weewx may take awhile to shut down.  this often happens when weewx is killed
+# at the start of a report cycle, and the report thread takes awhile to finish.
+# so give it a chance to exit before a restart.
+weewx_poststop() {
+  local timeout=5
+  while pgrep -qf ${name} && [ ${timeout} -gt 0 ]; do
+    echo "waiting for ${name} to exit"
+    timeout=$(( timeout - 1 ))
+    sleep 1
+  done
+}
+
+run_rc_command "$1"
