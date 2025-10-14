@@ -30,8 +30,8 @@ InitService()
 
 	# >>> Filenames <<<
 
-		# qpkg_ini_file=config.ini
-		qpkg_ini_file=qBittorrent.conf
+		# qpkg_config_file=config.ini
+		qpkg_config_file=qBittorrent.conf
 
 	# >>> Pathfilenames <<<
 
@@ -50,11 +50,11 @@ InitService()
 
 		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 
-		# qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
-		qpkg_ini_pathfile=$r_qpkg_config_path/qBittorrent/config/$qpkg_ini_file
+		# qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
+		qpkg_config_pathfile=$qpkg_config_path/qBittorrent/config/$qpkg_config_file
 
-		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+		# qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+		qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 
 		# userlink_pathfile=undefined								# On-demand executables only.
 
@@ -140,10 +140,10 @@ InitService()
 		get_ui_listening_address_cmd="echo $ui_listening_address"
 
 		# get_ui_port_cmd=undefined
-		get_ui_port_cmd="/sbin/getcfg Preferences 'WebUI\Port' -d 0 -f $qpkg_ini_pathfile"
+		get_ui_port_cmd="/sbin/getcfg Preferences 'WebUI\Port' -d 0 -f $qpkg_config_pathfile"
 
 		# get_ui_port_secure_cmd=undefined
-		get_ui_port_secure_cmd="/sbin/getcfg Preferences 'WebUI\Port' -d 0 -f $qpkg_ini_pathfile"
+		get_ui_port_secure_cmd="/sbin/getcfg Preferences 'WebUI\Port' -d 0 -f $qpkg_config_pathfile"
 
 		# get_ui_port_secure_enabled_test_cmd=undefined
 		get_ui_port_secure_enabled_test_cmd='false'

@@ -34,7 +34,7 @@ InitService()
 
 	# >>> Filenames <<<
 
-		# qpkg_ini_file=config.ini
+		# qpkg_config_file=config.ini
 
 	# >>> Pathfilenames <<<
 
@@ -55,11 +55,11 @@ InitService()
 		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 		qpkg_backup_pathfile=undefined								# Backup is unsupported.
 
-		# qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
-		qpkg_ini_pathfile=undefined									# App config is unsupported.
+		# qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
+		qpkg_config_pathfile=undefined									# App config is unsupported.
 
-		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-		qpkg_ini_default_pathfile=undefined
+		# qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+		qpkg_config_default_pathfile=undefined
 
 		# userlink_pathfile=undefined								# On-demand executables only.
 
@@ -165,7 +165,7 @@ InitService()
 		get_ui_port_secure_enabled_test_cmd=false
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="export TEMP=$r_qpkg_temp_path; $daemon_exec_pathfile $daemon_script_pathfile --webserver"
+		daemon_launch_cmd="export TEMP=$qpkg_temp_path; $daemon_exec_pathfile $daemon_script_pathfile --webserver"
 
 	}
 

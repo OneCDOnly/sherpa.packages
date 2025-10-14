@@ -33,8 +33,8 @@ InitService()
 
 	# >>> Filenames <<<
 
-		# qpkg_ini_file=config.ini
-		qpkg_ini_file=config.yaml
+		# qpkg_config_file=config.ini
+		qpkg_config_file=config.yaml
 
 	# >>> Pathfilenames <<<
 
@@ -54,11 +54,11 @@ InitService()
 
 		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 
-		# qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
-		qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
+		# qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
+		qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
 
-		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+		# qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+		qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 
 		# userlink_pathfile=undefined								# On-demand executables only.
 
@@ -149,19 +149,19 @@ InitService()
 		# get_daemon_port_cmd=undefined
 
 		# get_ui_listening_address_cmd=undefined
-		get_ui_listening_address_cmd='GetKeyFromYAML general:ip '$qpkg_ini_pathfile
+		get_ui_listening_address_cmd='GetKeyFromYAML general:ip '$qpkg_config_pathfile
 
 		# get_ui_port_cmd=undefined
-		get_ui_port_cmd='GetKeyFromYAML general:port '$qpkg_ini_pathfile
+		get_ui_port_cmd='GetKeyFromYAML general:port '$qpkg_config_pathfile
 
 		# get_ui_port_secure_cmd=undefined
-		get_ui_port_secure_cmd='GetKeyFromYAML general:port '$qpkg_ini_pathfile
+		get_ui_port_secure_cmd='GetKeyFromYAML general:port '$qpkg_config_pathfile
 
 		# get_ui_port_secure_enabled_test_cmd=undefined
 		get_ui_port_secure_enabled_test_cmd=false
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --config $r_qpkg_config_path --debug true"
+		daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --config $qpkg_config_path --debug true"
 
 	}
 

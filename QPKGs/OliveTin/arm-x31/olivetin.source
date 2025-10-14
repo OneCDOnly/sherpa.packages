@@ -31,8 +31,8 @@ InitService()
 
 	# >>> Filenames <<<
 
-		# qpkg_ini_file=config.ini
-		qpkg_ini_file=config.yaml
+		# qpkg_config_file=config.ini
+		qpkg_config_file=config.yaml
 
 	# >>> Pathfilenames <<<
 
@@ -50,11 +50,11 @@ InitService()
 
 		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 
-		# qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
-		qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
+		# qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
+		qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
 
-		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+		# qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+		qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 
 		# userlink_pathfile=undefined								# On-demand executables only.
 
@@ -144,10 +144,10 @@ InitService()
 		# get_daemon_port_cmd=undefined
 
 		# get_ui_listening_address_cmd=undefined
-		get_ui_listening_address_cmd="GetKeyFromYAML listenAddressSingleHTTPFrontend $qpkg_ini_pathfile | cut -d: -f1"
+		get_ui_listening_address_cmd="GetKeyFromYAML listenAddressSingleHTTPFrontend $qpkg_config_pathfile | cut -d: -f1"
 
 		# get_ui_port_cmd=undefined
-		get_ui_port_cmd="GetKeyFromYAML listenAddressSingleHTTPFrontend $qpkg_ini_pathfile | cut -d: -f2"
+		get_ui_port_cmd="GetKeyFromYAML listenAddressSingleHTTPFrontend $qpkg_config_pathfile | cut -d: -f2"
 
 		# get_ui_port_secure_cmd=undefined
 		get_ui_port_secure_cmd='echo 0'
@@ -156,7 +156,7 @@ InitService()
 		get_ui_port_secure_enabled_test_cmd=false
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-linux-$source_url_arch && $daemon_exec_pathfile -configdir $r_qpkg_config_path"
+		daemon_launch_cmd="cd $qpkg_repo_path/OliveTin-linux-$source_url_arch && $daemon_exec_pathfile -configdir $qpkg_config_path"
 
 	}
 

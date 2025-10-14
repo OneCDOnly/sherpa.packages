@@ -31,8 +31,8 @@ InitService()
 
 	# >>> Filenames <<<
 
-		# qpkg_ini_file=config.ini
-		qpkg_ini_file=config.xml
+		# qpkg_config_file=config.ini
+		qpkg_config_file=config.xml
 
 	# >>> Pathfilenames <<<
 
@@ -51,11 +51,11 @@ InitService()
 
 		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 
-		# qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
-		qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
+		# qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
+		qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
 
-		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+		# qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+		qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 
 		# userlink_pathfile=undefined								# On-demand executables only.
 
@@ -150,16 +150,16 @@ InitService()
 		get_ui_listening_address_cmd="echo $ui_listening_address"
 
 		# get_ui_port_cmd=undefined
-		get_ui_port_cmd='grep "<Port>" $qpkg_ini_pathfile | sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
+		get_ui_port_cmd='grep "<Port>" $qpkg_config_pathfile | sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
 
 		# get_ui_port_secure_cmd=undefined
-		get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_ini_pathfile | sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'
+		get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_config_pathfile | sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'
 
 		# get_ui_port_secure_enabled_test_cmd=undefined
-		get_ui_port_secure_enabled_test_cmd='[[ $(grep "<EnableSsl>" $qpkg_ini_pathfile | sed "s/.*<EnableSsl>\(.*\)<\/EnableSsl>.*/\1/") = True ]]'
+		get_ui_port_secure_enabled_test_cmd='[[ $(grep "<EnableSsl>" $qpkg_config_pathfile | sed "s/.*<EnableSsl>\(.*\)<\/EnableSsl>.*/\1/") = True ]]'
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$r_qpkg_temp_path; $daemon_exec_pathfile --nobrowser --data=$r_qpkg_config_path"
+		daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$qpkg_temp_path; $daemon_exec_pathfile --nobrowser --data=$qpkg_config_path"
 
 	}
 

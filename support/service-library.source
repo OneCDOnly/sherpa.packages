@@ -42,9 +42,6 @@ InitLibrary()
 			readonly r_opkg_path=/opt/bin:/opt/sbin
 				export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
 			readonly r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
-				readonly r_qpkg_config_path=$r_qpkg_path/config
-					export HOME=$r_qpkg_config_path
-				readonly r_qpkg_temp_path=$r_qpkg_path/tmp
 
 		# Pathfilenames.
 
@@ -78,7 +75,11 @@ InitLibrary()
 
 		pip_cache_path=undefined
 
+		qpkg_config_path=$r_qpkg_path/config
+
 		qpkg_repo_path=undefined
+
+		qpkg_temp_path=$r_qpkg_path/tmp
 
 		qpkg_wheels_path=undefined
 
@@ -86,7 +87,7 @@ InitLibrary()
 
 	# >>> Filenames <<<
 
-		qpkg_ini_file=config.ini
+		qpkg_config_file=config.ini
 
 	# >>> Pathfilenames <<<
 
@@ -104,9 +105,9 @@ InitLibrary()
 
 		qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 
-		qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
+		qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
 
-		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+		qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 
 		userlink_pathfile=undefined								# Applies to on-demand executables only.
 
@@ -143,6 +144,8 @@ InitLibrary()
 	# >>> Values <<<
 
 		daemon_port=0
+
+		export HOME=$qpkg_config_path
 
 		interpreter=undefined
 
@@ -212,7 +215,11 @@ InitLibrary()
 
 		# pip_cache_path=undefined
 
+		# qpkg_config_path=$r_qpkg_path/config
+
 		# qpkg_repo_path=undefined
+
+		# qpkg_temp_path=$r_qpkg_path/tmp
 
 		# qpkg_wheels_path=undefined
 
@@ -220,7 +227,7 @@ InitLibrary()
 
 	# >>> Filenames <<<
 
-		# qpkg_ini_file=config.ini
+		# qpkg_config_file=config.ini
 
 	# >>> Pathfilenames <<<
 
@@ -238,9 +245,9 @@ InitLibrary()
 
 		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 
-		# qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
+		# qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
 
-		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+		# qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 
 		# userlink_pathfile=undefined								# Applies to on-demand executables only.
 
@@ -277,6 +284,8 @@ InitLibrary()
 	# >>> Values <<<
 
 		# daemon_port=0
+
+		# export HOME=$qpkg_config_path
 
 		# interpreter=undefined
 
@@ -708,7 +717,7 @@ RefreshReleasePackageFiles()
 	#	$compare_release_filename
 	#	$get_remote_filename_timeout_seconds
 	#	$qpkg_repo_path
-	#	$r_qpkg_temp_path
+	#	$qpkg_temp_path
 	#	$resolve_source_url
 	#	$source_url
 	#	$source_url_arch
@@ -718,7 +727,7 @@ RefreshReleasePackageFiles()
 	local refresh_release_package=false
 	local release_package_filename=''
 	local release_package_name_ref_pathfilename=''
-	local release_package_pathfile=$r_qpkg_temp_path/source.package			# Local filename of the remote application package.
+	local release_package_pathfile=$qpkg_temp_path/source.package			# Local filename of the remote application package.
 	local release_package_url=''
 
 	if IsAutoUpdate || [[ ! -e $release_package_pathfile ]]; then			# Get remote package - even when auto-update is disabled - if one doesn't exist locally.
@@ -1075,10 +1084,10 @@ ResetConfig()
 	{
 
 	# Inputs: (global)
-	#	$qpkg_ini_default_pathfile
+	#	$qpkg_config_default_pathfile
 	#	$r_qpkg_path
 
-	if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_ini_default_pathfile $r_qpkg_path; rm -rf $r_qpkg_path/config/*; mkdir -p $(/usr/bin/dirname "$qpkg_ini_default_pathfile"); mv $r_qpkg_path/$(/usr/bin/basename "$qpkg_ini_default_pathfile") $qpkg_ini_default_pathfile" log:failure-only; then
+	if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_config_default_pathfile $r_qpkg_path; rm -rf $r_qpkg_path/config/*; mkdir -p $(/usr/bin/dirname "$qpkg_config_default_pathfile"); mv $r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile") $qpkg_config_default_pathfile" log:failure-only; then
 		SetError; return
 	fi
 
@@ -1091,8 +1100,8 @@ MigrateConfig()
 
 	# KLUDGE: update old paths in application config (and default config).
 
-	[[ -e $qpkg_ini_pathfile ]] && /bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_ini_pathfile"
-	[[ -e $qpkg_ini_default_pathfile ]] && /bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_ini_default_pathfile"
+	[[ -e $qpkg_config_pathfile ]] && /bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_config_pathfile"
+	[[ -e $qpkg_config_default_pathfile ]] && /bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_config_default_pathfile"
 
 	/sbin/setcfg $r_qpkg_name Migrated TRUE -f /etc/config/qpkg.conf
 
@@ -1106,13 +1115,13 @@ MakePaths()
 	#	$pip_cache_path
 	#	$r_qpkg_path
 	#	$qpkg_repo_path
-	#	$r_qpkg_temp_path
+	#	$qpkg_temp_path
 	#	$venv_path
 
 	local a=''
 
 	if [[ -d $r_qpkg_path ]]; then
-		for a in "$r_qpkg_temp_path" "$qpkg_repo_path" "$pip_cache_path" "$venv_path"; do
+		for a in "$qpkg_temp_path" "$qpkg_repo_path" "$pip_cache_path" "$venv_path"; do
 			[[ $a != undefined && ! -d $a ]] && mkdir -p "$a"
 		done
 	fi
@@ -1336,7 +1345,7 @@ CleanLocalRepo()
 	#	$r_appl_version_store_pathfile
 	#	$r_qpkg_name
 	#	$r_qpkg_path
-	#	$r_qpkg_temp_path
+	#	$qpkg_temp_path
 	#	$venv_path
 
 	if [[ -z $r_qpkg_path || -z $r_qpkg_name ]] || IsNtSourcedOnline; then
@@ -1348,7 +1357,7 @@ CleanLocalRepo()
 	IsUsePipCache && [[ -d $pip_cache_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$pip_cache_path\"" log:failure-only
 	[[ -e $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
 	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
-	IsUseTemp && [[ -d $r_qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$r_qpkg_temp_path\"" log:failure-only
+	IsUseTemp && [[ -d $qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$qpkg_temp_path\"" log:failure-only
 
 	MakePaths
 
@@ -1677,14 +1686,14 @@ EnsureConfigFileExists()
 	{
 
 	# Inputs: (global)
-	#	$qpkg_ini_default_pathfile
-	#	$qpkg_ini_pathfile
+	#	$qpkg_config_default_pathfile
+	#	$qpkg_config_pathfile
 
 	IsNtSupportReset && return
 
 	if IsNtConfigFound && IsDefaultConfigFound; then
 		DisplayAndCommitInfoToLog 'no configuration file found: using default'
-		cp "${qpkg_ini_default_pathfile:?undefined}" "${qpkg_ini_pathfile:?undefined}"
+		cp "${qpkg_config_default_pathfile:?undefined}" "${qpkg_config_pathfile:?undefined}"
 	fi
 
 	}
@@ -2585,12 +2594,12 @@ IsSupportReset()
 	{
 
 	# Inputs: (global)
-	#	$qpkg_ini_pathfile
+	#	$qpkg_config_pathfile
 
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $qpkg_ini_pathfile != undefined ]]
+	[[ $qpkg_config_pathfile != undefined ]]
 
 	}
 
@@ -2729,12 +2738,12 @@ IsUseTemp()
 	{
 
 	# Inputs: (global)
-	#	$r_qpkg_temp_path
+	#	$qpkg_temp_path
 
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $r_qpkg_temp_path != undefined ]]
+	[[ $qpkg_temp_path != undefined ]]
 
 	}
 
@@ -3009,13 +3018,13 @@ IsConfigFound()
 	# Is there an application configuration file?
 
 	# Inputs: (global)
-	#	$qpkg_ini_pathfile
+	#	$qpkg_config_pathfile
 
 	# Outputs: (local)
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ $qpkg_ini_pathfile != undefined && -e $qpkg_ini_pathfile ]]
+	[[ $qpkg_config_pathfile != undefined && -e $qpkg_config_pathfile ]]
 
 	}
 
@@ -3032,13 +3041,13 @@ IsDefaultConfigFound()
 	# Is there a default application configuration file?
 
 	# Inputs: (global)
-	#	$qpkg_ini_default_pathfile
+	#	$qpkg_config_default_pathfile
 
 	# Outputs: (local)
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ $qpkg_ini_default_pathfile != undefined && -e $qpkg_ini_default_pathfile ]]
+	[[ $qpkg_config_default_pathfile != undefined && -e $qpkg_config_default_pathfile ]]
 
 	}
 

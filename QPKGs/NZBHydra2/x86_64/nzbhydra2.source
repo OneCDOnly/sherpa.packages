@@ -33,8 +33,8 @@ InitService()
 
 	# >>> Filenames <<<
 
-		# qpkg_ini_file=config.ini
-		qpkg_ini_file=nzbhydra.yml
+		# qpkg_config_file=config.ini
+		qpkg_config_file=nzbhydra.yml
 
 	# >>> Pathfilenames <<<
 
@@ -55,11 +55,11 @@ InitService()
 
 		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 
-		# qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
-		qpkg_ini_pathfile=$r_qpkg_config_path/$qpkg_ini_file
+		# qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
+		qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
 
-		# qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
-		qpkg_ini_default_pathfile=$qpkg_ini_pathfile.def
+		# qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+		qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 
 		# userlink_pathfile=undefined								# On-demand executables only.
 
@@ -157,19 +157,19 @@ InitService()
 		# get_daemon_port_cmd=undefined
 
 		# get_ui_listening_address_cmd=undefined
-		get_ui_listening_address_cmd="GetKeyFromYAML main_host $qpkg_ini_pathfile"
+		get_ui_listening_address_cmd="GetKeyFromYAML main_host $qpkg_config_pathfile"
 
 		# get_ui_port_cmd=undefined
-		get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_ini_pathfile"
+		get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_config_pathfile"
 
 		# get_ui_port_secure_cmd=undefined
-		get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_ini_pathfile"
+		get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_config_pathfile"
 
 		# get_ui_port_secure_enabled_test_cmd=undefined
-		get_ui_port_secure_enabled_test_cmd='[[ $(GetKeyFromYAML main:ssl '$qpkg_ini_pathfile') = true ]]'
+		get_ui_port_secure_enabled_test_cmd='[[ $(GetKeyFromYAML main:ssl '$qpkg_config_pathfile') = true ]]'
 
 		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$r_qpkg_temp_path; $daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $r_qpkg_config_path --pidfile $daemon_pid_pathfile"
+		daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$qpkg_temp_path; $daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $qpkg_config_path --pidfile $daemon_pid_pathfile"
 
 	}
 
