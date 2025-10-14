@@ -1,7 +1,3 @@
-* Weewx
-	- https://github.com/weewx/weewx
-	- python-based.
-
 * Navidrome
 	- https://www.navidrome.org/
 
