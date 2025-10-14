@@ -423,8 +423,11 @@ StartQpkgLibrary()
 	fi
 
 	EnsureConfigFileExists
-	LoadPorts app || return
-	CheckPortsAvailable || return
+
+	if IsWebUi; then
+		LoadPorts app || return
+		CheckPortsAvailable || return
+	fi
 
 	if IsCheckNetworkBeforeStart; then
 		WatchForAnyInterfaceUp || return
@@ -506,11 +509,13 @@ StatusQpkgLibrary()
 	RefreshPidFile
 
 	if IsDaemon && IsDaemonActive; then
-		LoadPorts app
+		if IsWebUi; then
+			LoadPorts app
 
-		if ! WatchForPortsActive; then
-			Display '! no response from port(s)'
-			exit 1
+			if ! WatchForPortsActive; then
+				Display '! no response from port(s)'
+				exit 1
+			fi
 		fi
 	else
 		exit 1
@@ -634,7 +639,7 @@ StartDaemon()
 	fi
 
 	while true; do
-		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session" && IsDaemonActive &> /dev/null; WatchForDaemon; PauseForStartPid; ShowDaemonState) || ! IsDaemonActive &> /dev/null || ! WatchForPortsActive; then
+		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session" && IsDaemonActive &> /dev/null; WatchForDaemon; PauseForStartPid; ShowDaemonState) || ! IsDaemonActive &> /dev/null || (IsWebUi && ! WatchForPortsActive); then
 			DisplayAndCommitWarnToLog 'daemon PID check failed: there appears to have been a launch failure'
 			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
 			((c++))
@@ -2707,6 +2712,15 @@ IsReleaseAnArchive()
 
 	}
 
+IsWebUi()
+	{
+
+	# Does application daemon present a web UI?
+
+	[[ $get_ui_port_cmd != undefined || $get_ui_port_secure_cmd != undefined || $get_ui_listening_address_cmd != undefined || $ui_port -ne 0 || $ui_port_secure -ne 0 || $ui_listening_address != undefined ]]
+
+	}
+
 IsSupportAutoUpdate()
 	{
 
@@ -2756,7 +2770,7 @@ IsSSLEnabled()
 	# Outputs: (local)
 	#	$? = true/false
 
-	eval "$get_ui_port_secure_enabled_test_cmd"
+	[[ $get_ui_port_secure_enabled_test_cmd != undefined ]] && eval "$get_ui_port_secure_enabled_test_cmd"
 
 	}
 
