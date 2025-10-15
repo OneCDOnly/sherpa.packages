@@ -391,7 +391,10 @@ StartQpkg()
 
 	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
 
-	[[ $(type -t PreStartQpkgCustom) = function ]] && PreStartQpkgCustom
+	if [[ $(type -t PreStartQpkgCustom) = function ]]; then
+		PreStartQpkgCustom
+		IsNtError || return
+	fi
 
 	if [[ $(type -t StartQpkgCustom) = function ]]; then
 		StartQpkgCustom
