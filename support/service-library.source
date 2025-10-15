@@ -619,6 +619,7 @@ StartDaemon()
 	#	$run_daemon_in_screen_session
 	#	$start_retries
 
+	IsNtSkipDaemonStart || return
 	IsDaemon || return
 
 	if IsDaemonActive; then
@@ -3530,6 +3531,44 @@ IsNtError()
 	{
 
 	! IsError
+
+	}
+
+SetSkipDaemonStart()
+	{
+
+	_skipd_flag=true
+	false
+
+	}
+
+UnsetSkipDaemonStart()
+	{
+
+	_skipd_flag=false
+
+	}
+
+IsSkipDaemonStart()
+	{
+
+	[[ ${_skipd_flag:=false} = true ]]
+
+	}
+
+IsNtSkipDaemonStart()
+	{
+
+	! IsSkipDaemonStart
+
+	}
+
+IsInstall()
+	{
+
+	# `INSTALL_QPKG=true` is set in sherpa management script when action 'install' is run.
+
+	[[ ${INSTALL_QPKG:=false} = true ]]
 
 	}
 
