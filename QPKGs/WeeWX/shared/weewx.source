@@ -163,9 +163,9 @@ InitService()
 PreStartQpkgCustom()
 	{
 
-	# Ensure user can access the `weectl` binary when-needed. Create launcher dynamically as the required paths are easy-to-access as variables in this function.
+	# Ensure user can access `weectl` when-needed. Create the launcher dynamically as the required paths are easy-to-access as variables here.
 
-	local bin_pathfile=$venv_path/bin/weectl
+	local control_pathfile=$venv_path/bin/weectl
 	local launcher_pathfile=$r_qpkg_path/weectl-launch.sh
 	local userlink_pathfile=/usr/bin/weectl
 
@@ -178,8 +178,8 @@ PreStartQpkgCustom()
 
 export HOME=$qpkg_config_path
 
-if [[ -e $bin_pathfile ]]; then
-	eval "$bin_pathfile" "\$@"
+if [[ -e $control_pathfile ]]; then
+	eval "$venv_python_pathfile" "$control_pathfile" "\$@"
 else
 	echo "error: unable to find 'weectl' binary!"
 	exit 1
