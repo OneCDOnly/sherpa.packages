@@ -34,15 +34,13 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WeeWX
-readonly r_service_script_version=251015
+readonly r_service_script_version=251016
 InitService(){
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
 venv_path=$r_qpkg_path/venv
-qpkg_config_file=weewx.conf
 daemon_exec_pathfile=$venv_path/bin/python3
 daemon_script_pathfile=$venv_path/bin/weewxd
-qpkg_config_pathfile=$qpkg_config_path/weewx-data/$qpkg_config_file
 venv_pip_pathfile=$venv_path/bin/pip
 venv_python_pathfile=$venv_path/bin/python3
 can_restart_to_update=true
@@ -50,6 +48,37 @@ daemon_pidfile_is_managed_by_app=true
 install_pip_deps=true
 interpreter=/opt/bin/python3
 daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --pidfile $daemon_pid_pathfile --exit";}
+PreStartQpkgCustom(){
+local control_pathfile=$venv_path/bin/weectl
+local launcher_pathfile=$r_qpkg_path/weectl-launch.sh
+local userlink_pathfile=/usr/bin/weectl
+local gui_log_path=/home/httpd/weewx
+local real_log_path=$qpkg_config_path/weewx-data/public_html
+if [[ ! -e $launcher_pathfile ]];then
+/bin/cat>"$launcher_pathfile"<<EOF
+#!/usr/bin/env bash
+export HOME=$qpkg_config_path
+if [[ -e $control_pathfile ]];then
+eval "$venv_python_pathfile" "$control_pathfile" "\$@"
+else
+echo "error: unable to find 'weectl' binary!"
+exit 1
+fi
+exit 0
+EOF
+chmod +x "$launcher_pathfile"
+fi
+[[ ! -L $userlink_pathfile &&-e $launcher_pathfile ]]&&ln -s "$launcher_pathfile" "$userlink_pathfile"
+if [[ ! -d $qpkg_config_path/weewx-data ]];then
+if IsInstall;then
+SetSkipDaemonStart
+else
+DisplayAndCommitErrorToAllLogs "unable to launch weather recording daemon: a weather station hasn't been defined. Do this with 'weectl station create' then restart this QPKG"
+SetError
+fi
+else
+[[ ! -L $gui_log_path ]]&&ln -s "$real_log_path" "$gui_log_path"
+fi;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

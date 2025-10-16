@@ -108,6 +108,10 @@ pkg_post_install()
 
 	$CMD_SETCFG $QPKG_NAME Dependency Entware -f $SYS_QPKG_CONFIG_FILE
 
+    $CMD_SETCFG -f $SYS_QPKG_CONFIG_FILE $QPKG_NAME Web_Port $($CMD_GETCFG System "Web Access Port")
+#     [[ -e /sbin/qpkg_cli ]] && /sbin/qpkg_cli --clean "$QPKG_NAME" &>/dev/null
+#     $CMD_SETCFG "$QPKG_NAME" Status complete -f /etc/config/qpkg.conf
+
 	# If here, assume install/reinstall/upgrade worked OK. Reset service action.
 
 	readonly r_service_action_pathfile=/var/log/$QPKG_NAME.action

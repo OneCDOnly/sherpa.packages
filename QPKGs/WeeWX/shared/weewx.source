@@ -169,6 +169,9 @@ PreStartQpkgCustom()
 	local launcher_pathfile=$r_qpkg_path/weectl-launch.sh
 	local userlink_pathfile=/usr/bin/weectl
 
+	local gui_log_path=/home/httpd/weewx
+	local real_log_path=$qpkg_config_path/weewx-data/public_html
+
 	if [[ ! -e $launcher_pathfile ]]; then
 		/bin/cat > "$launcher_pathfile" << EOF
 #!/usr/bin/env bash
@@ -193,9 +196,15 @@ EOF
 	[[ ! -L $userlink_pathfile && -e $launcher_pathfile ]] && ln -s "$launcher_pathfile" "$userlink_pathfile"
 
 	if [[ ! -d $qpkg_config_path/weewx-data ]]; then
-		DisplayAndCommitErrorToAllLogs "unable to launch weather recording daemon: a weather station hasn't been defined. Do this with 'weectl station create' then restart this QPKG"
+		if IsInstall; then
+			SetSkipDaemonStart
+		else
+			DisplayAndCommitErrorToAllLogs "unable to launch weather recording daemon: a weather station hasn't been defined. Do this with 'weectl station create' then restart this QPKG"
 
-		SetError; return				# Set an error so startup won't proceed.
+			SetError				# Set an error so startup won't proceed.
+		fi
+	else
+		[[ ! -L $gui_log_path ]] && ln -s "$real_log_path" "$gui_log_path"
 	fi
 
 	}
