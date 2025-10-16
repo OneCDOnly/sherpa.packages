@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251014
+readonly r_service_library_version=251015
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -160,7 +160,10 @@ IsNtClean &&ShowDaemonState
 IsDaemonActive&&return
 fi
 [[ -e $r_service_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
-[[ $(type -t PreStartQpkgCustom) = function ]]&&PreStartQpkgCustom
+if [[ $(type -t PreStartQpkgCustom) = function ]];then
+PreStartQpkgCustom
+IsNtError||return
+fi
 if [[ $(type -t StartQpkgCustom) = function ]];then
 StartQpkgCustom
 else
@@ -281,6 +284,7 @@ fi
 fi
 return 0;}
 StartDaemon(){
+IsNtSkipDaemonStart||return
 IsDaemon||return
 if IsDaemonActive;then
 DisplayAndCommitInfoToLog 'daemon is already active'
@@ -1495,6 +1499,17 @@ IsError(){
 [[ ${_error_flag:=false} = true ]];}
 IsNtError(){
 ! IsError;}
+SetSkipDaemonStart(){
+_skipd_flag=true
+false;}
+UnsetSkipDaemonStart(){
+_skipd_flag=false;}
+IsSkipDaemonStart(){
+[[ ${_skipd_flag:=false} = true ]];}
+IsNtSkipDaemonStart(){
+! IsSkipDaemonStart;}
+IsInstall(){
+[[ ${INSTALL_QPKG:=false} = true ]];}
 IsReinstall(){
 [[ ${REINSTALL_QPKG:=false} = true ]];}
 IsUpgrade(){

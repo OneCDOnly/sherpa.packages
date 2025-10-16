@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Whisparr
-readonly r_service_script_version=251014
+readonly r_service_script_version=251015
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_config_file=config.xml
