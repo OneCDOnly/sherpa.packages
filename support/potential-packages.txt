@@ -37,3 +37,4 @@
 	- https://github.com/pxehost/pxehost
 	- Won't run as UID:0
 		- possibly fixed now: https://github.com/pxehost/pxehost/issues/1
+	- QTS dhcpd processes grabs port 67. Must ensure Container Station is not installed.

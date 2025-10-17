@@ -1,6 +1,6 @@
 Test date: 2024-05-29
 
-  * Install failed on x41:
+  * Install failed on a41:
       -------------------------------------------------------------------------------------------------------------------------
       (venv) [~] # pip install pynacl
       Collecting pynacl

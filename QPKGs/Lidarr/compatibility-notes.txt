@@ -1,1 +1,1 @@
-* see 'compatibility-notes.txt' for OSonarr QPKG.
+* see 'compatibility-notes.txt' for Sonarr QPKG.
