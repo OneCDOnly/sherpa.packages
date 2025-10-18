@@ -120,7 +120,8 @@
 	- See sherpa.packages/dev/gpt-engineer/compatibility-notes.txt
 
 * FlexGet
-	- See sherpa.packages/dev/OFlexGet/compatibility-notes.txt
+	- https://flexget.com/InstallWizard/Linux
+	- See sherpa.packages/dev/FlexGet/compatibility-notes.txt
 
 * codex
 	- See sherpa.packages/dev/Codex/compatibility-notes.txt
