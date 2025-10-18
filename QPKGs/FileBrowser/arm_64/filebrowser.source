@@ -22,6 +22,8 @@ InitService()
 
 		# pip_cache_path=undefined
 
+		# qpkg_config_path=$r_qpkg_path/config
+
 		# qpkg_repo_path=undefined
 		qpkg_repo_path=$r_qpkg_path/repo-cache
 
