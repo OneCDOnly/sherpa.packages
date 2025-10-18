@@ -1,4 +1,4 @@
-* Test date: 2024-07-22 on x86-64 (siena)
+* Test date: 2024-07-22 on i64
     -------------------------------------------------------------------------------------------------------------------------
     (venv) [/share/Public] # flexget -c /share/CACHEDEV1_DATA/.qpkg/OFlexGet/config/config.yml daemon start
     2024-07-22 07:11:15 INFO     scheduler                     No schedules defined in config. Defaulting to run all tasks on a 1 hour interval.
@@ -36,3 +36,7 @@
                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     _pickle.PicklingError: Cannot pickle a ZoneInfo file from a file stream.
     -------------------------------------------------------------------------------------------------------------------------
+
+- Follow this: https://flexget.com/InstallWizard/Linux
+	- might need to config scheduling before launching daemon.
+	- Needs a config file to feed to the daemon before starting (same as WeeWX).

@@ -1,1 +1,3 @@
-- Require `cpan` to install perl modules unavailable via Entware. But, can't run cpan as it can't see the Entware `ExtUtils` module.
+Project source: https://github.com/oetiker/SmokePing
+
+- Requires `cpan` to install perl modules unavailable via Entware. But, can't run cpan as it can't see the Entware `ExtUtils` module.
