@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Readarr
-readonly r_service_script_version=251015
+readonly r_service_script_version=251018
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_config_file=config.xml

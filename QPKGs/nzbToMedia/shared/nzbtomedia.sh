@@ -3,7 +3,7 @@ readonly USER_ARGS_RAW=$*
 Init(){
 IsQNAP||return
 readonly QPKG_NAME=nzbToMedia
-readonly SCRIPT_VERSION=250927
+readonly SCRIPT_VERSION=251019
 readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
 readonly QPKG_VERSION=$(/sbin/getcfg $QPKG_NAME Version -d unknown -f /etc/config/qpkg.conf)
 readonly QPKG_CONFIG_PATH=$QPKG_PATH/config
@@ -144,6 +144,7 @@ WaitForLaunchTarget ||{ SetError;return 1;}
 if [[ $scripts_path = "$QPKG_REPO_PATH" ]];then
 DisplayCommitToLog "direct path matches scripts_path, so don't create a symlink"
 elif [[ ! -L $scripts_path ]];then
+[[ -d $scripts_path ]]&&rmdir "$scripts_path" 2>/dev/null
 [[ -d $scripts_path ]]&&DisplayRunAndLog 'a local path is in the way of the target, moving it aside' "mv $scripts_path $scripts_path.prev"
 ln -s "$QPKG_REPO_PATH" "$scripts_path"
 DisplayCommitToLog "symlink created from: $scripts_path to: $QPKG_REPO_PATH"
