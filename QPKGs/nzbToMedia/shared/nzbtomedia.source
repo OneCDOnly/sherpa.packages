@@ -20,7 +20,7 @@ Init()
 
 	# service-script environment
 	readonly QPKG_NAME=nzbToMedia
-	readonly SCRIPT_VERSION=250927
+	readonly SCRIPT_VERSION=251019
 
 	# general environment
 	readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
@@ -212,6 +212,7 @@ StartQPKG()
 	if [[ $scripts_path = "$QPKG_REPO_PATH" ]]; then
 		DisplayCommitToLog "direct path matches scripts_path, so don't create a symlink"
 	elif [[ ! -L $scripts_path ]]; then
+		[[ -d $scripts_path ]] && rmdir "$scripts_path" 2> /dev/null		# Try deleting it but only if empty.
 		[[ -d $scripts_path ]] && DisplayRunAndLog 'a local path is in the way of the target, moving it aside' "mv $scripts_path $scripts_path.prev"
 		ln -s "$QPKG_REPO_PATH" "$scripts_path"
 		DisplayCommitToLog "symlink created from: $scripts_path to: $QPKG_REPO_PATH"
