@@ -1,11 +1,8 @@
-* Stirling-PDF
-	- https://github.com/Stirling-Tools/Stirling-PDF
-	- https://docs.stirlingpdf.com/Installation/Unix%20Installation
+* scrutiny
+   - https://github.com/AnalogJ/scrutiny
 
-* BentoPDF
-	- https://github.com/alam00000/bentopdf
-	- needs NodeJS v18 or-higher
-	- npm
+* SwingMusic
+   - https://github.com/swingmx/swingmusic
 
 * Navidrome
 	- https://www.navidrome.org/
