@@ -34,9 +34,8 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Medusa
-readonly r_service_script_version=251015
+readonly r_service_script_version=251021
 InitService(){
-ShowAsImportant "Medusa support to be discontinued: $(ShowAsURL 'https://github.com/OneCDOnly/sherpa/discussions/318')"
 pip_cache_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
