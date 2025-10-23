@@ -12,7 +12,7 @@ six==1.17.0
 cherrypy==18.10.0
 jaraco.functools==4.3.0
 jaraco.collections==5.0.0
-jaraco.text==3.8.1 # Newer version introduces irrelevant extra dependencies
+jaraco.text==3.8.1 			# Newer version introduces irrelevant extra dependencies
 jaraco.classes==3.4.0
 jaraco.context==4.3.0
 more-itertools==10.8.0
@@ -61,7 +61,7 @@ requests==2.32.5
 requests-oauthlib==2.0.0
 PyYAML==6.0.3
 markdown==3.9
-paho-mqtt==1.6.1 # Pinned, newer versions don't work with AppRise yet
+paho-mqtt==1.6.1 			# Pinned, newer versions don't work with AppRise yet
 
 # Requests Requirements
 charset_normalizer==3.4.4
