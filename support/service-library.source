@@ -643,8 +643,18 @@ StartDaemon()
 	fi
 
 	while true; do
-		if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session" && IsDaemonActive &> /dev/null; WatchForDaemon; PauseForStartPid; ShowDaemonState) || ! IsDaemonActive &> /dev/null || (IsWebUi && ! WatchForPortsActive); then
-			DisplayAndCommitWarnToLog 'daemon PID check failed: there appears to have been a launch failure'
+		if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; then
+			DisplayAndCommitWarnToLog 'there has been a daemon launch failure'
+			SetError; return
+		fi
+
+		IsDaemonActive &> /dev/null
+		WatchForDaemon
+		PauseForStartPid
+		ShowDaemonState
+
+		if ! IsDaemonActive &> /dev/null || (IsWebUi && ! WatchForPortsActive); then
+			DisplayAndCommitWarnToLog 'daemon PID check failed: there appears to have been a post-launch failure'
 			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
 			((c++))
 
