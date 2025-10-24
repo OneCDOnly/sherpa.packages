@@ -868,7 +868,7 @@ RunAndLog()
 
 		if [[ ${5:-false} = false ]]; then
 			Display "exec: '$1'"
-			eval "$1 > >(/usr/bin/tee $LOG_PATHFILE) 2>&1"		# NOTE: 'tee' buffers stdout here
+			eval "$1 > >(/usr/bin/tee $LOG_PATHFILE) 2>&1"		# NOTE: 'tee' buffers stdout here	# squeezer-ignore
 			result_code=${PIPESTATUS[0]}						# must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
 		else
 			Display "exec (in screen session): '$1'"
