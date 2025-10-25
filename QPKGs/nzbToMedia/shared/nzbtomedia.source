@@ -20,7 +20,7 @@ Init()
 
 	# service-script environment
 	readonly QPKG_NAME=nzbToMedia
-	readonly SCRIPT_VERSION=251019
+	readonly SCRIPT_VERSION='<?build_date?>'
 
 	# general environment
 	readonly QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
