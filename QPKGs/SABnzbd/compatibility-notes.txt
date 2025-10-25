@@ -1,5 +1,5 @@
 * Stephane's Unrar QPKG isn't available for ARMv5 & ARMv7 models.
 	- Use Entware 'unrar' instead.
 
-* No 'rustc' IPK available for ARMv5, so can't compile 'orjson' or 'maturin' wheels.
+* No 'rustc' IPK available for ARMv5, so can't compile 'orjson' (or 'maturin') wheels.
 	- Use 'ujson' instead.
