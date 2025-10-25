@@ -1,12 +1,12 @@
 Test date: 2024-05-31
 
-	* Bazarr on x86 (Sarah) launches, then exits without error.
+	* Bazarr on i86 launches, then exits without error.
 		- Try running with debug enabled.
 		- Nope, no messages to explain why this is happening. Application bug? Low resources?
 
 Test date: 2024-05-29
 
-	* Install failed on x19, x31 & x41:
+	* Install failed on a19, a31 & a41:
 		-------------------------------------------------------------------------------------------------------------------------
 		Collecting numpy>=1.12.0 (from -r /share/CACHEDEV1_DATA/.qpkg/Bazarr/config/requirements.txt (line 1))
 		Using cached numpy-1.26.4.tar.gz (15.8 MB)

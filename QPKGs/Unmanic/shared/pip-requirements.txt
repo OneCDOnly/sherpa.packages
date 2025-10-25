@@ -1,25 +1,25 @@
-JSON-log-formatter~=0.5.2
-Jinja2
-PyYAML
 blessed
 charset-normalizer
 click
 editor
-inquirer>=2.7.0
+inquirer>=2.7.0				# Required for CLI only
+jinja2
+json-log-formatter~=0.5.2
 marshmallow~=3.22
 peewee>=3.14.4
 peewee_migrate==1.13.0
 psutil~=6.0.0
 py-cpuinfo>=7.0.0
+pyyaml
 readchar
 requests>=2.28.2
 requests_toolbelt>=0.9.1
 runs
 schedule==1.2.2
-swagger-ui-py
+swagger-ui-py				# Required for hosting the API docs
 tornado==6.3.3
 unmanic
-watchdog>=2.1.1
+watchdog>=2.1.1				# Optional requirements
 wcwidth
 wheel
 xmod
