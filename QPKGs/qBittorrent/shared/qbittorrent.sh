@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=qBittorrent
-readonly r_service_script_version=251015
+readonly r_service_script_version=251025
 InitService(){
 qpkg_config_file=qBittorrent.conf
 daemon_exec_pathfile=/opt/bin/qbittorrent-nox

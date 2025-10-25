@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251015
+readonly r_service_library_version=251025
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -303,8 +303,16 @@ b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 DisplayAndCommitInfoToLog "nice daemon to: $nice_daemon_to"
 fi
 while true;do
-if ! (DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"&&IsDaemonActive &>/dev/null;WatchForDaemon;PauseForStartPid;ShowDaemonState) ||! IsDaemonActive &>/dev/null ||(IsWebUi &&! WatchForPortsActive);then
-DisplayAndCommitWarnToLog 'daemon PID check failed: there appears to have been a launch failure'
+if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";then
+DisplayAndCommitWarnToLog 'there has been a daemon launch failure'
+SetError;return
+fi
+IsDaemonActive &>/dev/null
+WatchForDaemon
+PauseForStartPid
+ShowDaemonState
+if ! IsDaemonActive &>/dev/null ||(IsWebUi &&! WatchForPortsActive);then
+DisplayAndCommitWarnToLog 'daemon PID check failed: there appears to have been a post-launch failure'
 [[ $run_daemon_in_screen_session = true ]]&&AddFileToDebug "$r_service_screen_log_pathfile"
 ((c++))
 if [[ $((c-1)) -lt $start_retries ]];then

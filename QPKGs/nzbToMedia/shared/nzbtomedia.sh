@@ -522,7 +522,7 @@ if [[ $debug = true ]];then
 Display
 if [[ ${5:-false} = false ]];then
 Display "exec: '$1'"
-eval "$1 >>(/usr/bin/tee $LOG_PATHFILE) 2>&1"
+			eval "$1 > >(/usr/bin/tee $LOG_PATHFILE) 2>&1"
 result_code=${PIPESTATUS[0]}
 else
 Display "exec (in screen session): '$1'"
