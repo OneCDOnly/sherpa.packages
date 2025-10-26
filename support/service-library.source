@@ -959,7 +959,7 @@ InstallPythonPackages()
 
 	IsNtAutoUpdate && [[ $new_env = false ]] && return 0
 
-	if [[ $r_qpkg_name = OWatcher3 ]]; then
+	if [[ $r_qpkg_name = Watcher3 || $r_qpkg_name = OWatcher3 ]]; then
 		# Need to install `m2r` PyPI module first.
 		DisplayRunAndLog "KLUDGE: install 'm2r' PyPI module first" "$venv_pip_pathfile install${no_pip_deps} --no-input m2r" log:failure-only
 
