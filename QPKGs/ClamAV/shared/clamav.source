@@ -20,13 +20,13 @@ InitService()
 
 	# >>> Paths <<<
 
-		# pip_cache_path=undefined
+		# qpkg_pip_path=undefined
 
 		# qpkg_repo_path=undefined
 
 		# qpkg_wheels_path=undefined
 
-		# venv_path=undefined
+		# qpkg_venv_path=undefined
 
 	# >>> Filenames <<<
 
