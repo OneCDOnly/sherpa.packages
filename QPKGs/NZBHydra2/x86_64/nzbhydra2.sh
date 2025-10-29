@@ -34,18 +34,18 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version=251025
+readonly r_service_script_version=251029
 InitService(){
-pip_cache_path=$r_qpkg_path/pip-cache
+qpkg_pip_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
-venv_path=$r_qpkg_path/venv
+qpkg_venv_path=$r_qpkg_path/venv
 qpkg_config_file=nzbhydra.yml
 daemon_check_pathfile=$qpkg_repo_path/core
-daemon_exec_pathfile=$venv_path/bin/python3
+daemon_exec_pathfile=$qpkg_venv_path/bin/python3
 daemon_script_pathfile=$qpkg_repo_path/nzbhydra2wrapperPy3.py
 qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
-venv_pip_pathfile=$venv_path/bin/pip
+venv_pip_pathfile=$qpkg_venv_path/bin/pip
 venv_python_pathfile=
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true

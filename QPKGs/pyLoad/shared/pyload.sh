@@ -34,18 +34,18 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=pyLoad
-readonly r_service_script_version=251025
+readonly r_service_script_version=251029
 InitService(){
-pip_cache_path=$r_qpkg_path/pip-cache
+qpkg_pip_path=$r_qpkg_path/pip-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
-venv_path=$r_qpkg_path/venv
+qpkg_venv_path=$r_qpkg_path/venv
 qpkg_config_file=pyload.cfg
-daemon_exec_pathfile=$venv_path/bin/python3
-daemon_script_pathfile=$venv_path/bin/pyload
+daemon_exec_pathfile=$qpkg_venv_path/bin/python3
+daemon_script_pathfile=$qpkg_venv_path/bin/pyload
 qpkg_config_pathfile=$qpkg_config_path/settings/$qpkg_config_file
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
-venv_pip_pathfile=$venv_path/bin/pip
-venv_python_pathfile=$venv_path/bin/python3
+venv_pip_pathfile=$qpkg_venv_path/bin/pip
+venv_python_pathfile=$qpkg_venv_path/bin/python3
 can_restart_to_update=true
 interpreter=/opt/bin/python3
 start_retries=3

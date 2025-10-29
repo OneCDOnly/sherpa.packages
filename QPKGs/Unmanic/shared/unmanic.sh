@@ -34,19 +34,19 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Unmanic
-readonly r_service_script_version=251025
+readonly r_service_script_version=251029
 InitService(){
-pip_cache_path=$r_qpkg_path/pip-cache
+qpkg_pip_path=$r_qpkg_path/pip-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
-venv_path=$r_qpkg_path/venv
+qpkg_venv_path=$r_qpkg_path/venv
 qpkg_config_file=settings.json
-daemon_exec_pathfile=$venv_path/bin/python3
-daemon_script_pathfile=$venv_path/bin/unmanic
+daemon_exec_pathfile=$qpkg_venv_path/bin/python3
+daemon_script_pathfile=$qpkg_venv_path/bin/unmanic
 qpkg_config_pathfile=$qpkg_config_path/.unmanic/config/$qpkg_config_file
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 /bin/sed -i "s|<?installation_path?>|$r_qpkg_path|g" "$qpkg_config_default_pathfile"
-venv_pip_pathfile=$venv_path/bin/pip
-venv_python_pathfile=$venv_path/bin/python3
+venv_pip_pathfile=$qpkg_venv_path/bin/pip
+venv_python_pathfile=$qpkg_venv_path/bin/python3
 can_restart_to_update=true
 run_daemon_in_screen_session=true
 interpreter=/opt/bin/python3

@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrailBase
-readonly r_service_script_version=251025
+readonly r_service_script_version=251029
 InitService(){
 qpkg_repo_path=$r_qpkg_path/repo-cache
 daemon_exec_pathfile=$qpkg_repo_path/trail

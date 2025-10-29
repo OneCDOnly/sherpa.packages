@@ -34,16 +34,16 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Mylar3
-readonly r_service_script_version=251025
+readonly r_service_script_version=251029
 InitService(){
-pip_cache_path=$r_qpkg_path/pip-cache
+qpkg_pip_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
-venv_path=$r_qpkg_path/venv
-daemon_exec_pathfile=$venv_path/bin/python3
+qpkg_venv_path=$r_qpkg_path/venv
+daemon_exec_pathfile=$qpkg_venv_path/bin/python3
 daemon_script_pathfile=$qpkg_repo_path/Mylar.py
-venv_pip_pathfile=$venv_path/bin/pip
-venv_python_pathfile=$venv_path/bin/python3
+venv_pip_pathfile=$qpkg_venv_path/bin/pip
+venv_python_pathfile=$qpkg_venv_path/bin/python3
 can_restart_to_update=true
 install_pip_deps=true
 interpreter=/opt/bin/python3
