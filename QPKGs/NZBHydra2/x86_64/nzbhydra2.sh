@@ -34,33 +34,37 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version=251029
+readonly r_service_script_version=251103
 InitService(){
-qpkg_pip_path=$r_qpkg_path/pip-cache
-qpkg_repo_path=$r_qpkg_path/repo-cache
-qpkg_venv_path=$r_qpkg_path/venv
-qpkg_config_file=nzbhydra.yml
-daemon_check_pathfile=$qpkg_repo_path/core
-daemon_exec_pathfile=$qpkg_venv_path/bin/python3
-daemon_script_pathfile=$qpkg_repo_path/nzbhydra2wrapperPy3.py
-qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
-qpkg_config_default_pathfile=$qpkg_config_pathfile.def
-venv_pip_pathfile=$qpkg_venv_path/bin/pip
-venv_python_pathfile=
+allow_access_to_sys_packages=true
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true
 resolve_source_url=true
-interpreter=/opt/bin/python3
+silence_pypi_errors=true
 nice_daemon_to=15
 source_url_arch=amd64
-source_url_match=-${source_url_arch}-linux.zip
 start_retries=3
-source_url=https://api.github.com/repos/theotherp/nzbhydra2/releases/latest
+qpkg_config_path=$r_qpkg_path/config
+qpkg_pip_path=$r_qpkg_path/pip-cache
+qpkg_repo_path=$r_qpkg_path/repo-cache
+qpkg_temp_path=$r_qpkg_path/tmp
+qpkg_venv_path=$r_qpkg_path/venv
+daemon_check_pathfile=$qpkg_repo_path/core
+daemon_exec_pathfile=$qpkg_venv_path/bin/python3
+daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+daemon_script_pathfile=$qpkg_repo_path/nzbhydra2wrapperPy3.py
+qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
+qpkg_config_pathfile=$qpkg_config_path/nzbhydra.yml
+qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+venv_pip_pathfile=$qpkg_venv_path/bin/pip
+interpreter=/opt/bin/python3
+source_asset_url_match=-${source_url_arch}-linux.zip
+source_asset_url=https://api.github.com/repos/theotherp/nzbhydra2/releases/latest
+daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $qpkg_config_path --pidfile $daemon_pid_pathfile"
 get_ui_listening_address_cmd="GetKeyFromYAML main_host $qpkg_config_pathfile"
 get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_config_pathfile"
-get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_config_pathfile"
-get_ui_port_secure_enabled_test_cmd='[[ $(GetKeyFromYAML main:ssl '$qpkg_config_pathfile') = true ]]'
-daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $qpkg_config_path --pidfile $daemon_pid_pathfile";}
+get_ui_port_secure_cmd="GetKeyFromYAML main:port $qpkg_config_pathfile"
+get_ui_port_secure_enabled_test_cmd='[[ $(GetKeyFromYAML main:ssl '$qpkg_config_pathfile') = true ]]';}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

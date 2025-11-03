@@ -34,18 +34,20 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WeeWX
-readonly r_service_script_version=251029
+readonly r_service_script_version=251103
 InitService(){
-qpkg_pip_path=$r_qpkg_path/pip-cache
-qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
-qpkg_venv_path=$r_qpkg_path/venv
-daemon_exec_pathfile=$qpkg_venv_path/bin/python3
-daemon_script_pathfile=$qpkg_venv_path/bin/weewxd
-venv_pip_pathfile=$qpkg_venv_path/bin/pip
-venv_python_pathfile=$qpkg_venv_path/bin/python3
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true
 install_pip_deps=true
+qpkg_config_path=$r_qpkg_path/config
+qpkg_pip_path=$r_qpkg_path/pip-cache
+qpkg_venv_path=$r_qpkg_path/venv
+qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
+daemon_exec_pathfile=$qpkg_venv_path/bin/python3
+daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+daemon_script_pathfile=$qpkg_venv_path/bin/weewxd
+venv_pip_pathfile=$qpkg_venv_path/bin/pip
+venv_python_pathfile=$qpkg_venv_path/bin/python3
 interpreter=/opt/bin/python3
 daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --pidfile $daemon_pid_pathfile --exit";}
 PreStartQpkgCustom(){

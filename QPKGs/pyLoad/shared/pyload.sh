@@ -34,83 +34,31 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=pyLoad
-readonly r_service_script_version=251029
+readonly r_service_script_version=251103
 InitService(){
+allow_access_to_sys_packages=true
+can_restart_to_update=true
+start_retries=3
+qpkg_config_path=$r_qpkg_path/config
 qpkg_pip_path=$r_qpkg_path/pip-cache
-qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
+qpkg_temp_path=$r_qpkg_path/tmp
 qpkg_venv_path=$r_qpkg_path/venv
-qpkg_config_file=pyload.cfg
+qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
 daemon_exec_pathfile=$qpkg_venv_path/bin/python3
+daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 daemon_script_pathfile=$qpkg_venv_path/bin/pyload
-qpkg_config_pathfile=$qpkg_config_path/settings/$qpkg_config_file
+qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
+qpkg_config_pathfile=$qpkg_config_path/settings/pyload.cfg
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 venv_pip_pathfile=$qpkg_venv_path/bin/pip
 venv_python_pathfile=$qpkg_venv_path/bin/python3
-can_restart_to_update=true
+export HOME=$qpkg_config_path
 interpreter=/opt/bin/python3
-start_retries=3
+daemon_launch_cmd="export TEMP=$qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $r_qpkg_path/config"
 get_ui_listening_address_cmd="GetKeyFromPyload webui host $qpkg_config_pathfile"
 get_ui_port_cmd="GetKeyFromPyload webui port $qpkg_config_pathfile"
 get_ui_port_secure_cmd="GetKeyFromPyload webui port $qpkg_config_pathfile"
-get_ui_port_secure_enabled_test_cmd="[[ $(GetKeyFromPyload webui use_ssl "$qpkg_config_pathfile") = True ]]"
-daemon_launch_cmd="export TEMP=$qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $r_qpkg_path/config";}
-GetKeyFromPyload(){
-local target_section_name=${1:?no section supplied}
-local target_var_name=${2:?no variable supplied}
-local source_pathfile=${3:?no pathfilename supplied}
-if [[ ! -e $source_pathfile ]];then
-echo false
-return
-fi
-local blank=''
-local end_line_num='$'
-local -i line_num=0
-local raw_var_type=''
-local raw_var_description=''
-local result_line=''
-local section_description=''
-local section_line=''
-local section_name=''
-local section_raw=''
-local -i start_line_num=0
-local target_section=''
-local value=''
-local value_raw=''
-local var_found=false
-local var_name=''
-local var_type=''
-while read -r result_line;do
-IFS=':' read -r line_num section_raw<<<"$result_line"
-IFS=' ' read -r section_name blank section_description<<<"$section_raw"
-if [[ $section_name = "$target_section_name" ]];then
-[[ $start_line_num -eq 0 ]]&&start_line_num=$((line_num+1))
-else
-if [[ $start_line_num -ne 0 ]];then
-end_line_num=$((line_num-2))
-break
-fi
-fi
-done<<<"$(/bin/grep '.*:$' -n "$source_pathfile")"
-if [[ $start_line_num -eq 0 ]];then
-echo 'section match not found'
-return 1
-fi
-target_section=$(/bin/sed -n "${start_line_num},${end_line_num}p" "$source_pathfile")
-while read -r section_line;do
-IFS=':' read -r raw_var_type raw_var_description<<<"$section_line"
-read -r var_type var_name<<<"$raw_var_type"
-[[ $var_name != "$target_var_name" ]]&&continue
-var_found=true
-IFS='"' read -r blank var_description value_raw<<<"$raw_var_description"
-IFS='=' read -r blank value<<<"$value_raw"
-value=${value% };value=${value# }
-break
-done<<<"$target_section"
-if [[ $var_found = false ]];then
-echo 'variable match not found'
-return 1
-fi
-echo "$value";}
+get_ui_port_secure_enabled_test_cmd="[[ $(GetKeyFromPyload webui use_ssl "$qpkg_config_pathfile") = True ]]";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

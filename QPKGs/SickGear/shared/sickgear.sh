@@ -34,29 +34,36 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=SickGear
-readonly r_service_script_version=251029
+readonly r_service_script_version=251103
 InitService(){
-qpkg_pip_path=$r_qpkg_path/pip-cache
-qpkg_repo_path=$r_qpkg_path/repo-cache
-qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
-qpkg_venv_path=$r_qpkg_path/venv
-daemon_exec_pathfile=$qpkg_venv_path/bin/python3
-daemon_script_pathfile=$qpkg_repo_path/sickgear.py
-venv_pip_pathfile=$qpkg_venv_path/bin/pip
-venv_python_pathfile=$qpkg_venv_path/bin/python3
+allow_access_to_sys_packages=true
 can_restart_to_update=true
 install_pip_deps=true
 recheck_daemon_pid_after_launch=true
-interpreter=/opt/bin/python3
 source_git_branch=main
 source_git_branch_depth=single-branch
 start_retries=3
+qpkg_config_path=$r_qpkg_path/config
+qpkg_pip_path=$r_qpkg_path/pip-cache
+qpkg_repo_path=$r_qpkg_path/repo-cache
+qpkg_temp_path=$r_qpkg_path/tmp
+qpkg_venv_path=$r_qpkg_path/venv
+qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
+daemon_exec_pathfile=$qpkg_venv_path/bin/python3
+daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+daemon_script_pathfile=$qpkg_repo_path/sickgear.py
+qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
+qpkg_config_pathfile=$qpkg_config_path/config.ini
+qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+venv_pip_pathfile=$qpkg_venv_path/bin/pip
+venv_python_pathfile=$qpkg_venv_path/bin/python3
+interpreter=/opt/bin/python3
 source_git_url=https://github.com/SickGear/SickGear.git
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_config_pathfile")"
 get_ui_listening_address_cmd="/sbin/getcfg General web_host -d undefined -f $qpkg_config_pathfile"
 get_ui_port_cmd="/sbin/getcfg General web_port -d 0 -f $qpkg_config_pathfile"
 get_ui_port_secure_cmd="/sbin/getcfg General web_port -d 0 -f $qpkg_config_pathfile"
 get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg General enable_https -d 0 -f '$qpkg_config_pathfile') = 1 ]]'
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --nolaunch --datadir $(/usr/bin/dirname "$qpkg_config_pathfile")"
 if [[ -e $qpkg_config_default_pathfile ]];then
 /sbin/setcfg General log_dir "$qpkg_config_path"/logs -f "$qpkg_config_default_pathfile"
 /sbin/setcfg General cache_dir "$qpkg_config_path"/cache -f "$qpkg_config_default_pathfile"

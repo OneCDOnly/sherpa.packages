@@ -34,13 +34,9 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=ClamAV
-readonly r_service_script_version=251029
+readonly r_service_script_version=251103
 InitService(){
-qpkg_config_file=undefined
-qpkg_backup_pathfile=undefined
-qpkg_config_pathfile=undefined
-qpkg_config_default_pathfile=undefined
-install_pip_deps=true
+daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 readonly r_target_service_pathfile=/etc/init.d/antivirus.sh
 readonly r_backup_service_pathfile=$r_target_service_pathfile.bak;}
 StartQpkgCustom(){
@@ -57,7 +53,7 @@ cp "$r_target_service_pathfile" "$r_backup_service_pathfile"
 eval "$r_target_service_pathfile" restart &>/dev/null
 fi
 [[ "$(</etc/profile)" =~ "freshclam" ]]||echo "alias freshclam='/opt/sbin/freshclam -u admin --config-file=/etc/config/freshclam.conf --datadir=/share/$(/sbin/getcfg Public path -f /etc/config/smb.conf|cut -d '/' -f 3)/.antivirus/usr/share/clamav -l /tmp/.freshclam.log'">>/etc/profile
-DisplayAndCommitInfoToLog 'start: OK'
+DisplayAndCommitInfoToServiceLog 'start: OK'
 return 0;}
 StopQpkgCustom(){
 IsError&&return
@@ -66,7 +62,7 @@ mv "$r_backup_service_pathfile" "$r_target_service_pathfile"
 eval "$r_target_service_pathfile" restart &>/dev/null
 fi
 /bin/sed -i '/freshclam/d' /etc/profile
-DisplayAndCommitInfoToLog 'stop: OK'
+DisplayAndCommitInfoToServiceLog 'stop: OK'
 return 0;}
 StatusQpkgCustom(){
 if IsNtError &&[[ -e $r_backup_service_pathfile ]];then

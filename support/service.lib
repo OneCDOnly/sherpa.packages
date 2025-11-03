@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251029
+readonly r_service_library_version=251103
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -49,6 +49,22 @@ debug=true
 break
 done
 UnsetError
+readonly e_noact='undefined action'
+readonly e_nochk='undefined checksum'
+readonly e_nocmd='undefined command'
+readonly e_noext='undefined exitcode'
+readonly e_nofil='undefined filename'
+readonly e_nonam='undefined name'
+readonly e_nopfi='undefined pathfile'
+readonly e_nopnm='undefined package name'
+readonly e_noprm='undefined prompt'
+readonly e_nopth='undefined path'
+readonly e_nopty='undefined package type'
+readonly e_norea='undefined reason'
+readonly e_nores='undefined result'
+readonly e_notir='undefined tier'
+readonly e_nourl='undefined URL'
+readonly e_noval='undefined value'
 readonly r_backup_path=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
 readonly r_opkg_path=/opt/bin:/opt/sbin
 export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||"<<<"$PATH")
@@ -67,33 +83,15 @@ readonly r_extended_datetime_format='+%a %-d %b %Y'
 readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
 readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d unknown -f /etc/config/qpkg.conf)
+r_qpkgs_name_arrs=(Readarr Sonarr Whisparr)
+readonly r_qpkgs_name_arrs
 r_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
 readonly r_qpkgs_name_migrated
 SetNasArch
 SetQpkgArch
 SetOsFirmwareVer
 SetHardwarePlatform
-qpkg_config_path=$r_qpkg_path/config
-qpkg_pip_path=undefined
-qpkg_repo_path=undefined
-qpkg_temp_path=$r_qpkg_path/tmp
-qpkg_venv_path=undefined
-qpkg_wheels_path=undefined
-qpkg_config_file=config.ini
-app_version_pathfile=undefined
-daemon_check_pathfile=undefined
-daemon_exec_pathfile=undefined
-daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
-daemon_script_pathfile=undefined
-launcher_pathfile=undefined
-qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
-qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
-qpkg_config_default_pathfile=$qpkg_config_pathfile.def
-qpkg_config_virtual_pathfile=undefined
-userlink_pathfile=undefined
-venv_pip_pathfile=undefined
-venv_python_pathfile=undefined
-allow_access_to_sys_packages=true
+allow_access_to_sys_packages=false
 can_restart_to_update=false
 check_network_before_start=false
 compare_release_filename=false
@@ -104,16 +102,12 @@ recheck_daemon_pid_after_kill=false
 recheck_daemon_pid_after_launch=false
 resolve_source_url=false
 run_daemon_in_screen_session=false
-silence_pypi_errors=true
+silence_pypi_errors=false
 daemon_port=0
-export HOME=$qpkg_config_path
-interpreter=undefined
 nice_daemon_to=0
-orig_daemon_service_script=undefined
 source_git_branch=undefined
 source_git_branch_depth=undefined
 source_url_arch=undefined
-source_url_match=undefined
 start_retries=0
 ui_listening_address=undefined
 ui_port=0
@@ -125,10 +119,33 @@ watch_pid_kill_seconds=120
 watch_pid_start_seconds=120
 watch_pidfile_start_seconds=60
 watch_port_check_seconds=120
+qpkg_config_path=undefined
+qpkg_pip_path=undefined
+qpkg_repo_path=undefined
+qpkg_temp_path=undefined
+qpkg_venv_path=undefined
+qpkg_wheels_path=undefined
+appl_version_pathfile=undefined
+daemon_check_pathfile=undefined
+daemon_exec_pathfile=undefined
+daemon_pid_pathfile=undefined
+daemon_script_pathfile=undefined
+launcher_pathfile=undefined
+qpkg_backup_pathfile=undefined
+qpkg_config_pathfile=undefined
+qpkg_config_default_pathfile=undefined
+qpkg_config_virtual_pathfile=undefined
+userlink_pathfile=undefined
+venv_pip_pathfile=undefined
+venv_python_pathfile=undefined
+export HOME=$qpkg_config_path
+interpreter=undefined
+orig_daemon_service_script=undefined
+source_asset_url_match=undefined
+source_asset_url=undefined
 source_git_url=undefined
-source_url=undefined
 daemon_launch_cmd=undefined
-get_app_version_cmd=undefined
+get_appl_version_cmd=undefined
 get_daemon_port_cmd=undefined
 get_ui_listening_address_cmd=undefined
 get_ui_port_cmd=undefined
@@ -144,14 +161,19 @@ service_action=unspecified
 service_result=undefined
 MakePaths
 EnsureConfigFileExists
-GetAppVersion
+GetApplVersion
 DisableOpkgDaemonStart
 IsSupportAutoUpdate&&IsAutoUpdateMissing &&EnableAutoUpdate>/dev/null
-readonly e_nourl='undefined URL'
 rm -f "$r_screen_conf_pathfile"
+if IsQpkgArr &&[[ -e $qpkg_config_pathfile ]]&&/bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &>/dev/null;then
+/bin/sed -i "s|O${r_qpkg_name}|$r_qpkg_name|g" "$qpkg_config_pathfile"
+fi
 if [[ $run_daemon_in_screen_session = true &&! -e $r_screen_conf_pathfile ]];then
 echo -e "logfile ${r_service_screen_log_pathfile}\nlogfile flush 1\nlog on">"$r_screen_conf_pathfile"
 fi;}
+IsQpkgArr(){
+local re=\\b${1:-${r_qpkg_name:?${FUNCNAME[0]}(): $e_nopnm}}\\b
+[[ ${r_qpkgs_name_arrs[*]} =~ $re ]];}
 StartQpkg(){
 IsNtError||return
 IsStart &&ShowQpkgStates
@@ -268,6 +290,13 @@ DisplayAndCommitInfoToServiceLog "symlink removed: $userlink_pathfile"
 fi
 fi;}
 CreateVirtualPythonEnv(){
+if ! [[ -n $qpkg_venv_path &&$qpkg_venv_path != undefined ]];then
+DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$qpkg_venv_path is undefined"
+SetError;return
+elif ! [[ -n $qpkg_pip_path &&$qpkg_pip_path != undefined ]];then
+DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$qpkg_pip_path is undefined"
+SetError;return
+fi
 new_env=false
 local a=''
 local b=$qpkg_venv_path/pip.conf
@@ -278,7 +307,7 @@ new_env=true
 if [[ ! -e $b ]];then
 DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\">$b" log:failure-only
 DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\">>$b" log:failure-only
-if [[ -d $qpkg_wheels_path ]];then
+if [[ $qpkg_wheels_path != undefined &&-d $qpkg_wheels_path ]];then
 DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\">>$b" log:failure-only
 fi
 fi
@@ -360,6 +389,13 @@ if IsDaemonActive;then
 SetError;return
 fi;}
 RefreshReleasePackageFiles(){
+if ! [[ -n $qpkg_repo_path &&$qpkg_repo_path != undefined ]];then
+DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$qpkg_repo_path is undefined"
+SetError;return
+elif ! [[ -n $qpkg_temp_path &&$qpkg_temp_path != undefined ]];then
+DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$qpkg_temp_path is undefined"
+SetError;return
+fi
 local extract_release_package=false
 local refresh_release_package=false
 local release_package_filename=''
@@ -370,8 +406,8 @@ if IsAutoUpdate ||[[ ! -e $release_package_pathfile ]];then
 if [[ $resolve_source_url = true ]];then
 refresh_release_package=true
 DisplayAndCommitProcessWaitToServiceLog 'get latest release package URL'
-if IsSiteUp "$source_url";then
-release_package_url=$(RequestLatestReleaseURL "$source_url" "$source_url_match")
+if IsSiteUp "$source_asset_url";then
+release_package_url=$(RequestLatestReleaseURL "$source_asset_url" "$source_asset_url_match")
 if [[ $? -eq 0 ]];then
 DisplayAndCommitOutcomeToServiceLog OK
 DisplayAndCommitDoneToServiceLog "release package URL: $release_package_url"
@@ -384,12 +420,12 @@ else
 DisplayAndCommitErrorToAllLogs 'unable to access remote site'
 fi
 else
-release_package_url=$source_url
+release_package_url=$source_asset_url
 fi
 if [[ $compare_release_filename = true ]];then
 DisplayAndCommitProcessWaitToServiceLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
-if IsSiteUp "$source_url";then
-release_package_filename=$(RequestLatestReleaseFilename "$source_url" "$source_url_arch")
+if IsSiteUp "$source_asset_url";then
+release_package_filename=$(RequestLatestReleaseFilename "$source_asset_url" "$source_url_arch")
 if [[ $? -eq 0 ]];then
 DisplayAndCommitOutcomeToServiceLog OK
 DisplayAndCommitDoneToServiceLog "release package filename: $release_package_filename"
@@ -550,8 +586,8 @@ for a in $(StripComments "$(<"$rename_modules_pathfile")");do
 RenameSharedObjectFile "$a"
 done
 fi
-if IsSupportGetAppVersion;then
-GetAppVersion
+if IsSupportGetApplVersion;then
+GetApplVersion
 if [[ $new_env = false &&-e $r_appl_version_store_pathfile &&$(<"$r_appl_version_store_pathfile") != "$appl_version" ]];then
 DisplayRunAndLog 'clean Python bytecode files' "/opt/bin/find $qpkg_repo_path -type d -name '__pycache__' -print0|xargs -I {} -0 rm -rf '{}'
 " log:failure-only
@@ -625,9 +661,9 @@ daemon_port=${daemon_port//[!0-9]/}
 [[ -z $daemon_port ||$daemon_port -lt 0 ||$daemon_port -gt 65535 ]]&&daemon_port=0
 [[ -z $ui_listening_address ]]&&ui_listening_address=undefined
 return 0;}
-GetAppVersion(){
-if IsSupportGetAppVersion &&[[ -e $app_version_pathfile ]];then
-appl_version=$(eval "$get_app_version_cmd")
+GetApplVersion(){
+if IsSupportGetApplVersion &&[[ -e $appl_version_pathfile ]];then
+appl_version=$(eval "$get_appl_version_cmd")
 return 0
 else
 appl_version=unknown
@@ -833,7 +869,7 @@ fi
 fi
 return 0;}
 WatchForFileToAppear(){
-[[ -n $1 ]]||return
+[[ -n $1 &&$1 != undefined ]]||return
 local -i a=0
 local -i i=0
 if [[ -n $2 ]];then
@@ -1161,6 +1197,63 @@ GetKeyFromTOML(){
 [[ -e $2 ]]||return
 set -o pipefail
 /bin/grep "^$1 " "$2"|cut -d '=' -f2|tr -d ' \"';}
+GetKeyFromPyload(){
+local target_section_name=${1:?no section supplied}
+local target_var_name=${2:?no variable supplied}
+local source_pathfile=${3:?no pathfilename supplied}
+if [[ ! -e $source_pathfile ]];then
+echo false
+return
+fi
+local blank=''
+local end_line_num='$'
+local -i line_num=0
+local raw_var_type=''
+local raw_var_description=''
+local result_line=''
+local section_description=''
+local section_line=''
+local section_name=''
+local section_raw=''
+local -i start_line_num=0
+local target_section=''
+local value=''
+local value_raw=''
+local var_found=false
+local var_name=''
+local var_type=''
+while read -r result_line;do
+IFS=':' read -r line_num section_raw<<<"$result_line"
+IFS=' ' read -r section_name blank section_description<<<"$section_raw"
+if [[ $section_name = "$target_section_name" ]];then
+[[ $start_line_num -eq 0 ]]&&start_line_num=$((line_num+1))
+else
+if [[ $start_line_num -ne 0 ]];then
+end_line_num=$((line_num-2))
+break
+fi
+fi
+done<<<"$(/bin/grep '.*:$' -n "$source_pathfile")"
+if [[ $start_line_num -eq 0 ]];then
+echo 'section match not found'
+return 1
+fi
+target_section=$(/bin/sed -n "${start_line_num},${end_line_num}p" "$source_pathfile")
+while read -r section_line;do
+IFS=':' read -r raw_var_type raw_var_description<<<"$section_line"
+read -r var_type var_name<<<"$raw_var_type"
+[[ $var_name != "$target_var_name" ]]&&continue
+var_found=true
+IFS='"' read -r blank var_description value_raw<<<"$raw_var_description"
+IFS='=' read -r blank value<<<"$value_raw"
+value=${value% };value=${value# }
+break
+done<<<"$target_section"
+if [[ $var_found = false ]];then
+echo 'variable match not found'
+return 1
+fi
+echo "$value";}
 SetNasArch(){
 [[ ${r_nas_arch:-unset} = unset ]]&&readonly r_nas_arch=$(GetNasArch);}
 SetQpkgArch(){
@@ -1199,8 +1292,8 @@ IsNtSupportReset(){
 ! IsSupportReset;}
 IsSupportActions(){
 [[ -e $r_service_action_pathfile ||-e $r_service_result_pathfile ]];}
-IsSupportGetAppVersion(){
-[[ $get_app_version_cmd != undefined &&$app_version_pathfile != undefined ]];}
+IsSupportGetApplVersion(){
+[[ $get_appl_version_cmd != undefined &&$appl_version_pathfile != undefined ]];}
 IsVirtualPythonEnv(){
 [[ $qpkg_venv_path != undefined ]];}
 UsesVirtualConfig(){
@@ -1210,7 +1303,7 @@ IsSourceGit(){
 UsesPipCache(){
 [[ $qpkg_pip_path != undefined ]];}
 IsSourceReleasePackage(){
-[[ $source_url != undefined ]];}
+[[ $source_asset_url != undefined ]];}
 IsReleaseAnArchive(){
 [[ $package_is_exec != undefined &&$package_is_exec = false ]];}
 IsWebUi(){
@@ -1381,7 +1474,10 @@ done
 return 1
 } &>/dev/null
 RequestLatestReleaseFilename(){
-[[ -n ${1:-} &&${1:-} != undefined ]]||return
+if ! [[ -n ${1:-} &&${1:-} != undefined ]];then
+DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$1 is undefined"
+SetError;return
+fi
 local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"
 local b=$(/sbin/curl${a} "${1/https/http}"|/bin/grep -v 'Location:'|/bin/grep filename|cut -d';' -f2|cut -d'=' -f2|/bin/sed -e 's|\r||g')
 [[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep -e "$2"<<<"$b")
@@ -1398,7 +1494,10 @@ return 1
 esac
 } 2>/dev/null
 RequestLatestReleaseURL(){
-[[ -n ${1:-} &&${1:-} != undefined ]]||return
+if ! [[ -n ${1:-} &&${1:-} != undefined ]];then
+DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$1 is undefined"
+SetError;return
+fi
 local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"
 local b=$(/sbin/curl${a} "$1"|/bin/grep browser_download_url|cut -d\" -f4)
 [[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep -e "$2"<<<"$b")
@@ -1415,8 +1514,13 @@ return 1
 esac
 } 2>/dev/null
 DownloadReleasePackage(){
-[[ -n ${1:-} &&${1:-} != undefined ]]||return
-[[ -n ${2:-} &&${2:-} != undefined ]]||return
+if ! [[ -n ${1:-} &&${1:-} != undefined ]];then
+DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$1 is undefined"
+SetError;return
+elif ! [[ -n ${2:-} &&${2:-} != undefined ]];then
+DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$2 is undefined"
+SetError;return
+fi
 local a=''
 local b=$curl_insecure_opt
 local c=$2
@@ -1430,7 +1534,10 @@ fi
 b+=" --show-error --max-time 300 --location --output $c"
 DisplayRunAndLog "$a" "/sbin/curl${b} '$1'" log:failure-only;}
 ExtractReleasePackage(){
-[[ -n ${1:-} &&${1:-} != undefined ]]||return
+if ! [[ -n ${1:-} &&${1:-} != undefined ]];then
+DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$1 is undefined"
+SetError;return
+fi
 local release_package_name_ref_pathfilename=''
 local release_package_pathfile=$1
 local tar_opts=''
@@ -1452,7 +1559,10 @@ fi
 fi
 fi;}
 MakeExecReleasePackage(){
-[[ -n ${1:-} &&${1:-} != undefined ]]||return
+if ! [[ -n ${1:-} &&${1:-} != undefined ]];then
+DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$1 is undefined"
+SetError;return
+fi
 local release_package_name_ref_pathfilename=''
 local release_package_pathfile=$1
 [[ -n ${2:-} &&${2:-} != undefined ]]&&release_package_name_ref_pathfilename=$2

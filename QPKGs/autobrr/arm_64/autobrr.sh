@@ -34,25 +34,27 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=autobrr
-readonly r_service_script_version=251029
+readonly r_service_script_version=251103
 InitService(){
-qpkg_repo_path=$r_qpkg_path/repo-cache
-qpkg_config_file=config.toml
-daemon_exec_pathfile=$qpkg_repo_path/autobrr
-qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
-qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 can_restart_to_update=true
 resolve_source_url=true
 run_daemon_in_screen_session=true
 source_url_arch=arm64
-source_url_match=_linux_${source_url_arch}.tar.gz
 watch_port_check_seconds=360
-source_url=https://api.github.com/repos/autobrr/autobrr/releases/latest
+qpkg_config_path=$r_qpkg_path/config
+qpkg_repo_path=$r_qpkg_path/repo-cache
+qpkg_temp_path=$r_qpkg_path/tmp
+daemon_exec_pathfile=$qpkg_repo_path/autobrr
+daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+qpkg_config_pathfile=$qpkg_config_path/config.toml
+qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+source_asset_url_match=_linux_${source_url_arch}.tar.gz
+source_asset_url=https://api.github.com/repos/autobrr/autobrr/releases/latest
+daemon_launch_cmd="$daemon_exec_pathfile --config=$qpkg_config_path"
 get_ui_listening_address_cmd="GetKeyFromTOML host $qpkg_config_pathfile"
 get_ui_port_cmd="GetKeyFromTOML port $qpkg_config_pathfile"
 get_ui_port_secure_cmd=false
-get_ui_port_secure_enabled_test_cmd=false
-daemon_launch_cmd="$daemon_exec_pathfile --config=$qpkg_config_path";}
+get_ui_port_secure_enabled_test_cmd=false;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

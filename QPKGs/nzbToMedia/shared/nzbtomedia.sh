@@ -34,18 +34,21 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=nzbToMedia
-readonly r_service_script_version=251029
+readonly r_service_script_version=251103
 InitService(){
-qpkg_pip_path=$r_qpkg_path/pip-cache
-qpkg_repo_path=$r_qpkg_path/repo-cache
-qpkg_venv_path=$r_qpkg_path/venv
-qpkg_config_file=autoProcessMedia.cfg
-qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
-qpkg_config_default_pathfile=$qpkg_repo_path/$qpkg_config_file.spec
-qpkg_config_virtual_pathfile=$qpkg_repo_path/$qpkg_config_file
-interpreter=/opt/bin/python3
+silence_pypi_errors=true
 source_git_branch=master
 source_git_branch_depth=shallow
+qpkg_config_path=$r_qpkg_path/config
+qpkg_pip_path=$r_qpkg_path/pip-cache
+qpkg_repo_path=$r_qpkg_path/repo-cache
+qpkg_temp_path=$r_qpkg_path/tmp
+qpkg_venv_path=$r_qpkg_path/venv
+qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
+qpkg_config_pathfile=$qpkg_config_path/autoProcessMedia.cfg
+qpkg_config_default_pathfile=$qpkg_repo_path/autoProcessMedia.cfg.spec
+qpkg_config_virtual_pathfile=$qpkg_repo_path/autoProcessMedia.cfg
+interpreter=/opt/bin/python3
 source_git_url=https://github.com/clinton-hall/nzbToMedia.git;}
 StatusQpkgCustom(){
 IsQpkgEnabled;}

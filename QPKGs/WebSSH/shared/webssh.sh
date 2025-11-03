@@ -34,30 +34,29 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WebSSH
-readonly r_service_script_version=251029
+readonly r_service_script_version=251103
 InitService(){
-qpkg_pip_path=$r_qpkg_path/pip-cache
-qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
-qpkg_venv_path=$r_qpkg_path/venv
-daemon_exec_pathfile=$qpkg_venv_path/bin/python
-daemon_script_pathfile=$qpkg_venv_path/bin/wssh
-qpkg_backup_pathfile=undefined
-qpkg_config_pathfile=undefined
-qpkg_config_default_pathfile=undefined
-venv_pip_pathfile=$qpkg_venv_path/bin/pip
-venv_python_pathfile=$qpkg_venv_path/bin/python
+allow_access_to_sys_packages=true
 can_restart_to_update=true
 run_daemon_in_screen_session=true
-interpreter=/opt/bin/python3
 source_git_branch=master
 start_retries=3
 ui_listening_address=0.0.0.0
 ui_port=8010
+qpkg_pip_path=$r_qpkg_path/pip-cache
+qpkg_venv_path=$r_qpkg_path/venv
+qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
+daemon_exec_pathfile=$qpkg_venv_path/bin/python
+daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+daemon_script_pathfile=$qpkg_venv_path/bin/wssh
+venv_pip_pathfile=$qpkg_venv_path/bin/pip
+venv_python_pathfile=$qpkg_venv_path/bin/python
+interpreter=/opt/bin/python3
+daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --address=$ui_listening_address --port=$ui_port --encoding=850"
 get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="echo $ui_port"
 get_ui_port_secure_cmd="echo $ui_port_secure"
-get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --address=$ui_listening_address --port=$ui_port --encoding=850";}
+get_ui_port_secure_enabled_test_cmd=false;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

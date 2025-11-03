@@ -34,17 +34,16 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrguiNG
-readonly r_service_script_version=251029
+readonly r_service_script_version=251103
 InitService(){
-qpkg_repo_path=$r_qpkg_path/repo-cache
-qpkg_backup_pathfile=undefined
-qpkg_config_pathfile=undefined
 can_restart_to_update=true
 resolve_source_url=true
 source_url_arch=web
-source_url_match=-${source_url_arch}-
 start_retries=3
-source_url=https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest;}
+qpkg_repo_path=$r_qpkg_path/repo-cache
+qpkg_temp_path=$r_qpkg_path/tmp
+source_asset_url_match=-${source_url_arch}-
+source_asset_url=https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest;}
 StatusQpkgCustom(){
 if IsNtError&&IsQpkgEnabled;then
 printf active
@@ -54,9 +53,11 @@ printf inactive
 exit 1;}
 PreStartQpkgCustom(){
 IsQpkgInstalled OTransmission &&AddToQpkgPostInstallDeps OTransmission $r_qpkg_name
+IsQpkgInstalled Transmission &&AddToQpkgPostInstallDeps Transmission $r_qpkg_name
 /sbin/setcfg $r_qpkg_name Use TRUE -f /etc/config/qpkg.conf;}
 PreStopQpkgCustom(){
 RemoveFromQpkgPostInstallDeps OTransmission $r_qpkg_name
+RemoveFromQpkgPostInstallDeps Transmission $r_qpkg_name
 /sbin/setcfg $r_qpkg_name Use FALSE -f /etc/config/qpkg.conf;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0

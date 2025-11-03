@@ -35,7 +35,7 @@
 set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
-ln -fns /proc/self/fd /dev/fd
+[[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
 readonly r_user_args_raw=$*
 Init(){
 readonly r_qpkg_name=sherpa

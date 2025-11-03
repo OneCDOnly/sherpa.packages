@@ -34,20 +34,21 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Transmission
-readonly r_service_script_version=251029
+readonly r_service_script_version=251103
 InitService(){
-qpkg_config_file=settings.json
-daemon_exec_pathfile=/opt/bin/transmission-daemon
-qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
-qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 daemon_pidfile_is_managed_by_app=true
-run_daemon_in_screen_session=false
+qpkg_config_path=$r_qpkg_path/config
+daemon_exec_pathfile=/opt/bin/transmission-daemon
+daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
+qpkg_config_pathfile=$qpkg_config_path/settings.json
+qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 orig_daemon_service_script=/opt/etc/init.d/S88transmission
+daemon_launch_cmd="$daemon_exec_pathfile --config-dir $(/usr/bin/dirname "$qpkg_config_pathfile") --pid-file $daemon_pid_pathfile"
 get_ui_listening_address_cmd="/opt/bin/jq -r '.\"rpc-bind-address\"'<$qpkg_config_pathfile"
 get_ui_port_cmd="/opt/bin/jq -r '.\"rpc-port\"'<"$qpkg_config_pathfile""
 get_ui_port_secure_cmd='echo 0'
-get_ui_port_secure_enabled_test_cmd='false'
-daemon_launch_cmd="$daemon_exec_pathfile --config-dir $(/usr/bin/dirname "$qpkg_config_pathfile") --pid-file $daemon_pid_pathfile";}
+get_ui_port_secure_enabled_test_cmd=false;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

@@ -34,7 +34,7 @@
 #*
 set -o nounset -o pipefail
 [[ $- != *m* ]]||set +m
-ln -fns /proc/self/fd /dev/fd
+[[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
 readonly r_user_args_raw=$*
 Init(){
 export LOADER_SCRIPT_PPID=$PPID
