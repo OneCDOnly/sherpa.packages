@@ -1,9 +1,3 @@
-* scrutiny
-   - https://github.com/AnalogJ/scrutiny
-
-* SwingMusic
-   - https://github.com/swingmx/swingmusic
-
 * Navidrome
 	- https://www.navidrome.org/
 
@@ -11,27 +5,3 @@
 	- https://www.reddit.com/r/selfhosted/comments/1mimb0n/psa_readarr_replacement_chaptarr_under_very/
 	- to replace Readarr (no-longer maintained).
 	- no public repo yet.
-
-* NetAlertX
-	- https://github.com/jokob-sk/NetAlertX
-	- primarily a docker image, but can also be installed the hard way.
-
-* ftpgrab (CLI)
-	- https://github.com/crazy-max/ftpgrab
-
-* VueTorrent
-	- https://github.com/VueTorrent/VueTorrent
-	- available as a static QPKG here: https://github.com/Jay-Young/qpkg/tree/master/vuetorrent
-
-* it-tools
-	- https://github.com/CorentinTh/it-tools
-	- available as a static QPKG here: https://github.com/Jay-Young/qpkg/tree/master/it-tools (runs in Apache).
-
-* BlendFarm
-	- https://github.com/LogicReinc/LogicReinc.BlendFarm
-
-* pxehost
-	- https://github.com/pxehost/pxehost
-	- Won't run as UID:0
-		- possibly fixed now: https://github.com/pxehost/pxehost/issues/1
-	- QTS dhcpd processes grabs port 67. Must ensure Container Station is not installed.
