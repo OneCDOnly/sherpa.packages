@@ -10,5 +10,5 @@
   <SslCertPath></SslCertPath>
   <SslCertPassword></SslCertPassword>
   <UrlBase></UrlBase>
-  <InstanceName>OReadarr</InstanceName>
+  <InstanceName>Readarr</InstanceName>
 </Config>

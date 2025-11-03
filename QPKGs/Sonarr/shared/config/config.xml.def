@@ -11,5 +11,5 @@
   <SslCertPath></SslCertPath>
   <SslCertPassword></SslCertPassword>
   <UrlBase></UrlBase>
-  <InstanceName>OSonarr</InstanceName>
+  <InstanceName>Sonarr</InstanceName>
 </Config>
