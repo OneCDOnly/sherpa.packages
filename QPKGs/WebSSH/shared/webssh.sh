@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WebSSH
-readonly r_service_script_version=251103
+readonly r_service_script_version=251107
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true
@@ -51,6 +51,7 @@ daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 daemon_script_pathfile=$qpkg_venv_path/bin/wssh
 venv_pip_pathfile=$qpkg_venv_path/bin/pip
 venv_python_pathfile=$qpkg_venv_path/bin/python
+export HOME=$qpkg_config_path
 interpreter=/opt/bin/python3
 daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --address=$ui_listening_address --port=$ui_port --encoding=850"
 get_ui_listening_address_cmd="echo $ui_listening_address"

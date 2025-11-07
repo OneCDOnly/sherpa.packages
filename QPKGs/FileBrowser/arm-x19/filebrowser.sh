@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=FileBrowser
-readonly r_service_script_version=251103
+readonly r_service_script_version=251107
 InitService(){
 can_restart_to_update=true
 resolve_source_url=true
@@ -50,6 +50,7 @@ daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 qpkg_config_pathfile=$qpkg_config_path/filebrowser.db
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+export HOME=$qpkg_config_path
 source_asset_url_match=linux-${source_url_arch}-filebrowser.tar.gz
 source_asset_url=https://api.github.com/repos/filebrowser/filebrowser/releases/latest
 daemon_launch_cmd="$daemon_exec_pathfile --database $qpkg_config_pathfile --address $ui_listening_address --port $ui_port --root /"

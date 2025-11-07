@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrguiNG
-readonly r_service_script_version=251103
+readonly r_service_script_version=251107
 InitService(){
 can_restart_to_update=true
 resolve_source_url=true
@@ -42,6 +42,7 @@ source_url_arch=web
 start_retries=3
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_temp_path=$r_qpkg_path/tmp
+export HOME=$qpkg_config_path
 source_asset_url_match=-${source_url_arch}-
 source_asset_url=https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest;}
 StatusQpkgCustom(){

@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version=251103
+readonly r_service_script_version=251107
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true
@@ -57,6 +57,7 @@ qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 qpkg_config_pathfile=$qpkg_config_path/nzbhydra.yml
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 venv_pip_pathfile=$qpkg_venv_path/bin/pip
+export HOME=$qpkg_config_path
 interpreter=/opt/bin/python3
 source_asset_url_match=-${source_url_arch}-linux.zip
 source_asset_url=https://api.github.com/repos/theotherp/nzbhydra2/releases/latest

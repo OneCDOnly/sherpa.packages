@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=nzbToMedia
-readonly r_service_script_version=251103
+readonly r_service_script_version=251106
 InitService(){
 silence_pypi_errors=true
 source_git_branch=master

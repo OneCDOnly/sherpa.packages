@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Transmission
-readonly r_service_script_version=251103
+readonly r_service_script_version=251107
 InitService(){
 daemon_pidfile_is_managed_by_app=true
 qpkg_config_path=$r_qpkg_path/config
@@ -43,6 +43,7 @@ daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 qpkg_config_pathfile=$qpkg_config_path/settings.json
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+export HOME=$qpkg_config_path
 orig_daemon_service_script=/opt/etc/init.d/S88transmission
 daemon_launch_cmd="$daemon_exec_pathfile --config-dir $(/usr/bin/dirname "$qpkg_config_pathfile") --pid-file $daemon_pid_pathfile"
 get_ui_listening_address_cmd="/opt/bin/jq -r '.\"rpc-bind-address\"'<$qpkg_config_pathfile"

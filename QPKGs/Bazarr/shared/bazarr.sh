@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Bazarr
-readonly r_service_script_version=251103
+readonly r_service_script_version=251108
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true
@@ -55,6 +55,7 @@ daemon_script_pathfile=$qpkg_repo_path/bazarr.py
 qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 qpkg_config_pathfile=$qpkg_config_path/config.yaml
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+export HOME=$qpkg_config_path
 interpreter=/opt/bin/python3
 source_asset_url=https://api.github.com/repos/morpheus65535/bazarr/releases/latest
 daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --config $qpkg_config_path --debug true"

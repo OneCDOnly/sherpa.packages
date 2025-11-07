@@ -34,10 +34,11 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Glances
-readonly r_service_script_version=251103
+readonly r_service_script_version=251107
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true
+check_network_before_start=true
 recheck_daemon_pid_after_kill=true
 recheck_daemon_pid_after_launch=true
 run_daemon_in_screen_session=true
@@ -56,6 +57,7 @@ daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 daemon_script_pathfile=$qpkg_venv_path/bin/glances
 venv_pip_pathfile=$qpkg_venv_path/bin/pip
 venv_python_pathfile=$qpkg_venv_path/bin/python3
+export HOME=$qpkg_config_path
 interpreter=/opt/bin/python3
 daemon_launch_cmd="export TEMP=$qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --webserver"
 get_ui_listening_address_cmd="echo $ui_listening_address"

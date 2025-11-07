@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251103
+readonly r_service_library_version=251106
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -332,6 +332,10 @@ if((nice_daemon_to != 0)) &&((nice_daemon_to>= -20)) &&((nice_daemon_to<= 19)) &
 b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 DisplayAndCommitInfoToServiceLog "nice daemon to: $nice_daemon_to"
 fi
+if UsesConfig possible;then
+IsReqdVarDefined qpkg_config_path||return
+IsReqdVarDefined qpkg_config_pathfile||return
+fi
 while true;do
 if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";then
 DisplayAndCommitWarnToServiceLog 'there has been a daemon launch failure'
@@ -389,12 +393,10 @@ if IsDaemonActive;then
 SetError;return
 fi;}
 RefreshReleasePackageFiles(){
-if ! [[ -n $qpkg_repo_path &&$qpkg_repo_path != undefined ]];then
-DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$qpkg_repo_path is undefined"
-SetError;return
-elif ! [[ -n $qpkg_temp_path &&$qpkg_temp_path != undefined ]];then
-DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$qpkg_temp_path is undefined"
-SetError;return
+if UsesReleasePackage possible;then
+IsReqdVarDefined qpkg_repo_path||return
+IsReqdVarDefined qpkg_temp_path||return
+IsReqdVarDefined source_asset_url||return
 fi
 local extract_release_package=false
 local refresh_release_package=false
@@ -694,6 +696,10 @@ chmod -x "$orig_daemon_service_script"
 fi;}
 CloneGitRepo(){
 IsSourceGit||return 0
+IsReqdVarDefined qpkg_repo_path||return
+IsReqdVarDefined source_git_branch||return
+IsReqdVarDefined source_git_branch_depth||return
+IsReqdVarDefined source_git_url||return
 local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 local branch_depth=' --depth 1'
 local branch_switch=false
@@ -913,7 +919,7 @@ fi
 return 0;}
 EnsureConfigFileExists(){
 IsSupportReset||return 0
-if UsesConfig &&[[ ! -e $qpkg_config_pathfile &&-e $qpkg_config_default_pathfile ]];then
+if UsesConfig valid &&[[ ! -e $qpkg_config_pathfile &&-e $qpkg_config_default_pathfile ]];then
 cp "$qpkg_config_default_pathfile" "$qpkg_config_pathfile"
 DisplayAndCommitInfoToServiceLog 'no configuration file, using default as template'
 fi
@@ -1311,7 +1317,7 @@ IsWebUi(){
 IsSupportAutoUpdate(){
 [[ $can_restart_to_update = true ]];}
 IsSourcedOnline(){
-IsSourceGit ||UsesPipCache ||IsSourceReleasePackage;}
+IsSourceGit ||UsesPipCache ||UsesReleasePackage valid;}
 IsNtSourcedOnline(){
 ! IsSourcedOnline;}
 UsesTemp(){
@@ -1429,7 +1435,21 @@ fi
 done
 return 1;}
 UsesConfig(){
-[[ $qpkg_config_pathfile != undefined ||$qpkg_config_default_pathfile != undefined ]];}
+[[ -n ${1:-} ]]||return
+case $1 in
+possible)
+IsVarDefined qpkg_config_path ||IsVarDefined qpkg_config_pathfile ||IsVarDefined qpkg_config_default_pathfile;;
+valid)
+IsVarDefined qpkg_config_path &&{ IsVarDefined qpkg_config_pathfile ||IsVarDefined qpkg_config_default_pathfile;}
+esac;}
+UsesReleasePackage(){
+[[ -n ${1:-} ]]||return
+case $1 in
+possible)
+IsVarDefined source_asset_url ||IsVarDefined source_asset_url_match ||IsVarDefined source_url_arch;;
+valid)
+IsVarDefined source_asset_url&&IsVarDefined qpkg_temp_path&&IsVarDefined qpkg_repo_path
+esac;}
 IsVirtualPythonEnvFound(){
 [[ -e $qpkg_venv_path/bin/activate ]];}
 IsNtVirtualPythonEnvFound(){
@@ -1473,13 +1493,18 @@ fi
 done
 return 1
 } &>/dev/null
-RequestLatestReleaseFilename(){
-if ! [[ -n ${1:-} &&${1:-} != undefined ]];then
-DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$1 is undefined"
+IsVarDefined(){
+[[ -n ${!1:-} &&${!1:-undefined} != undefined ]];}
+IsReqdVarDefined(){
+if ! IsVarDefined ${1:-undefined};then
+DisplayAndCommitErrorToServiceLog "${FUNCNAME[1]}(): \$$1 is undefined"
 SetError;return
-fi
+fi;}
+RequestLatestReleaseFilename(){
+local url=${1:-undefined}
+IsReqdVarDefined url||return
 local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"
-local b=$(/sbin/curl${a} "${1/https/http}"|/bin/grep -v 'Location:'|/bin/grep filename|cut -d';' -f2|cut -d'=' -f2|/bin/sed -e 's|\r||g')
+local b=$(/sbin/curl${a} "${url/https/http}"|/bin/grep -v 'Location:'|/bin/grep filename|cut -d';' -f2|cut -d'=' -f2|/bin/sed -e 's|\r||g')
 [[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep -e "$2"<<<"$b")
 local -i c=$(wc -l<<<"$b")
 case $c in
@@ -1494,12 +1519,10 @@ return 1
 esac
 } 2>/dev/null
 RequestLatestReleaseURL(){
-if ! [[ -n ${1:-} &&${1:-} != undefined ]];then
-DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$1 is undefined"
-SetError;return
-fi
+local url=${1:-undefined}
+IsReqdVarDefined url||return
 local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"
-local b=$(/sbin/curl${a} "$1"|/bin/grep browser_download_url|cut -d\" -f4)
+local b=$(/sbin/curl${a} "$url"|/bin/grep browser_download_url|cut -d\" -f4)
 [[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep -e "$2"<<<"$b")
 local -i c=$(wc -l<<<"$b")
 case $c in
@@ -1514,16 +1537,12 @@ return 1
 esac
 } 2>/dev/null
 DownloadReleasePackage(){
-if ! [[ -n ${1:-} &&${1:-} != undefined ]];then
-DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$1 is undefined"
-SetError;return
-elif ! [[ -n ${2:-} &&${2:-} != undefined ]];then
-DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$2 is undefined"
-SetError;return
-fi
 local a=''
 local b=$curl_insecure_opt
-local c=$2
+local c=${2:-undefined}
+local d=${1:-undefined}
+IsReqdVarDefined c||return
+IsReqdVarDefined d||return
 [[ $debug = false ]]&&b+=' --silent'
 if [[ -e $c ]];then
 a='refresh existing release package (only-if-newer)'
@@ -1532,19 +1551,16 @@ else
 a='download latest release package'
 fi
 b+=" --show-error --max-time 300 --location --output $c"
-DisplayRunAndLog "$a" "/sbin/curl${b} '$1'" log:failure-only;}
+DisplayRunAndLog "$a" "/sbin/curl${b} '$d'" log:failure-only;}
 ExtractReleasePackage(){
-if ! [[ -n ${1:-} &&${1:-} != undefined ]];then
-DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$1 is undefined"
-SetError;return
-fi
-local release_package_name_ref_pathfilename=''
-local release_package_pathfile=$1
+local release_package_pathfile=${1:-undefined}
+local release_package_name_ref_pathfilename=${2:-undefined}
 local tar_opts=''
 local tar_verbose=''
 local unzip_opts=''
 local unzip_verbose=''
-[[ -n ${2:-} &&${2:-} != undefined ]]&&release_package_name_ref_pathfilename=$2
+IsReqdVarDefined release_package_pathfile||return
+IsVarDefined release_package_name_ref_pathfilename ||release_package_name_ref_pathfilename=''
 if [[ $debug = true ]];then
 tar_verbose=' --verbose'
 fi
@@ -1559,13 +1575,10 @@ fi
 fi
 fi;}
 MakeExecReleasePackage(){
-if ! [[ -n ${1:-} &&${1:-} != undefined ]];then
-DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$1 is undefined"
-SetError;return
-fi
-local release_package_name_ref_pathfilename=''
-local release_package_pathfile=$1
-[[ -n ${2:-} &&${2:-} != undefined ]]&&release_package_name_ref_pathfilename=$2
+local release_package_pathfile=${1:-undefined}
+local release_package_name_ref_pathfilename=${2:-undefined}
+IsReqdVarDefined release_package_pathfile||return
+IsVarDefined release_package_name_ref_pathfilename ||release_package_name_ref_pathfilename=''
 if [[ -e $release_package_pathfile ]];then
 DisplayRunAndLog 'copy release package' "cp -f $release_package_pathfile $daemon_exec_pathfile" log:failure-only
 [[ ! -x $daemon_exec_pathfile ]]&&DisplayRunAndLog 'make release package executable' "chmod +x $daemon_exec_pathfile" log:failure-only

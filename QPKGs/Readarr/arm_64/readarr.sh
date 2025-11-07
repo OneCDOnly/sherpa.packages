@@ -34,9 +34,10 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Readarr
-readonly r_service_script_version=251103
+readonly r_service_script_version=251106
 InitService(){
 can_restart_to_update=true
+check_network_before_start=true
 compare_release_filename=true
 run_daemon_in_screen_session=true
 source_url_arch=arm64
@@ -50,6 +51,7 @@ daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 qpkg_config_pathfile=$qpkg_config_path/config.xml
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+export HOME=$qpkg_config_path
 source_asset_url_match=.linux-core-${source_url_arch}.tar.gz
 source_asset_url='https://readarr.servarr.com/v1/update/develop/updatefile?os=linux&runtime=netcore&arch='$source_url_arch
 daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$qpkg_temp_path;$daemon_exec_pathfile --nobrowser --data=$qpkg_config_path"

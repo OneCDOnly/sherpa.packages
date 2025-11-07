@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=autobrr
-readonly r_service_script_version=251103
+readonly r_service_script_version=251107
 InitService(){
 can_restart_to_update=true
 resolve_source_url=true
@@ -48,6 +48,7 @@ daemon_exec_pathfile=$qpkg_repo_path/autobrr
 daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 qpkg_config_pathfile=$qpkg_config_path/config.toml
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+export HOME=$qpkg_config_path
 source_asset_url_match=_linux_${source_url_arch}.tar.gz
 source_asset_url=https://api.github.com/repos/autobrr/autobrr/releases/latest
 daemon_launch_cmd="$daemon_exec_pathfile --config=$qpkg_config_path"

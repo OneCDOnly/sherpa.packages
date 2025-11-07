@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Watcher3
-readonly r_service_script_version=251103
+readonly r_service_script_version=251107
 InitService(){
 daemon_pidfile_is_managed_by_app=true
 install_pip_deps=true
@@ -55,6 +55,7 @@ qpkg_config_pathfile=$qpkg_config_path/config.ini
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 venv_pip_pathfile=$qpkg_venv_path/bin/pip
 venv_python_pathfile=$qpkg_venv_path/bin/python3
+export HOME=$qpkg_config_path
 interpreter=/opt/bin/python3
 source_git_url=https://github.com/barbequesauce/Watcher3.git
 daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --userdata $(/usr/bin/dirname "$qpkg_config_pathfile") --conf $qpkg_config_pathfile --pid $daemon_pid_pathfile"
