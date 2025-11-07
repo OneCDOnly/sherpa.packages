@@ -27,7 +27,7 @@ InitService()
 
 		# can_restart_to_update=false
 			# Default
-		# can_restart_to_update=true
+		can_restart_to_update=true
 			# Custom
 		# > If 'true', application files can be updated by restarting service-script.
 
