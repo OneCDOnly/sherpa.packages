@@ -14,7 +14,7 @@ readonly r_service_script_version='<?build_date?>'
 InitService()
 	{
 
-	# This is a type _ service-script.
+	# This is a type 1 service-script.
 
 	# NOTE: default session variables are set below, but may be customised in the InitService() function for each QPKG. If a variable is set to a non-default value, any later variable that uses it must be recalculated (uncomment these lines).
 
