@@ -8,13 +8,13 @@
 #* <?postamble?>
 #*
 readonly r_user_args_raw=$*
-readonly r_qpkg_name=autobrr
+readonly r_qpkg_name=TrailBase
 readonly r_service_script_version='<?build_date?>'
 
 InitService()
 	{
 
-	# This is a type 8 service-script.
+	# This is a type 6 service-script.
 
 	# NOTE: default session variables are set below, but may be customised in the InitService() function for each QPKG. If a variable is set to a non-default value, any later variable that uses it must be recalculated (uncomment these lines).
 
@@ -89,7 +89,7 @@ InitService()
 			# Typical
 		# > If 'true', PyPI package processing errors won't be shown in system log.
 
-	# >>> Independent values <<<
+	# >>> Values (independent) <<<
 
 		# daemon_port=0
 			# Default
@@ -123,7 +123,7 @@ InitService()
 
 		# source_url_arch=undefined
 			# Default
-		source_url_arch=arm
+		source_url_arch=x86_64
 			# Custom
 
 		# start_retries=0
@@ -136,14 +136,14 @@ InitService()
 
 		# ui_listening_address=undefined
 			# Default
-		# ui_listening_address=0.0.0.0
+		ui_listening_address=0.0.0.0
 			# Typical
 		# ui_listening_address=
 			# Custom
 
 		# ui_port=0
 			# Default
-		# ui_port=
+		ui_port=4000
 			# Custom
 
 		# ui_port_secure=0
@@ -189,7 +189,7 @@ InitService()
 
 		# watch_port_check_seconds=120
 			# Default
-		watch_port_check_seconds=360
+		# watch_port_check_seconds=
 			# Custom
 		# > This value is adaptive (increases with system load average).
 
@@ -254,7 +254,7 @@ InitService()
 			# Default
 		# daemon_exec_pathfile=$qpkg_venv_path/bin/python3
 			# Typical
-		daemon_exec_pathfile=$qpkg_repo_path/autobrr
+		daemon_exec_pathfile=$qpkg_repo_path/trail
 			# Custom
 		# > The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this is the interpreter used to run the script.
 
@@ -279,16 +279,16 @@ InitService()
 
 		# qpkg_backup_pathfile=undefined
 			# Default
-		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
+		qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 			# Typical
 		# qpkg_backup_pathfile=
 			# Custom
 
 		# qpkg_config_pathfile=undefined
 			# Default
-		# qpkg_config_pathfile=$qpkg_config_path/config.ini
+		qpkg_config_pathfile=$qpkg_config_path/config.ini
 			# Typical
-		qpkg_config_pathfile=$qpkg_config_path/config.toml
+		# qpkg_config_pathfile=
 			# Custom
 
 		# qpkg_config_default_pathfile=undefined
@@ -324,7 +324,7 @@ InitService()
 		# venv_python_pathfile=
 			# Custom
 
-	# >>> Potentially dependent values (these might use a variable set earlier) <<<
+	# >>> Values (potentially independent: these might use a variable set earlier) <<<
 
 		export HOME=$qpkg_config_path
 			# Default
@@ -346,7 +346,7 @@ InitService()
 
 		# source_asset_url_match=undefined
 			# Default
-		source_asset_url_match=_linux_${source_url_arch}.tar.gz
+		source_asset_url_match=${source_url_arch}_linux.zip
 			# Custom
 		# > Longest string to match in URL to determine filename.
 
@@ -354,13 +354,15 @@ InitService()
 
 		# source_asset_url=undefined
 			# Default
-		# source_asset_url=https://api.github.com/
+		# source_asset_url=https://api.github.com/repos/<user>/<project>/releases/latest
 			# Typical
-		source_asset_url=https://api.github.com/repos/autobrr/autobrr/releases/latest
+		source_asset_url=https://api.github.com/repos/trailbaseio/trailbase/releases/latest
 			# Custom
 
 		# source_git_url=undefined
 			# Default
+		# source_git_url=https://github.com/<user>/<project>.git
+			# Typical
 		# source_git_url=
 			# Custom
 		# > https://github.com/
@@ -370,7 +372,7 @@ InitService()
 
 		# daemon_launch_cmd=undefined
 			# Default
-		daemon_launch_cmd="$daemon_exec_pathfile --config=$qpkg_config_path"
+		daemon_launch_cmd="$daemon_exec_pathfile --data-dir $qpkg_config_path run --address $ui_listening_address:$ui_port"
 			# Custom
 
 		# get_appl_version_cmd=undefined
@@ -385,12 +387,12 @@ InitService()
 
 		# get_ui_listening_address_cmd=undefined
 			# Default
-		get_ui_listening_address_cmd="GetKeyFromTOML host $qpkg_config_pathfile"
+		get_ui_listening_address_cmd="echo $ui_listening_address"
 			# Custom
 
 		# get_ui_port_cmd=undefined
 			# Default
-		get_ui_port_cmd="GetKeyFromTOML port $qpkg_config_pathfile"
+		get_ui_port_cmd="echo $ui_port"
 			# Custom
 
 		# get_ui_port_secure_cmd=undefined

@@ -1,0 +1,10 @@
+<tr><td>
+<h2><b><a href=https://github.com/Lidarr/Lidarr><sub><sub><img src=images/Lidarr.png></sub></sub> Lidarr (web)</a></b></h2><p>
+<img alt="GitHub Release" src="https://img.shields.io/github/v/release/lidarr/lidarr?style=for-the-badge&logo=github"><br>
+<blockquote>Lidarr is a music collection manager for Usenet and BitTorrent users.</blockquote>
+<sub><sub><img src=images/note.png></sub></sub>This QPKG pulls developer source-code from GitHub.<br>
+<sub><sub><img src=images/limitation.png></sub></sub>arm64 & x86-64 NAS-architectures only.<br>
+<sub><sub><img src=images/limitation.png></sub></sub>QTS 4.3.6-and-later only.<br>
+<sub><sub><img src=images/net.png></sub></sub>HTTP port: <code>8686</code><br>
+<sub><sub><img src=images/code.png></sub></sub>Install with: <code>sherpa install lidarr</code><br><br>
+</td></tr>

@@ -16,149 +16,394 @@ InitService()
 
 	# This is a type 5 service-script.
 
-	# NOTE: default session values are set in service function library: uncomment to update, or copy to change.
-
-	# >>> Paths <<<
-
-		# qpkg_pip_path=undefined
-
-		# qpkg_repo_path=undefined
-		qpkg_repo_path=$r_qpkg_path/repo-cache
-
-		# qpkg_wheels_path=undefined
-
-		# qpkg_venv_path=undefined
-
-	# >>> Filenames <<<
-
-		# qpkg_config_file=config.ini
-		qpkg_config_file=config.xml
-
-	# >>> Pathfilenames <<<
-
-		# app_version_pathfile=undefined
-
-		# daemon_check_pathfile=undefined							# If set, look for this process pathfilename instead of $daemon_exec_pathfile.
-
-		# daemon_exec_pathfile=undefined							# The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this will be the interpreter to launch.
-		daemon_exec_pathfile=$qpkg_repo_path/Whisparr/Whisparr
-
-		# daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
-
-		# daemon_script_pathfile=undefined							# When an interpreter is to be used, interpret this script.
-
-		# launcher_pathfile=undefined								# On-demand executables only.
-
-		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
-
-		# qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
-		qpkg_config_pathfile=$qpkg_config_path/$qpkg_config_file
-
-		# qpkg_config_default_pathfile=$qpkg_config_pathfile.def
-		qpkg_config_default_pathfile=$qpkg_config_pathfile.def
-
-		# userlink_pathfile=undefined								# On-demand executables only.
-
-		# venv_pip_pathfile=undefined
-
-		# venv_python_pathfile=undefined
+	# NOTE: default session variables are set below, but may be customised in the InitService() function for each QPKG. If a variable is set to a non-default value, any later variable that uses it must be recalculated (uncomment these lines).
 
 	# >>> Switches <<<
 
+		# allow_access_to_sys_packages=false
+			# Default
 		# allow_access_to_sys_packages=true
-		allow_access_to_sys_packages=false
+			# Typical
 
-		# can_restart_to_update=false								# If 'true', application can be updated by restarting service-script.
+		# can_restart_to_update=false
+			# Default
 		can_restart_to_update=true
+			# Custom
+		# > If 'true', application files can be updated by restarting service-script.
 
-		# compare_release_filename=false							# If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
+		# check_network_before_start=false
+			# Default
+		# check_network_before_start=true
+			# Custom
+		# > If 'true', at-least one network interface must be operational before starting application daemon.
+
+		# compare_release_filename=false
+			# Default
 		compare_release_filename=true
+			# Custom
+		# > If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
 
 		# daemon_pidfile_is_managed_by_app=false
+			# Default
+		# daemon_pidfile_is_managed_by_app=true
+			# Custom
 
 		# install_pip_deps=false
+			# Default
+		# install_pip_deps=true
+			# Custom
 
-		# recheck_daemon_pid_after_kill=false						# If 'true', application PID is reconfirmed shortly after kill confirmed. Some applications kill their main PID, then switch to another during shutdown.
+		# package_is_exec=false
+			# Default
+		# package_is_exec=true
+			# Custom
+		# > If 'true', downloadable package is an executable file. If 'false', downloadable package is an archive that must be extracted-from.
 
-		# recheck_daemon_pid_after_launch=false						# If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another.
+		# recheck_daemon_pid_after_kill=false
+			# Default
+		# recheck_daemon_pid_after_kill=true
+			# Custom
+		# > If 'true', application PID is reconfirmed shortly after kill. Some applications switch to another PID during shutdown, then kill their main PID.
 
-		# resolve_source_url=false									# If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+		# recheck_daemon_pid_after_launch=false
+			# Default
+		# recheck_daemon_pid_after_launch=true
+			# Custom
+		# > If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another. Some just take a while to start.
 
-		# run_daemon_in_screen_session=false						# If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
+		# resolve_source_url=false
+			# Default
+		# resolve_source_url=true
+			# Custom
+		# > If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+
+		# run_daemon_in_screen_session=false
+			# Default
 		run_daemon_in_screen_session=true
+			# Custom
+		# > If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
 
-		# silence_pypi_errors=true									# If 'true', PyPI package processing errors won't be shown in system log.
+		# silence_pypi_errors=false
+			# Default
+		# silence_pypi_errors=true
+			# Typical
+		# > If 'true', PyPI package processing errors won't be shown in system log.
 
-	# >>> Values <<<
+	# >>> Values (independent) <<<
 
 		# daemon_port=0
+			# Default
+		# daemon_port=
+			# Custom
 
-		# interpreter=undefined
-
-		# nice_daemon_to=0											# If non-zero, daemon proc is niced to this value on-launch.
-
-		# orig_daemon_service_script=undefined						# Specific to Entware binaries only.
+		# nice_daemon_to=0
+			# Default
+		# nice_daemon_to=
+			# Custom
+		# > If non-zero, daemon proc is "niced" to this value on-launch.
 
 		# source_git_branch=undefined
+			# Default
+		# source_git_branch=main
+			# Typical
+		# source_git_branch=master
+			# Typical
+		# source_git_branch=
+			# Custom
 
-		# source_git_branch_depth=undefined							# 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
+		# source_git_branch_depth=undefined
+			# Default
+		# source_git_branch_depth=shallow
+			# Typical
+		# source_git_branch_depth=single-branch
+			# Typical
+		# source_git_branch_depth=
+			# Custom
+		# > 'shallow' (depth 1) or 'single-branch': 'shallow' implies 'single-branch', 'single-branch' does NOT imply 'shallow'.
 
 		# source_url_arch=undefined
+			# Default
 		source_url_arch=x64
+			# Custom
 
-		# source_url_match=undefined								# Longest string to match in URL to determine filename.
-
-		# start_retries=0											# If daemon failed to 'start', try 'start' again this many times.
+		# start_retries=0
+			# Default
 		start_retries=3
+			# Typical
+		# start_retries=
+			# Custom
+		# > If daemon failed to 'start', try 'start' again this many times.
 
 		# ui_listening_address=undefined
+			# Default
 		ui_listening_address=0.0.0.0
+			# Typical
+		# ui_listening_address=
+			# Custom
 
 		# ui_port=0
+			# Default
+		# ui_port=
+			# Custom
 
 		# ui_port_secure=0
+			# Default
+		# ui_port_secure=
+			# Custom
 
-		# wait_pid_kill_seconds=10									# This value is adaptive (increases with system load average).
+		# wait_pid_kill_seconds=10
+			# Default
+		# wait_pid_kill_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
 
-		# wait_pid_start_seconds=10									# This value is adaptive (increases with system load average).
+		# wait_pid_start_seconds=10
+			# Default
+		# wait_pid_start_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
 
-		# watch_interface_up_seconds=180							# This value is adaptive (increases with system load average).
+		# watch_interface_up_seconds=180
+			# Default
+		# watch_interface_up_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
 
-		# watch_pid_kill_seconds=120								# This value is adaptive (increases with system load average).
+		# watch_pid_kill_seconds=120
+			# Default
+		# watch_pid_kill_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
 
-		# watch_pid_start_seconds=120								# This value is adaptive (increases with system load average).
+		# watch_pid_start_seconds=120
+			# Default
+		# watch_pid_start_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
 
-		# watch_pidfile_start_seconds=60							# This value is adaptive (increases with system load average).
+		# watch_pidfile_start_seconds=60
+			# Default
+		# watch_pidfile_start_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
 
-		# watch_port_check_seconds=120								# This value is adaptive (increases with system load average).
+		# watch_port_check_seconds=120
+			# Default
+		# watch_port_check_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
+
+	# >>> Paths <<<
+
+		# qpkg_config_path=undefined
+			# Default
+		qpkg_config_path=$r_qpkg_path/config
+			# Typical
+		# qpkg_config_path=
+			# Custom
+
+		# qpkg_pip_path=undefined
+			# Default
+		# qpkg_pip_path=$r_qpkg_path/pip-cache
+			# Typical
+		# qpkg_pip_path=
+			# Custom
+
+		# qpkg_repo_path=undefined
+			# Default
+		qpkg_repo_path=$r_qpkg_path/repo-cache
+			# Typical
+		# qpkg_repo_path=
+			# Custom
+
+		# qpkg_temp_path=undefined
+			# Default
+		qpkg_temp_path=$r_qpkg_path/tmp
+			# Typical
+		# qpkg_temp_path=
+			# Custom
+
+		# qpkg_venv_path=undefined
+			# Default
+		# qpkg_venv_path=$r_qpkg_path/venv
+			# Typical
+		# qpkg_venv_path=
+			# Custom
+
+		# qpkg_wheels_path=undefined
+			# Default
+		# qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
+			# Typical
+		# qpkg_wheels_path=
+			# Custom
+
+	# >>> Pathfilenames <<<
+
+		# appl_version_pathfile=undefined
+			# Default
+		# appl_version_pathfile=
+			# Custom
+
+		# daemon_check_pathfile=undefined
+			# Default
+		# daemon_check_pathfile=
+			# Custom
+		# > If set, look for this process name in RAM instead of $daemon_exec_pathfile.
+
+		# daemon_exec_pathfile=undefined
+			# Default
+		# daemon_exec_pathfile=$qpkg_venv_path/bin/python3
+			# Typical
+		daemon_exec_pathfile=$qpkg_repo_path/$r_qpkg_name/$r_qpkg_name
+			# Custom
+		# > The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this is the interpreter used to run the script.
+
+		# daemon_pid_pathfile=undefined
+			# Default
+		daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+			# Typical
+		# daemon_pid_pathfile=
+			# Custom
+
+		# daemon_script_pathfile=undefined
+			# Default
+		# daemon_script_pathfile=
+			# Custom
+		# > When an interpreter is to be used, interpret this script.
+
+		# launcher_pathfile=undefined
+			# Default
+		# launcher_pathfile=
+			# Custom
+		# > On-demand executables only (no daemon).
+
+		# qpkg_backup_pathfile=undefined
+			# Default
+		qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
+			# Typical
+		# qpkg_backup_pathfile=
+			# Custom
+
+		# qpkg_config_pathfile=undefined
+			# Default
+		# qpkg_config_pathfile=$qpkg_config_path/config.ini
+			# Typical
+		qpkg_config_pathfile=$qpkg_config_path/config.xml
+			# Custom
+
+		# qpkg_config_default_pathfile=undefined
+			# Default
+		qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+			# Typical
+		# qpkg_config_default_pathfile=
+			# Custom
+
+		# qpkg_config_virtual_pathfile=undefined
+			# Default
+		# qpkg_config_virtual_pathfile=
+			# Custom
+		# > When config file must be made available to appl through a symlink (like nzbToMedia).
+
+		# userlink_pathfile=undefined
+			# Default
+		# userlink_pathfile=
+			# Custom
+		# > Applies to on-demand executables only.
+
+		# venv_pip_pathfile=undefined
+			# Default
+		# venv_pip_pathfile=$qpkg_venv_path/bin/pip
+			# Typical
+		# venv_pip_pathfile=
+			# Custom
+
+		# venv_python_pathfile=undefined
+			# Default
+		# venv_python_pathfile=$qpkg_venv_path/bin/python3
+			# Typical
+		# venv_python_pathfile=
+			# Custom
+
+	# >>> Values (potentially independent: these might use a variable set earlier) <<<
+
+		export HOME=$qpkg_config_path
+			# Default
+		# export HOME=
+			# Custom
+
+		# interpreter=undefined
+			# Default
+		# interpreter=/opt/bin/python3
+			# Typical
+		# interpreter=
+			# Custom
+
+		# orig_daemon_service_script=undefined
+			# Default
+		# orig_daemon_service_script=
+			# Custom
+		# > Specific to Entware binaries only.
+
+		# source_asset_url_match=undefined
+			# Default
+		source_asset_url_match=.linux-${source_url_arch}.tar.gz
+			# Custom
+		# > Longest string to match in URL to determine filename.
 
 	# >>> URLs <<<
 
-		# source_git_url=undefined
+		# source_asset_url=undefined
+			# Default
+		# source_asset_url=https://api.github.com/repos/<user>/<project>/releases/latest
+			# Typical
+		source_asset_url='https://whisparr.servarr.com/v1/update/nightly/updatefile?os=linux&runtime=netcore&arch='$source_url_arch
+			# Custom
 
-		# source_url=undefined
-		source_url='https://whisparr.servarr.com/v1/update/nightly/updatefile?os=linux&runtime=netcore&arch='$source_url_arch
+		# source_git_url=undefined
+			# Default
+		# source_git_url=https://github.com/<user>/<project>.git
+			# Typical
+		# source_git_url=
+			# Custom
+		# > https://github.com/
+		# > https://gitlab.com/
 
 	# >>> CMDs <<<
 
-		# get_app_version_cmd=undefined
+		# daemon_launch_cmd=undefined
+			# Default
+		daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$qpkg_temp_path; $daemon_exec_pathfile --nobrowser --data=$qpkg_config_path"
+			# Custom
+
+		# get_appl_version_cmd=undefined
+			# Default
+		# get_appl_version_cmd=
+			# Custom
 
 		# get_daemon_port_cmd=undefined
+			# Default
+		# get_daemon_port_cmd=
+			# Custom
 
 		# get_ui_listening_address_cmd=undefined
+			# Default
 		get_ui_listening_address_cmd="echo $ui_listening_address"
+			# Custom
 
 		# get_ui_port_cmd=undefined
+			# Default
 		get_ui_port_cmd='grep "<Port>" $qpkg_config_pathfile | sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
+			# Custom
 
 		# get_ui_port_secure_cmd=undefined
+			# Default
 		get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_config_pathfile | sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'
+			# Custom
 
 		# get_ui_port_secure_enabled_test_cmd=undefined
+			# Default
 		get_ui_port_secure_enabled_test_cmd='[[ $(grep "<EnableSsl>" $qpkg_config_pathfile | sed "s/.*<EnableSsl>\(.*\)<\/EnableSsl>.*/\1/") = True ]]'
-
-		# daemon_launch_cmd=undefined
-		daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$qpkg_temp_path; $daemon_exec_pathfile --nobrowser --data=$qpkg_config_path"
+			# Custom
 
 	}
 
