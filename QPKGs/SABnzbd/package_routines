@@ -106,7 +106,7 @@
 pkg_post_install()
 	{
 
-	# Add 'Dependency' key to /etc/config/qpkg.conf for startup compatibility with QTS 5.2.0
+	# Add 'Dependency' key to /etc/config/qpkg.conf for startup compatibility with QTS 5.2.0-and-later
 
 	# All arches										Entware
 	# If NAS arch is armv7 (x41), arm64, x86-64 		Unrar
