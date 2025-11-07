@@ -36,6 +36,25 @@ InitLibrary()
 
 	# Internal session constants.
 
+		# Error messages.
+
+			readonly e_noact='undefined action'
+			readonly e_nochk='undefined checksum'
+			readonly e_nocmd='undefined command'
+			readonly e_noext='undefined exitcode'
+			readonly e_nofil='undefined filename'
+			readonly e_nonam='undefined name'
+			readonly e_nopfi='undefined pathfile'
+			readonly e_nopnm='undefined package name'
+			readonly e_noprm='undefined prompt'
+			readonly e_nopth='undefined path'
+			readonly e_nopty='undefined package type'
+			readonly e_norea='undefined reason'
+			readonly e_nores='undefined result'
+			readonly e_notir='undefined tier'
+			readonly e_nourl='undefined URL'
+			readonly e_noval='undefined value'
+
 		# Paths.
 
 			readonly r_backup_path=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
@@ -62,8 +81,11 @@ InitLibrary()
 			readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
 			readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
 			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d unknown -f /etc/config/qpkg.conf)
+			r_qpkgs_name_arrs=(Readarr Sonarr Whisparr)
+				readonly r_qpkgs_name_arrs
 			r_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
 				readonly r_qpkgs_name_migrated
+
 	SetNasArch
 	SetQpkgArch
 	SetOsFirmwareVer
@@ -71,240 +93,392 @@ InitLibrary()
 
 	# NOTE: default session variables are set below, but may be customised in the InitService() function for each QPKG. If a variable is set to a non-default value, any later variable that uses it must be recalculated (uncomment these lines).
 
+	# >>> Switches <<<
+
+		allow_access_to_sys_packages=false
+			# Default
+		# allow_access_to_sys_packages=true
+			# Typical
+
+		can_restart_to_update=false
+			# Default
+		# can_restart_to_update=true
+			# Custom
+		# > If 'true', application files can be updated by restarting service-script.
+
+		check_network_before_start=false
+			# Default
+		# check_network_before_start=true
+			# Custom
+		# > If 'true', at-least one network interface must be operational before starting application daemon.
+
+		compare_release_filename=false
+			# Default
+		# compare_release_filename=true
+			# Custom
+		# > If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
+
+		daemon_pidfile_is_managed_by_app=false
+			# Default
+		# daemon_pidfile_is_managed_by_app=true
+			# Custom
+
+		install_pip_deps=false
+			# Default
+		# install_pip_deps=true
+			# Custom
+
+		package_is_exec=false
+			# Default
+		# package_is_exec=true
+			# Custom
+		# > If 'true', downloadable package is an executable file. If 'false', downloadable package is an archive that must be extracted-from.
+
+		recheck_daemon_pid_after_kill=false
+			# Default
+		# recheck_daemon_pid_after_kill=true
+			# Custom
+		# > If 'true', application PID is reconfirmed shortly after kill. Some applications switch to another PID during shutdown, then kill their main PID.
+
+		recheck_daemon_pid_after_launch=false
+			# Default
+		# recheck_daemon_pid_after_launch=true
+			# Custom
+		# > If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another. Some just take a while to start.
+
+		resolve_source_url=false
+			# Default
+		# resolve_source_url=true
+			# Custom
+		# > If 'true', URL must be retrieved from remote first, then parsed to get final URL.
+
+		run_daemon_in_screen_session=false
+			# Default
+		# run_daemon_in_screen_session=true
+			# Custom
+		# > If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
+
+		silence_pypi_errors=false
+			# Default
+		# silence_pypi_errors=true
+			# Typical
+		# > If 'true', PyPI package processing errors won't be shown in system log.
+
+	# >>> Values (independent) <<<
+
+		daemon_port=0
+			# Default
+		# daemon_port=
+			# Custom
+
+		nice_daemon_to=0
+			# Default
+		# nice_daemon_to=
+			# Custom
+		# > If non-zero, daemon proc is "niced" to this value on-launch.
+
+		source_git_branch=undefined
+			# Default
+		# source_git_branch=main
+			# Typical
+		# source_git_branch=master
+			# Typical
+		# source_git_branch=
+			# Custom
+
+		source_git_branch_depth=undefined
+			# Default
+		# source_git_branch_depth=shallow
+			# Typical
+		# source_git_branch_depth=single-branch
+			# Typical
+		# source_git_branch_depth=
+			# Custom
+		# > 'shallow' (depth 1) or 'single-branch': 'shallow' implies 'single-branch', 'single-branch' does NOT imply 'shallow'.
+
+		source_url_arch=undefined
+			# Default
+		# source_url_arch=
+			# Custom
+
+		start_retries=0
+			# Default
+		# start_retries=3
+			# Typical
+		# start_retries=
+			# Custom
+		# > If daemon failed to 'start', try 'start' again this many times.
+
+		ui_listening_address=undefined
+			# Default
+		# ui_listening_address=0.0.0.0
+			# Typical
+		# ui_listening_address=
+			# Custom
+
+		ui_port=0
+			# Default
+		# ui_port=
+			# Custom
+
+		ui_port_secure=0
+			# Default
+		# ui_port_secure=
+			# Custom
+
+		wait_pid_kill_seconds=10
+			# Default
+		# wait_pid_kill_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
+
+		wait_pid_start_seconds=10
+			# Default
+		# wait_pid_start_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
+
+		watch_interface_up_seconds=180
+			# Default
+		# watch_interface_up_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
+
+		watch_pid_kill_seconds=120
+			# Default
+		# watch_pid_kill_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
+
+		watch_pid_start_seconds=120
+			# Default
+		# watch_pid_start_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
+
+		watch_pidfile_start_seconds=60
+			# Default
+		# watch_pidfile_start_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
+
+		watch_port_check_seconds=120
+			# Default
+		# watch_port_check_seconds=
+			# Custom
+		# > This value is adaptive (increases with system load average).
+
 	# >>> Paths <<<
 
-		qpkg_config_path=undefined											# Default
-		# qpkg_config_path=$r_qpkg_path/config								# Typical
-		# qpkg_config_path=													# Custom
+		qpkg_config_path=undefined
+			# Default
+		# qpkg_config_path=$r_qpkg_path/config
+			# Typical
+		# qpkg_config_path=
+			# Custom
 
-		qpkg_pip_path=undefined												# Default
-		# qpkg_pip_path=$r_qpkg_path/pip-cache								# Typical
-		# qpkg_pip_path=													# Custom
+		qpkg_pip_path=undefined
+			# Default
+		# qpkg_pip_path=$r_qpkg_path/pip-cache
+			# Typical
+		# qpkg_pip_path=
+			# Custom
 
-		qpkg_repo_path=undefined											# Default
-		# qpkg_repo_path=$r_qpkg_path/repo-cache							# Typical
-		# qpkg_repo_path=													# Custom
+		qpkg_repo_path=undefined
+			# Default
+		# qpkg_repo_path=$r_qpkg_path/repo-cache
+			# Typical
+		# qpkg_repo_path=
+			# Custom
 
-		qpkg_temp_path=undefined											# Default
-		# qpkg_temp_path=$r_qpkg_path/tmp									# Typical
-		# qpkg_temp_path=													# Custom
+		qpkg_temp_path=undefined
+			# Default
+		# qpkg_temp_path=$r_qpkg_path/tmp
+			# Typical
+		# qpkg_temp_path=
+			# Custom
 
-		qpkg_venv_path=undefined											# Default
-		# qpkg_venv_path=$r_qpkg_path/venv									# Typical
-		# qpkg_venv_path=													# Custom
+		qpkg_venv_path=undefined
+			# Default
+		# qpkg_venv_path=$r_qpkg_path/venv
+			# Typical
+		# qpkg_venv_path=
+			# Custom
 
-		qpkg_wheels_path=undefined											# Default
-		# qpkg_wheels_path=$r_qpkg_path/qpkg-wheels							# Typical
-		# qpkg_wheels_path=													# Custom
+		qpkg_wheels_path=undefined
+			# Default
+		# qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
+			# Typical
+		# qpkg_wheels_path=
+			# Custom
 
 	# >>> Pathfilenames <<<
 
-		appl_version_pathfile=undefined										# Default
-		# appl_version_pathfile=											# Custom
+		appl_version_pathfile=undefined
+			# Default
+		# appl_version_pathfile=
+			# Custom
 
-		daemon_check_pathfile=undefined										# Default
-		# daemon_check_pathfile=											# Custom
+		daemon_check_pathfile=undefined
+			# Default
+		# daemon_check_pathfile=
+			# Custom
 		# > If set, look for this process name in RAM instead of $daemon_exec_pathfile.
 
-		daemon_exec_pathfile=undefined										# Default
-		# daemon_exec_pathfile=												# Custom
+		daemon_exec_pathfile=undefined
+			# Default
+		# daemon_exec_pathfile=$qpkg_venv_path/bin/python3
+			# Typical
+		# daemon_exec_pathfile=
+			# Custom
 		# > The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this is the interpreter used to run the script.
 
-		daemon_pid_pathfile=undefined										# Default
-		# daemon_pid_pathfile=/var/run/$r_qpkg_name.pid						# Typical
-		# daemon_pid_pathfile=												# Custom
+		daemon_pid_pathfile=undefined
+			# Default
+		# daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+			# Typical
+		# daemon_pid_pathfile=
+			# Custom
 
-		daemon_script_pathfile=undefined									# Default
-		# daemon_script_pathfile=											# Custom
+		daemon_script_pathfile=undefined
+			# Default
+		# daemon_script_pathfile=
+			# Custom
 		# > When an interpreter is to be used, interpret this script.
 
-		launcher_pathfile=undefined											# Default
-		# launcher_pathfile=												# Custom
+		launcher_pathfile=undefined
+			# Default
+		# launcher_pathfile=
+			# Custom
 		# > On-demand executables only (no daemon).
 
-		qpkg_backup_pathfile=undefined										# Default
-		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz	# Typical
-		# qpkg_backup_pathfile=												# Custom
+		qpkg_backup_pathfile=undefined
+			# Default
+		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
+			# Typical
+		# qpkg_backup_pathfile=
+			# Custom
 
-		qpkg_config_pathfile=undefined										# Default
-		# qpkg_config_pathfile=$qpkg_config_path/config.ini					# Typical
-		# qpkg_config_pathfile=												# Custom
+		qpkg_config_pathfile=undefined
+			# Default
+		# qpkg_config_pathfile=$qpkg_config_path/config.ini
+			# Typical
+		# qpkg_config_pathfile=
+			# Custom
 
-		qpkg_config_default_pathfile=undefined								# Default
-		# qpkg_config_default_pathfile=$qpkg_config_pathfile.def			# Typical
-		# qpkg_config_default_pathfile=										# Custom
+		qpkg_config_default_pathfile=undefined
+			# Default
+		# qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+			# Typical
+		# qpkg_config_default_pathfile=
+			# Custom
 
-		qpkg_config_virtual_pathfile=undefined								# Default
-		# qpkg_config_virtual_pathfile=										# Custom
+		qpkg_config_virtual_pathfile=undefined
+			# Default
+		# qpkg_config_virtual_pathfile=
+			# Custom
 		# > When config file must be made available to appl through a symlink (like nzbToMedia).
 
-		userlink_pathfile=undefined											# Default
-		# userlink_pathfile=												# Custom
+		userlink_pathfile=undefined
+			# Default
+		# userlink_pathfile=
+			# Custom
 		# > Applies to on-demand executables only.
 
-		venv_pip_pathfile=undefined											# Default
-		# venv_pip_pathfile=$qpkg_venv_path/bin/pip							# Typical
-		# venv_pip_pathfile=												# Custom
+		venv_pip_pathfile=undefined
+			# Default
+		# venv_pip_pathfile=$qpkg_venv_path/bin/pip
+			# Typical
+		# venv_pip_pathfile=
+			# Custom
 
-		venv_python_pathfile=undefined										# Default
-		# venv_python_pathfile=$qpkg_venv_path/bin/python3					# Typical
-		# venv_python_pathfile=												# Custom
+		venv_python_pathfile=undefined
+			# Default
+		# venv_python_pathfile=$qpkg_venv_path/bin/python3
+			# Typical
+		# venv_python_pathfile=
+			# Custom
 
-	# >>> Switches <<<
+	# >>> Values (potentially independent: these might use a variable set earlier) <<<
 
-		allow_access_to_sys_packages=false									# Default
-		# allow_access_to_sys_packages=true									# Typical
+		export HOME=$qpkg_config_path
+			# Default
+		# export HOME=
+			# Custom
 
-		can_restart_to_update=false											# Default
-		# can_restart_to_update=true										# Custom
-		# > If 'true', application files can be updated by restarting service-script.
+		interpreter=undefined
+			# Default
+		# interpreter=/opt/bin/python3
+			# Typical
+		# interpreter=
+			# Custom
 
-		check_network_before_start=false									# Default
-		# check_network_before_start=true									# Custom
-		# > If 'true', at-least one network interface must be operational before starting application daemon.
-
-		compare_release_filename=false										# Default
-		# compare_release_filename=true										# Custom
-		# > If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
-
-		daemon_pidfile_is_managed_by_app=false								# Default
-		# daemon_pidfile_is_managed_by_app=true								# Custom
-
-		install_pip_deps=false												# Default
-		# install_pip_deps=true												# Custom
-
-		package_is_exec=false												# Default
-		# package_is_exec=true												# Custom
-		# > If 'true', downloadable package is an executable file. If 'false', downloadable package is an archive that must be extracted-from.
-
-		recheck_daemon_pid_after_kill=false									# Default
-		# recheck_daemon_pid_after_kill=true								# Custom
-		# > If 'true', application PID is reconfirmed shortly after kill. Some applications switch to another PID during shutdown, then kill their main PID.
-
-		recheck_daemon_pid_after_launch=false								# Default
-		# recheck_daemon_pid_after_launch=true								# Custom
-		# > If 'true', application PID is reconfirmed shortly after initial launch. Some applications launch with one PID, then switch to another. Some just take a while to start.
-
-		resolve_source_url=false											# Default
-		# resolve_source_url=true											# Custom
-		# > If 'true', URL must be retrieved from remote first, then parsed to get final URL.
-
-		run_daemon_in_screen_session=false									# Default
-		# run_daemon_in_screen_session=true									# Custom
-		# > If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
-
-		silence_pypi_errors=false											# Default
-		# silence_pypi_errors=true											# Typical
-		# > If 'true', PyPI package processing errors won't be shown in system log.
-
-	# >>> Values <<<
-
-		daemon_port=0														# Default
-		# daemon_port=														# Custom
-
-		export HOME=$qpkg_config_path										# Default
-		# export HOME=														# Custom
-
-		interpreter=undefined												# Default
-		# interpreter=/opt/bin/python3										# Typical
-		# interpreter=														# Custom
-
-		nice_daemon_to=0													# Default
-		# nice_daemon_to=													# Custom
-		# > If non-zero, daemon proc is niced to this value on-launch.
-
-		orig_daemon_service_script=undefined								# Default
-		# orig_daemon_service_script=										# Custom
+		orig_daemon_service_script=undefined
+			# Default
+		# orig_daemon_service_script=
+			# Custom
 		# > Specific to Entware binaries only.
 
-		source_git_branch=undefined											# Default
-		# source_git_branch=main											# Typical
-		# source_git_branch=												# Custom
-
-		source_git_branch_depth=undefined									# Default
-		# source_git_branch_depth=shallow									# Typical
-		# source_git_branch_depth=											# Custom
-		# > 'shallow' (depth 1) or 'single-branch' ... 'shallow' implies 'single-branch'.
-
-		source_url_arch=undefined											# Default
-		# source_url_arch=													# Custom
-
-		source_url_match=undefined											# Default
-		# source_url_match=													# Custom
+		source_asset_url_match=undefined
+			# Default
+		# source_asset_url_match=
+			# Custom
 		# > Longest string to match in URL to determine filename.
-
-		start_retries=0														# Default
-		# start_retries=													# Custom
-		# > If daemon failed to 'start', try 'start' again this many times.
-
-		ui_listening_address=undefined										# Default
-		# ui_listening_address=0.0.0.0										# Typical
-		# ui_listening_address=												# Custom
-
-		ui_port=0															# Default
-		# ui_port=															# Custom
-
-		ui_port_secure=0													# Default
-		# ui_port_secure=													# Custom
-
-		wait_pid_kill_seconds=10											# Default
-		# wait_pid_kill_seconds=											# Custom
-		# > This value is adaptive (increases with system load average).
-
-		wait_pid_start_seconds=10											# Default
-		# wait_pid_start_seconds=											# Custom
-		# > This value is adaptive (increases with system load average).
-
-		watch_interface_up_seconds=180										# Default
-		# watch_interface_up_seconds=										# Custom
-		# > This value is adaptive (increases with system load average).
-
-		watch_pid_kill_seconds=120											# Default
-		# watch_pid_kill_seconds=											# Custom
-		# > This value is adaptive (increases with system load average).
-
-		watch_pid_start_seconds=120											# Default
-		# watch_pid_start_seconds=											# Custom
-		# > This value is adaptive (increases with system load average).
-
-		watch_pidfile_start_seconds=60										# Default
-		# watch_pidfile_start_seconds=										# Custom
-		# > This value is adaptive (increases with system load average).
-
-		watch_port_check_seconds=120										# Default
-		# watch_port_check_seconds=											# Custom
-		# > This value is adaptive (increases with system load average).
 
 	# >>> URLs <<<
 
-		source_git_url=undefined											# Default
-		# source_git_url=													# Custom
+		source_asset_url=undefined
+			# Default
+		# source_asset_url=https://api.github.com/repos/<user>/<project>/releases/latest
+			# Typical
+		# source_asset_url=
+			# Custom
 
-		source_url=undefined												# Default
-		# source_url=														# Custom
+		source_git_url=undefined
+			# Default
+		# source_git_url=https://github.com/<user>/<project>.git
+			# Typical
+		# source_git_url=
+			# Custom
+		# > https://github.com/
+		# > https://gitlab.com/
 
 	# >>> CMDs <<<
 
-		daemon_launch_cmd=undefined											# Default
-		# daemon_launch_cmd=												# Custom
+		daemon_launch_cmd=undefined
+			# Default
+		# daemon_launch_cmd=
+			# Custom
 
-		get_appl_version_cmd=undefined										# Default
-		# get_appl_version_cmd=												# Custom
+		get_appl_version_cmd=undefined
+			# Default
+		# get_appl_version_cmd=
+			# Custom
 
-		get_daemon_port_cmd=undefined										# Default
-		# get_daemon_port_cmd=												# Custom
+		get_daemon_port_cmd=undefined
+			# Default
+		# get_daemon_port_cmd=
+			# Custom
 
-		get_ui_listening_address_cmd=undefined								# Default
-		# get_ui_listening_address_cmd=										# Custom
+		get_ui_listening_address_cmd=undefined
+			# Default
+		# get_ui_listening_address_cmd=
+			# Custom
 
-		get_ui_port_cmd=undefined											# Default
-		# get_ui_port_cmd=													# Custom
+		get_ui_port_cmd=undefined
+			# Default
+		# get_ui_port_cmd=
+			# Custom
 
-		get_ui_port_secure_cmd=undefined									# Default
-		# get_ui_port_secure_cmd=											# Custom
+		get_ui_port_secure_cmd=undefined
+			# Default
+		# get_ui_port_secure_cmd=
+			# Custom
 
-		get_ui_port_secure_enabled_test_cmd=undefined						# Default
-		# get_ui_port_secure_enabled_test_cmd=								# Custom
+		get_ui_port_secure_enabled_test_cmd=undefined
+			# Default
+		# get_ui_port_secure_enabled_test_cmd=
+			# Custom
 
 	InitService					# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
 
@@ -321,16 +495,42 @@ InitLibrary()
 	DisableOpkgDaemonStart
 	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate > /dev/null
 
-	readonly e_nourl='undefined URL'
-
 	# KLUDGE: delete existing `screen.conf` so it's rewritten with new log location.
 	# see https://github.com/OneCDOnly/sherpa/discussions/301 for more information.
 
 	rm -f "$r_screen_conf_pathfile"
 
+	# KLUDGE: update <InstanceName> in config of *arr QPKGs, so process can be recognised by application.
+
+	if IsQpkgArr && [[ -e $qpkg_config_pathfile ]] && /bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &>/dev/null; then
+		/bin/sed -i "s|O${r_qpkg_name}|$r_qpkg_name|g" "$qpkg_config_pathfile"
+	fi
+
+	# Create a `screen.conf` for this QPKG.
+
 	if [[ $run_daemon_in_screen_session = true && ! -e $r_screen_conf_pathfile ]]; then
 		echo -e "logfile ${r_service_screen_log_pathfile}\nlogfile flush 1\nlog on" > "$r_screen_conf_pathfile"
 	fi
+
+	}
+
+IsQpkgArr()
+	{
+
+	# Check if specified QPKG is an *arr application.
+
+	# Inputs: (local)
+	#	$1 (optional) (string) = QPKG name - if $1 is explicitly stated, lookup $1 in package lists, ignoring current $r_qpkg_name.
+
+	# Inputs: (global)
+	#	$r_qpkg_name (default for $1)
+
+	# Outputs: (local)
+	#	$? = true/false
+
+	local re=\\b${1:-${r_qpkg_name:?${FUNCNAME[0]}(): $e_nopnm}}\\b			# bash 3.2 regex with word boundaries: https://stackoverflow.com/a/9793094
+
+	[[ ${r_qpkgs_name_arrs[*]} =~ $re ]]
 
 	}
 
@@ -544,6 +744,14 @@ CreateVirtualPythonEnv()
 	#	$new_env = true: new virtual environment was created.
 	#			 = false: a virtual environment already exists.
 
+	if ! [[ -n $qpkg_venv_path && $qpkg_venv_path != undefined ]]; then
+		DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$qpkg_venv_path is undefined"
+		SetError; return
+	elif ! [[ -n $qpkg_pip_path && $qpkg_pip_path != undefined ]]; then
+		DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$qpkg_pip_path is undefined"
+		SetError; return
+	fi
+
 	new_env=false
 	local a=''
 	local b=$qpkg_venv_path/pip.conf
@@ -558,7 +766,7 @@ CreateVirtualPythonEnv()
 			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $b" log:failure-only
 			DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\" >> $b" log:failure-only
 
-			if [[ -d $qpkg_wheels_path ]]; then
+			if [[ $qpkg_wheels_path != undefined && -d $qpkg_wheels_path ]]; then
 				DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
 			fi
 		fi
@@ -599,6 +807,11 @@ StartDaemon()
 	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
 		b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 		DisplayAndCommitInfoToServiceLog "nice daemon to: $nice_daemon_to"
+	fi
+
+	if UsesConfig possible; then
+		IsReqdVarDefined qpkg_config_path || return
+		IsReqdVarDefined qpkg_config_pathfile || return
 	fi
 
 	while true; do
@@ -697,9 +910,15 @@ RefreshReleasePackageFiles()
 	#	$qpkg_repo_path
 	#	$qpkg_temp_path
 	#	$resolve_source_url
-	#	$source_url
+	#	$source_asset_url
 	#	$source_url_arch
-	#	$source_url_match
+	#	$source_asset_url_match
+
+	if UsesReleasePackage possible; then
+		IsReqdVarDefined qpkg_repo_path || return
+		IsReqdVarDefined qpkg_temp_path || return
+		IsReqdVarDefined source_asset_url || return
+	fi
 
 	local extract_release_package=false
 	local refresh_release_package=false
@@ -714,8 +933,8 @@ RefreshReleasePackageFiles()
 
 			DisplayAndCommitProcessWaitToServiceLog 'get latest release package URL'
 
-			if IsSiteUp "$source_url"; then
-				release_package_url=$(RequestLatestReleaseURL "$source_url" "$source_url_match")
+			if IsSiteUp "$source_asset_url"; then
+				release_package_url=$(RequestLatestReleaseURL "$source_asset_url" "$source_asset_url_match")
 
 				if [[ $? -eq 0 ]]; then
 					DisplayAndCommitOutcomeToServiceLog OK
@@ -729,14 +948,14 @@ RefreshReleasePackageFiles()
 				DisplayAndCommitErrorToAllLogs 'unable to access remote site'
 			fi
 		else
-			release_package_url=$source_url
+			release_package_url=$source_asset_url
 		fi
 
 		if [[ $compare_release_filename = true ]]; then
 			DisplayAndCommitProcessWaitToServiceLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
 
-			if IsSiteUp "$source_url"; then
-				release_package_filename=$(RequestLatestReleaseFilename "$source_url" "$source_url_arch")
+			if IsSiteUp "$source_asset_url"; then
+				release_package_filename=$(RequestLatestReleaseFilename "$source_asset_url" "$source_url_arch")
 
 				if [[ $? -eq 0 ]]; then
 					DisplayAndCommitOutcomeToServiceLog OK
@@ -1252,6 +1471,10 @@ CloneGitRepo()
 	#	$source_git_url
 
 	IsSourceGit || return 0
+	IsReqdVarDefined qpkg_repo_path || return
+	IsReqdVarDefined source_git_branch || return
+	IsReqdVarDefined source_git_branch_depth || return
+	IsReqdVarDefined source_git_url || return
 
 	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 	local branch_depth=' --depth 1'
@@ -1597,7 +1820,7 @@ WatchForFileToAppear()
 	#	$? = 0 : file was found
 	#	$? = 1 : file not found/timeout
 
-	[[ -n $1 ]] || return
+	[[ -n $1 && $1 != undefined ]] || return
 
 	local -i a=0
 	local -i i=0
@@ -1671,7 +1894,7 @@ EnsureConfigFileExists()
 
 	IsSupportReset || return 0
 
-	if UsesConfig && [[ ! -e $qpkg_config_pathfile && -e $qpkg_config_default_pathfile ]]; then
+	if UsesConfig valid && [[ ! -e $qpkg_config_pathfile && -e $qpkg_config_default_pathfile ]]; then
 		cp "$qpkg_config_default_pathfile" "$qpkg_config_pathfile"
 		DisplayAndCommitInfoToServiceLog 'no configuration file, using default as template'
 	fi
@@ -2391,6 +2614,89 @@ GetKeyFromTOML()						# unused-ignore
 
 	}
 
+GetKeyFromPyload()
+	{
+
+	# Inputs: (local)
+	#   $1 = section name
+	#   $2 = variable name to return value for
+	#   $3 = pathfilename to read from
+
+	# Outputs: (local)
+	#   $? = 0 : variable found
+	#   $? = 1 : file/section/variable not found
+	#   stdout = variable value
+
+	local target_section_name=${1:?no section supplied}
+	local target_var_name=${2:?no variable supplied}
+	local source_pathfile=${3:?no pathfilename supplied}
+
+	if [[ ! -e $source_pathfile ]]; then
+		echo false
+		return
+	fi
+
+	local blank=''
+	local end_line_num='$'
+	local -i line_num=0
+	local raw_var_type=''
+	local raw_var_description=''
+	local result_line=''
+	local section_description=''
+	local section_line=''
+	local section_name=''
+	local section_raw=''
+	local -i start_line_num=0
+	local target_section=''
+	local value=''
+	local value_raw=''
+	local var_found=false
+	local var_name=''
+	local var_type=''
+
+	while read -r result_line; do
+		IFS=':' read -r line_num section_raw <<< "$result_line"
+		IFS=' ' read -r section_name blank section_description <<< "$section_raw"
+
+		if [[ $section_name = "$target_section_name" ]]; then
+			[[ $start_line_num -eq 0 ]] && start_line_num=$((line_num+1))
+		else
+			if [[ $start_line_num -ne 0 ]]; then
+				end_line_num=$((line_num-2))
+				break
+			fi
+		fi
+	done <<< "$(/bin/grep '.*:$' -n "$source_pathfile")"
+
+	if [[ $start_line_num -eq 0 ]]; then
+		echo 'section match not found'
+		return 1
+	fi
+
+	target_section=$(/bin/sed -n "${start_line_num},${end_line_num}p" "$source_pathfile")
+
+	while read -r section_line; do
+		IFS=':' read -r raw_var_type raw_var_description <<< "$section_line"
+		read -r var_type var_name <<< "$raw_var_type"
+
+		[[ $var_name != "$target_var_name" ]] && continue
+
+		var_found=true
+		IFS='"' read -r blank var_description value_raw <<< "$raw_var_description"
+		IFS='=' read -r blank value <<< "$value_raw"
+		value=${value% }; value=${value# }
+		break
+	done <<< "$target_section"
+
+	if [[ $var_found = false ]]; then
+		echo 'variable match not found'
+		return 1
+	fi
+
+	echo "$value"
+
+	}
+
 SetNasArch()
 	{
 
@@ -2693,12 +2999,12 @@ IsSourceReleasePackage()
 	{
 
 	# Inputs: (global)
-	#	$source_url
+	#	$source_asset_url
 
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $source_url != undefined ]]
+	[[ $source_asset_url != undefined ]]
 
 	}
 
@@ -2740,7 +3046,7 @@ IsSupportAutoUpdate()
 IsSourcedOnline()
 	{
 
-	IsSourceGit || UsesPipCache || IsSourceReleasePackage
+	IsSourceGit || UsesPipCache || UsesReleasePackage valid
 
 	}
 
@@ -3032,17 +3338,60 @@ IsPortSecureResponds()
 UsesConfig()
 	{
 
-	# Does this applcation use a configuration file?
+	# Does this application use a configuration file?
+
+	# Inputs: (local)
+	#	$1 = possible - test variables for any settings.
+	#	$1 = valid - test variables for valid settings.
 
 	# Inputs: (global)
 	#	$qpkg_config_default_pathfile
+	#	$qpkg_config_path
 	#	$qpkg_config_pathfile
 
 	# Outputs: (local)
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ $qpkg_config_pathfile != undefined || $qpkg_config_default_pathfile != undefined ]]
+	[[ -n ${1:-} ]] || return
+
+	case $1 in
+		possible)
+			IsVarDefined qpkg_config_path || IsVarDefined qpkg_config_pathfile || IsVarDefined qpkg_config_default_pathfile
+			;;
+		valid)
+			IsVarDefined qpkg_config_path && { IsVarDefined qpkg_config_pathfile || IsVarDefined qpkg_config_default_pathfile ;}
+	esac
+
+	}
+
+UsesReleasePackage()
+	{
+
+	# Does this application use a release package sourced online?
+
+	# Inputs: (local)
+	#	$1 = possible - test variables for any settings.
+	#	$1 = valid - test variables for valid settings.
+
+	# Inputs: (global)
+	#	$qpkg_config_default_pathfile
+	#	$qpkg_config_path
+	#	$qpkg_config_pathfile
+
+	# Outputs: (local)
+	#	$? = 0 : true
+	#	$? = 1 : false
+
+	[[ -n ${1:-} ]] || return
+
+	case $1 in
+		possible)
+			IsVarDefined source_asset_url || IsVarDefined source_asset_url_match || IsVarDefined source_url_arch
+			;;
+		valid)
+			IsVarDefined source_asset_url && IsVarDefined qpkg_temp_path && IsVarDefined qpkg_repo_path
+	esac
 
 	}
 
@@ -3172,6 +3521,35 @@ IsAnyInterfaceUp()
 
 	} &> /dev/null
 
+IsVarDefined()
+	{
+
+	# Inputs: (local)
+	#	$1 = variable name to test.
+
+	# Outputs: (local)
+	#	$? = true if $1 is defined, false if not.
+
+	[[ -n ${!1:-} && ${!1:-undefined} != undefined ]]
+
+	}
+
+IsReqdVarDefined()
+	{
+
+	# Inputs: (local)
+	#	$1 = variable name to test.
+
+	# Outputs: (local)
+	#	$? = true if $1 is defined, false if not.
+
+	if ! IsVarDefined ${1:-undefined}; then
+		DisplayAndCommitErrorToServiceLog "${FUNCNAME[1]}(): \$$1 is undefined"
+		SetError; return
+	fi
+
+	}
+
 RequestLatestReleaseFilename()
 	{
 
@@ -3191,10 +3569,12 @@ RequestLatestReleaseFilename()
 	# Outputs: (local)
 	#	stdout = filename.
 
-	[[ -n ${1:-} && ${1:-} != undefined ]] || return
+	local url=${1:-undefined}
+
+	IsReqdVarDefined url || return
 
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
-	local b=$(/sbin/curl${a} "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
+	local b=$(/sbin/curl${a} "${url/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
 
 	# Need to trim whitespace from beginning-and-end of $b, then test length.
@@ -3233,10 +3613,12 @@ RequestLatestReleaseURL()
 	# Outputs: (local)
 	#	stdout = URL.
 
-	[[ -n ${1:-} && ${1:-} != undefined ]] || return
+	local url=${1:-undefined}
+
+	IsReqdVarDefined url || return
 
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
-	local b=$(/sbin/curl${a} "$1" | /bin/grep browser_download_url | cut -d\" -f4)
+	local b=$(/sbin/curl${a} "$url" | /bin/grep browser_download_url | cut -d\" -f4)
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
 
 	# Need to trim whitespace from beginning-and-end of $b, then test length.
@@ -3272,12 +3654,13 @@ DownloadReleasePackage()
 	#	$curl_insecure_opt
 	#	$debug
 
-	[[ -n ${1:-} && ${1:-} != undefined ]] || return
-	[[ -n ${2:-} && ${2:-} != undefined ]] || return
-
 	local a=''
 	local b=$curl_insecure_opt
-	local c=$2
+	local c=${2:-undefined}
+	local d=${1:-undefined}
+
+	IsReqdVarDefined c || return
+	IsReqdVarDefined d || return
 
 	[[ $debug = false ]] && b+=' --silent'
 
@@ -3290,7 +3673,7 @@ DownloadReleasePackage()
 
 	b+=" --show-error --max-time 300 --location --output $c"
 
-	DisplayRunAndLog "$a" "/sbin/curl${b} '$1'" log:failure-only
+	DisplayRunAndLog "$a" "/sbin/curl${b} '$d'" log:failure-only
 
 	}
 
@@ -3306,16 +3689,15 @@ ExtractReleasePackage()
 	#	$debug
 	#	$qpkg_repo_path
 
-	[[ -n ${1:-} && ${1:-} != undefined ]] || return
-
-	local release_package_name_ref_pathfilename=''
-	local release_package_pathfile=$1
+	local release_package_pathfile=${1:-undefined}
+	local release_package_name_ref_pathfilename=${2:-undefined}
 	local tar_opts=''
 	local tar_verbose=''
 	local unzip_opts=''
 	local unzip_verbose=''
 
-	[[ -n ${2:-} && ${2:-} != undefined ]] && release_package_name_ref_pathfilename=$2
+	IsReqdVarDefined release_package_pathfile || return
+	IsVarDefined release_package_name_ref_pathfilename || release_package_name_ref_pathfilename=''
 
 	if [[ $debug = true ]]; then
 		tar_verbose=' --verbose'
@@ -3350,12 +3732,11 @@ MakeExecReleasePackage()
 	#	$daemon_exec_pathfile
 	#	$qpkg_repo_path
 
-	[[ -n ${1:-} && ${1:-} != undefined ]] || return
+	local release_package_pathfile=${1:-undefined}
+	local release_package_name_ref_pathfilename=${2:-undefined}
 
-	local release_package_name_ref_pathfilename=''
-	local release_package_pathfile=$1
-
-	[[ -n ${2:-} && ${2:-} != undefined ]] && release_package_name_ref_pathfilename=$2
+	IsReqdVarDefined release_package_pathfile || return
+	IsVarDefined release_package_name_ref_pathfilename || release_package_name_ref_pathfilename=''
 
 	if [[ -e $release_package_pathfile ]]; then
 		DisplayRunAndLog 'copy release package' "cp -f $release_package_pathfile $daemon_exec_pathfile" log:failure-only
