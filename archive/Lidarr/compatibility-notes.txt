@@ -1,0 +1,3 @@
+* see 'compatibility-notes.txt' for Sonarr QPKG.
+
+* Additionally, Lidarr now requires a later GLIBC than available in QTS: https://github.com/Lidarr/Lidarr/releases/tag/v3.0.1.4866

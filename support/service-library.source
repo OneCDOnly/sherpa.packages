@@ -1492,7 +1492,7 @@ CloneGitRepo()
 		if [[ $active_branch != "$source_git_branch" ]]; then
 			DisplayAndCommitInfoToServiceLog "new git branch specified: $source_git_branch"
 			branch_switch=true
-# 			[[ $r_qpkg_name = nzbToMedia ]] && BackupConfig
+#			[[ $r_qpkg_name = nzbToMedia ]] && BackupConfig
 			CleanLocalRepo
 		fi
 	fi
@@ -1530,7 +1530,7 @@ CloneGitRepo()
 		SetError; return
 	fi
 
-# 	[[ $branch_switch = true && $r_qpkg_name = nzbToMedia ]] && RestoreConfig
+#	[[ $branch_switch = true && $r_qpkg_name = nzbToMedia ]] && RestoreConfig
 
 	return 0
 
@@ -4952,10 +4952,10 @@ ProcessArgs()						# unused-ignore.
 					SetServiceAction clean
 					SetTraps
 					StopQpkg
-# 					[[ $r_qpkg_name = nzbToMedia ]] && BackupConfig
+#					[[ $r_qpkg_name = nzbToMedia ]] && BackupConfig
 					CleanLocalRepo
 					IsQpkgEnabled && StartQpkg
-# 					[[ $r_qpkg_name = nzbToMedia ]] && RestoreConfig
+#					[[ $r_qpkg_name = nzbToMedia ]] && RestoreConfig
 				else
 					SetServiceAction unsupported
 					ShowUnsupportedAction "$user_arg"
