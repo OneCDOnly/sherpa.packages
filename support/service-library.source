@@ -276,6 +276,7 @@ InitLibrary()
 			# Typical
 		# qpkg_config_path=
 			# Custom
+		# > Must reset $HOME lower-down: `export HOME=$qpkg_config_path`
 
 		qpkg_pip_path=undefined
 			# Default
