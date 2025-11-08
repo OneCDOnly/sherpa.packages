@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WeeWX
-readonly r_service_script_version=251107
+readonly r_service_script_version=251109
 InitService(){
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true
