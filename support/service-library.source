@@ -44,6 +44,7 @@ InitLibrary()
 			readonly e_noext='undefined exitcode'
 			readonly e_nofil='undefined filename'
 			readonly e_nonam='undefined name'
+			readonly e_noopr='undefined operation'
 			readonly e_nopfi='undefined pathfile'
 			readonly e_nopnm='undefined package name'
 			readonly e_noprm='undefined prompt'
@@ -51,9 +52,11 @@ InitLibrary()
 			readonly e_nopty='undefined package type'
 			readonly e_norea='undefined reason'
 			readonly e_nores='undefined result'
+			readonly e_nostr='undefined string'
 			readonly e_notir='undefined tier'
 			readonly e_nourl='undefined URL'
 			readonly e_noval='undefined value'
+			readonly e_novar='undefined variable'
 
 		# Paths.
 
@@ -745,13 +748,8 @@ CreateVirtualPythonEnv()
 	#	$new_env = true: new virtual environment was created.
 	#			 = false: a virtual environment already exists.
 
-	if ! [[ -n $qpkg_venv_path && $qpkg_venv_path != undefined ]]; then
-		DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$qpkg_venv_path is undefined"
-		SetError; return
-	elif ! [[ -n $qpkg_pip_path && $qpkg_pip_path != undefined ]]; then
-		DisplayAndCommitErrorToServiceLog "${FUNCNAME[0]}(): \$qpkg_pip_path is undefined"
-		SetError; return
-	fi
+	ConfirmVarIsDefined qpkg_venv_path "${qpkg_venv_path:-}" "$e_nopth" || return
+	ConfirmVarIsDefined qpkg_pip_path "${qpkg_pip_path:-}" "$e_nopth" || return
 
 	new_env=false
 	local a=''
@@ -772,6 +770,22 @@ CreateVirtualPythonEnv()
 			fi
 		fi
 	fi
+
+	return 0
+
+	}
+
+ConfirmVarIsDefined()
+	{
+
+	# Inputs: (local)
+	#	$1 = test variable name.
+	#	$2 = test variable value.
+	#	$3 = error message reason shown if empty or undefined.
+
+	local -i backdepth=1			# 0 = this function, 1 = calling function, etc...
+
+	[[ ${2:-undefined} != undefined ]] || { ShowAsBug "${FUNCNAME[$backdepth]}" "\$${1:-undefined}: '${3:-undefined}'"; return ;}
 
 	return 0
 
@@ -811,8 +825,8 @@ StartDaemon()
 	fi
 
 	if UsesConfig possible; then
-		IsReqdVarDefined qpkg_config_path || return
-		IsReqdVarDefined qpkg_config_pathfile || return
+		ConfirmVarIsDefined qpkg_config_path "${qpkg_config_path:-}" "$e_nopth" || return
+		ConfirmVarIsDefined qpkg_config_pathfile "${qpkg_config_pathfile:-}" "$e_nopfi" || return
 	fi
 
 	while true; do
@@ -916,9 +930,9 @@ RefreshReleasePackageFiles()
 	#	$source_asset_url_match
 
 	if UsesReleasePackage possible; then
-		IsReqdVarDefined qpkg_repo_path || return
-		IsReqdVarDefined qpkg_temp_path || return
-		IsReqdVarDefined source_asset_url || return
+		ConfirmVarIsDefined qpkg_repo_path "${qpkg_repo_path:-}" "$e_nopth" || return
+		ConfirmVarIsDefined qpkg_temp_path "${qpkg_temp_path:-}" "$e_nopth" || return
+		ConfirmVarIsDefined source_asset_url "${source_asset_url:-}" "$e_nourl" || return
 	fi
 
 	local extract_release_package=false
@@ -1472,10 +1486,11 @@ CloneGitRepo()
 	#	$source_git_url
 
 	IsSourceGit || return 0
-	IsReqdVarDefined qpkg_repo_path || return
-	IsReqdVarDefined source_git_branch || return
-	IsReqdVarDefined source_git_branch_depth || return
-	IsReqdVarDefined source_git_url || return
+
+	ConfirmVarIsDefined qpkg_repo_path "${qpkg_repo_path:-}" "$e_nopth" || return
+	ConfirmVarIsDefined source_git_branch "${source_git_branch:-}" "$e_nostr" || return
+	ConfirmVarIsDefined source_git_branch_depth "${source_git_branch_depth:-}" "$e_nostr" || return
+	ConfirmVarIsDefined source_git_url "${source_git_url:-}" "$e_nourl" || return
 
 	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 	local branch_depth=' --depth 1'
@@ -1501,9 +1516,9 @@ CloneGitRepo()
 	local branch_opt=" --branch ${source_git_branch}${branch_depth}"
 
 	if [[ ! -d $qpkg_repo_path/.git ]]; then
-		opts=" clone${progress_opt}${branch_opt}${hide_advice_opt} $source_git_url $qpkg_repo_path"
+		opts="clone${progress_opt}${branch_opt}${hide_advice_opt} '$source_git_url' $qpkg_repo_path"
 
-		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git${opts}" log:failure-only
+		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git $opts" log:failure-only
 
 		if [[ $? -ne 0 ]]; then
 			DisplayAndCommitErrorToAllLogs "'git clone' failed"
@@ -1512,9 +1527,9 @@ CloneGitRepo()
 	else
 		if IsAutoUpdate; then
 			# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
-			opts=" -C $qpkg_repo_path clean -f; /opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch; /opt/bin/git -C $qpkg_repo_path pull"
+			opts="-C $qpkg_repo_path clean -f; /opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch; /opt/bin/git -C $qpkg_repo_path pull"
 
-			DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git${opts}" log:failure-only
+			DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git $opts" log:failure-only
 
 			if [[ $? -ne 0 ]]; then
 				DisplayAndCommitErrorToAllLogs "'git pull' failed"
@@ -1634,7 +1649,7 @@ FindPid()
 	#	$? = 0 (found) or 1 (not found)
 	#	stdout = PID
 
-	[[ -n ${1:-} ]] || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
 	local -i a=0
 	local b=''
@@ -1731,7 +1746,7 @@ WatchForAnyInterfaceUp()
 	local -i a=$(CalcAdaptiveSeconds "$watch_interface_up_seconds")
 	local -i i=0
 
-	local found_interface=''
+	local interface_name=''
 
 	if ! IsAnyInterfaceUp; then
 		DisplayAndCommitProcessWaitToServiceLog "watch for a network interface to become operational (no-more than $a second$(Pluralise "$a"))"
@@ -1759,7 +1774,7 @@ WatchForAnyInterfaceUp()
 		fi
 	fi
 
-	DisplayAndCommitInfoToServiceLog "operational network interface found: $found_interface"
+	DisplayAndCommitInfoToServiceLog "operational network interface found: $interface_name"
 
 	return 0
 
@@ -3495,13 +3510,19 @@ IsInterfaceUp()
 	[[ -n ${1:-} ]] || return
 	[[ -n $(/bin/ip a | /bin/sed -rn '/: '"$1"':.*state UP/{N;N;s/.*inet (\S*).*/\1/p}') ]]		# https://unix.stackexchange.com/a/121525
 
-	}
+	} &> /dev/null
 
 IsAnyInterfaceUp()
 	{
 
+	# Inputs: (global)
+	#	$interface_name
+
+	# Outputs: (global)
+	#	$interface_name
+
 	local a=''
-	found_interface=null
+	interface_name=null
 
 	for a in $(/bin/grep ':' /proc/net/dev | cut -d':' -f1 | tr -d ' '); do
 		[[ $a != 'lo' ]] || continue
@@ -3513,7 +3534,7 @@ IsAnyInterfaceUp()
 
 		if IsInterfaceUp "$a"; then
 			echo "interface $a is operational"
-			found_interface=$a
+			interface_name=$a
 			return
 		fi
 	done
@@ -3533,23 +3554,7 @@ IsVarDefined()
 
 	[[ -n ${!1:-} && ${!1:-undefined} != undefined ]]
 
-	}
-
-IsReqdVarDefined()
-	{
-
-	# Inputs: (local)
-	#	$1 = variable name to test.
-
-	# Outputs: (local)
-	#	$? = true if $1 is defined, false if not.
-
-	if ! IsVarDefined ${1:-undefined}; then
-		DisplayAndCommitErrorToServiceLog "${FUNCNAME[1]}(): \$$1 is undefined"
-		SetError; return
-	fi
-
-	}
+	} &> /dev/null
 
 RequestLatestReleaseFilename()
 	{
@@ -3570,15 +3575,13 @@ RequestLatestReleaseFilename()
 	# Outputs: (local)
 	#	stdout = filename.
 
-	local url=${1:-undefined}
-
-	IsReqdVarDefined url || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nourl" || return
 
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
-	local b=$(/sbin/curl${a} "${url/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
+	local b=$(/sbin/curl $a "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
 
-	# Need to trim whitespace from beginning-and-end of $b, then test length.
+	# Trim whitespace from beginning-and-end of $b, then test length.
 
 	local -i c=$(wc -l <<< "$b")
 
@@ -3614,12 +3617,10 @@ RequestLatestReleaseURL()
 	# Outputs: (local)
 	#	stdout = URL.
 
-	local url=${1:-undefined}
-
-	IsReqdVarDefined url || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nourl" || return
 
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
-	local b=$(/sbin/curl${a} "$url" | /bin/grep browser_download_url | cut -d\" -f4)
+	local b=$(/sbin/curl $a "$1" | /bin/grep browser_download_url | cut -d\" -f4)
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
 
 	# Need to trim whitespace from beginning-and-end of $b, then test length.
@@ -3655,26 +3656,24 @@ DownloadReleasePackage()
 	#	$curl_insecure_opt
 	#	$debug
 
-	local a=''
-	local b=$curl_insecure_opt
-	local c=${2:-undefined}
-	local d=${1:-undefined}
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nourl" || return
+	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
 
-	IsReqdVarDefined c || return
-	IsReqdVarDefined d || return
+	local a=$curl_insecure_opt
+	local b=''
 
-	[[ $debug = false ]] && b+=' --silent'
+	[[ $debug = false ]] && a+=' --silent'
 
-	if [[ -e $c ]]; then
-		a='refresh existing release package (only-if-newer)'
-		b+=" --time-cond $c"
+	if [[ -e $2 ]]; then
+		b='refresh existing release package (only-if-newer)'
+		a+=" --time-cond $2"
 	else
-		a='download latest release package'
+		b='download latest release package'
 	fi
 
-	b+=" --show-error --max-time 300 --location --output $c"
+	a+=" --show-error --max-time 300 --location --output $2"
 
-	DisplayRunAndLog "$a" "/sbin/curl${b} '$d'" log:failure-only
+	DisplayRunAndLog "$b" "/sbin/curl $a '$1'" log:failure-only
 
 	}
 
@@ -3690,31 +3689,28 @@ ExtractReleasePackage()
 	#	$debug
 	#	$qpkg_repo_path
 
-	local release_package_pathfile=${1:-undefined}
-	local release_package_name_ref_pathfilename=${2:-undefined}
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
+
 	local tar_opts=''
 	local tar_verbose=''
 	local unzip_opts=''
 	local unzip_verbose=''
 
-	IsReqdVarDefined release_package_pathfile || return
-	IsVarDefined release_package_name_ref_pathfilename || release_package_name_ref_pathfilename=''
-
 	if [[ $debug = true ]]; then
-		tar_verbose=' --verbose'
-#			unzip_verbose=' -v'			# Don't enable this, seems to prevent file extraction.
+		tar_verbose+=' --verbose'
+#		unzip_verbose+=' -v'			# Don't enable this, seems to prevent file extraction.
 	fi
 
-	if [[ -e $release_package_pathfile ]]; then
-		tar_opts="$tar_verbose --extract --gzip --file=$release_package_pathfile --directory=$qpkg_repo_path"
-		unzip_opts="$unzip_verbose -o $release_package_pathfile -d $qpkg_repo_path"
+	if [[ -e $1 ]]; then
+		tar_opts="$tar_verbose --extract --gzip --file=$1 --directory=$qpkg_repo_path"
+		unzip_opts="$unzip_verbose -o $1 -d $qpkg_repo_path"
 
 		# Try as '.zip' first, then '.tar.gz'
-		DisplayRunAndLog 'extract from release package' "/usr/bin/unzip${unzip_opts} 2> /dev/null || /bin/tar${tar_opts}" log:failure-only
+		DisplayRunAndLog 'extract from release package' "/usr/bin/unzip $unzip_opts 2> /dev/null || /bin/tar $tar_opts" log:failure-only
 
-		if [[ $compare_release_filename = true && -n $release_package_name_ref_pathfilename ]]; then
-			if [[ ! -e $release_package_name_ref_pathfilename ]]; then
-				DisplayRunAndLog 'create release package name reference' "/bin/touch $release_package_name_ref_pathfilename" log:failure-only
+		if [[ $compare_release_filename = true && -n $2 ]]; then
+			if [[ ! -e $2 ]]; then
+				DisplayRunAndLog 'create release package name reference' "/bin/touch $2" log:failure-only
 			fi
 		fi
 	fi
@@ -3733,19 +3729,15 @@ MakeExecReleasePackage()
 	#	$daemon_exec_pathfile
 	#	$qpkg_repo_path
 
-	local release_package_pathfile=${1:-undefined}
-	local release_package_name_ref_pathfilename=${2:-undefined}
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
-	IsReqdVarDefined release_package_pathfile || return
-	IsVarDefined release_package_name_ref_pathfilename || release_package_name_ref_pathfilename=''
-
-	if [[ -e $release_package_pathfile ]]; then
-		DisplayRunAndLog 'copy release package' "cp -f $release_package_pathfile $daemon_exec_pathfile" log:failure-only
+	if [[ -e $1 ]]; then
+		DisplayRunAndLog 'copy release package' "cp -f $1 $daemon_exec_pathfile" log:failure-only
 		[[ ! -x $daemon_exec_pathfile ]] && DisplayRunAndLog 'make release package executable' "chmod +x $daemon_exec_pathfile" log:failure-only
 
-		if [[ $compare_release_filename = true && -n $release_package_name_ref_pathfilename ]]; then
-			if [[ ! -e $release_package_name_ref_pathfilename ]]; then
-				DisplayRunAndLog 'create release package name reference' "/bin/touch $release_package_name_ref_pathfilename" log:failure-only
+		if [[ $compare_release_filename = true && -n $2 ]]; then
+			if [[ ! -e $2 ]]; then
+				DisplayRunAndLog 'create release package name reference' "/bin/touch $2" log:failure-only
 			fi
 		fi
 	fi
@@ -4094,6 +4086,39 @@ ShowAsError()
 
 	} >&2
 
+ShowAsBug()
+	{
+
+	# Fatal development error.
+
+	# Inputs: (local)
+	#	$1 = Problem function name.
+	#	$2 = Error message to display.
+
+	[[ -n ${1:-} ]] || return
+	[[ -n ${2:-} ]] || return
+
+	local a='fstack: '
+	local -i i=0
+
+	# Re-order FUNCNAME[] elements in-reverse.
+
+	for ((i=${#FUNCNAME[@]}-1; i>=0; i--)); do
+		[[ $i -ne $((${#FUNCNAME[@]}-1)) ]] && a+=' > '		# Insert separators.
+
+		if [[ ${FUNCNAME[$i]} = "$1" ]]; then
+			a+="${FUNCNAME[$i]}($2)"
+		else
+			a+="${FUNCNAME[$i]}()"
+		fi
+	done
+
+	CommitErrorToServiceLog "buug: $a"
+	Display "$(TextBrightRed buug): $a"
+	SetError
+
+	} >&2
+
 ShowAsURL()							# unused-ignore
 	{
 
@@ -4242,7 +4267,7 @@ DisplayAndCommitProcessWaitToServiceLog()
 	{
 
 	DisplayWait "> ${1:-}:"					# squeezer-ignore
-	CommitWaitToServiceLog "> ${1:-}:"				# squeezer-ignore
+	CommitWaitToServiceLog "> ${1:-}:"		# squeezer-ignore
 
 	}
 
