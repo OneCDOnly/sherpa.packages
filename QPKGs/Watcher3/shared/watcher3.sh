@@ -34,8 +34,9 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Watcher3
-readonly r_service_script_version=251109
+readonly r_service_script_version=251112
 InitService(){
+allow_access_to_sys_packages=true
 daemon_pidfile_is_managed_by_app=true
 install_pip_deps=true
 source_git_branch=master
