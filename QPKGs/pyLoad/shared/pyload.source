@@ -79,7 +79,7 @@ InitService()
 
 		# run_daemon_in_screen_session=false
 			# Default
-		# run_daemon_in_screen_session=true
+		run_daemon_in_screen_session=true
 			# Custom
 		# > If 'true', daemon is always launched in a `screen` session, but will exit `screen` when it can.
 
@@ -372,7 +372,7 @@ InitService()
 
 		# daemon_launch_cmd=undefined
 			# Default
-		daemon_launch_cmd="export TEMP=$qpkg_temp_path; $daemon_exec_pathfile $daemon_script_pathfile --daemon --userdir $r_qpkg_path/config"
+		daemon_launch_cmd="export TEMP=$qpkg_temp_path; $daemon_exec_pathfile $daemon_script_pathfile --userdir $r_qpkg_path/config"
 			# Custom
 
 		# get_appl_version_cmd=undefined
