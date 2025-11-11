@@ -43,6 +43,7 @@ InitLibrary()
 			readonly e_nocmd='undefined command'
 			readonly e_noext='undefined exitcode'
 			readonly e_nofil='undefined filename'
+			readonly e_nofun='undefined function'
 			readonly e_nonam='undefined name'
 			readonly e_noopr='undefined operation'
 			readonly e_nopfi='undefined pathfile'
@@ -739,6 +740,7 @@ CreateVirtualPythonEnv()
 
 	# Inputs: (global)
 	#	$allow_access_to_sys_packages
+	#	$e_nopth
 	#	$interpreter
 	#	$qpkg_pip_path
 	#	$qpkg_venv_path
@@ -1123,6 +1125,7 @@ InstallPythonPackages()
 	#	$r_qpkg_name
 	#	$silence_pypi_errors
 	#	$venv_pip_pathfile
+	#	$venv_python_pathfile
 
 	IsVirtualPythonEnv || return 0
 
@@ -1145,19 +1148,21 @@ InstallPythonPackages()
 	[[ $install_pip_deps = true ]] && no_pip_deps=''
 
 	if IsNtVirtualPythonEnvFound; then
-		DisplayAndCommitErrorToAllLogs 'unable to install addons: virtual Python environment does not exist'
+		DisplayAndCommitErrorToServiceLog 'unable to install addons: virtual Python environment does not exist'
 
 		SetError; return
 	fi
 
 	IsNtAutoUpdate && [[ $new_env = false ]] && return 0
 
+	ConfirmVarIsDefined venv_pip_pathfile "${venv_pip_pathfile:-}" "$e_nopfi" || return
+
 	if [[ $r_qpkg_name = Watcher3 || $r_qpkg_name = OWatcher3 ]]; then
 		# Need to install `m2r` PyPI module first.
 		DisplayRunAndLog "KLUDGE: install 'm2r' PyPI module first" "$venv_pip_pathfile install${no_pip_deps} --no-input m2r" log:failure-only
 
 		if [[ $? -gt 0 && $silence_pypi_errors = false ]]; then
-			CommitWarnToSysLog "'mr2' PyPI module installation failed"
+			CommitWarnToServiceLog "'mr2' PyPI module installation failed"
 		fi
 	fi
 
@@ -1200,7 +1205,7 @@ InstallPythonPackages()
 			DisplayRunAndLog "install PyPI modules from $(/usr/bin/basename "$a")" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip -r $a" log:failure-only
 
 			if [[ $? -gt 0 && $silence_pypi_errors = false ]]; then
-				CommitWarnToAllLogs 'PyPI module installation failed'
+				CommitWarnToServiceLog 'PyPI module installation failed'
 			fi
 
 			no_pips_installed=false
@@ -1216,6 +1221,8 @@ InstallPythonPackages()
 	fi
 
 	if IsSupportGetApplVersion; then
+		ConfirmVarIsDefined venv_python_pathfile "${venv_python_pathfile:-}" "$e_nopfi" || return
+
 		GetApplVersion
 
 		if [[ $new_env = false && -e $r_appl_version_store_pathfile && $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
@@ -4107,14 +4114,14 @@ ShowAsBug()
 		[[ $i -ne $((${#FUNCNAME[@]}-1)) ]] && a+=' > '		# Insert separators.
 
 		if [[ ${FUNCNAME[$i]} = "$1" ]]; then
-			a+="${FUNCNAME[$i]}($2)"
+			a+=$(TextBrightWhite "${FUNCNAME[$i]}($(TextBrightRed "$2")$(TextBrightWhite ')')")
 		else
-			a+="${FUNCNAME[$i]}()"
+			a+=$(TextBrightWhite "${FUNCNAME[$i]}()")
 		fi
 	done
 
-	CommitErrorToServiceLog "buug: $a"
-	Display "$(TextBrightRed buug): $a"
+	CommitErrorToServiceLog "bugr: $a"
+	Display "$(TextBrightRed bugr): $a"
 	SetError
 
 	} >&2
@@ -4283,6 +4290,20 @@ CommitInfoToServiceLog()
 	{
 
 	CommitToServiceLog "- ${1:-}"
+
+	}
+
+CommitWarnToServiceLog()
+	{
+
+	CommitToServiceLog "w ${1:-}"
+
+	}
+
+CommitErrorToServiceLog()
+	{
+
+	CommitToServiceLog "! ${1:-}"
 
 	}
 
