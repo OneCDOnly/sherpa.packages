@@ -312,14 +312,14 @@ InitService()
 
 		# venv_pip_pathfile=undefined
 			# Default
-		# venv_pip_pathfile=$qpkg_venv_path/bin/pip
+		venv_pip_pathfile=$qpkg_venv_path/bin/pip
 			# Typical
 		# venv_pip_pathfile=
 			# Custom
 
 		# venv_python_pathfile=undefined
 			# Default
-		# venv_python_pathfile=$qpkg_venv_path/bin/python3
+		venv_python_pathfile=$qpkg_venv_path/bin/python3
 			# Typical
 		# venv_python_pathfile=
 			# Custom
