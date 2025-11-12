@@ -507,7 +507,7 @@ InitLibrary()
 
 	# KLUDGE: update <InstanceName> in config of *arr QPKGs, so process can be recognised by application.
 
-	if IsQpkgArr && [[ -e $qpkg_config_pathfile ]] && /bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &>/dev/null; then
+	if IsQpkgArr && [[ -e $qpkg_config_pathfile ]] && /bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &> /dev/null; then
 		/bin/sed -i "s|O${r_qpkg_name}|$r_qpkg_name|g" "$qpkg_config_pathfile"
 	fi
 
@@ -700,7 +700,7 @@ CreateUserlinkToExec()
 	#	$r_qpkg_name
 	#	$userlink_pathfile
 
-	if [[ $userlink_pathfile != undefined ]]; then
+	if IsVarDefined userlink_pathfile; then
 		if [[ ! -L $userlink_pathfile && -e $launcher_pathfile ]]; then
 			ln -s "$launcher_pathfile" "$userlink_pathfile"
 
@@ -726,7 +726,7 @@ RemoveUserlinkToExec()
 	# Inputs: (global)
 	#	$userlink_pathfile
 
-	if [[ $userlink_pathfile != undefined ]]; then
+	if IsVarDefined userlink_pathfile; then
 		if [[ -L $userlink_pathfile ]]; then
 			rm -f "$userlink_pathfile"
 			DisplayAndCommitInfoToServiceLog "symlink removed: $userlink_pathfile"
@@ -767,7 +767,7 @@ CreateVirtualPythonEnv()
 			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $b" log:failure-only
 			DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\" >> $b" log:failure-only
 
-			if [[ $qpkg_wheels_path != undefined && -d $qpkg_wheels_path ]]; then
+			if IsVarDefined qpkg_wheels_path && [[ -d $qpkg_wheels_path ]]; then
 				DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
 			fi
 		fi
@@ -880,7 +880,7 @@ StopDaemon()
 
 	[[ $d -gt 1 ]] || return
 
-	DisplayAndCommitProcessWaitToServiceLog "$a PID ${d} with SIGTERM (no-more than $b second$(Pluralise "$b"))"
+	DisplayAndCommitProcessWaitToServiceLog "$a PID $d with SIGTERM (no-more than $b second$(Pluralise "$b"))"
 
 	kill "$d"
 
@@ -892,7 +892,7 @@ StopDaemon()
 
 			if [[ $c -ge $b ]]; then
 				DisplayAndCommitOutcomeToServiceLog failed
-				DisplayAndCommitProcessWaitToServiceLog "$a PID ${d} with SIGKILL"
+				DisplayAndCommitProcessWaitToServiceLog "$a PID $d with SIGKILL"
 
 				kill -9 "$d" 2> /dev/null
 
@@ -986,15 +986,15 @@ RefreshReleasePackageFiles()
 				DisplayAndCommitErrorToAllLogs 'unable to access remote site'
 			fi
 
-			if [[ -z $release_package_filename && -n $release_package_url && $release_package_url != undefined ]]; then
+			if [[ -z $release_package_filename ]] && IsVarDefined release_package_url; then
 				release_package_filename=$(/usr/bin/basename "$release_package_url")
 			fi
 
-			if [[ -z $release_package_name_ref_pathfilename && -n $release_package_filename && -n $release_package_url && $release_package_url != undefined ]]; then
+			if [[ -z $release_package_name_ref_pathfilename ]] && IsVarDefined release_package_filename && IsVarDefined release_package_url; then
 				release_package_name_ref_pathfilename=$(/usr/bin/dirname "$release_package_pathfile")/$release_package_filename
 			fi
 
-			if [[ -n $release_package_filename && -n $release_package_name_ref_pathfilename ]]; then
+			if IsVarDefined release_package_filename && IsVarDefined release_package_name_ref_pathfilename; then
 				DisplayAndCommitProcessWaitToServiceLog 'release package name reference exists locally'
 
 				if [[ -e $release_package_name_ref_pathfilename ]]; then
@@ -1069,10 +1069,10 @@ CheckPortsAvailable()
 		DisplayAndCommitErrorToAllLogs "ports $ui_port or $ui_port_secure are already in-use"
 
 		a=$(/usr/sbin/lsof -i :$ui_port -Fp)
-		DisplayAndCommitInfoToAllLogs "process details for port $ui_port: ${a}: PID $([[ -n ${a:-} ]] && /bin/tr '\000' ' ' </proc/"${a/p/}"/cmdline)"
+		DisplayAndCommitInfoToAllLogs "process details for port $ui_port: $a: PID $([[ -n ${a:-} ]] && /bin/tr '\000' ' ' </proc/"${a/p/}"/cmdline)"
 
 		a=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
-		DisplayAndCommitInfoToAllLogs "process details for secure port $ui_port_secure: PID ${a}: $([[ -n ${a:-} ]] && /bin/tr '\000' ' ' </proc/"${a/p/}"/cmdline)"
+		DisplayAndCommitInfoToAllLogs "process details for secure port $ui_port_secure: PID $a: $([[ -n ${a:-} ]] && /bin/tr '\000' ' ' </proc/"${a/p/}"/cmdline)"
 
 		SetError; return
 	fi
@@ -1272,6 +1272,8 @@ BackupConfig()
 	#	$qpkg_backup_pathfile
 	#	$r_qpkg_path
 
+	ConfirmVarIsDefined qpkg_backup_pathfile "${qpkg_backup_pathfile:-}" "$e_nopfi" || return
+
 	if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=$qpkg_backup_pathfile --directory=$r_qpkg_path/config ." log:failure-only; then
 		SetError; return
 	fi
@@ -1284,6 +1286,8 @@ RestoreConfig()
 	# Inputs: (global)
 	#	$qpkg_backup_pathfile
 	#	$r_qpkg_path
+
+	ConfirmVarIsDefined qpkg_backup_pathfile "${qpkg_backup_pathfile:-}" "$e_nopfi" || return
 
 	if [[ ! -f $qpkg_backup_pathfile ]]; then
 		DisplayAndCommitErrorToAllLogs "unable to restore configuration: no backup file was found"
@@ -1306,6 +1310,8 @@ ResetConfig()
 	#	$qpkg_config_default_pathfile
 	#	$r_qpkg_path
 
+	ConfirmVarIsDefined qpkg_config_default_pathfile "${qpkg_config_default_pathfile:-}" "$e_nopfi" || return
+
 	if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_config_default_pathfile $r_qpkg_path; rm -rf $r_qpkg_path/config/*; mkdir -p $(/usr/bin/dirname "$qpkg_config_default_pathfile"); mv $r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile") $qpkg_config_default_pathfile" log:failure-only; then
 		SetError; return
 	fi
@@ -1315,7 +1321,14 @@ ResetConfig()
 MigrateConfig()
 	{
 
+	# Inputs: (global)
+	#	$qpkg_config_default_pathfile
+	#	$qpkg_config_pathfile
+
 	IsNtConfigMigrated || return
+
+	ConfirmVarIsDefined qpkg_config_pathfile "${qpkg_config_pathfile:-}" "$e_nopfi" || return
+	ConfirmVarIsDefined qpkg_config_default_pathfile "${qpkg_config_default_pathfile:-}" "$e_nopfi" || return
 
 	# KLUDGE: update old paths in application config (and default config).
 
@@ -1334,19 +1347,19 @@ MakePaths()
 	#	$qpkg_pip_path
 	#	$qpkg_repo_path
 	#	$qpkg_temp_path
+	#	$qpkg_venv_path
 	#	$r_backup_path
 	#	$r_qpkg_path
-	#	$qpkg_venv_path
 
 	local a=''
 
 	if [[ -d $r_qpkg_path ]]; then
 		for a in "$qpkg_config_path" "$qpkg_pip_path" "$qpkg_repo_path" "$qpkg_temp_path" "$qpkg_venv_path"; do
-			[[ $a != undefined && ! -d $a ]] && mkdir -p "$a"
+			IsVarDefined a && [[ ! -d $a ]] && mkdir -p "$a"
 		done
 	fi
 
-	[[ $r_backup_path != undefined && ! -d $r_backup_path ]] && mkdir -p "$r_backup_path"
+	IsVarDefined r_backup_path && [[ ! -d $r_backup_path ]] && mkdir -p "$r_backup_path"
 
 	}
 
@@ -1376,8 +1389,8 @@ LoadPorts()
 			# Read the current application UI ports from application configuration.
 
 			DisplayAndCommitProcessWaitToServiceLog 'load ports from configuration file'
-			[[ $get_ui_port_cmd != undefined ]] && ui_port=$(eval "$get_ui_port_cmd")
-			[[ $get_ui_port_secure_cmd != undefined ]] && ui_port_secure=$(eval "$get_ui_port_secure_cmd")
+			IsVarDefined get_ui_port_cmd && ui_port=$(eval "$get_ui_port_cmd")
+			IsVarDefined get_ui_port_secure_cmd && ui_port_secure=$(eval "$get_ui_port_secure_cmd")
 			DisplayAndCommitOutcomeToServiceLog OK
 			;;
 		qts)
@@ -1396,8 +1409,8 @@ LoadPorts()
 
 	# Always read these from the application configuration file.
 
-	[[ $get_daemon_port_cmd != undefined ]] && daemon_port=$(eval "$get_daemon_port_cmd")
-	[[ $get_ui_listening_address_cmd != undefined ]] && ui_listening_address=$(eval "$get_ui_listening_address_cmd")
+	IsVarDefined get_daemon_port_cmd && daemon_port=$(eval "$get_daemon_port_cmd")
+	IsVarDefined get_ui_listening_address_cmd && ui_listening_address=$(eval "$get_ui_listening_address_cmd")
 
 	# Validate port numbers.
 
@@ -1473,7 +1486,7 @@ DisableOpkgDaemonStart()
 	# Inputs: (global)
 	#	$orig_daemon_service_script
 
-	if [[ $orig_daemon_service_script != undefined && -x $orig_daemon_service_script ]]; then
+	if IsVarDefined orig_daemon_service_script && [[ -x $orig_daemon_service_script ]]; then
 		$orig_daemon_service_script stop		# Stop default daemon,
 		chmod -x "$orig_daemon_service_script"	# ... and ensure Entware doesn't re-launch it on startup.
 	fi
@@ -1515,7 +1528,6 @@ CloneGitRepo()
 		if [[ $active_branch != "$source_git_branch" ]]; then
 			DisplayAndCommitInfoToServiceLog "new git branch specified: $source_git_branch"
 			branch_switch=true
-#			[[ $r_qpkg_name = nzbToMedia ]] && BackupConfig
 			CleanLocalRepo
 		fi
 	fi
@@ -1553,8 +1565,6 @@ CloneGitRepo()
 		SetError; return
 	fi
 
-#	[[ $branch_switch = true && $r_qpkg_name = nzbToMedia ]] && RestoreConfig
-
 	return 0
 
 	}
@@ -1578,11 +1588,11 @@ CleanLocalRepo()
 	fi
 
 	(IsSourceGit || IsSourceReleasePackage) && DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
-	IsVirtualPythonEnv && [[ -d $qpkg_venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$qpkg_venv_path\"" log:failure-only
-	UsesPipCache && [[ -d $qpkg_pip_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$qpkg_pip_path\"" log:failure-only
+	IsVarDefined qpkg_venv_path && [[ -d $qpkg_venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$qpkg_venv_path\"" log:failure-only
+	IsVarDefined qpkg_pip_path && [[ -d $qpkg_pip_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$qpkg_pip_path\"" log:failure-only
 	[[ -e $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
 	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
-	UsesTemp && [[ -d $qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$qpkg_temp_path\"" log:failure-only
+	IsVarDefined qpkg_temp_path && [[ -d $qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$qpkg_temp_path\"" log:failure-only
 
 	MakePaths
 
@@ -1635,7 +1645,7 @@ RefreshPidFile()
 		rm -f "$daemon_pid_pathfile"
 	fi
 
-	if [[ $daemon_check_pathfile != undefined ]]; then
+	if IsVarDefined daemon_check_pathfile; then
 		a=$(FindPid "$daemon_check_pathfile")
 	else
 		a=$(FindPid "$daemon_exec_pathfile" "$daemon_script_pathfile")
@@ -1843,7 +1853,7 @@ WatchForFileToAppear()
 	#	$? = 0 : file was found
 	#	$? = 1 : file not found/timeout
 
-	[[ -n $1 && $1 != undefined ]] || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
 	local -i a=0
 	local -i i=0
@@ -1946,7 +1956,7 @@ SaveApplVersion()
 	#	$appl_version
 	#	$r_appl_version_store_pathfile
 
-	[[ $r_appl_version_store_pathfile != undefined ]] && echo "$appl_version" > "$r_appl_version_store_pathfile"
+	IsVarDefined appl_version && echo "$appl_version" > "$r_appl_version_store_pathfile"
 
 	}
 
@@ -2007,6 +2017,8 @@ Executer()
 
 	# Inputs: (global)
 	#	$debug
+	#	$e_nocmd
+	#	$e_nopfi
 	#	$r_qpkg_name
 	#	$r_screen_conf_pathfile
 	#	$r_service_screen_log_pathfile
@@ -2016,11 +2028,14 @@ Executer()
 	#	pathfile ($2) = commandstring ($1) stdout and stderr.
 	#	$? = $result_code of commandstring.
 
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nocmd" || return
+	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
+
 	local -r r_log_pathfile=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 	local run_in_screen=${3:-false}
 	local -i z=0
 
-	FormatAsCommand "${1:?empty}" > "${2:?empty}"
+	FormatAsCommand "$1" > "$2"
 
 	if [[ $debug = true ]]; then
 		local exec_msg='{ exec'
@@ -2119,7 +2134,7 @@ AddFileToDebug()
 	# Outputs: (global)
 	#	$debug
 
-	[[ -e ${1:?no filename supplied} ]] || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nofil" || return
 
 	local a=''
 	local debug_was_set=$debug
@@ -2144,14 +2159,18 @@ AddFileToDebug()
 FormatAsLogFilename()
 	{
 
-	Display "log file: '${1:-}'"
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nofil" || return
+
+	Display "log file: '$1'"
 
 	}
 
 FormatAsCommand()
 	{
 
-	Display "command: '${1:-}'"
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nocmd" || return
+
+	Display "command: '$1'"
 
 	}
 
@@ -2173,12 +2192,16 @@ FormatAsResultAndStdout()
 FormatAsExitcode()
 	{
 
+	ConfirmVarIsDefined 1 "${1:-}" "$e_noval" || return
+
 	echo "[${1:-}]"
 
 	}
 
 FormatAsPackageName()
 	{
+
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nopnm" || return
 
 	echo "'${1:-}'"
 
@@ -2194,11 +2217,11 @@ DebugExtLogMinorSeparator()
 DebugBulletSeparatorWithText()
 	{
 
+	# Inputs: (local)
+	#	$1 = Text to center in separator line.
+
 	# Inputs: (global)
 	#	$r_debug_log_datawidth
-
-	# Inputs:
-	#	$1 = Text to center in separator line.
 
 	local a=''
 	[[ -n ${1:-} ]] && a=" ${1:-} "
@@ -2223,9 +2246,7 @@ DebugMinorSeparator()
 DebugAsLog()
 	{
 
-	[[ -n ${1:-} ]] || return
-
-	DebugThis "(LL) $1"
+	DebugThis "(LL) ${1:-}"
 
 	}
 
@@ -2235,29 +2256,36 @@ DebugThis()
 	# Inputs: (global)
 	#	$debug
 
-	[[ $debug = true ]] && Display "${1:-}"
-	WriteAsDebug "${1:-}"
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
+
+	[[ $debug = true ]] && Display "$1"
+	WriteAsDebug "$1"
 
 	}
 
 WriteAsDebug()
 	{
 
-	WriteToServiceLog dbug "${1:-}"
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
+
+	WriteToServiceLog dbug "$1"
 
 	}
 
 WriteToServiceLog()
 	{
 
-	# Inputs: (global)
-	#	$r_service_log_pathfile
-
 	# Inputs: (local)
 	#	$1 = pass/fail
 	#	$2 = message
 
-	printf "%-4s: %s\n" "$(StripANSICodes "${1:-}")" "$(StripANSICodes "${2:-}")" >> "$r_service_log_pathfile"
+	# Inputs: (global)
+	#	$r_service_log_pathfile
+
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
+	ConfirmVarIsDefined 2 "${2:-}" "$e_nostr" || return
+
+	printf "%-4s: %s\n" "$(StripANSICodes "$1")" "$(StripANSICodes "$2")" >> "$r_service_log_pathfile"
 
 	}
 
@@ -2312,7 +2340,7 @@ ReWriteUIPorts()
 	#	$ui_port
 	#	$ui_port_secure
 
-	[[ $get_daemon_port_cmd != undefined ]] && return		# Don't need to rewrite QTS UI ports if this app has a daemon port, as UI ports are unused.
+	IsVarDefined get_daemon_port_cmd && return				# Don't need to rewrite QTS UI ports if this app has a daemon port, as UI ports are unused.
 
 	DisplayAndCommitProcessWaitToServiceLog 'update QPKG icon with UI ports'
 	/sbin/setcfg $r_qpkg_name Web_Port "$ui_port" -f /etc/config/qpkg.conf
@@ -2401,7 +2429,7 @@ RenameSharedObjectFile()
 
 	# Must check 3 possible module locations.
 
-	[[ -n ${1:-} ]] || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nofil" || return
 
 	if [[ -e $(GetModulePath)/$(GetOriginalModuleSOFilename "_$1") ]]; then
 		mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "_$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "_$1")"
@@ -2608,7 +2636,8 @@ GetKeyFromYAML()						# unused-ignore
 	#	stdout = value.
 	#	$? = 0 if key was found, !0 if not.
 
-	[[ -n ${1:-} && -n ${2:-} ]] || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_noval" || return
+	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
 	[[ -e $2 ]] || return
 
 	set -o pipefail
@@ -2628,7 +2657,8 @@ GetKeyFromTOML()						# unused-ignore
 	#	stdout = value.
 	#	$? = 0 if key was found, !0 if not.
 
-	[[ -n ${1:-} && -n ${2:-} ]] || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_noval" || return
+	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
 	[[ -e $2 ]] || return
 
 	set -o pipefail
@@ -2650,11 +2680,11 @@ GetKeyFromPyload()
 	#   $? = 1 : file/section/variable not found
 	#   stdout = variable value
 
-	local target_section_name=${1:?no section supplied}
-	local target_var_name=${2:?no variable supplied}
-	local source_pathfile=${3:?no pathfilename supplied}
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nonam" || return
+	ConfirmVarIsDefined 2 "${2:-}" "$e_novar" || return
+	ConfirmVarIsDefined 3 "${3:-}" "$e_nopfi" || return
 
-	if [[ ! -e $source_pathfile ]]; then
+	if [[ ! -e $3 ]]; then
 		echo false
 		return
 	fi
@@ -2681,7 +2711,7 @@ GetKeyFromPyload()
 		IFS=':' read -r line_num section_raw <<< "$result_line"
 		IFS=' ' read -r section_name blank section_description <<< "$section_raw"
 
-		if [[ $section_name = "$target_section_name" ]]; then
+		if [[ $section_name = "$1" ]]; then
 			[[ $start_line_num -eq 0 ]] && start_line_num=$((line_num+1))
 		else
 			if [[ $start_line_num -ne 0 ]]; then
@@ -2689,20 +2719,20 @@ GetKeyFromPyload()
 				break
 			fi
 		fi
-	done <<< "$(/bin/grep '.*:$' -n "$source_pathfile")"
+	done <<< "$(/bin/grep '.*:$' -n "$3")"
 
 	if [[ $start_line_num -eq 0 ]]; then
 		echo 'section match not found'
 		return 1
 	fi
 
-	target_section=$(/bin/sed -n "${start_line_num},${end_line_num}p" "$source_pathfile")
+	target_section=$(/bin/sed -n "${start_line_num},${end_line_num}p" "$3")
 
 	while read -r section_line; do
 		IFS=':' read -r raw_var_type raw_var_description <<< "$section_line"
 		read -r var_type var_name <<< "$raw_var_type"
 
-		[[ $var_name != "$target_var_name" ]] && continue
+		[[ $var_name != "$2" ]] && continue
 
 		var_found=true
 		IFS='"' read -r blank var_description value_raw <<< "$raw_var_description"
@@ -2910,7 +2940,7 @@ IsSupportBackup()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $qpkg_backup_pathfile != undefined ]]
+	IsVarDefined qpkg_backup_pathfile
 
 	}
 
@@ -2923,7 +2953,7 @@ IsSupportReset()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $qpkg_config_pathfile != undefined ]]
+	IsVarDefined qpkg_config_pathfile
 
 	}
 
@@ -2958,7 +2988,7 @@ IsSupportGetApplVersion()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $get_appl_version_cmd != undefined && $appl_version_pathfile != undefined ]]
+	IsVarDefined get_appl_version_cmd && IsVarDefined appl_version_pathfile
 
 	}
 
@@ -2971,7 +3001,7 @@ IsVirtualPythonEnv()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $qpkg_venv_path != undefined ]]
+	IsVarDefined qpkg_venv_path
 
 	}
 
@@ -2984,7 +3014,7 @@ UsesVirtualConfig()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $qpkg_config_virtual_pathfile != undefined ]]
+	IsVarDefined qpkg_config_virtual_pathfile
 
 	}
 
@@ -3001,7 +3031,7 @@ IsSourceGit()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $source_git_url != undefined && $source_git_branch != undefined && $qpkg_repo_path != undefined ]]
+	IsVarDefined source_git_url && IsVarDefined source_git_branch && IsVarDefined qpkg_repo_path
 
 	}
 
@@ -3014,7 +3044,7 @@ UsesPipCache()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $qpkg_pip_path != undefined ]]
+	IsVarDefined qpkg_pip_path
 
 	}
 
@@ -3027,7 +3057,7 @@ IsSourceReleasePackage()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $source_asset_url != undefined ]]
+	IsVarDefined source_asset_url
 
 	}
 
@@ -3040,7 +3070,7 @@ IsReleaseAnArchive()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $package_is_exec != undefined && $package_is_exec = false ]]
+	IsVarDefined package_is_exec && [[ $package_is_exec = false ]]
 
 	}
 
@@ -3049,7 +3079,7 @@ IsWebUi()
 
 	# Does application daemon present a web UI?
 
-	[[ $get_ui_port_cmd != undefined || $get_ui_port_secure_cmd != undefined || $get_ui_listening_address_cmd != undefined || $ui_port -ne 0 || $ui_port_secure -ne 0 || $ui_listening_address != undefined ]]
+	IsVarDefined get_ui_port_cmd || IsVarDefined get_ui_port_secure_cmd || IsVarDefined get_ui_listening_address_cmd || IsVarDefined ui_listening_address || [[ $ui_port -ne 0 || $ui_port_secure -ne 0 ]]
 
 	}
 
@@ -3089,7 +3119,7 @@ UsesTemp()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $qpkg_temp_path != undefined ]]
+	IsVarDefined qpkg_temp_path
 
 	}
 
@@ -3102,7 +3132,7 @@ IsSSLEnabled()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $get_ui_port_secure_enabled_test_cmd != undefined ]] && eval "$get_ui_port_secure_enabled_test_cmd"
+	IsVarDefined get_ui_port_secure_enabled_test_cmd && eval "$get_ui_port_secure_enabled_test_cmd"
 
 	}
 
@@ -3115,7 +3145,7 @@ IsDaemon()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ $daemon_exec_pathfile != undefined ]]
+	IsVarDefined daemon_exec_pathfile
 
 	}
 
@@ -3136,19 +3166,19 @@ IsDaemonCheck()
 	{
 
 	# Inputs: (global)
-	#	$daemon_check_pathfile
+	#   $daemon_check_pathfile
 
 	# Outputs: (local)
-	#	$? = true/false
+	#   $? = true/false
 
-	[[ $daemon_check_pathfile != undefined ]]
+	IsVarDefined daemon_check_pathfile
 
 	}
 
 ShowDaemonState()
 	{
 
-	if [[ -e $daemon_pid_pathfile && -s $daemon_pid_pathfile ]]; then
+	if IsVarDefined daemon_pid_pathfile && [[ -e $daemon_pid_pathfile && -s $daemon_pid_pathfile ]]; then
 		DisplayAndCommitInfoToServiceLog "daemon PID: $(< "$daemon_pid_pathfile")"
 	else
 		DisplayAndCommitInfoToServiceLog 'daemon PID: none'
@@ -3168,7 +3198,7 @@ IsDaemonActive()
 	#	$? = true  : $daemon_exec_pathfile is in memory.
 	#	$? = false : $daemon_exec_pathfile is not in memory.
 
-	if [[ -e $daemon_pid_pathfile && -d /proc/"$(< $daemon_pid_pathfile)" ]]; then
+	if IsVarDefined daemon_pid_pathfile && [[ -e $daemon_pid_pathfile && -d /proc/"$(< $daemon_pid_pathfile)" ]]; then
 		if IsDaemonCheck; then
 			[[ $(/usr/bin/readlink /proc/"$(< $daemon_pid_pathfile)"/exe) = "$daemon_check_pathfile" ]]
 		else
@@ -3376,7 +3406,7 @@ UsesConfig()
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ -n ${1:-} ]] || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
 
 	case $1 in
 		possible)
@@ -3406,7 +3436,7 @@ UsesReleasePackage()
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ -n ${1:-} ]] || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
 
 	case $1 in
 		possible)
@@ -3467,11 +3497,11 @@ IsSiteUp()
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ -n $1 && $1 != undefined ]] || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nourl" || return
 
 	local a=$(cut -d'/' -f3 <<< "$1" | cut -d':' -f1)
 
-	[[ -n $a && $a != undefined ]] || return
+	ConfirmVarIsDefined a "${a:-}" "$e_nourl" || return
 
 	local -i n=0
 
@@ -3514,7 +3544,8 @@ IsInterfaceUp()
 	# Outputs: (local)
 	#	$? = true if $1 is up, false if not.
 
-	[[ -n ${1:-} ]] || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
+
 	[[ -n $(/bin/ip a | /bin/sed -rn '/: '"$1"':.*state UP/{N;N;s/.*inet (\S*).*/\1/p}') ]]		# https://unix.stackexchange.com/a/121525
 
 	} &> /dev/null
@@ -3812,7 +3843,7 @@ CommitServiceAction()
 	{
 
 	if IsNtStatus && IsNtLog && IsNtNone; then
-		[[ $r_service_action_pathfile != undefined ]] && echo "$service_action" > "$r_service_action_pathfile"
+		IsVarDefined r_service_action_pathfile && echo "$service_action" > "$r_service_action_pathfile"
 	fi
 
 	}
@@ -3821,7 +3852,7 @@ CommitServiceResult()
 	{
 
 	if IsNtStatus && IsNtLog && IsNtNone; then
-		[[ $r_service_result_pathfile != undefined ]] && echo "$service_result" > "$r_service_result_pathfile"
+		IsVarDefined r_service_result_pathfile && echo "$service_result" > "$r_service_result_pathfile"
 	fi
 
 	}
@@ -4106,12 +4137,13 @@ ShowAsBug()
 	[[ -n ${2:-} ]] || return
 
 	local a='fstack: '
+	local b=' '
 	local -i i=0
 
 	# Re-order FUNCNAME[] elements in-reverse.
 
 	for ((i=${#FUNCNAME[@]}-1; i>=0; i--)); do
-		[[ $i -ne $((${#FUNCNAME[@]}-1)) ]] && a+=' > '		# Insert separators.
+		[[ $i -ne $((${#FUNCNAME[@]}-1)) ]] && a+="${b}>${b}"		# Insert separators.
 
 		if [[ ${FUNCNAME[$i]} = "$1" ]]; then
 			a+=$(TextBrightWhite "${FUNCNAME[$i]}($(TextBrightRed "$2")$(TextBrightWhite ')')")
@@ -4999,10 +5031,8 @@ ProcessArgs()						# unused-ignore.
 					SetServiceAction clean
 					SetTraps
 					StopQpkg
-#					[[ $r_qpkg_name = nzbToMedia ]] && BackupConfig
 					CleanLocalRepo
 					IsQpkgEnabled && StartQpkg
-#					[[ $r_qpkg_name = nzbToMedia ]] && RestoreConfig
 				else
 					SetServiceAction unsupported
 					ShowUnsupportedAction "$user_arg"
