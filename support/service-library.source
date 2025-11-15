@@ -818,7 +818,6 @@ StartDaemon()
 
 	if [[ $run_daemon_in_screen_session = true ]]; then
 		a+=" (in 'screen' session)"
-		rm -f "${r_service_screen_log_pathfile:?}"
 	fi
 
 	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
@@ -832,6 +831,8 @@ StartDaemon()
 	fi
 
 	while true; do
+		[[ $run_daemon_in_screen_session = true ]] && rm -f "$r_service_screen_log_pathfile"
+
 		if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; then
 			DisplayAndCommitWarnToServiceLog 'there has been a daemon launch failure'
 			SetError; return
@@ -3146,7 +3147,7 @@ IsDaemon()
 	# Outputs: (local)
 	#	$? = true/false
 
-	IsVarDefined daemon_exec_pathfile
+	IsVarDefined daemon_exec_pathfile && IsVarDefined daemon_launch_cmd
 
 	}
 
