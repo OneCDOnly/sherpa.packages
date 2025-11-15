@@ -507,13 +507,13 @@ InitLibrary()
 
 	# KLUDGE: update <InstanceName> in config of *arr QPKGs, so process can be recognised by application.
 
-	if IsQpkgArr && [[ -e $qpkg_config_pathfile ]] && /bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &> /dev/null; then
+	if IsQpkgArr && [[ -s $qpkg_config_pathfile ]] && /bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &> /dev/null; then
 		/bin/sed -i "s|O${r_qpkg_name}|$r_qpkg_name|g" "$qpkg_config_pathfile"
 	fi
 
 	# Create a `screen.conf` for this QPKG.
 
-	if [[ $run_daemon_in_screen_session = true && ! -e $r_screen_conf_pathfile ]]; then
+	if [[ $run_daemon_in_screen_session = true && ! -s $r_screen_conf_pathfile ]]; then
 		echo -e "logfile ${r_service_screen_log_pathfile}\nlogfile flush 1\nlog on" > "$r_screen_conf_pathfile"
 	fi
 
@@ -553,7 +553,7 @@ StartQpkg()
 
 	# Clear previous `screen.log` on each startup.
 
-	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
+	[[ -s $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
 
 	if [[ $(type -t PreStartQpkgCustom) = function ]]; then
 		PreStartQpkgCustom
@@ -701,7 +701,7 @@ CreateUserlinkToExec()
 	#	$userlink_pathfile
 
 	if IsVarDefined userlink_pathfile; then
-		if [[ ! -L $userlink_pathfile && -e $launcher_pathfile ]]; then
+		if [[ ! -L $userlink_pathfile && -s $launcher_pathfile ]]; then
 			ln -s "$launcher_pathfile" "$userlink_pathfile"
 
 			if [[ -L $userlink_pathfile ]]; then
@@ -763,7 +763,7 @@ CreateVirtualPythonEnv()
 		DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$qpkg_pip_path VIRTUALENV_OVERRIDE_APP_DATA=$qpkg_pip_path; $interpreter -m virtualenv ${qpkg_venv_path}${a}" log:failure-only
 		new_env=true
 
-		if [[ ! -e $b ]]; then
+		if [[ ! -s $b ]]; then
 			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $b" log:failure-only
 			DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\" >> $b" log:failure-only
 
@@ -871,7 +871,7 @@ StopDaemon()
 	#	$daemon_pid_pathfile
 	#	$watch_pid_kill_seconds
 
-	[[ -e $daemon_pid_pathfile ]] || return
+	[[ -s $daemon_pid_pathfile ]] || return
 
 	local a='stop daemon'
 	local -i b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
@@ -944,7 +944,7 @@ RefreshReleasePackageFiles()
 	local release_package_pathfile=$qpkg_temp_path/source.package			# Local filename of the remote application package.
 	local release_package_url=''
 
-	if IsAutoUpdate || [[ ! -e $release_package_pathfile ]]; then			# Get remote package - even when auto-update is disabled - if one doesn't exist locally.
+	if IsAutoUpdate || [[ ! -s $release_package_pathfile ]]; then			# Get remote package - even when auto-update is disabled - if one doesn't exist locally.
 		if [[ $resolve_source_url = true ]]; then
 			refresh_release_package=true
 
@@ -997,7 +997,7 @@ RefreshReleasePackageFiles()
 			if IsVarDefined release_package_filename && IsVarDefined release_package_name_ref_pathfilename; then
 				DisplayAndCommitProcessWaitToServiceLog 'release package name reference exists locally'
 
-				if [[ -e $release_package_name_ref_pathfilename ]]; then
+				if [[ -s $release_package_name_ref_pathfilename ]]; then
 					DisplayAndCommitOutcomeToServiceLog true
 				else
 					DisplayAndCommitOutcomeToServiceLog false
@@ -1010,24 +1010,24 @@ RefreshReleasePackageFiles()
 
 	DisplayAndCommitProcessWaitToServiceLog 'release package exists locally'
 
-	if [[ -e $release_package_pathfile ]]; then
+	if [[ -s $release_package_pathfile ]]; then
 		DisplayAndCommitOutcomeToServiceLog true
 	else
 		DisplayAndCommitOutcomeToServiceLog false
 		refresh_release_package=true
 	fi
 
-	if [[ ! -e $release_package_pathfile && -n $release_package_url ]] || [[ $refresh_release_package = true ]]; then
+	if [[ ! -s $release_package_pathfile && -n $release_package_url ]] || [[ $refresh_release_package = true ]]; then
 		DownloadReleasePackage "$release_package_url" "$release_package_pathfile"
 
-		if [[ -e $release_package_pathfile ]] && [[ ! -e $daemon_exec_pathfile || $(($(ConvertNowToSeconds)-$(/usr/bin/stat "$release_package_pathfile" -c %Y))) -lt 10 ]]; then		# If release package was downloaded less-than 10 minutes ago, assume it's new and must therefore be extracted-from.
+		if [[ -s $release_package_pathfile ]] && [[ ! -s $daemon_exec_pathfile || $(($(ConvertNowToSeconds)-$(/usr/bin/stat "$release_package_pathfile" -c %Y))) -lt 10 ]]; then		# If release package was downloaded less-than 10 minutes ago, assume it's new and must therefore be extracted-from.
 			extract_release_package=true
 		fi
 	fi
 
 	IsPathEmpty "$qpkg_repo_path" && extract_release_package=true
 
-	if [[ $extract_release_package = true && -e $release_package_pathfile ]]; then
+	if [[ $extract_release_package = true && -s $release_package_pathfile ]]; then
 		if IsReleaseAnArchive; then
 			ExtractReleasePackage "$release_package_pathfile" "$release_package_name_ref_pathfilename"
 		else
@@ -1169,19 +1169,19 @@ InstallPythonPackages()
 	# Edit developer-provided Python module requirements files out-of-repo.
 	# NOTE: Always prefer QPKG-supplied PyPI lists over repo-supplied versions.
 
-	[[ ! -e $default_essential_modules_pathfile && -e $essential_modules_pathfile && -d $(/usr/bin/dirname "$default_essential_modules_pathfile") ]] && cp -f "$essential_modules_pathfile" "$default_essential_modules_pathfile"
-	[[ -e $default_essential_modules_pathfile ]] && essential_modules_pathfile=$default_essential_modules_pathfile
+	[[ ! -s $default_essential_modules_pathfile && -s $essential_modules_pathfile && -d $(/usr/bin/dirname "$default_essential_modules_pathfile") ]] && cp -f "$essential_modules_pathfile" "$default_essential_modules_pathfile"
+	[[ -s $default_essential_modules_pathfile ]] && essential_modules_pathfile=$default_essential_modules_pathfile
 
-	[[ ! -e $default_requirements_modules_pathfile && -e $requirements_modules_pathfile && -d $(/usr/bin/dirname "$default_requirements_modules_pathfile") ]] && cp -f "$requirements_modules_pathfile" "$default_requirements_modules_pathfile"
-	[[ -e $default_requirements_modules_pathfile ]] && requirements_modules_pathfile=$default_requirements_modules_pathfile
+	[[ ! -s $default_requirements_modules_pathfile && -s $requirements_modules_pathfile && -d $(/usr/bin/dirname "$default_requirements_modules_pathfile") ]] && cp -f "$requirements_modules_pathfile" "$default_requirements_modules_pathfile"
+	[[ -s $default_requirements_modules_pathfile ]] && requirements_modules_pathfile=$default_requirements_modules_pathfile
 
-	[[ ! -e $default_recommended_modules_pathfile && -e $recommended_modules_pathfile && -d $(/usr/bin/dirname "$default_recommended_modules_pathfile") ]] && cp -f "$recommended_modules_pathfile" "$default_recommended_modules_pathfile"
-	[[ -e $default_recommended_modules_pathfile ]] && recommended_modules_pathfile=$default_recommended_modules_pathfile
+	[[ ! -s $default_recommended_modules_pathfile && -s $recommended_modules_pathfile && -d $(/usr/bin/dirname "$default_recommended_modules_pathfile") ]] && cp -f "$recommended_modules_pathfile" "$default_recommended_modules_pathfile"
+	[[ -s $default_recommended_modules_pathfile ]] && recommended_modules_pathfile=$default_recommended_modules_pathfile
 
 	# Must remove these modules from repo txt files, and use the ones installed via `opkg` instead (if-available).
 	# If not, `pip` will attempt to compile these, which fails on various arches.
 
-	if [[ -e $excluded_modules_pathfile ]]; then
+	if [[ -s $excluded_modules_pathfile ]]; then
 		module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(< "$excluded_modules_pathfile")")")
 		module_exclusions=${module_exclusions%* }
 
@@ -1189,7 +1189,7 @@ InstallPythonPackages()
 
 		if [[ -n $re ]]; then
 			for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile; do
-				if [[ -e $a && -e /opt/bin/sed ]]; then
+				if [[ -s $a && -e /opt/bin/sed ]]; then
 					cmd="/opt/bin/sed -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' $a"		# Perform extended and case-insensitive matching. First match = first word (or hyphenated-words) on each line. Second match = whole line. Delete line if matched.
 
 					DisplayRunAndLog "exclude problematic PyPI modules from $(/usr/bin/basename "$a")" "$cmd" log:failure-only
@@ -1201,7 +1201,7 @@ InstallPythonPackages()
 	# Install PyPI modules.
 
 	for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile; do
-		if [[ -e $a ]]; then
+		if [[ -s $a ]]; then
 			DisplayRunAndLog "install PyPI modules from $(/usr/bin/basename "$a")" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip -r $a" log:failure-only
 
 			if [[ $? -gt 0 && $silence_pypi_errors = false ]]; then
@@ -1214,7 +1214,7 @@ InstallPythonPackages()
 
 	# KLUDGE: `manytolinux2014` builds are problematic in QTS, so rename these locally.
 
-	if [[ -e $rename_modules_pathfile ]]; then
+	if [[ -s $rename_modules_pathfile ]]; then
 		for a in $(StripComments "$(< "$rename_modules_pathfile")"); do
 			RenameSharedObjectFile "$a"
 		done
@@ -1225,13 +1225,13 @@ InstallPythonPackages()
 
 		GetApplVersion
 
-		if [[ $new_env = false && -e $r_appl_version_store_pathfile && $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
+		if [[ $new_env = false && -s $r_appl_version_store_pathfile && $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
 			# Remove existing .pyc files to prevent runtime errors
 			DisplayRunAndLog 'clean Python bytecode files' "/opt/bin/find $qpkg_repo_path -type d -name '__pycache__' -print0 | xargs -I {} -0 rm -rf '{}'
 " log:failure-only
 		fi
 
-		if [[ ! -e $r_appl_version_store_pathfile || $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
+		if [[ ! -s $r_appl_version_store_pathfile || $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
 			# Generate language translations.
 			DisplayRunAndLog 'generate language translations' "cd $qpkg_repo_path; $venv_python_pathfile $qpkg_repo_path/tools/make_mo.py" log:failure-only
 		fi
@@ -1332,8 +1332,8 @@ MigrateConfig()
 
 	# KLUDGE: update old paths in application config (and default config).
 
-	[[ -e $qpkg_config_pathfile ]] && /bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_config_pathfile"
-	[[ -e $qpkg_config_default_pathfile ]] && /bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_config_default_pathfile"
+	[[ -s $qpkg_config_pathfile ]] && /bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_config_pathfile"
+	[[ -s $qpkg_config_default_pathfile ]] && /bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_config_default_pathfile"
 
 	/sbin/setcfg $r_qpkg_name Migrated TRUE -f /etc/config/qpkg.conf
 
@@ -1440,7 +1440,7 @@ GetApplVersion()
 	# Output (global):
 	#	$appl_version
 
-	if IsSupportGetApplVersion && [[ -e $appl_version_pathfile ]]; then
+	if IsSupportGetApplVersion && [[ -s $appl_version_pathfile ]]; then
 		appl_version=$(eval "$get_appl_version_cmd")
 		return 0
 	else
@@ -1590,8 +1590,8 @@ CleanLocalRepo()
 	(IsSourceGit || IsSourceReleasePackage) && DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
 	IsVarDefined qpkg_venv_path && [[ -d $qpkg_venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$qpkg_venv_path\"" log:failure-only
 	IsVarDefined qpkg_pip_path && [[ -d $qpkg_pip_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$qpkg_pip_path\"" log:failure-only
-	[[ -e $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
-	[[ -e $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
+	[[ -s $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
+	[[ -s $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
 	IsVarDefined qpkg_temp_path && [[ -d $qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$qpkg_temp_path\"" log:failure-only
 
 	MakePaths
@@ -1641,7 +1641,7 @@ RefreshPidFile()
 
 	local -i a=0
 
-	if [[ -e $daemon_pid_pathfile && ! -d /proc/"$(< $daemon_pid_pathfile)" ]]; then
+	if [[ -s $daemon_pid_pathfile && ! -d /proc/"$(< $daemon_pid_pathfile)" ]]; then
 		rm -f "$daemon_pid_pathfile"
 	fi
 
@@ -1810,7 +1810,7 @@ WatchForDaemon()
 	local -i a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
 	local -i i=0
 
-	if [[ ! -e $daemon_pid_pathfile ]]; then
+	if [[ ! -s $daemon_pid_pathfile ]]; then
 		DisplayAndCommitProcessWaitToServiceLog "watch for daemon process name to appear (no-more than $a second$(Pluralise "$a"))"
 
 		(
@@ -1901,7 +1901,7 @@ ViewLog()
 	# Inputs: (global)
 	#	$r_service_log_pathfile
 
-	if [[ -e $r_service_log_pathfile ]]; then
+	if [[ -s $r_service_log_pathfile ]]; then
 		if [[ -e /opt/bin/less ]]; then
 			LESSSECURE=1 /opt/bin/less +G --quit-on-intr --tilde --LINE-NUMBERS --RAW-CONTROL-CHARS --prompt ' use arrow-keys to scroll up-down left-right, press Q to quit' "$r_service_log_pathfile"
 		else
@@ -1927,13 +1927,13 @@ EnsureConfigFileExists()
 
 	IsSupportReset || return 0
 
-	if UsesConfig valid && [[ ! -e $qpkg_config_pathfile && -e $qpkg_config_default_pathfile ]]; then
+	if UsesConfig valid && [[ ! -s $qpkg_config_pathfile && -s $qpkg_config_default_pathfile ]]; then
 		cp "$qpkg_config_default_pathfile" "$qpkg_config_pathfile"
 		DisplayAndCommitInfoToServiceLog 'no configuration file, using default as template'
 	fi
 
-	if UsesVirtualConfig && [[ -e $qpkg_config_pathfile ]]; then
-		if [[ -e $qpkg_config_virtual_pathfile && ! -L $qpkg_config_virtual_pathfile ]]; then
+	if UsesVirtualConfig && [[ -s $qpkg_config_pathfile ]]; then
+		if [[ -s $qpkg_config_virtual_pathfile && ! -L $qpkg_config_virtual_pathfile ]]; then
 			mv "$qpkg_config_virtual_pathfile" "$qpkg_config_pathfile"			# Use existing config as appl config.
 			DisplayAndCommitInfoToServiceLog 'existing file is now configuration file'
 		fi
@@ -1941,7 +1941,7 @@ EnsureConfigFileExists()
 		if [[ ! -L $qpkg_config_virtual_pathfile ]]; then
 			ln -s "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
 			DisplayAndCommitInfoToServiceLog 'created virtual link to configuration file'
-		elif [[ ! -e $qpkg_config_virtual_pathfile ]]; then
+		elif [[ ! -s $qpkg_config_virtual_pathfile ]]; then
 			ln -sf "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
 			DisplayAndCommitInfoToServiceLog 'existing link broken, re-created link to configuration file'
 		fi
@@ -2064,7 +2064,7 @@ Executer()
 		z=$?
 	fi
 
-	if [[ -e $r_log_pathfile ]]; then
+	if [[ -s $r_log_pathfile ]]; then
 		FormatAsResultAndStdout "$z" "$(< "$r_log_pathfile")" >> "$2"
 	else
 		FormatAsResultAndStdout "$z" '<null>' >> "$2"
@@ -2135,6 +2135,7 @@ AddFileToDebug()
 	#	$debug
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nofil" || return
+	[[ -s $1 ]] || return
 
 	local a=''
 	local debug_was_set=$debug
@@ -2431,17 +2432,17 @@ RenameSharedObjectFile()
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nofil" || return
 
-	if [[ -e $(GetModulePath)/$(GetOriginalModuleSOFilename "_$1") ]]; then
+	if [[ -s $(GetModulePath)/$(GetOriginalModuleSOFilename "_$1") ]]; then
 		mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "_$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "_$1")"
 		DisplayAndCommitToServiceLog "= renamed module: _$1"
 	fi
 
-	if [[ -e $(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1") ]]; then
+	if [[ -s $(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1") ]]; then
 		mv "$(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$1/$(GetFixedModuleSOFilename "$1")"
 		DisplayAndCommitToServiceLog "= renamed module: $1/$1"
 	fi
 
-	if [[ -e $(GetModulePath)/$(GetOriginalModuleSOFilename "$1") ]]; then
+	if [[ -s $(GetModulePath)/$(GetOriginalModuleSOFilename "$1") ]]; then
 		mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "$1")"
 		DisplayAndCommitToServiceLog "= renamed module: $1"
 	fi
@@ -2638,7 +2639,7 @@ GetKeyFromYAML()						# unused-ignore
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_noval" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
-	[[ -e $2 ]] || return
+	[[ -s $2 ]] || return
 
 	set -o pipefail
 
@@ -2659,7 +2660,7 @@ GetKeyFromTOML()						# unused-ignore
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_noval" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
-	[[ -e $2 ]] || return
+	[[ -s $2 ]] || return
 
 	set -o pipefail
 
@@ -2684,7 +2685,7 @@ GetKeyFromPyload()
 	ConfirmVarIsDefined 2 "${2:-}" "$e_novar" || return
 	ConfirmVarIsDefined 3 "${3:-}" "$e_nopfi" || return
 
-	if [[ ! -e $3 ]]; then
+	if [[ ! -s $3 ]]; then
 		echo false
 		return
 	fi
@@ -2799,7 +2800,7 @@ IsQNAP()
 	#	$? = 0 : this is a QNAP NAS
 	#	$? = 1 : not a QNAP
 
-	if [[ ! -e /etc/init.d/functions ]]; then
+	if [[ ! -s /etc/init.d/functions ]]; then
 		Display 'QTS functions missing (is this a QNAP NAS?)'
 
 		SetError; return
@@ -2974,7 +2975,7 @@ IsSupportActions()
 	# Outputs: (local)
 	#	$? = true/false
 
-	[[ -e $r_service_action_pathfile || -e $r_service_result_pathfile ]]
+	[[ -s $r_service_action_pathfile || -s $r_service_result_pathfile ]]
 
 	}
 
@@ -3178,7 +3179,7 @@ IsDaemonCheck()
 ShowDaemonState()
 	{
 
-	if IsVarDefined daemon_pid_pathfile && [[ -e $daemon_pid_pathfile && -s $daemon_pid_pathfile ]]; then
+	if IsVarDefined daemon_pid_pathfile && [[ -s $daemon_pid_pathfile ]]; then
 		DisplayAndCommitInfoToServiceLog "daemon PID: $(< "$daemon_pid_pathfile")"
 	else
 		DisplayAndCommitInfoToServiceLog 'daemon PID: none'
@@ -3198,7 +3199,7 @@ IsDaemonActive()
 	#	$? = true  : $daemon_exec_pathfile is in memory.
 	#	$? = false : $daemon_exec_pathfile is not in memory.
 
-	if IsVarDefined daemon_pid_pathfile && [[ -e $daemon_pid_pathfile && -d /proc/"$(< $daemon_pid_pathfile)" ]]; then
+	if IsVarDefined daemon_pid_pathfile && [[ -s $daemon_pid_pathfile && -d /proc/"$(< $daemon_pid_pathfile)" ]]; then
 		if IsDaemonCheck; then
 			[[ $(/usr/bin/readlink /proc/"$(< $daemon_pid_pathfile)"/exe) = "$daemon_check_pathfile" ]]
 		else
@@ -3460,7 +3461,7 @@ IsVirtualPythonEnvFound()
 	#	$? = 0 : true
 	#	$? = 1 : false
 
-	[[ -e $qpkg_venv_path/bin/activate ]]
+	[[ -s $qpkg_venv_path/bin/activate ]]
 
 	}
 
@@ -3702,7 +3703,7 @@ DownloadReleasePackage()
 
 	[[ $debug = false ]] && a+=' --silent'
 
-	if [[ -e $2 ]]; then
+	if [[ -s $2 ]]; then
 		b='refresh existing release package (only-if-newer)'
 		a+=" --time-cond $2"
 	else
@@ -3739,7 +3740,7 @@ ExtractReleasePackage()
 #		unzip_verbose+=' -v'			# Don't enable this, seems to prevent file extraction.
 	fi
 
-	if [[ -e $1 ]]; then
+	if [[ -s $1 ]]; then
 		tar_opts="$tar_verbose --extract --gzip --file=$1 --directory=$qpkg_repo_path"
 		unzip_opts="$unzip_verbose -o $1 -d $qpkg_repo_path"
 
@@ -3747,7 +3748,7 @@ ExtractReleasePackage()
 		DisplayRunAndLog 'extract from release package' "/usr/bin/unzip $unzip_opts 2> /dev/null || /bin/tar $tar_opts" log:failure-only
 
 		if [[ $compare_release_filename = true && -n $2 ]]; then
-			if [[ ! -e $2 ]]; then
+			if [[ ! -s $2 ]]; then
 				DisplayRunAndLog 'create release package name reference' "/bin/touch $2" log:failure-only
 			fi
 		fi
@@ -3769,12 +3770,12 @@ MakeExecReleasePackage()
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
-	if [[ -e $1 ]]; then
+	if [[ -s $1 ]]; then
 		DisplayRunAndLog 'copy release package' "cp -f $1 $daemon_exec_pathfile" log:failure-only
 		[[ ! -x $daemon_exec_pathfile ]] && DisplayRunAndLog 'make release package executable' "chmod +x $daemon_exec_pathfile" log:failure-only
 
 		if [[ $compare_release_filename = true && -n $2 ]]; then
-			if [[ ! -e $2 ]]; then
+			if [[ ! -s $2 ]]; then
 				DisplayRunAndLog 'create release package name reference' "/bin/touch $2" log:failure-only
 			fi
 		fi
