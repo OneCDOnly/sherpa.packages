@@ -65,6 +65,7 @@ InitLibrary()
 			readonly r_opkg_path=/opt/bin:/opt/sbin
 				export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
 			readonly r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
+				readonly r_qpkg_defaults_path=$r_qpkg_path/qpkg-defaults
 
 		# Pathfilenames.
 
@@ -1123,6 +1124,7 @@ InstallPythonPackages()
 	#	$new_env
 	#	$qpkg_repo_path
 	#	$r_appl_version_store_pathfile
+	#	$r_qpkg_defaults_path
 	#	$r_qpkg_name
 	#	$silence_pypi_errors
 	#	$venv_pip_pathfile
@@ -1132,19 +1134,37 @@ InstallPythonPackages()
 
 	local a=''
 	local cmd=''
-	local default_essential_modules_pathfile=$r_qpkg_path/pip-essential.txt
-	local default_recommended_modules_pathfile=$r_qpkg_path/pip-recommended.txt
-	local default_requirements_modules_pathfile=$r_qpkg_path/pip-requirements.txt
-	local essential_modules_pathfile=$qpkg_repo_path/pip-essential.txt
-	local excluded_modules_pathfile=$r_qpkg_path/pip-exclusions.txt
 	local module_exclusions=''
-	local no_pip_deps=' --no-deps'
+	local no_pip_deps='--no-deps'
 	local no_pips_installed=true
-	local pyproject_pathfile=$qpkg_repo_path/pyproject.toml
 	local re=''
+
+	# These may be included with QPKG.
+
+	local default_essential_modules_pathfile=$r_qpkg_defaults_path/pip-essential.txt
+	local default_excluded_modules_pathfile=$r_qpkg_defaults_path/pip-exclusions.txt
+	local default_pyproject_modules_pathfile=$r_qpkg_defaults_path/pip-pyproject.toml
+	local default_recommended_modules_pathfile=$r_qpkg_defaults_path/pip-recommended.txt
+	local default_rename_modules_pathfile=$r_qpkg_defaults_path/pip-rename.txt
+	local default_requirements_modules_pathfile=$r_qpkg_defaults_path/pip-requirements.txt
+
+	# These may exist in 'repo-cache'.
+
+	local essential_modules_pathfile=$qpkg_repo_path/essential.txt
+	local excluded_modules_pathfile=$qpkg_repo_path/exclusions.txt
+	local pyproject_modules_pathfile=$qpkg_repo_path/pyproject.toml
 	local recommended_modules_pathfile=$qpkg_repo_path/recommended.txt
-	local rename_modules_pathfile=$r_qpkg_path/pip-rename.txt
+	local rename_modules_pathfile=$qpkg_repo_path/rename.txt
 	local requirements_modules_pathfile=$qpkg_repo_path/requirements.txt
+
+	# NOTE: Always prefer QPKG-provided PyPI lists over developer-provided.
+
+	[[ -s $default_essential_modules_pathfile ]] && essential_modules_pathfile=$default_essential_modules_pathfile
+	[[ -s $default_excluded_modules_pathfile ]] && excluded_modules_pathfile=$default_excluded_modules_pathfile
+	[[ -s $default_pyproject_modules_pathfile ]] && pyproject_modules_pathfile=$default_pyproject_modules_pathfile
+	[[ -s $default_recommended_modules_pathfile ]] && recommended_modules_pathfile=$default_recommended_modules_pathfile
+	[[ -s $default_rename_modules_pathfile ]] && rename_modules_pathfile=$default_rename_modules_pathfile
+	[[ -s $default_requirements_modules_pathfile ]] && requirements_modules_pathfile=$default_requirements_modules_pathfile
 
 	[[ $install_pip_deps = true ]] && no_pip_deps=''
 
@@ -1160,27 +1180,15 @@ InstallPythonPackages()
 
 	if [[ $r_qpkg_name = Watcher3 || $r_qpkg_name = OWatcher3 ]]; then
 		# Need to install `m2r` PyPI module first.
-		DisplayRunAndLog "KLUDGE: install 'm2r' PyPI module first" "$venv_pip_pathfile install${no_pip_deps} --no-input m2r" log:failure-only
+		DisplayRunAndLog "KLUDGE: install 'm2r' PyPI module first" "$venv_pip_pathfile install $no_pip_deps --no-input m2r" log:failure-only
 
 		if [[ $? -gt 0 && $silence_pypi_errors = false ]]; then
 			CommitWarnToServiceLog "'mr2' PyPI module installation failed"
 		fi
 	fi
 
-	# Edit developer-provided Python module requirements files out-of-repo.
-	# NOTE: Always prefer QPKG-supplied PyPI lists over repo-supplied versions.
-
-	[[ ! -s $default_essential_modules_pathfile && -s $essential_modules_pathfile && -d $(/usr/bin/dirname "$default_essential_modules_pathfile") ]] && cp -f "$essential_modules_pathfile" "$default_essential_modules_pathfile"
-	[[ -s $default_essential_modules_pathfile ]] && essential_modules_pathfile=$default_essential_modules_pathfile
-
-	[[ ! -s $default_requirements_modules_pathfile && -s $requirements_modules_pathfile && -d $(/usr/bin/dirname "$default_requirements_modules_pathfile") ]] && cp -f "$requirements_modules_pathfile" "$default_requirements_modules_pathfile"
-	[[ -s $default_requirements_modules_pathfile ]] && requirements_modules_pathfile=$default_requirements_modules_pathfile
-
-	[[ ! -s $default_recommended_modules_pathfile && -s $recommended_modules_pathfile && -d $(/usr/bin/dirname "$default_recommended_modules_pathfile") ]] && cp -f "$recommended_modules_pathfile" "$default_recommended_modules_pathfile"
-	[[ -s $default_recommended_modules_pathfile ]] && recommended_modules_pathfile=$default_recommended_modules_pathfile
-
-	# Must remove these modules from repo txt files, and use the ones installed via `opkg` instead (if-available).
-	# If not, `pip` will attempt to compile these, which fails on various arches.
+	# Must remove these modules from list files, and use the ones installed via `opkg` instead (if-available).
+	# If not, `pip` will attempt to compile these, which can fail on various arches.
 
 	if [[ -s $excluded_modules_pathfile ]]; then
 		module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(< "$excluded_modules_pathfile")")")
@@ -1189,11 +1197,11 @@ InstallPythonPackages()
 		[[ -n $module_exclusions ]] && [[ -e /opt/bin/sed ]] && re="${module_exclusions// /|}"	# Replace whitespace with pipes.
 
 		if [[ -n $re ]]; then
-			for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile $pyproject_pathfile; do
+			for a in $essential_modules_pathfile $pyproject_modules_pathfile $recommended_modules_pathfile $requirements_modules_pathfile; do
 				if [[ -s $a && -e /opt/bin/sed ]]; then
 					cmd="/opt/bin/sed -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' $a"		# Perform extended and case-insensitive matching. First match = first word (or hyphenated-words) on each line. Second match = whole line. Delete line if matched.
 
-					DisplayRunAndLog "exclude problematic PyPI modules from $(/usr/bin/basename "$a")" "$cmd" log:failure-only
+					DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only
 				fi
 			done
 		fi
@@ -1203,7 +1211,7 @@ InstallPythonPackages()
 
 	for a in $essential_modules_pathfile $requirements_modules_pathfile $recommended_modules_pathfile; do
 		if [[ -s $a ]]; then
-			DisplayRunAndLog "install PyPI modules from $(/usr/bin/basename "$a")" "$venv_pip_pathfile install${no_pip_deps} --no-input --upgrade pip -r $a" log:failure-only
+			DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$a")'" "$venv_pip_pathfile install $no_pip_deps --no-input --upgrade pip -r $a" log:failure-only
 
 			if [[ $? -gt 0 && $silence_pypi_errors = false ]]; then
 				CommitWarnToServiceLog 'PyPI module installation failed'
@@ -1213,7 +1221,7 @@ InstallPythonPackages()
 		fi
 	done
 
-	# KLUDGE: `manytolinux2014` builds are problematic in QTS, so rename these locally.
+	# KLUDGE: `manytolinux2014` builds are problematic in QTS+Entware, so rename these locally.
 
 	if [[ -s $rename_modules_pathfile ]]; then
 		for a in $(StripComments "$(< "$rename_modules_pathfile")"); do
