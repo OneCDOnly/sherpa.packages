@@ -3,7 +3,7 @@ r_packages_epoch='<?packages_epoch?>'
 r_base_qpkg_conflicts_with='TarMT'
 r_base_qpkg_warnings='Qboost'
 r_essential_ipks='<?essential_ipks?>'
-r_essential_pips='<?essential_pips?>'
+r_base_pips='<?base_pips?>'
 r_exclusion_pips='<?exclusion_pips?>'		# Ensure these PIP modules are removed from the saved PIP list created during Entware uninstall.
 
 # Use pseudo-alpha-sorted QPKG name order (i.e. disregard character-case and leading 'O').
