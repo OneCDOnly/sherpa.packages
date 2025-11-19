@@ -520,26 +520,6 @@ InitLibrary()
 
 	}
 
-IsQpkgArr()
-	{
-
-	# Check if specified QPKG is an *arr application.
-
-	# Inputs: (local)
-	#	$1 (optional) (string) = QPKG name - if $1 is explicitly stated, lookup $1 in package lists, ignoring current $r_qpkg_name.
-
-	# Inputs: (global)
-	#	$r_qpkg_name (default for $1)
-
-	# Outputs: (local)
-	#	$? = true/false
-
-	local re=\\b${1:-${r_qpkg_name:?${FUNCNAME[0]}(): $e_nopnm}}\\b			# bash 3.2 regex with word boundaries: https://stackoverflow.com/a/9793094
-
-	[[ ${r_qpkgs_name_arrs[*]} =~ $re ]]
-
-	}
-
 StartQpkg()
 	{
 
@@ -1132,6 +1112,7 @@ InstallVirtualPythonPackages()
 
 	IsNtAutoUpdate && [[ $new_env = false ]] && return 0
 	IsVirtualPythonEnv || return 0
+
 	ConfirmVarIsDefined venv_pip_pathfile "${venv_pip_pathfile:-}" "$e_nopfi" || return
 
 	if IsNtVirtualPythonEnvFound; then
@@ -1205,7 +1186,7 @@ InstallVirtualPythonPackages()
 
 		if [[ -n $re ]]; then
 			for a in $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile; do
-				if [[ -s $a && -e /opt/bin/sed ]]; then
+				if [[ -n $a && -s $a && -e /opt/bin/sed ]]; then
 					cmd="/opt/bin/sed -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' $a"		# Perform extended and case-insensitive matching. First match = first word (or hyphenated-words) on each line. Second match = whole line. Delete line if matched.
 
 					DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only
@@ -1243,12 +1224,14 @@ InstallVirtualPythonPackages()
 
 		if [[ $new_env = false && -s $r_appl_version_store_pathfile && $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
 			# Remove existing .pyc files to prevent runtime errors
+
 			DisplayRunAndLog 'clean Python bytecode files' "/opt/bin/find $qpkg_repo_path -type d -name '__pycache__' -print0 | xargs -I {} -0 rm -rf '{}'
 " log:failure-only
 		fi
 
 		if [[ ! -s $r_appl_version_store_pathfile || $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
 			# Generate language translations.
+
 			DisplayRunAndLog 'generate language translations' "cd $qpkg_repo_path; $venv_python_pathfile $qpkg_repo_path/tools/make_mo.py" log:failure-only
 		fi
 
@@ -1405,8 +1388,10 @@ LoadPorts()
 			# Read the current application UI ports from application configuration.
 
 			DisplayAndCommitProcessWaitToServiceLog 'load ports from configuration file'
+
 			IsVarDefined get_ui_port_cmd && ui_port=$(eval "$get_ui_port_cmd")
 			IsVarDefined get_ui_port_secure_cmd && ui_port_secure=$(eval "$get_ui_port_secure_cmd")
+
 			DisplayAndCommitOutcomeToServiceLog OK
 			;;
 		qts)
@@ -1604,6 +1589,7 @@ CleanLocalRepo()
 	fi
 
 	(IsSourceGit || IsSourceReleasePackage) && DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
+
 	IsVarDefined qpkg_venv_path && [[ -d $qpkg_venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$qpkg_venv_path\"" log:failure-only
 	IsVarDefined qpkg_pip_path && [[ -d $qpkg_pip_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$qpkg_pip_path\"" log:failure-only
 	[[ -s $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
@@ -2155,6 +2141,7 @@ AddFileToDebug()
 	#	$debug
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nofil" || return
+
 	[[ -s $1 ]] || return
 
 	local a=''
@@ -2659,6 +2646,7 @@ GetKeyFromYAML()						# unused-ignore
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_noval" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
+
 	[[ -s $2 ]] || return
 
 	set -o pipefail
@@ -2680,6 +2668,7 @@ GetKeyFromTOML()						# unused-ignore
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_noval" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
+
 	[[ -s $2 ]] || return
 
 	set -o pipefail
@@ -2895,6 +2884,26 @@ IsNtQpkgEnabled()
 	#	$? = true/false
 
 	! IsQpkgEnabled "${1:-$r_qpkg_name}"
+
+	}
+
+IsQpkgArr()
+	{
+
+	# Check if specified QPKG is an *arr application.
+
+	# Inputs: (local)
+	#	$1 (optional) (string) = QPKG name - if $1 is explicitly stated, lookup $1 in package lists, ignoring current $r_qpkg_name.
+
+	# Inputs: (global)
+	#	$r_qpkg_name (default for $1)
+
+	# Outputs: (local)
+	#	$? = true/false
+
+	local re=\\b${1:-${r_qpkg_name:?${FUNCNAME[0]}(): $e_nopnm}}\\b			# bash 3.2 regex with word boundaries: https://stackoverflow.com/a/9793094
+
+	[[ ${r_qpkgs_name_arrs[*]} =~ $re ]]
 
 	}
 
