@@ -827,6 +827,7 @@ StartDaemon()
 		if ! IsDaemonActive &> /dev/null || (IsWebUi && ! WatchForPortsActive); then
 			DisplayAndCommitWarnToServiceLog 'daemon PID check failed: there appears to have been a post-launch failure'
 			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
+			StopDaemon
 			((c++))
 
 			if [[ $((c-1)) -lt $start_retries ]]; then
