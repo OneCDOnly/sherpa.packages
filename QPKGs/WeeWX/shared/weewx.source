@@ -22,7 +22,7 @@ InitService()
 
 		# allow_access_to_sys_packages=false
 			# Default
-		# allow_access_to_sys_packages=true
+		allow_access_to_sys_packages=true
 			# Typical
 
 		# can_restart_to_update=false
