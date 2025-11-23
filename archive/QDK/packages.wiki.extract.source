@@ -1,0 +1,8 @@
+<tr><td>
+<h2><b><a href=https://github.com/qnap-dev/QDK><sub><sub><img src=images/QDK.png></sub></sub> QDK (CLI)</a></b></h2><p>
+<img alt="GitHub Release" src="https://img.shields.io/github/v/release/qnap-dev/qdk?style=for-the-badge&logo=github"><br>
+<blockquote>QDK is used to build QPKG files/applications for QNAP Turbo NAS. A QPKG file makes it easy for anyone to install and remove packages.<br><br>It also gives a package maintainer almost total control on how the package is installed on the NAS.<br><br>The major design goal of QDK is to make it easy for the package maintainer to create simple QPKG files and at the same time also support more advanced packages.<br><br>QDK started out as a simple modification of the first official release of the QPKG SDK, but now supersedes it.<br><br>It includes many new features like architecture check at installation, support for digital signatures, different compression algorithms, a comprehensive option to check that other required QPKG packages are installed (or that conflicting packages are not installed), and a powerful build script.</blockquote>
+<sub><sub><img src=images/note.png></sub></sub>This QPKG is maintained and developed by edhongcy@GitHub.<br>
+<sub><sub><img src=images/ok.png></sub></sub>Compatible with all NAS architectures.<br>
+<sub><sub><img src=images/code.png></sub></sub>Install with: <code>sherpa install qdk</code><br><br>
+</td></tr>
