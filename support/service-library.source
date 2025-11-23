@@ -738,18 +738,18 @@ CreateVirtualPythonEnv()
 	local a=''
 	local b=$qpkg_venv_path/pip.conf
 
-	[[ $allow_access_to_sys_packages = true ]] && a=' --system-site-packages'
+	[[ $allow_access_to_sys_packages = true ]] && a='--system-site-packages'
 
 	if IsNtVirtualPythonEnvFound; then
-		DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=$qpkg_pip_path VIRTUALENV_OVERRIDE_APP_DATA=$qpkg_pip_path; $interpreter -m virtualenv ${qpkg_venv_path}${a}" log:failure-only
+		DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=\"$qpkg_pip_path\" VIRTUALENV_OVERRIDE_APP_DATA=\"$qpkg_pip_path\"; \"$interpreter\" -m virtualenv \"$qpkg_venv_path\" $a" log:failure-only
 		new_env=true
 
 		if [[ ! -s $b ]]; then
-			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > $b" log:failure-only
-			DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\" >> $b" log:failure-only
+			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > \"$b\"" log:failure-only
+			DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\" >> \"$b\"" log:failure-only
 
 			if IsVarDefined qpkg_wheels_path && [[ -d $qpkg_wheels_path ]]; then
-				DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> $b" log:failure-only
+				DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> \"$b\"" log:failure-only
 			fi
 		fi
 	fi
@@ -1188,7 +1188,7 @@ InstallVirtualPythonPackages()
 		if [[ -n $re ]]; then
 			for a in $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile; do
 				if [[ -n $a && -s $a && -e /opt/bin/sed ]]; then
-					cmd="/opt/bin/sed -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' $a"		# Perform extended and case-insensitive matching. First match = first word (or hyphenated-words) on each line. Second match = whole line. Delete line if matched.
+					cmd="/opt/bin/sed -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' \"$a\""		# Perform extended and case-insensitive matching. First match = first word (or hyphenated-words) on each line. Second match = whole line. Delete line if matched.
 
 					DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only
 				fi
@@ -1200,7 +1200,7 @@ InstallVirtualPythonPackages()
 
 	for a in $base_modules_pathfile $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile; do
 		if [[ -n $a && -s $a ]]; then
-			DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$a")'" "$venv_pip_pathfile install $no_pip_deps --no-input --upgrade pip -r $a" log:failure-only
+			DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$a")'" "\"$venv_pip_pathfile\" install $no_pip_deps --no-input --upgrade pip --requirement \"$a\"" log:failure-only
 
 			if [[ $? -gt 0 && $silence_pypi_errors = false ]]; then
 				CommitWarnToServiceLog 'PyPI module installation failed'
@@ -1210,7 +1210,7 @@ InstallVirtualPythonPackages()
 		fi
 	done
 
-	# KLUDGE: `manytolinux2014` builds are problematic in QTS+Entware, so rename these locally.
+	# KLUDGE: `manylinux2014` builds are problematic in QTS+Entware, so rename these locally.
 
 	if [[ -n $renamed_modules_pathfile && -s $renamed_modules_pathfile ]]; then
 		for a in $(StripComments "$(< "$renamed_modules_pathfile")"); do
@@ -1226,14 +1226,14 @@ InstallVirtualPythonPackages()
 		if [[ $new_env = false && -s $r_appl_version_store_pathfile && $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
 			# Remove existing .pyc files to prevent runtime errors
 
-			DisplayRunAndLog 'clean Python bytecode files' "/opt/bin/find $qpkg_repo_path -type d -name '__pycache__' -print0 | xargs -I {} -0 rm -rf '{}'
+			DisplayRunAndLog 'clean Python bytecode files' "/opt/bin/find \"$qpkg_repo_path\" -type d -name '__pycache__' -print0 | xargs -I {} -0 rm -rf '{}'
 " log:failure-only
 		fi
 
 		if [[ ! -s $r_appl_version_store_pathfile || $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
 			# Generate language translations.
 
-			DisplayRunAndLog 'generate language translations' "cd $qpkg_repo_path; $venv_python_pathfile $qpkg_repo_path/tools/make_mo.py" log:failure-only
+			DisplayRunAndLog 'generate language translations' "cd \"$qpkg_repo_path\"; \"$venv_python_pathfile\" \"$qpkg_repo_path\"/tools/make_mo.py" log:failure-only
 		fi
 
 		SaveApplVersion
@@ -1274,7 +1274,7 @@ BackupConfig()
 
 	ConfirmVarIsDefined qpkg_backup_pathfile "${qpkg_backup_pathfile:-}" "$e_nopfi" || return
 
-	if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=$qpkg_backup_pathfile --directory=$r_qpkg_path/config ." log:failure-only; then
+	if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=\"$qpkg_backup_pathfile\" --directory=\"$r_qpkg_path\"/config ." log:failure-only; then
 		SetError; return
 	fi
 
@@ -1295,7 +1295,7 @@ RestoreConfig()
 		SetError; return
 	fi
 
-	if ! DisplayRunAndLog 'restore configuration backup' "/bin/tar --extract --gzip --file=$qpkg_backup_pathfile --directory=$r_qpkg_path/config" log:failure-only; then
+	if ! DisplayRunAndLog 'restore configuration backup' "/bin/tar --extract --gzip --file=\"$qpkg_backup_pathfile\" --directory=\"$r_qpkg_path\"/config" log:failure-only; then
 		SetError; return
 	fi
 
@@ -1312,7 +1312,7 @@ ResetConfig()
 
 	ConfirmVarIsDefined qpkg_config_default_pathfile "${qpkg_config_default_pathfile:-}" "$e_nopfi" || return
 
-	if ! DisplayRunAndLog 'reset configuration' "mv $qpkg_config_default_pathfile $r_qpkg_path; rm -rf $r_qpkg_path/config/*; mkdir -p $(/usr/bin/dirname "$qpkg_config_default_pathfile"); mv $r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile") $qpkg_config_default_pathfile" log:failure-only; then
+	if ! DisplayRunAndLog 'reset configuration' "mv \"$qpkg_config_default_pathfile\" \"$r_qpkg_path\"; rm -rf \"$r_qpkg_path\"/config/*; mkdir -p \"$(/usr/bin/dirname "$qpkg_config_default_pathfile")\"; mv \"$r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile")\" \"$qpkg_config_default_pathfile\"" log:failure-only; then
 		SetError; return
 	fi
 
@@ -1515,14 +1515,14 @@ CloneGitRepo()
 	ConfirmVarIsDefined source_git_url "${source_git_url:-}" "$e_nourl" || return
 
 	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
-	local branch_depth=' --depth 1'
+	local branch_depth='--depth 1'
 	local branch_switch=false
-	local hide_advice_opt=' -c advice.detachedHead=false'
+	local hide_advice_opt='-c advice.detachedHead=false'
 	local opts=''
 	local progress_opt=''
 
-	[[ $source_git_branch_depth = single-branch ]] && branch_depth=' --single-branch'
-	[[ $debug = true ]] && progress_opt=' --progress'
+	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
+	[[ $debug = true ]] && progress_opt='--progress'
 
 	WatchForGit || return
 
@@ -1534,10 +1534,10 @@ CloneGitRepo()
 		fi
 	fi
 
-	local branch_opt=" --branch ${source_git_branch}${branch_depth}"
+	local branch_opt="--branch $source_git_branch $branch_depth"
 
 	if [[ ! -d $qpkg_repo_path/.git ]]; then
-		opts="clone${progress_opt}${branch_opt}${hide_advice_opt} '$source_git_url' $qpkg_repo_path"
+		opts="clone $progress_opt $branch_opt $hide_advice_opt '$source_git_url' \"$qpkg_repo_path\""
 
 		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git $opts" log:failure-only
 
@@ -1545,17 +1545,15 @@ CloneGitRepo()
 			DisplayAndCommitErrorToAllLogs "'git clone' failed"
 			SetError; return
 		fi
-	else
-		if IsAutoUpdate; then
-			# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
-			opts="-C $qpkg_repo_path clean -f; /opt/bin/git -C $qpkg_repo_path reset --hard origin/$source_git_branch; /opt/bin/git -C $qpkg_repo_path pull"
+	elif IsAutoUpdate; then
+		# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
+		opts="-C \"$qpkg_repo_path\" clean -f; /opt/bin/git -C \"$qpkg_repo_path\" reset --hard origin/$source_git_branch; /opt/bin/git -C \"$qpkg_repo_path\" pull"
 
-			DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git $opts" log:failure-only
+		DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git $opts" log:failure-only
 
-			if [[ $? -ne 0 ]]; then
-				DisplayAndCommitErrorToAllLogs "'git pull' failed"
-				SetError; return
-			fi
+		if [[ $? -ne 0 ]]; then
+			DisplayAndCommitErrorToAllLogs "'git pull' failed"
+			SetError; return
 		fi
 	fi
 
@@ -1981,7 +1979,7 @@ DisplayRunAndLog()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nocmd" || return
 
-	local a=$(tr -s ' ' <<< "$2")
+	local a=$(tr -s ' ' <<< "$2")							# Squeeze multiple whitespace chars into singles.
 	local -r r_log_pathfile=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
 	local -i z=0
 
@@ -3735,12 +3733,12 @@ DownloadReleasePackage()
 
 	if [[ -s $2 ]]; then
 		b='refresh existing release package (only-if-newer)'
-		a+=" --time-cond $2"
+		a+=" --time-cond \"$2\""
 	else
 		b='download latest release package'
 	fi
 
-	a+=" --show-error --max-time 300 --location --output $2"
+	a+=" --show-error --max-time 300 --location --output \"$2\""
 
 	DisplayRunAndLog "$b" "/sbin/curl $a '$1'" log:failure-only
 
@@ -3766,20 +3764,20 @@ ExtractReleasePackage()
 	local unzip_verbose=''
 
 	if [[ $debug = true ]]; then
-		tar_verbose+=' --verbose'
+		tar_verbose+='--verbose'
 #		unzip_verbose+=' -v'			# Don't enable this, seems to prevent file extraction.
 	fi
 
 	if [[ -s $1 ]]; then
-		tar_opts="$tar_verbose --extract --gzip --file=$1 --directory=$qpkg_repo_path"
-		unzip_opts="$unzip_verbose -o $1 -d $qpkg_repo_path"
+		tar_opts="$tar_verbose --extract --gzip --file=\"$1\" --directory=\"$qpkg_repo_path\""
+		unzip_opts="$unzip_verbose -o \"$1\" -d \"$qpkg_repo_path\""
 
 		# Try as '.zip' first, then '.tar.gz'
 		DisplayRunAndLog 'extract from release package' "/usr/bin/unzip $unzip_opts 2> /dev/null || /bin/tar $tar_opts" log:failure-only
 
 		if [[ $compare_release_filename = true && -n $2 ]]; then
 			if [[ ! -s $2 ]]; then
-				DisplayRunAndLog 'create release package name reference' "/bin/touch $2" log:failure-only
+				DisplayRunAndLog 'create release package name reference' "/bin/touch \"$2\"" log:failure-only
 			fi
 		fi
 	fi
@@ -3801,12 +3799,12 @@ MakeExecReleasePackage()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
 	if [[ -s $1 ]]; then
-		DisplayRunAndLog 'copy release package' "cp -f $1 $daemon_exec_pathfile" log:failure-only
-		[[ ! -x $daemon_exec_pathfile ]] && DisplayRunAndLog 'make release package executable' "chmod +x $daemon_exec_pathfile" log:failure-only
+		DisplayRunAndLog 'copy release package' "cp -f \"$1\" \"$daemon_exec_pathfile\"" log:failure-only
+		[[ ! -x $daemon_exec_pathfile ]] && DisplayRunAndLog 'make release package executable' "chmod +x \"$daemon_exec_pathfile\"" log:failure-only
 
 		if [[ $compare_release_filename = true && -n $2 ]]; then
 			if [[ ! -s $2 ]]; then
-				DisplayRunAndLog 'create release package name reference' "/bin/touch $2" log:failure-only
+				DisplayRunAndLog 'create release package name reference' "/bin/touch \"$2\"" log:failure-only
 			fi
 		fi
 	fi
