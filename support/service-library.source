@@ -61,10 +61,15 @@ InitLibrary()
 
 		# Paths.
 
-			readonly r_backup_path=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)/.qpkg_config_backup
+			local temp_backup_path=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)
+			ConfirmVarIsDefined temp_backup_path "${temp_backup_path:-}" "$e_nopth" || return
+				readonly r_backup_path=$temp_backup_path/.qpkg_config_backup
+
 			readonly r_opkg_path=/opt/bin:/opt/sbin
 				export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
+
 			readonly r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
+			ConfirmVarIsDefined r_qpkg_path "${r_qpkg_path:-}" "$e_nopth" || return
 				readonly r_qpkg_pypi_module_lists_path=$r_qpkg_path/pypi-lists
 
 		# Pathfilenames.
@@ -85,7 +90,9 @@ InitLibrary()
 			readonly r_extended_datetime_format='+%a %-d %b %Y'
 			readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
 			readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
-			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d unknown -f /etc/config/qpkg.conf)
+			ConfirmVarIsDefined r_nas_firmware_version "${r_nas_firmware_version:-}" "$e_noval" || return
+			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -f /etc/config/qpkg.conf)
+			ConfirmVarIsDefined r_qpkg_version "${r_qpkg_version:-}" "$e_noval" || return
 			r_qpkgs_name_arrs=(Readarr Sonarr Whisparr)
 				readonly r_qpkgs_name_arrs
 			r_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
