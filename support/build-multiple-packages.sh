@@ -38,15 +38,15 @@ if [[ -e $a ]]; then
 	essential_ipks=${essential_ipks,,}
 fi
 
-a=$qpkgs_support_path/pip-essential.txt
+a=$qpkgs_pypi_module_lists_path/base.txt
 
 if [[ -e $a ]]; then
-	essential_pips=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$a")")")
-	essential_pips=${essential_pips%* }
-	essential_pips=${essential_pips,,}
+	base_pips=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$a")")")
+	base_pips=${base_pips%* }
+	base_pips=${base_pips,,}
 fi
 
-a=$qpkgs_support_path/pip-exclusions.txt
+a=$qpkgs_pypi_module_lists_path/excluded.txt
 
 if [[ -e $a ]]; then
 	exclusion_pips=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(<"$a")")")
