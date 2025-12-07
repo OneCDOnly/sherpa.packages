@@ -61,25 +61,30 @@ InitLibrary()
 
 		# Paths.
 
-			local temp_backup_path=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)
-			ConfirmVarIsDefined temp_backup_path "${temp_backup_path:-}" "$e_nopth" || return
-				readonly r_backup_path=$temp_backup_path/.qpkg_config_backup
+			readonly r_sys_log_path=/var/log
+				readonly r_service_result_path=$r_sys_log_path
+			readonly r_sys_run_path=/var/run
+
+			local test_backup_path=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)
+			ConfirmVarIsDefined test_backup_path "${test_backup_path:-}" "$e_nopth" || return
+				readonly r_backup_path=$test_backup_path/.qpkg_config_backup
 
 			readonly r_opkg_path=/opt/bin:/opt/sbin
 				export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
 
 			readonly r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
 			ConfirmVarIsDefined r_qpkg_path "${r_qpkg_path:-}" "$e_nopth" || return
+				readonly r_qpkg_log_path=$r_qpkg_path/log
 				readonly r_qpkg_pypi_module_lists_path=$r_qpkg_path/pypi-lists
 
 		# Pathfilenames.
 
 			readonly r_appl_version_store_pathfile=$r_qpkg_path/version.stored
-			readonly r_screen_conf_pathfile=$r_qpkg_path/screen.conf
-			readonly r_service_action_pathfile=/var/log/$r_qpkg_name.action
-			readonly r_service_log_pathfile=/var/log/$r_qpkg_name.log
-			readonly r_service_result_pathfile=/var/log/$r_qpkg_name.result
-			readonly r_service_screen_log_pathfile=$r_qpkg_path/$r_qpkg_name.screen.log
+			readonly r_screen_conf_pathfile=$r_qpkg_log_path/screen.conf
+			readonly r_screen_log_pathfile=$r_qpkg_log_path/screen.log
+			readonly r_service_action_pathfile=$r_service_result_path/$r_qpkg_name.action
+			readonly r_service_log_pathfile=$r_service_result_path/$r_qpkg_name.log
+			readonly r_service_result_pathfile=$r_service_result_path/$r_qpkg_name.result
 
 		# Values.
 
@@ -104,6 +109,43 @@ InitLibrary()
 	SetQpkgArch
 	SetOsFirmwareVer
 	SetHardwarePlatform
+	LoadUserVarDefaults
+	InitService				# Located in each parent QPKG service-script. Service-script variables will override those set in LoadUserVarDefaults().
+
+	curl_insecure_opt=''
+	IsOsCanSecureDownload || curl_insecure_opt=' --insecure'
+	get_remote_filename_timeout_seconds=5
+	new_env=false
+	pyver=''
+	service_action=unspecified
+	service_result=undefined
+	MakePaths
+# 	EnsureConfigFileExists
+	GetApplVersion
+	DisableOpkgDaemonStart
+	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate > /dev/null
+
+	# KLUDGE: delete existing `screen.conf` so it's rewritten with new log location.
+	# see https://github.com/OneCDOnly/sherpa/discussions/301 for more information.
+
+	rm -f "$r_screen_conf_pathfile"
+
+	# KLUDGE: update <InstanceName> in config of *arr QPKGs, so process can be recognised by application.
+
+	if IsQpkgArr && [[ -s $qpkg_config_pathfile ]] && /bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &> /dev/null; then
+		/bin/sed -i "s|O${r_qpkg_name}|$r_qpkg_name|g" "$qpkg_config_pathfile"
+	fi
+
+	# Create a `screen.conf` for this QPKG.
+
+	if [[ $run_daemon_in_screen_session = true && ! -s $r_screen_conf_pathfile ]]; then
+		echo -e "logfile ${r_screen_log_pathfile}\nlogfile flush 1\nlog on" > "$r_screen_conf_pathfile"
+	fi
+
+	}
+
+LoadUserVarDefaults()
+	{
 
 	# NOTE: default session variables are set below, but may be customised in the InitService() function for each QPKG. If a variable is set to a non-default value, any later variable that uses it must be recalculated (uncomment these lines).
 
@@ -350,7 +392,7 @@ InitLibrary()
 
 		daemon_pid_pathfile=undefined
 			# Default
-		# daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+		# daemon_pid_pathfile=$r_sys_run_path/$r_qpkg_name.pid
 			# Typical
 		# daemon_pid_pathfile=
 			# Custom
@@ -495,38 +537,6 @@ InitLibrary()
 		# get_ui_port_secure_enabled_test_cmd=
 			# Custom
 
-	InitService					# Located in each parent QPKG service-script. Service-script variables will override the variables set above.
-
-	curl_insecure_opt=''
-	IsOsCanSecureDownload || curl_insecure_opt=' --insecure'
-	get_remote_filename_timeout_seconds=5
-	new_env=false
-	pyver=''
-	service_action=unspecified
-	service_result=undefined
-	MakePaths
-	EnsureConfigFileExists
-	GetApplVersion
-	DisableOpkgDaemonStart
-	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate > /dev/null
-
-	# KLUDGE: delete existing `screen.conf` so it's rewritten with new log location.
-	# see https://github.com/OneCDOnly/sherpa/discussions/301 for more information.
-
-	rm -f "$r_screen_conf_pathfile"
-
-	# KLUDGE: update <InstanceName> in config of *arr QPKGs, so process can be recognised by application.
-
-	if IsQpkgArr && [[ -s $qpkg_config_pathfile ]] && /bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &> /dev/null; then
-		/bin/sed -i "s|O${r_qpkg_name}|$r_qpkg_name|g" "$qpkg_config_pathfile"
-	fi
-
-	# Create a `screen.conf` for this QPKG.
-
-	if [[ $run_daemon_in_screen_session = true && ! -s $r_screen_conf_pathfile ]]; then
-		echo -e "logfile ${r_service_screen_log_pathfile}\nlogfile flush 1\nlog on" > "$r_screen_conf_pathfile"
-	fi
-
 	}
 
 StartQpkg()
@@ -543,7 +553,7 @@ StartQpkg()
 
 	# Clear previous `screen.log` on each startup.
 
-	[[ -s $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
+	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_screen_log_pathfile\"" log:failure-only
 
 	if [[ $(type -t PreStartQpkgCustom) = function ]]; then
 		PreStartQpkgCustom
@@ -789,7 +799,7 @@ StartDaemon()
 	# Inputs: (global)
 	#	$daemon_launch_cmd
 	#	$nice_daemon_to
-	#	$r_service_screen_log_pathfile
+	#	$r_screen_log_pathfile
 	#	$run_daemon_in_screen_session
 	#	$start_retries
 
@@ -806,9 +816,7 @@ StartDaemon()
 	local b=$daemon_launch_cmd
 	local -i c=0
 
-	if [[ $run_daemon_in_screen_session = true ]]; then
-		a+=" (in 'screen' session)"
-	fi
+	[[ $run_daemon_in_screen_session = true ]] && a+=" (in 'screen' session)"
 
 	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
 		b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
@@ -821,7 +829,7 @@ StartDaemon()
 	fi
 
 	while true; do
-		[[ $run_daemon_in_screen_session = true ]] && rm -f "$r_service_screen_log_pathfile"
+		[[ $run_daemon_in_screen_session = true ]] && rm -f "$r_screen_log_pathfile"
 
 		if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; then
 			DisplayAndCommitWarnToServiceLog 'there has been a daemon launch failure'
@@ -835,7 +843,7 @@ StartDaemon()
 
 		if ! IsDaemonActive &> /dev/null || (IsWebUi && ! WatchForPortsActive); then
 			DisplayAndCommitWarnToServiceLog 'daemon PID check failed: there appears to have been a post-launch failure'
-			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_service_screen_log_pathfile"
+			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_screen_log_pathfile"
 			StopDaemon
 			((c++))
 
@@ -1358,12 +1366,13 @@ MakePaths()
 	#	$qpkg_temp_path
 	#	$qpkg_venv_path
 	#	$r_backup_path
+	#	$r_qpkg_log_path
 	#	$r_qpkg_path
 
 	local a=''
 
 	if [[ -d $r_qpkg_path ]]; then
-		for a in "$qpkg_config_path" "$qpkg_pip_path" "$qpkg_repo_path" "$qpkg_temp_path" "$qpkg_venv_path"; do
+		for a in "$qpkg_config_path" "$qpkg_pip_path" "$qpkg_repo_path" "$qpkg_temp_path" "$qpkg_venv_path" "$r_qpkg_log_path"; do
 			IsVarDefined a && [[ ! -d $a ]] && mkdir -p "$a"
 		done
 	fi
@@ -1601,7 +1610,7 @@ CleanLocalRepo()
 	IsVarDefined qpkg_venv_path && [[ -d $qpkg_venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$qpkg_venv_path\"" log:failure-only
 	IsVarDefined qpkg_pip_path && [[ -d $qpkg_pip_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$qpkg_pip_path\"" log:failure-only
 	[[ -s $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
-	[[ -s $r_service_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_service_screen_log_pathfile\"" log:failure-only
+	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_screen_log_pathfile\"" log:failure-only
 	IsVarDefined qpkg_temp_path && [[ -d $qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$qpkg_temp_path\"" log:failure-only
 
 	MakePaths
@@ -1989,7 +1998,7 @@ DisplayRunAndLog()
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nocmd" || return
 
 	local a=$(tr -s ' ' <<< "$2")							# Squeeze multiple whitespace chars into singles.
-	local -r r_log_pathfile=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
+	local -r r_log_pathfile=$(/bin/mktemp $r_sys_log_path/"${FUNCNAME[0]}"_XXXXXX)
 	local -i z=0
 
 	DisplayAndCommitProcessWaitToServiceLog "$1"
@@ -2035,7 +2044,7 @@ Executer()
 	#	$e_nopfi
 	#	$r_qpkg_name
 	#	$r_screen_conf_pathfile
-	#	$r_service_screen_log_pathfile
+	#	$r_screen_log_pathfile
 
 	# Outputs:
 	#	stdout = commandstring stdout and stderr if script is in 'debug' mode.
@@ -2045,7 +2054,7 @@ Executer()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nocmd" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
 
-	local -r r_log_pathfile=$(/bin/mktemp /var/log/"${FUNCNAME[0]}"_XXXXXX)
+	local -r r_log_pathfile=$(/bin/mktemp $r_sys_log_path/"${FUNCNAME[0]}"_XXXXXX)
 	local run_in_screen=${3:-false}
 	local -i z=0
 
@@ -2067,7 +2076,7 @@ Executer()
 	fi
 
 	if [[ $run_in_screen = true ]]; then
-		FormatAsCommand "$1" >> "$r_service_screen_log_pathfile"
+		FormatAsCommand "$1" >> "$r_screen_log_pathfile"
 		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 		z=$?
 	elif [[ $debug = true ]]; then
