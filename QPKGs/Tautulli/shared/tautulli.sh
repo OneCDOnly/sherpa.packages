@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Tautulli
-readonly r_service_script_version=251112
+readonly r_service_script_version=251206
 InitService(){
 can_restart_to_update=true
 install_pip_deps=true

@@ -40,14 +40,17 @@ readonly r_user_args_raw=$*
 Init(){
 readonly r_qpkg_name=sherpa
 local -r r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
-readonly r_real_log_pathfile=$r_qpkg_path/logs/session.archive.log
+readonly r_qpkg_log_path=$r_qpkg_path/log
+readonly r_sys_log_path=/var/log
+readonly r_real_log_pathfile=$r_qpkg_log_path/session.archive.log
 readonly r_real_loader_script_pathname=$r_qpkg_path/sherpa-loader.sh
 readonly r_apparent_loader_script_pathname=/usr/sbin/sherpa
 readonly r_gui_log_pathfile=/home/httpd/sherpa.debug.log
+readonly r_service_action_pathfile=$r_sys_log_path/$r_qpkg_name.action
+readonly r_service_result_pathfile=$r_sys_log_path/$r_qpkg_name.result
 readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -f /etc/config/qpkg.conf)
-readonly r_service_action_pathfile=/var/log/$r_qpkg_name.action
-readonly r_service_result_pathfile=/var/log/$r_qpkg_name.result
-[[ ! -d $(/usr/bin/dirname "$r_real_log_pathfile") ]]&&mkdir -p "$(/usr/bin/dirname "$r_real_log_pathfile")"
+[[ ! -d $r_qpkg_log_path ]]&&mkdir -p "$r_qpkg_log_path"
+[[ ! -d $r_sys_log_path ]]&&mkdir -p "$r_sys_log_path"
 [[ ! -e $r_real_log_pathfile ]]&&/bin/touch "$r_real_log_pathfile";}
 StartQPKG(){
 [[ ! -L $r_apparent_loader_script_pathname ]]&&/bin/ln -s "$r_real_loader_script_pathname" "$r_apparent_loader_script_pathname"

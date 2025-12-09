@@ -120,7 +120,7 @@ InitLibrary()
 	service_action=unspecified
 	service_result=undefined
 	MakePaths
-# 	EnsureConfigFileExists
+#	EnsureConfigFileExists
 	GetApplVersion
 	DisableOpkgDaemonStart
 	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate > /dev/null
@@ -172,7 +172,7 @@ LoadUserVarDefaults()
 			# Default
 		# compare_release_filename=true
 			# Custom
-		# > If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as they don't expose the "last modified" datetime of remote package files.
+		# > If 'true', release package filename is used instead of last modified date to determine if new release is available. Need this for *arr packages, as their servers don't expose the "last modified" datetime of remote package files.
 
 		daemon_pidfile_is_managed_by_app=false
 			# Default
@@ -250,7 +250,7 @@ LoadUserVarDefaults()
 			# Typical
 		# source_git_branch_depth=
 			# Custom
-		# > 'shallow' (depth 1) or 'single-branch': 'shallow' implies 'single-branch', 'single-branch' does NOT imply 'shallow'.
+		# > 'shallow' or 'single-branch': 'shallow' implies 'single-branch (depth 1)', 'single-branch' does NOT imply 'shallow'.
 
 		source_url_arch=undefined
 			# Default
@@ -263,7 +263,7 @@ LoadUserVarDefaults()
 			# Typical
 		# start_retries=
 			# Custom
-		# > If daemon failed to 'start', try 'start' again this many times.
+		# > If daemon failed to 'start', try to 'start' again this many times.
 
 		ui_listening_address=undefined
 			# Default
@@ -332,7 +332,7 @@ LoadUserVarDefaults()
 			# Typical
 		# qpkg_config_path=
 			# Custom
-		# > Must reset $HOME lower-down: `export HOME=$qpkg_config_path`
+		# > Must also reassign $HOME lower-down: `export HOME=$qpkg_config_path`
 
 		qpkg_pip_path=undefined
 			# Default
@@ -380,7 +380,7 @@ LoadUserVarDefaults()
 			# Default
 		# daemon_check_pathfile=
 			# Custom
-		# > If set, look for this process name in RAM instead of $daemon_exec_pathfile.
+		# > If set, look for this process name instead of $daemon_exec_pathfile.
 
 		daemon_exec_pathfile=undefined
 			# Default

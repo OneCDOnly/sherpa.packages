@@ -106,7 +106,7 @@ pkg_post_install()
     {
 
     QPKG_PATH=$(/sbin/getcfg $QPKG_NAME Install_Path -f /etc/config/qpkg.conf)
-    REAL_LOG_PATHFILE=$QPKG_PATH/logs/session.archive.log
+    REAL_LOG_PATHFILE=$QPKG_PATH/log/session.archive.log
 
     $CMD_SETCFG -f $SYS_QPKG_CONFIG_FILE $QPKG_NAME Web_Port $($CMD_GETCFG System "Web Access Port")
     [[ -e /sbin/qpkg_cli ]] && /sbin/qpkg_cli --clean "$QPKG_NAME" &>/dev/null

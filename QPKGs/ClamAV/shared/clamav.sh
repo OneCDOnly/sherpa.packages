@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=ClamAV
-readonly r_service_script_version=251112
+readonly r_service_script_version=251206
 InitService(){
 daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
 export HOME=$qpkg_config_path

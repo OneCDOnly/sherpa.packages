@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=nzbToMedia
-readonly r_service_script_version=251112
+readonly r_service_script_version=251206
 InitService(){
 can_restart_to_update=true
 silence_pypi_errors=true
@@ -49,6 +49,8 @@ qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 qpkg_config_pathfile=$qpkg_config_path/autoProcessMedia.cfg
 qpkg_config_default_pathfile=$qpkg_repo_path/autoProcessMedia.cfg.spec
 qpkg_config_virtual_pathfile=$qpkg_repo_path/autoProcessMedia.cfg
+venv_pip_pathfile=$qpkg_venv_path/bin/pip
+venv_python_pathfile=$qpkg_venv_path/bin/python3
 interpreter=/opt/bin/python3
 source_git_url=https://github.com/clinton-hall/nzbToMedia.git;}
 StatusQpkgCustom(){

@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=qBittorrent
-readonly r_service_script_version=251112
+readonly r_service_script_version=251206
 InitService(){
 daemon_pidfile_is_managed_by_app=true
 ui_listening_address=0.0.0.0
