@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Watcher3
-readonly r_service_script_version=251206
+readonly r_service_script_version=251211
 InitService(){
 allow_access_to_sys_packages=true
 daemon_pidfile_is_managed_by_app=true
@@ -49,7 +49,7 @@ qpkg_temp_path=$r_qpkg_path/tmp
 qpkg_venv_path=$r_qpkg_path/venv
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
 daemon_exec_pathfile=$qpkg_venv_path/bin/python3
-daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+daemon_pid_pathfile=$r_sys_run_path/$r_qpkg_name.pid
 daemon_script_pathfile=$qpkg_repo_path/watcher.py
 qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 qpkg_config_pathfile=$qpkg_config_path/config.ini

@@ -34,13 +34,13 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=qBittorrent
-readonly r_service_script_version=251206
+readonly r_service_script_version=251211
 InitService(){
 daemon_pidfile_is_managed_by_app=true
 ui_listening_address=0.0.0.0
 qpkg_config_path=$r_qpkg_path/config
 daemon_exec_pathfile=/opt/bin/qbittorrent-nox
-daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+daemon_pid_pathfile=$r_sys_run_path/$r_qpkg_name.pid
 qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 qpkg_config_pathfile=$qpkg_config_path/qBittorrent/config/qBittorrent.conf
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def

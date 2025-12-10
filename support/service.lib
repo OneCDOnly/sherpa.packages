@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251206
+readonly r_service_library_version=251211
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -69,6 +69,9 @@ readonly e_notir='undefined tier'
 readonly e_nourl='undefined URL'
 readonly e_noval='undefined value'
 readonly e_novar='undefined variable'
+readonly r_sys_log_path=/var/log
+readonly r_service_result_path=$r_sys_log_path
+readonly r_sys_run_path=/var/run
 local test_backup_path=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)
 ConfirmVarIsDefined test_backup_path "${test_backup_path:-}" "$e_nopth"||return
 readonly r_backup_path=$test_backup_path/.qpkg_config_backup
@@ -78,13 +81,12 @@ readonly r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpk
 ConfirmVarIsDefined r_qpkg_path "${r_qpkg_path:-}" "$e_nopth"||return
 readonly r_qpkg_log_path=$r_qpkg_path/log
 readonly r_qpkg_pypi_module_lists_path=$r_qpkg_path/pypi-lists
-readonly r_sys_log_path=/var/log
 readonly r_appl_version_store_pathfile=$r_qpkg_path/version.stored
 readonly r_screen_conf_pathfile=$r_qpkg_log_path/screen.conf
 readonly r_screen_log_pathfile=$r_qpkg_log_path/screen.log
-readonly r_service_action_pathfile=$r_sys_log_path/$r_qpkg_name.action
-readonly r_service_log_pathfile=$r_sys_log_path/$r_qpkg_name.log
-readonly r_service_result_pathfile=$r_sys_log_path/$r_qpkg_name.result
+readonly r_service_action_pathfile=$r_service_result_path/$r_qpkg_name.action
+readonly r_service_log_pathfile=$r_service_result_path/$r_qpkg_name.log
+readonly r_service_result_pathfile=$r_service_result_path/$r_qpkg_name.result
 readonly r_chars_regular_prompt='$ '
 readonly r_chars_sudo_prompt="${r_chars_regular_prompt}sudo "
 readonly r_chars_super_prompt='# '
@@ -114,6 +116,7 @@ pyver=''
 service_action=unspecified
 service_result=undefined
 MakePaths
+EnsureConfigFileExists
 GetApplVersion
 DisableOpkgDaemonStart
 IsSupportAutoUpdate&&IsAutoUpdateMissing &&EnableAutoUpdate>/dev/null
@@ -122,7 +125,7 @@ if IsQpkgArr &&[[ -s $qpkg_config_pathfile ]]&&/bin/grep O${r_qpkg_name} "$qpkg_
 /bin/sed -i "s|O${r_qpkg_name}|$r_qpkg_name|g" "$qpkg_config_pathfile"
 fi
 if [[ $run_daemon_in_screen_session = true &&! -s $r_screen_conf_pathfile ]];then
-echo -e "logfile ${r_screen_log_pathfile}\nlogfile flush 1\nlog on">"$r_screen_conf_pathfile"
+echo -e "logfile $r_screen_log_pathfile\nlogfile flush 1\nlog on">"$r_screen_conf_pathfile"
 fi;}
 LoadUserVarDefaults(){
 allow_access_to_sys_packages=false
@@ -335,7 +338,7 @@ local a='start daemon'
 local b=$daemon_launch_cmd
 local -i c=0
 [[ $run_daemon_in_screen_session = true ]]&&a+=" (in 'screen' session)"
-if((nice_daemon_to != 0)) &&((nice_daemon_to>= -20)) &&((nice_daemon_to<= 19)) &&[[ -e /opt/bin/nice ]];then
+if((nice_daemon_to != 0)) &&((nice_daemon_to>= -20)) &&((nice_daemon_to<= 19)) &&[[ -x /opt/bin/nice ]];then
 b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 DisplayAndCommitInfoToServiceLog "nice daemon to: $nice_daemon_to"
 fi
@@ -589,10 +592,10 @@ done
 if [[ -n $excluded_modules_pathfile &&-s $excluded_modules_pathfile ]];then
 module_exclusions=$(/bin/tr '\n' ' '<<<"$(StripComments "$(<"$excluded_modules_pathfile")")")
 module_exclusions=${module_exclusions%* }
-[[ -n $module_exclusions ]]&&[[ -e /opt/bin/sed ]]&&re="${module_exclusions// /|}"
+[[ -n $module_exclusions ]]&&[[ -x /opt/bin/sed ]]&&re="${module_exclusions// /|}"
 if [[ -n $re ]];then
 for a in $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile;do
-if [[ -n $a &&-s $a &&-e /opt/bin/sed ]];then
+if [[ -n $a &&-s $a &&-x /opt/bin/sed ]];then
 cmd="/opt/bin/sed -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' \"$a\""
 DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only
 fi
@@ -936,7 +939,7 @@ DisplayAndCommitInfoToServiceLog "file exists: $1"
 return 0;}
 ViewLog(){
 if [[ -s $r_service_log_pathfile ]];then
-if [[ -e /opt/bin/less ]];then
+if [[ -x /opt/bin/less ]];then
 LESSSECURE=1 /opt/bin/less +G --quit-on-intr --tilde --LINE-NUMBERS --RAW-CONTROL-CHARS --prompt ' use arrow-keys to scroll up-down left-right, press Q to quit' "$r_service_log_pathfile"
 else
 /bin/cat --number "$r_service_log_pathfile"
@@ -1108,7 +1111,7 @@ ConfirmVarIsDefined 1 "${1:-}" "$e_nostr"||return
 ConfirmVarIsDefined 2 "${2:-}" "$e_nostr"||return
 printf "%-4s: %s\n" "$(StripANSICodes "$1")" "$(StripANSICodes "$2")">>"$r_service_log_pathfile";}
 StripANSICodes(){
-if [[ -e /opt/bin/sed &&-L /opt/etc/passwd ]];then
+if [[ -x /opt/bin/sed &&-L /opt/etc/passwd ]];then
 /opt/bin/sed -r 's/\x1b\[[0-9;]*m//g'<<<"${1:-}"
 else
 echo "${1:-}"
@@ -1951,7 +1954,7 @@ GetPathGitBranch(){
 } 2>/dev/null
 IsSU(){
 if [[ $EUID -ne 0 ]];then
-if [[ -e /usr/bin/sudo ]];then
+if [[ -x /usr/bin/sudo ]];then
 ShowAsError 'this utility must be run with superuser privileges. Try again as:'
 Display "${r_chars_sudo_prompt}$0 $r_user_args_raw">&2
 else

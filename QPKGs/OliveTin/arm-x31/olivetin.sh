@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OliveTin
-readonly r_service_script_version=251206
+readonly r_service_script_version=251211
 InitService(){
 can_restart_to_update=true
 resolve_source_url=true
@@ -45,7 +45,7 @@ qpkg_config_path=$r_qpkg_path/config
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_temp_path=$r_qpkg_path/tmp
 daemon_exec_pathfile=$qpkg_repo_path/OliveTin-linux-$source_url_arch/OliveTin
-daemon_pid_pathfile=/var/run/$r_qpkg_name.pid
+daemon_pid_pathfile=$r_sys_run_path/$r_qpkg_name.pid
 qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 qpkg_config_pathfile=$qpkg_config_path/config.yaml
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
