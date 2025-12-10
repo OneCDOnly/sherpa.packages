@@ -120,12 +120,12 @@ InitLibrary()
 	service_action=unspecified
 	service_result=undefined
 	MakePaths
-#	EnsureConfigFileExists
+	EnsureConfigFileExists
 	GetApplVersion
 	DisableOpkgDaemonStart
 	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate > /dev/null
 
-	# KLUDGE: delete existing `screen.conf` so it's rewritten with new log location.
+	# KLUDGE: delete existing `screen.conf` so it's rewritten with an updated log location.
 	# see https://github.com/OneCDOnly/sherpa/discussions/301 for more information.
 
 	rm -f "$r_screen_conf_pathfile"
@@ -139,7 +139,7 @@ InitLibrary()
 	# Create a `screen.conf` for this QPKG.
 
 	if [[ $run_daemon_in_screen_session = true && ! -s $r_screen_conf_pathfile ]]; then
-		echo -e "logfile ${r_screen_log_pathfile}\nlogfile flush 1\nlog on" > "$r_screen_conf_pathfile"
+		echo -e "logfile $r_screen_log_pathfile\nlogfile flush 1\nlog on" > "$r_screen_conf_pathfile"
 	fi
 
 	}
@@ -818,7 +818,7 @@ StartDaemon()
 
 	[[ $run_daemon_in_screen_session = true ]] && a+=" (in 'screen' session)"
 
-	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -e /opt/bin/nice ]]; then
+	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -x /opt/bin/nice ]]; then
 		b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 		DisplayAndCommitInfoToServiceLog "nice daemon to: $nice_daemon_to"
 	fi
@@ -1200,11 +1200,11 @@ InstallVirtualPythonPackages()
 		module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(< "$excluded_modules_pathfile")")")
 		module_exclusions=${module_exclusions%* }
 
-		[[ -n $module_exclusions ]] && [[ -e /opt/bin/sed ]] && re="${module_exclusions// /|}"	# Replace whitespace with pipes.
+		[[ -n $module_exclusions ]] && [[ -x /opt/bin/sed ]] && re="${module_exclusions// /|}"	# Replace whitespace with pipes.
 
 		if [[ -n $re ]]; then
 			for a in $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile; do
-				if [[ -n $a && -s $a && -e /opt/bin/sed ]]; then
+				if [[ -n $a && -s $a && -x /opt/bin/sed ]]; then
 					cmd="/opt/bin/sed -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' \"$a\""		# Perform extended and case-insensitive matching. First match = first word (or hyphenated-words) on each line. Second match = whole line. Delete line if matched.
 
 					DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only
@@ -1921,7 +1921,7 @@ ViewLog()
 	#	$r_service_log_pathfile
 
 	if [[ -s $r_service_log_pathfile ]]; then
-		if [[ -e /opt/bin/less ]]; then
+		if [[ -x /opt/bin/less ]]; then
 			LESSSECURE=1 /opt/bin/less +G --quit-on-intr --tilde --LINE-NUMBERS --RAW-CONTROL-CHARS --prompt ' use arrow-keys to scroll up-down left-right, press Q to quit' "$r_service_log_pathfile"
 		else
 			/bin/cat --number "$r_service_log_pathfile"
@@ -2319,7 +2319,7 @@ StripANSICodes()
 
 	# QTS 4.2.6 BusyBox `sed` doesn't fully support extended regexes, so this only works with a real `sed`.
 
-	if [[ -e /opt/bin/sed && -L /opt/etc/passwd ]]; then	# Try to ensure Entware is active before using this utility.
+	if [[ -x /opt/bin/sed && -L /opt/etc/passwd ]]; then	# Try to ensure Entware is active before using this utility.
 		/opt/bin/sed -r 's/\x1b\[[0-9;]*m//g' <<< "${1:-}"
 	else
 		echo "${1:-}"		# Can't strip, so pass thru original message unaltered.
@@ -4795,7 +4795,7 @@ IsSU()
 	#	$r_user_args_raw
 
 	if [[ $EUID -ne 0 ]]; then
-		if [[ -e /usr/bin/sudo ]]; then
+		if [[ -x /usr/bin/sudo ]]; then
 			ShowAsError 'this utility must be run with superuser privileges. Try again as:'
 			Display "${r_chars_sudo_prompt}$0 $r_user_args_raw" >&2
 		else
