@@ -446,7 +446,7 @@ EOF
 		if IsInstall; then
 			SetSkipDaemonStart
 		else
-			DisplayAndCommitErrorToAllLogs "unable to launch weather recording daemon: a weather station hasn't been defined. Do this with 'weectl station create' then restart this QPKG"
+			DisplayAndCommitErrorToAllLogs "unable to launch weather recording daemon: a weather station hasn't been defined. Do this with 'weectl station create' then restart this QPKG."
 
 			SetError				# Set an error so startup won't proceed.
 		fi
