@@ -586,12 +586,12 @@ StartQpkgLibrary()
 		InstallVirtualPythonPackages || return
 	fi
 
+	EnsureVirtualConfigFileExists
+
 	if IsNtDaemon; then
 		CreateUserlinkToExec
 		return
 	fi
-
-	EnsureConfigFileExists
 
 	if IsWebUi; then
 		LoadPorts app || return
@@ -1557,6 +1557,11 @@ CloneGitRepo()
 	local branch_opt="--branch $source_git_branch $branch_depth"
 
 	if [[ ! -d $qpkg_repo_path/.git ]]; then
+		if [[ -d $qpkg_repo_path ]]; then
+			rm -rf "$qpkg_repo_path"
+			mkdir "$qpkg_repo_path"
+		fi
+
 		opts="clone $progress_opt $branch_opt $hide_advice_opt '$source_git_url' \"$qpkg_repo_path\""
 
 		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git $opts" log:failure-only
@@ -1958,7 +1963,20 @@ EnsureConfigFileExists()
 			mv "$qpkg_config_virtual_pathfile" "$qpkg_config_pathfile"			# Use existing config as appl config.
 			DisplayAndCommitInfoToServiceLog 'existing file is now configuration file'
 		fi
+	fi
 
+	}
+
+EnsureVirtualConfigFileExists()
+	{
+
+	# Inputs: (global)
+	#	$qpkg_config_pathfile
+	#	$qpkg_config_virtual_pathfile
+
+	IsSupportReset || return 0
+
+	if UsesVirtualConfig && [[ -s $qpkg_config_pathfile ]]; then
 		if [[ ! -L $qpkg_config_virtual_pathfile ]]; then
 			ln -s "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
 			DisplayAndCommitInfoToServiceLog 'created virtual link to configuration file'
