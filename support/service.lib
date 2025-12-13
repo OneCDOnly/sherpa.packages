@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251211
+readonly r_service_library_version=251214
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -85,6 +85,7 @@ readonly r_appl_version_store_pathfile=$r_qpkg_path/version.stored
 readonly r_screen_conf_pathfile=$r_qpkg_log_path/screen.conf
 readonly r_screen_log_pathfile=$r_qpkg_log_path/screen.log
 readonly r_service_action_pathfile=$r_service_result_path/$r_qpkg_name.action
+readonly r_service_explanation_pathfile=$r_service_result_path/$r_qpkg_name.explanation
 readonly r_service_log_pathfile=$r_service_result_path/$r_qpkg_name.log
 readonly r_service_result_pathfile=$r_service_result_path/$r_qpkg_name.result
 readonly r_chars_regular_prompt='$ '
@@ -113,10 +114,12 @@ IsOsCanSecureDownload ||curl_insecure_opt=' --insecure'
 get_remote_filename_timeout_seconds=5
 new_env=false
 pyver=''
-service_action=unspecified
+service_action=undefined
+service_explanation=undefined
 service_result=undefined
 MakePaths
 EnsureConfigFileExists
+EnsureVirtualConfigFileExists
 GetApplVersion
 DisableOpkgDaemonStart
 IsSupportAutoUpdate&&IsAutoUpdateMissing &&EnableAutoUpdate>/dev/null
@@ -217,11 +220,12 @@ if IsVirtualPythonEnv&&IsNtVirtualPythonEnvFound;then
 CreateVirtualPythonEnv||return
 InstallVirtualPythonPackages||return
 fi
+EnsureConfigFileExists
+EnsureVirtualConfigFileExists
 if IsNtDaemon;then
 CreateUserlinkToExec
 return
 fi
-EnsureConfigFileExists
 if IsWebUi;then
 LoadPorts app||return
 CheckPortsAvailable||return
@@ -752,6 +756,10 @@ fi
 fi
 local branch_opt="--branch $source_git_branch $branch_depth"
 if [[ ! -d $qpkg_repo_path/.git ]];then
+if [[ -d $qpkg_repo_path ]];then
+rm -rf "$qpkg_repo_path"
+mkdir "$qpkg_repo_path"
+fi
 opts="clone $progress_opt $branch_opt $hide_advice_opt '$source_git_url' \"$qpkg_repo_path\""
 DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;/opt/bin/git $opts" log:failure-only
 if [[ $? -ne 0 ]];then
@@ -960,6 +968,10 @@ if [[ -s $qpkg_config_virtual_pathfile &&! -L $qpkg_config_virtual_pathfile ]];t
 mv "$qpkg_config_virtual_pathfile" "$qpkg_config_pathfile"
 DisplayAndCommitInfoToServiceLog 'existing file is now configuration file'
 fi
+fi;}
+EnsureVirtualConfigFileExists(){
+IsSupportReset||return 0
+if UsesVirtualConfig &&[[ -s $qpkg_config_pathfile ]];then
 if [[ ! -L $qpkg_config_virtual_pathfile ]];then
 ln -s "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
 DisplayAndCommitInfoToServiceLog 'created virtual link to configuration file'
@@ -1046,7 +1058,9 @@ DisplayAndCommitInfoToServiceLog "$(FormatAsPackageName "$r_qpkg_name") QPKG is 
 ShowDisabled(){
 DisplayAndCommitToServiceLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG is disabled.";}
 ShowDisabledPrompt(){
-DisplayAndCommitToServiceLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG is disabled. Please enable it first with: $0 enable";}
+service_explanation="QPKG is disabled. Please enable it first with: $0 enable"
+DisplayAndCommitToServiceLog "= $service_explanation"
+CommitServiceExplanation;}
 ShowEnableFailed(){
 DisplayAndCommitToServiceLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG enable failed.";}
 ShowDisableFailed(){
@@ -1625,13 +1639,13 @@ DisplayRunAndLog 'create release package name reference' "/bin/touch \"$2\"" log
 fi
 fi
 fi;}
-ResetServiceAction(){
-SetServiceAction reset-action
-SetServiceResultAsOK;}
 SetServiceAction(){
 service_action=${1:-none}
+service_explanation=''
+service_result=in-progress
 CommitServiceAction
-SetServiceResultAsInProgress
+CommitServiceExplanation
+CommitServiceResult
 DisplayAndCommitActionToServiceLog;}
 SetServiceResultAsOK(){
 service_result=ok
@@ -1645,16 +1659,21 @@ SetServiceResultAsAborted(){
 service_result=aborted
 CommitServiceResult
 DisplayAndCommitResultToServiceLog;}
-SetServiceResultAsInProgress(){
-service_result=in-progress
-CommitServiceResult;}
 CommitServiceAction(){
-if IsNtStatus&&IsNtLog&&IsNtNone;then
-IsVarDefined r_service_action_pathfile &&echo "$service_action">"$r_service_action_pathfile"
+if IsNtStatus&&IsNtLog&&IsNtNone&&IsVarDefined r_service_action_pathfile;then
+echo "$service_action">"$r_service_action_pathfile"
+fi;}
+CommitServiceExplanation(){
+if IsNtStatus&&IsNtLog&&IsNtNone&&IsVarDefined r_service_explanation_pathfile;then
+if [[ -n $service_explanation ]];then
+echo "$service_explanation">"$r_service_explanation_pathfile"
+else
+rm -f "$r_service_explanation_pathfile"
+fi
 fi;}
 CommitServiceResult(){
-if IsNtStatus&&IsNtLog&&IsNtNone;then
-IsVarDefined r_service_result_pathfile &&echo "$service_result">"$r_service_result_pathfile"
+if IsNtStatus&&IsNtLog&&IsNtNone&&IsVarDefined r_service_result_pathfile;then
+echo "$service_result">"$r_service_result_pathfile"
 fi;}
 SetDaemonWasActive(){
 _daemon_was_active=true;}
@@ -1760,8 +1779,10 @@ CommitWarnToAllLogs(){
 CommitWarnToServiceLog "${1:-}"
 CommitWarnToSysLog "${1:-}";}
 DisplayAndCommitErrorToAllLogs(){
+service_explanation=${1:-}
 DisplayAndCommitErrorToServiceLog "${1:-}"
-CommitErrorToSysLog "${1:-}";}
+CommitErrorToSysLog "${1:-}"
+CommitServiceExplanation;}
 DisplayAndCommitInfoToServiceLog(){
 DisplayAndCommitToServiceLog "- ${1:-}";}
 DisplayAndCommitWarnToServiceLog(){
@@ -1775,7 +1796,7 @@ DisplayAndCommitToServiceLog "${1:-}";}
 DisplayAndCommitRetryToServiceLog(){
 DisplayAndCommitToServiceLog "~ ${1:-}";}
 DisplayAndCommitActionToServiceLog(){
-[[ $service_action = unspecified ]]&&return
+[[ $service_action = undefined ]]&&return
 starttime=$(ConvertNowToNanoseconds)
 local msg="- source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' '<<<"$msg") "
@@ -1787,7 +1808,7 @@ $a "$(TextInverse "$msg")"
 $a "- package: $r_qpkg_version, service: $r_service_script_version, library: $r_service_library_version"
 fi;}
 DisplayAndCommitResultToServiceLog(){
-[[ $service_action = unspecified ]]&&return
+[[ $service_action = undefined ]]&&return
 local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' '<<<"$msg") "
 local a=DisplayAndCommitToServiceLog
@@ -2149,8 +2170,9 @@ remove)
 SetServiceAction uninstall;;
 ?(--)reset-action)
 if IsSupportActions;then
-ResetServiceAction
-exit
+service_explanation=''
+SetServiceAction reset-action
+SetServiceResultAsOK
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"

@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WeeWX
-readonly r_service_script_version=251211
+readonly r_service_script_version=251214
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true
@@ -77,7 +77,7 @@ if [[ ! -d $qpkg_config_path/weewx-data ]];then
 if IsInstall;then
 SetSkipDaemonStart
 else
-DisplayAndCommitErrorToAllLogs "unable to launch weather recording daemon: a weather station hasn't been defined. Do this with 'weectl station create' then restart this QPKG"
+DisplayAndCommitErrorToAllLogs "unable to launch weather recording daemon: a weather station hasn't been defined. Do this with 'weectl station create' then restart this QPKG."
 SetError
 fi
 else
