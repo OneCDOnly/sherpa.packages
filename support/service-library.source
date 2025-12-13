@@ -123,6 +123,7 @@ InitLibrary()
 	service_result=undefined
 	MakePaths
 	EnsureConfigFileExists
+	EnsureVirtualConfigFileExists
 	GetApplVersion
 	DisableOpkgDaemonStart
 	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate > /dev/null
@@ -586,6 +587,7 @@ StartQpkgLibrary()
 		InstallVirtualPythonPackages || return
 	fi
 
+	EnsureConfigFileExists
 	EnsureVirtualConfigFileExists
 
 	if IsNtDaemon; then
