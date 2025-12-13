@@ -1,1 +1,1 @@
-* Launch times on a19 and a31 are terrible. These NAS are too-slow to support LazyLibrarian.
+* Launch times on a19, a31 and a41 are terrible. These NAS are too-slow to support LazyLibrarian.
