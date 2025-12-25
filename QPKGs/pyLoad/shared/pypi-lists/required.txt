@@ -1,3 +1,4 @@
+aia-chaser
 annotated-types
 babel
 backports.zstd
@@ -14,15 +15,16 @@ flask-caching~=1.9
 flask-compress
 flask-session
 flask-themes2
+flask-wtf
 itsdangerous
 jaraco.collections
 jaraco.functools
 jinja2
 js2py
+mini-racer
 more_itertools
-py_mini_racer
-pydantic
-pydantic_core
+pydantic_core==2.27.2	# "pydantic 2.10.6 requires pydantic-core==2.27.2"
+pydantic~=2.10.6		# "pyload-ng 0.5.0b3.dev94 requires pydantic~=2.10.6"
 pyjsparser
 pyload-ng
 pyzstd
@@ -30,4 +32,5 @@ semver~=2.10
 typing-extensions
 typing-inspection
 werkzeug
+wtforms
 zstandard
