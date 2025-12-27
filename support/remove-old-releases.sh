@@ -1,0 +1,1 @@
+../../sherpa/support/remove-old-releases.sh

@@ -37,7 +37,7 @@ set -o nounset -o pipefail
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251214
+readonly r_service_library_version=251226
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -426,7 +426,7 @@ refresh_release_package=true
 DisplayAndCommitProcessWaitToServiceLog 'get latest release package URL'
 if IsSiteUp "$source_asset_url";then
 release_package_url=$(RequestLatestReleaseURL "$source_asset_url" "$source_asset_url_match")
-if [[ $? -eq 0 ]];then
+if [[ $? -eq 0 ]]&&IsVarDefined release_package_url;then
 DisplayAndCommitOutcomeToServiceLog OK
 DisplayAndCommitDoneToServiceLog "release package URL: $release_package_url"
 else
@@ -444,7 +444,7 @@ if [[ $compare_release_filename = true ]];then
 DisplayAndCommitProcessWaitToServiceLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
 if IsSiteUp "$source_asset_url";then
 release_package_filename=$(RequestLatestReleaseFilename "$source_asset_url" "$source_url_arch")
-if [[ $? -eq 0 ]];then
+if [[ $? -eq 0 ]]&&IsVarDefined release_package_filename;then
 DisplayAndCommitOutcomeToServiceLog OK
 DisplayAndCommitDoneToServiceLog "release package filename: $release_package_filename"
 else
@@ -455,13 +455,13 @@ fi
 else
 DisplayAndCommitErrorToAllLogs 'unable to access remote site'
 fi
-if [[ -z $release_package_filename ]]&&IsVarDefined release_package_url;then
+if ! IsVarDefined release_package_filename&&IsVarDefined release_package_url;then
 release_package_filename=$(/usr/bin/basename "$release_package_url")
 fi
-if [[ -z $release_package_name_ref_pathfilename ]]&&IsVarDefined release_package_filename&&IsVarDefined release_package_url;then
+if ! IsVarDefined release_package_name_ref_pathfilename&&IsVarDefined release_package_filename&&IsVarDefined release_package_url;then
 release_package_name_ref_pathfilename=$(/usr/bin/dirname "$release_package_pathfile")/$release_package_filename
 fi
-if IsVarDefined release_package_filename&&IsVarDefined release_package_name_ref_pathfilename;then
+if IsVarDefined release_package_name_ref_pathfilename&&IsVarDefined release_package_filename;then
 DisplayAndCommitProcessWaitToServiceLog 'release package name reference exists locally'
 if [[ -s $release_package_name_ref_pathfilename ]];then
 DisplayAndCommitOutcomeToServiceLog true
@@ -1596,8 +1596,8 @@ return 1
 esac
 } 2>/dev/null
 DownloadReleasePackage(){
-ConfirmVarIsDefined 1 "${1:-}" "$e_nourl"||return
-ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi"||return
+[[ -n ${1:-} ]]||return
+[[ -n ${2:-} ]]||return
 local a=$curl_insecure_opt
 local b=''
 [[ $debug = false ]]&&a+=' --silent'
