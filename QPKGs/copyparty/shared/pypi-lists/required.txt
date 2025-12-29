@@ -1,0 +1,11 @@
+argon2
+cfssl
+copyparty
+mutagen
+pyzmq
+rawpy
+pyvips
+pillow-avif-plugin
+argon2-cffi
+pyftpdlib
+pyopenssl

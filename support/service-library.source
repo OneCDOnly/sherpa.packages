@@ -5193,7 +5193,6 @@ ProcessArgs()						# unused-ignore.
 					service_explanation=''
 
 					SetServiceAction reset-action
-					SetServiceResultAsOK
 				else
 					SetServiceAction unsupported
 					ShowUnsupportedAction "$user_arg"
