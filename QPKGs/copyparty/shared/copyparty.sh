@@ -34,10 +34,9 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=copyparty
-readonly r_service_script_version=251228
+readonly r_service_script_version=251229
 InitService(){
 allow_access_to_sys_packages=true
-can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true
 install_pip_deps=true
 recheck_daemon_pid_after_launch=true
@@ -59,7 +58,7 @@ venv_pip_pathfile=$qpkg_venv_path/bin/pip
 venv_python_pathfile=$qpkg_venv_path/bin/python3
 export HOME=$qpkg_config_path
 interpreter=/opt/bin/python3
-daemon_launch_cmd="$daemon_exec_pathfile -p $ui_port -i $ui_listening_address -c $qpkg_config_path";}
+daemon_launch_cmd="PRTY_NO_PIL_AVIF=1 PRTY_NO_PIL_HEIF=1 PRTY_NO_VIPS=1 PRTY_NO_CFSSL=1 $daemon_exec_pathfile -p $ui_port -i $ui_listening_address -c $qpkg_config_path --th-ram-max 1";}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")
