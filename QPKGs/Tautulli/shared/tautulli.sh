@@ -1,9 +1,9 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it has been programmatically built or modified with the 'build-qpkgs.sh' script. (source: 'tautulli.source')
+#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'tautulli.source')
 #*
 #* tautulli.sh
-#*	  Copyright (C) 2017-2025 OneCD.
+#*	  Copyright (C) 2017-2026 OneCD.
 #*
 #* Contact:
 #*	  one.cd.only@gmail.com
@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Tautulli
-readonly r_service_script_version=251226
+readonly r_service_script_version=260401
 InitService(){
 can_restart_to_update=true
 install_pip_deps=true

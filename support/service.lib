@@ -1,9 +1,9 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it has been programmatically built or modified with the 'build-qpkgs.sh' script. (source: 'service-library.source')
+#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'service-library.source')
 #*
 #* service.lib
-#*	  Copyright (C) 2017-2025 OneCD.
+#*	  Copyright (C) 2017-2026 OneCD.
 #*
 #* Contact:
 #*	  one.cd.only@gmail.com
@@ -33,11 +33,11 @@
 #*	  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #*	  You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 #*
-set -o nounset -o pipefail
+set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=251226
+readonly r_service_library_version=260401
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -2172,7 +2172,6 @@ SetServiceAction uninstall;;
 if IsSupportActions;then
 service_explanation=''
 SetServiceAction reset-action
-SetServiceResultAsOK
 else
 SetServiceAction unsupported
 ShowUnsupportedAction "$user_arg"
