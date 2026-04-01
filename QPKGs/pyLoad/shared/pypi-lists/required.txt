@@ -29,6 +29,7 @@ pyjsparser
 pyload-ng
 pyzstd
 semver~=2.10
+tenacity
 typing-extensions
 typing-inspection
 werkzeug
