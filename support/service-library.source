@@ -126,7 +126,7 @@ InitLibrary()
 	EnsureVirtualConfigFileExists
 	GetApplVersion
 	DisableOpkgDaemonStart
-	IsSupportAutoUpdate && IsAutoUpdateMissing && EnableAutoUpdate > /dev/null
+	IsSupportAutoUpdate && IsAutoUpdateMissing && DisableAutoUpdate > /dev/null
 
 	# KLUDGE: delete existing `screen.conf` so it's rewritten with an updated log location.
 	# see https://github.com/OneCDOnly/sherpa/discussions/301 for more information.
