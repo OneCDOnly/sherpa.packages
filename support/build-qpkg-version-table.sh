@@ -18,7 +18,7 @@ version=''
 
 echo -n 'locating QPKG checksum files ... '
 
-raw=$(find "$checksum_root_path" -name '*.qpkg.md5')
+raw=$(find "$checksum_root_path" -name '*.qpkg.md5' ! -path '*/archive/*')
 
 ShowDone
 
