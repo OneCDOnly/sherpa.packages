@@ -1,0 +1,3 @@
+Application is unsupported in Python 3.13
+
+https://github.com/mylar3/mylar3/issues/1587

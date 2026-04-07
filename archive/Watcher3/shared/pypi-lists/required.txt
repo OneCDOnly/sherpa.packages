@@ -1,0 +1,18 @@
+# To update libraries run:
+#    pip install m2r   # required before installing CherrypyScheduler
+#    pip install --upgrade -t lib -r requirements.txt  # installs packages to lib folder
+# https://github.com/sawyersteven/CherrypySystray@master
+
+cherrypy
+sqlalchemy
+bencodepy
+parse-torrent-name@git+https://github.com/divijbindlish/parse-torrent-name.git@master
+#deluge-client@git+https://github.com/labrys/deluge.git@master						# disabled by OneCD: tries to recompile 'rencode' and fails.
+rtorrent_xmlrpc
+transmission-rpc
+hachoir
+xmljson
+stringscore
+#m2r																				# disabled by OneCD: this module is in 'essential.txt'.
+#cherrypyscheduler@git+https://github.com/sawyersteven/CherrypyScheduler@master		# disabled by OneCD: tries to recompile 'cherrypyscheduler' and fails (can't find 'm2r' module).
+infi.systray

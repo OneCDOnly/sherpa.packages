@@ -1,0 +1,9 @@
+<tr><td>
+<h2><b><a href=https://github.com/barbequesauce/Watcher3><sub><sub><img src=images/Watcher3.png></sub></sub> Watcher 3 (web)</a></b></h2><p>
+<img alt="Version" src="https://img.shields.io/badge/Version-final-blue?style=for-the-badge&logo=github"><br>
+<blockquote>An automated movie NZB & Torrent searcher and snatcher.<br><br>You can add a list of wanted movies and Watcher will automatically send the NZB or Torrent to your download client.<br><br>Watcher also has basic post-processing capabilities such as renaming and moving.</blockquote>
+<sub><sub><img src=images/note.png></sub></sub>This QPKG pulls developer source-code from GitHub. However, this project has been discontinued, and this is the final version.<br>
+<sub><sub><img src=images/ok.png></sub></sub>Compatible with all NAS architectures.<br>
+<sub><sub><img src=images/net.png></sub></sub>HTTP port: <code>5070</code><br>
+<sub><sub><img src=images/code.png></sub></sub>Install with: <code>sherpa install watcher</code><br><br>
+</td></tr>

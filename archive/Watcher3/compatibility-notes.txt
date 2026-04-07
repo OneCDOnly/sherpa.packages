@@ -1,0 +1,2 @@
+https://stackoverflow.com/a/77364602
+https://github.com/numpy/numpy/issues/29345#issuecomment-3051001736
