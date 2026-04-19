@@ -42,6 +42,7 @@ lxml
 lzma
 mako
 markupsafe
+maturin
 msgpack
 multiprocessing
 ncurses
