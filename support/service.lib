@@ -37,7 +37,7 @@ set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=260401
+readonly r_service_library_version=260406
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -122,7 +122,7 @@ EnsureConfigFileExists
 EnsureVirtualConfigFileExists
 GetApplVersion
 DisableOpkgDaemonStart
-IsSupportAutoUpdate&&IsAutoUpdateMissing &&EnableAutoUpdate>/dev/null
+IsSupportAutoUpdate&&IsAutoUpdateMissing &&DisableAutoUpdate>/dev/null
 rm -f "$r_screen_conf_pathfile"
 if IsQpkgArr &&[[ -s $qpkg_config_pathfile ]]&&/bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &>/dev/null;then
 /bin/sed -i "s|O${r_qpkg_name}|$r_qpkg_name|g" "$qpkg_config_pathfile"
