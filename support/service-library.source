@@ -1100,9 +1100,9 @@ ShowHelp()
 	IsSourcedOnline && DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) files from source$(IsSupportBackup && printf '. Configuration will be retained')"
 	DisplayAsHelp 'deactivate, stop' "stop $(FormatAsPackageName $r_qpkg_name) if active"
 	DisplayAsHelp disable "disable $(FormatAsPackageName $r_qpkg_name) to prevent it starting (on NAS bootup)"
-	IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $r_qpkg_name) before starting it"
+	IsSupportAutoUpdate && DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $r_qpkg_name) application before starting it (default)"
 	DisplayAsHelp enable "enable $(FormatAsPackageName $r_qpkg_name) so it can be started"
-	IsSupportAutoUpdate && DisplayAsHelp enable-auto-update "auto-update $(FormatAsPackageName $r_qpkg_name) before starting (default)"
+	IsSupportAutoUpdate && DisplayAsHelp enable-auto-update "auto-update $(FormatAsPackageName $r_qpkg_name) application before starting it"
 	DisplayAsHelp 'l, L, log' 'display the service-script log'
 	DisplayAsHelp 'r, reactivate, restart' "stop, then start $(FormatAsPackageName $r_qpkg_name)"
 	IsSupportActions && DisplayAsHelp reset-action 'clear the current service-script action and action result'
