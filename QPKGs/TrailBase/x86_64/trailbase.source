@@ -286,14 +286,14 @@ InitService()
 
 		# qpkg_config_pathfile=undefined
 			# Default
-		qpkg_config_pathfile=$qpkg_config_path/config.ini
+		# qpkg_config_pathfile=$qpkg_config_path/config.ini
 			# Typical
 		# qpkg_config_pathfile=
 			# Custom
 
 		# qpkg_config_default_pathfile=undefined
 			# Default
-		qpkg_config_default_pathfile=$qpkg_config_pathfile.def
+		# qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 			# Typical
 		# qpkg_config_default_pathfile=
 			# Custom
