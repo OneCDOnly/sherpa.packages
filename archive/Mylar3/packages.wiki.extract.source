@@ -1,9 +1,10 @@
 <tr><td>
-<h2><b><a href=https://github.com/barbequesauce/Watcher3><sub><sub><img src=images/Watcher3.png></sub></sub> Watcher 3 (web)</a></b></h2><p>
-<img alt="Version" src="https://img.shields.io/badge/Version-final-blue?style=for-the-badge&logo=github"><br>
-<blockquote>An automated movie NZB & Torrent searcher and snatcher.<br><br>You can add a list of wanted movies and Watcher will automatically send the NZB or Torrent to your download client.<br><br>Watcher also has basic post-processing capabilities such as renaming and moving.</blockquote>
-<sub><sub><img src=images/note.png></sub></sub>This QPKG pulls developer source-code from GitHub. However, this project has been discontinued, and this is the final version.<br>
+<h2><b><a href=https://github.com/mylar3/mylar3><sub><sub><img src=images/Mylar3.png></sub></sub> Mylar3 (web)</a></b></h2><p>
+<img alt="GitHub Tag" src="https://img.shields.io/github/v/tag/mylar3/mylar3?style=for-the-badge&logo=github"><br>
+<blockquote>An automated Comic Book (cbr/cbz) downloader program for use with NZB and torrents.<br><br>Mylar allows you to create a watchlist of series that it monitors for various things (new issues, updated information, etc). It will grab, sort, and rename downloaded issues.<br><br>It will also allow you to monitor weekly pull-lists for items belonging to said watchlisted series to download, as well as being able to monitor and maintain story-arcs.
+</blockquote>
+<sub><sub><img src=images/note.png></sub></sub>This QPKG pulls developer source-code from GitHub.<br>
 <sub><sub><img src=images/ok.png></sub></sub>Compatible with all NAS architectures.<br>
-<sub><sub><img src=images/net.png></sub></sub>HTTP port: <code>5070</code><br>
-<sub><sub><img src=images/code.png></sub></sub>Install with: <code>sherpa install watcher</code><br><br>
+<sub><sub><img src=images/net.png></sub></sub>HTTP port: <code>8490</code><br>
+<sub><sub><img src=images/code.png></sub></sub>Install with: <code>sherpa install mylar</code><br><br>
 </td></tr>
