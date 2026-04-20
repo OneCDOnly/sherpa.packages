@@ -558,12 +558,12 @@ StartQpkg()
 
 	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_screen_log_pathfile\"" log:failure-only
 
-	if [[ $(type -t PreStartQpkgCustom) = function ]]; then
+	if IsFuncExist PreStartQpkgCustom; then
 		PreStartQpkgCustom
 		IsNtError || return
 	fi
 
-	if [[ $(type -t StartQpkgCustom) = function ]]; then
+	if IsFuncExist StartQpkgCustom; then
 		StartQpkgCustom
 	else
 		StartQpkgLibrary
@@ -624,9 +624,9 @@ StopQpkg()
 		IsNtRestart && IsNtDaemonActive && return
 	fi
 
-	[[ $(type -t PreStopQpkgCustom) = function ]] && PreStopQpkgCustom
+	IsFuncExist PreStopQpkgCustom && PreStopQpkgCustom
 
-	if [[ $(type -t StopQpkgCustom) = function ]]; then
+	if IsFuncExist StopQpkgCustom; then
 		StopQpkgCustom
 	else
 		StopQpkgLibrary
@@ -661,7 +661,7 @@ StatusQpkg()
 	ShowQpkgStates
 	IsDaemon && ShowDaemonState
 
-	if [[ $(type -t StatusQpkgCustom) = function ]]; then
+	if IsFuncExist StatusQpkgCustom; then
 		StatusQpkgCustom				# <-- NOTE: Processing will terminate in this function (no-return).
 	else
 		StatusQpkgLibrary				# <-- NOTE: Processing will terminate in this function (no-return).
@@ -4840,6 +4840,13 @@ IsSU()
 
 	}
 
+IsFuncExist()
+	{
+
+	[[ -n ${1:-} && $(type -t "$1") = function ]]
+
+	}
+
 ShowUnsupportedAction()
 	{
 
@@ -5121,7 +5128,7 @@ ProcessArgs()						# unused-ignore.
 				SetServiceAction disable
 				SetTraps
 
-				[[ $(type -t PreDisableQpkgCustom) = function ]] && PreDisableQpkgCustom
+				IsFuncExist PreDisableQpkgCustom && PreDisableQpkgCustom
 
 				/sbin/qpkg_service disable "$r_qpkg_name"
 
@@ -5146,7 +5153,7 @@ ProcessArgs()						# unused-ignore.
 				SetServiceAction enable
 				SetTraps
 
-				[[ $(type -t PreEnableQpkgCustom) = function ]] && PreEnableQpkgCustom
+				IsFuncExist PreEnableQpkgCustom && PreEnableQpkgCustom
 
 				/sbin/qpkg_service enable "$r_qpkg_name"
 
