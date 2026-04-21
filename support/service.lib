@@ -37,7 +37,7 @@ set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=260406
+readonly r_service_library_version=260421
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -200,11 +200,11 @@ IsNtClean &&ShowDaemonState
 IsDaemonActive&&return
 fi
 [[ -s $r_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_screen_log_pathfile\"" log:failure-only
-if [[ $(type -t PreStartQpkgCustom) = function ]];then
+if IsFuncExist PreStartQpkgCustom;then
 PreStartQpkgCustom
 IsNtError||return
 fi
-if [[ $(type -t StartQpkgCustom) = function ]];then
+if IsFuncExist StartQpkgCustom;then
 StartQpkgCustom
 else
 StartQpkgLibrary
@@ -244,8 +244,8 @@ if IsDaemon;then
 ShowDaemonState
 IsNtRestart&&IsNtDaemonActive&&return
 fi
-[[ $(type -t PreStopQpkgCustom) = function ]]&&PreStopQpkgCustom
-if [[ $(type -t StopQpkgCustom) = function ]];then
+IsFuncExist PreStopQpkgCustom &&PreStopQpkgCustom
+if IsFuncExist StopQpkgCustom;then
 StopQpkgCustom
 else
 StopQpkgLibrary
@@ -266,7 +266,7 @@ StatusQpkg(){
 IsNtError||return
 ShowQpkgStates
 IsDaemon &&ShowDaemonState
-if [[ $(type -t StatusQpkgCustom) = function ]];then
+if IsFuncExist StatusQpkgCustom;then
 StatusQpkgCustom
 else
 StatusQpkgLibrary
@@ -528,9 +528,9 @@ IsSupportBackup &&DisplayAsHelp 'b, backup' "backup current $(FormatAsPackageNam
 IsSourcedOnline &&DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) files from source$(IsSupportBackup &&printf '. Configuration will be retained')"
 DisplayAsHelp 'deactivate, stop' "stop $(FormatAsPackageName $r_qpkg_name) if active"
 DisplayAsHelp disable "disable $(FormatAsPackageName $r_qpkg_name) to prevent it starting (on NAS bootup)"
-IsSupportAutoUpdate &&DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $r_qpkg_name) before starting it"
+IsSupportAutoUpdate &&DisplayAsHelp disable-auto-update "don't auto-update $(FormatAsPackageName $r_qpkg_name) application before starting it (default)"
 DisplayAsHelp enable "enable $(FormatAsPackageName $r_qpkg_name) so it can be started"
-IsSupportAutoUpdate &&DisplayAsHelp enable-auto-update "auto-update $(FormatAsPackageName $r_qpkg_name) before starting (default)"
+IsSupportAutoUpdate &&DisplayAsHelp enable-auto-update "auto-update $(FormatAsPackageName $r_qpkg_name) application before starting it"
 DisplayAsHelp 'l, L, log' 'display the service-script log'
 DisplayAsHelp 'r, reactivate, restart' "stop, then start $(FormatAsPackageName $r_qpkg_name)"
 IsSupportActions &&DisplayAsHelp reset-action 'clear the current service-script action and action result'
@@ -1984,6 +1984,8 @@ fi
 return 1
 fi
 return 0;}
+IsFuncExist(){
+[[ -n ${1:-} &&$(type -t "$1") = function ]];}
 ShowUnsupportedAction(){
 ShowAsError "specified action '$1' is unsupported by this service-script."
 SetError
@@ -2115,7 +2117,7 @@ StopQpkg;;
 ?(--)disable)
 SetServiceAction disable
 SetTraps
-[[ $(type -t PreDisableQpkgCustom) = function ]]&&PreDisableQpkgCustom
+IsFuncExist PreDisableQpkgCustom &&PreDisableQpkgCustom
 /sbin/qpkg_service disable "$r_qpkg_name"
 if IsNtQpkgEnabled;then
 ShowDisabled
@@ -2135,7 +2137,7 @@ fi;;
 ?(--)enable)
 SetServiceAction enable
 SetTraps
-[[ $(type -t PreEnableQpkgCustom) = function ]]&&PreEnableQpkgCustom
+IsFuncExist PreEnableQpkgCustom &&PreEnableQpkgCustom
 /sbin/qpkg_service enable "$r_qpkg_name"
 if IsQpkgEnabled;then
 ShowEnabled

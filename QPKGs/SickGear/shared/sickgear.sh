@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=SickGear
-readonly r_service_script_version=260419
+readonly r_service_script_version=260421
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true

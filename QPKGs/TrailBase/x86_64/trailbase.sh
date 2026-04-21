@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrailBase
-readonly r_service_script_version=260406
+readonly r_service_script_version=260421
 InitService(){
 can_restart_to_update=true
 resolve_source_url=true
@@ -48,8 +48,6 @@ qpkg_temp_path=$r_qpkg_path/tmp
 daemon_exec_pathfile=$qpkg_repo_path/trail
 daemon_pid_pathfile=$r_sys_run_path/$r_qpkg_name.pid
 qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
-qpkg_config_pathfile=$qpkg_config_path/config.ini
-qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 export HOME=$qpkg_config_path
 source_asset_url_match=${source_url_arch}_linux.zip
 source_asset_url=https://api.github.com/repos/trailbaseio/trailbase/releases/latest
