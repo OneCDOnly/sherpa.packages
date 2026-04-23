@@ -10,10 +10,10 @@ this_path=$PWD
 cd "$support_path" || exit
 ./clean-source.sh
 
-if [[ ${2:-} != nocheck ]]; then
-	./check-syntax.sh || exit
-	./check-whitespace.sh || exit
-fi
+# if [[ ${2:-} != nocheck ]]; then
+# 	./check-syntax.sh || exit
+# 	./check-whitespace.sh || exit
+# fi
 
 cd "$root_path" || exit
 

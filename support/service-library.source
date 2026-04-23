@@ -23,16 +23,28 @@ InitLibrary()
 	IsQNAP || exit
 
 	debug=${DEBUG_QPKG:=false}
+	useropt_verbose=false
 
 	local re=''
 
 	for re in \\bd\\b \\bD\\b \\bdebug\\b \\bdbug\\b \\bverbose\\b; do
 		[[ $r_user_args_raw =~ $re ]] || continue
 		debug=true
+		useropt_verbose=true
 		break
 	done
 
 	UnsetError
+
+	# Cherry-pick Entware binaries.
+
+		readonly r_git_cmd=/opt/bin/git
+
+		readonly r_gnu_find_cmd=/opt/bin/find
+		readonly r_gnu_less_cmd=/opt/bin/less
+		readonly r_gnu_nice_cmd=/opt/bin/nice
+		readonly r_gnu_sed_cmd=/opt/bin/sed
+		readonly r_gnu_stty_cmd=/opt/bin/stty
 
 	# Internal session constants.
 
@@ -822,8 +834,8 @@ StartDaemon()
 
 	[[ $run_daemon_in_screen_session = true ]] && a+=" (in 'screen' session)"
 
-	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -x /opt/bin/nice ]]; then
-		b="/opt/bin/nice -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
+	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -x $r_gnu_nice_cmd ]]; then
+		b="$r_gnu_nice_cmd -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 		DisplayAndCommitInfoToServiceLog "nice daemon to: $nice_daemon_to"
 	fi
 
@@ -1204,12 +1216,12 @@ InstallVirtualPythonPackages()
 		module_exclusions=$(/bin/tr '\n' ' ' <<< "$(StripComments "$(< "$excluded_modules_pathfile")")")
 		module_exclusions=${module_exclusions%* }
 
-		[[ -n $module_exclusions ]] && [[ -x /opt/bin/sed ]] && re="${module_exclusions// /|}"	# Replace whitespace with pipes.
+		[[ -n $module_exclusions ]] && [[ -x $r_gnu_sed_cmd ]] && re="${module_exclusions// /|}"	# Replace whitespace with pipes.
 
 		if [[ -n $re ]]; then
 			for a in $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile; do
-				if [[ -n $a && -s $a && -x /opt/bin/sed ]]; then
-					cmd="/opt/bin/sed -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' \"$a\""		# Perform extended and case-insensitive matching. First match = first word (or hyphenated-words) on each line. Second match = whole line. Delete line if matched.
+				if [[ -n $a && -s $a && -x $r_gnu_sed_cmd ]]; then
+					cmd="$r_gnu_sed_cmd -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' \"$a\""		# Perform extended and case-insensitive matching. First match = first word (or hyphenated-words) on each line. Second match = whole line. Delete line if matched.
 
 					DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only
 				fi
@@ -1244,10 +1256,10 @@ InstallVirtualPythonPackages()
 
 		GetApplVersion
 
-		if [[ $new_env = false && -s $r_appl_version_store_pathfile && $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
+		if [[ -x $r_gnu_find_cmd && $new_env = false && -s $r_appl_version_store_pathfile && $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
 			# Remove existing .pyc files to prevent runtime errors
 
-			DisplayRunAndLog 'clean Python bytecode files' "/opt/bin/find \"$qpkg_repo_path\" -type d -name '__pycache__' -print0 | xargs -I {} -0 rm -rf '{}'
+			DisplayRunAndLog 'clean Python bytecode files' "$r_gnu_find_cmd \"$qpkg_repo_path\" -type d -name '__pycache__' -print0 | xargs -I {} -0 rm -rf '{}'
 " log:failure-only
 		fi
 
@@ -1566,7 +1578,7 @@ CloneGitRepo()
 
 		opts="clone $progress_opt $branch_opt $hide_advice_opt '$source_git_url' \"$qpkg_repo_path\""
 
-		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git $opts" log:failure-only
+		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; $r_git_cmd $opts" log:failure-only
 
 		if [[ $? -ne 0 ]]; then
 			DisplayAndCommitErrorToAllLogs "'git clone' failed"
@@ -1574,9 +1586,9 @@ CloneGitRepo()
 		fi
 	elif IsAutoUpdate; then
 		# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
-		opts="-C \"$qpkg_repo_path\" clean -f; /opt/bin/git -C \"$qpkg_repo_path\" reset --hard origin/$source_git_branch; /opt/bin/git -C \"$qpkg_repo_path\" pull"
+		opts="-C \"$qpkg_repo_path\" clean -f; $r_git_cmd -C \"$qpkg_repo_path\" reset --hard origin/$source_git_branch; $r_git_cmd -C \"$qpkg_repo_path\" pull"
 
-		DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; /opt/bin/git $opts" log:failure-only
+		DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; $r_git_cmd $opts" log:failure-only
 
 		if [[ $? -ne 0 ]]; then
 			DisplayAndCommitErrorToAllLogs "'git pull' failed"
@@ -1646,7 +1658,7 @@ WatchForGit()
 		SetError; return
 	fi
 
-	if WatchForFileToAppear /opt/bin/git 300; then
+	if WatchForFileToAppear "$r_git_cmd" 300; then
 		export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
 		return 0
 	fi
@@ -1931,11 +1943,7 @@ ViewLog()
 	#	$r_service_log_pathfile
 
 	if [[ -s $r_service_log_pathfile ]]; then
-		if [[ -x /opt/bin/less ]]; then
-			LESSSECURE=1 /opt/bin/less +G --quit-on-intr --tilde --LINE-NUMBERS --RAW-CONTROL-CHARS --prompt ' use arrow-keys to scroll up-down left-right, press Q to quit' "$r_service_log_pathfile"
-		else
-			/bin/cat --number "$r_service_log_pathfile"
-		fi
+		DisplayFileInViewport "$r_service_log_pathfile" linenumbers:on scrollto:end
 	else
 		Display "service log not found: $r_service_log_pathfile"
 
@@ -1943,6 +1951,125 @@ ViewLog()
 	fi
 
 	return 0
+
+	}
+
+DisplayFileInViewport()
+	{
+
+	# Inputs: (local)
+	#	$1 = pathfile to display.
+	#	$2/$3/$4/$5 (optional, and in any order):
+	#		= 'headers:on'		: Use both first row and first data column as fixed headers. Default is off.
+	#		= 'linenumbers:on'	: Display line numbers. Default is off.
+	#		= 'linewrap:on'		: Wrap lines of text within viewport. Default is off.
+	#		= 'scrollto:end'	: Start by scrolling to the last line in the file. Default is start of file.
+
+	# Inputs: (global)
+	#	$e_nopfi
+	#	$r_gnu_less_cmd
+	#	$r_gnu_more_cmd
+	#	$useropt_verbose
+
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
+
+	/bin/sed -i '1{/^[[:space:]]*$/d};${/^[[:space:]]*$/d}' "$1"	# Remove first and last lines if empty: https://stackoverflow.com/a/11230764
+	[[ -s $1 ]] || return
+
+	local report_pathfile=$1
+	shift															# Shift all arguments one position to the left.
+	local arg=''
+	local -a b=("${@:-}")
+	local headers=false
+	local linenumbers=false
+	local linewrap=false
+	local options=''
+	local -r r_prompt=' use arrow-keys to scroll up-down & left-right, press Q to quit '
+	local scrolltoend=false
+
+	for arg in "${b[@]}"; do
+		[[ $arg = headers:on ]] && headers=true
+		[[ $arg = linenumbers:on ]] && linenumbers=true
+		[[ $arg = linewrap:on ]] && linewrap=true
+		[[ $arg = scrollto:end ]] && scrolltoend=true
+	done
+
+	echo
+
+	if [[ $useropt_verbose = false && -x $r_gnu_less_cmd ]]; then
+#		options+=' --no-init'
+		options+=' --tilde'
+		options+=' --mouse'
+		options+=' --RAW-CONTROL-CHARS'
+		options+=' --shift=4'
+		options+=' --quit-if-one-screen'
+		options+=' --quit-on-intr'
+		options+=' --redraw-on-quit'
+
+		if IsReportLargerThanViewport "$report_pathfile"; then
+			IsGnuLessSupportHeaders && [[ $headers = true ]] && options+=" --header=1,$(CalcReportFirstColumnWidth "$report_pathfile")"
+			[[ $linewrap = false ]] && options+=' --chop-long-lines'
+			[[ $scrolltoend = true ]] && options+=' +G'
+		fi
+
+		[[ $linenumbers = true ]] && options+=' --LINE-NUMBERS'
+
+		LESSSECURE=1 $r_gnu_less_cmd $options --prompt "$r_prompt" "$report_pathfile"
+
+# Disable the use of built-in `less` as it doesn't (yet) support ANSI codes. Let's see if there are any problems (other than not being able to scroll output).
+
+#	elif [[ $useropt_verbose = false && -x /bin/less ]]; then
+#		options='-~'
+#		[[ $linenumbers = true ]] && options+='N'
+#		[[ $linewrap = false ]] && options+='S'
+#
+#		/bin/less $options "$report_pathfile"
+
+	elif [[ $useropt_verbose = false && -x $r_gnu_more_cmd ]]; then
+		$r_gnu_more_cmd "$report_pathfile"
+	elif [[ $useropt_verbose = false && -x /bin/more ]]; then		# At-least supports basic forward-scrolling pagination.
+		/bin/more "$report_pathfile"
+	elif [[ -x /bin/cat ]]; then
+		[[ $linenumbers = true ]] && options=' --number'
+
+		/bin/cat $options "$report_pathfile"
+	else															# And, when there's really no-better option ...
+		echo -e "$(< "$report_pathfile")"
+	fi
+
+	}
+
+CalcReportFirstColumnWidth()
+	{
+
+	# Inputs: (local)
+	#	$1 = pathfile of report ('report.ansi') to examine.
+
+	# Inputs: (global)
+	#	$e_nopfi
+
+	# Outputs: (local)
+	#	stdout = width of report table first data column in characters.
+
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
+	[[ -s $1 ]] || return
+
+	local a=$(< "$1")
+	local b=''
+	local c=''
+
+	a=$(/bin/sed '/^#[[:space:]].*/d;/#$/d;s/[[:space:]]#[[:space:]].*//' <<< "$a")		# Remove comment lines and line comments.
+	a=$(/bin/sed 's/[[:space:]]*$//' <<< "$a")											# Remove line trailing whitespace.
+	a=$(/bin/sed '/^$/d' <<< "$a")														# Remove empty lines.
+	a=$(head -n1 <<< "$a")																# Only use header row (column titles).
+
+	b=$(cut -f2 -d: <<< "$a"):															# Grab second field characters.
+	b=$(/bin/sed 's/^[[:space:]]*//' <<< "$b")											# Remove leading whitespace.
+
+	# shellcheck disable=2295
+	c=${a%%$b*}																			# Extract second column characters from header row.
+
+	printf '%s' "${#c}"
 
 	}
 
@@ -2345,8 +2472,8 @@ StripANSICodes()
 
 	# QTS 4.2.6 BusyBox `sed` doesn't fully support extended regexes, so this only works with a real `sed`.
 
-	if [[ -x /opt/bin/sed && -L /opt/etc/passwd ]]; then	# Try to ensure Entware is active before using this utility.
-		/opt/bin/sed -r 's/\x1b\[[0-9;]*m//g' <<< "${1:-}"
+	if [[ -x $r_gnu_sed_cmd && -L /opt/etc/passwd ]]; then	# Try to ensure Entware is active before using this utility.
+		$r_gnu_sed_cmd -r 's/\x1b\[[0-9;]*m//g' <<< "${1:-}"
 	else
 		echo "${1:-}"		# Can't strip, so pass thru original message unaltered.
 	fi
@@ -3601,6 +3728,53 @@ IsHaveSingleQuote()
 
 	} &> /dev/null
 
+IsGnuLessSupportHeaders()
+	{
+
+	local a=$(GetGnuLessVersion)
+
+	IsNumber $a && [[ $a -ge 685 ]]
+
+	}
+
+IsReportLargerThanViewport()
+	{
+
+	# Inputs: (local)
+	#	$1 = pathfile to be shown.
+
+	[[ -n ${1:-} && -e $1 ]] || return
+
+	if [[ -x $r_gnu_stty_cmd ]] && IsInTerminal; then
+		local -r r_terminal_dimensions=$($r_gnu_stty_cmd size)
+		local -r r_sess_rows=${r_terminal_dimensions% *}
+		local -r r_sess_columns=${r_terminal_dimensions#* }
+	else
+		local -r r_sess_rows=40
+		local -r r_sess_columns=156
+	fi
+
+	[[ $(/usr/bin/wc -l < "$1") -ge $r_sess_rows || $(StripANSICodes "$(< "$1")" | /usr/bin/wc -L) -gt $r_sess_columns ]]
+
+	}
+
+IsNumber()
+	{
+
+	# Input: (local)
+	#	$1 = string
+
+	# Output: (local)
+	#	$? = 0 if $1 has any numerals.
+
+	[[ -n ${1:-} ]] || return
+
+	local a=${1//[!0-9]/}	# Strip non-digits.
+
+	[[ ${#a} -gt 0 ]]
+
+	}
+
 IsCheckNetworkBeforeStart()
 	{
 
@@ -3666,6 +3840,24 @@ IsVarDefined()
 	[[ -n ${!1:-} && ${!1:-undefined} != undefined ]]
 
 	} &> /dev/null
+
+IsInTerminal()
+	{
+
+	[[ -t 0 ]]
+
+	}
+
+GetGnuLessVersion()
+	{
+
+	if [[ -x $r_gnu_less_cmd ]]; then
+		$r_gnu_less_cmd -V | head -n1 | cut -d' ' -f2
+	else
+		printf unknown
+	fi
+
+	}
 
 RequestLatestReleaseFilename()
 	{
@@ -4811,7 +5003,7 @@ GetPathGitBranch()
 
 	[[ -n $1 ]] || return
 
-	/opt/bin/git -C "$1" branch | /bin/grep '^\*' | /bin/sed 's|^\* ||'
+	$r_git_cmd -C "$1" branch | /bin/grep '^\*' | /bin/sed 's|^\* ||'
 
 	} 2> /dev/null
 
