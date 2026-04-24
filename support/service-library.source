@@ -892,7 +892,7 @@ StopDaemon()
 	local a='stop daemon'
 	local -i b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
 	local -i c=0
-	local -i d=$(< $daemon_pid_pathfile)
+	local -i d=$(< "$daemon_pid_pathfile")
 
 	[[ $d -gt 1 ]] || return
 
@@ -913,6 +913,7 @@ StopDaemon()
 				kill -9 "$d" 2> /dev/null
 
 				[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
+
 				DisplayAndCommitOutcomeToServiceLog OK					# Assume `kill -9` actually worked.
 				break 2
 			fi
@@ -1681,7 +1682,7 @@ RefreshPidFile()
 
 	local -i a=0
 
-	if [[ -s $daemon_pid_pathfile && ! -d /proc/"$(< $daemon_pid_pathfile)" ]]; then
+	if [[ -s $daemon_pid_pathfile && ! -d /proc/"$(< "$daemon_pid_pathfile")" ]]; then
 		rm -f "$daemon_pid_pathfile"
 	fi
 
@@ -3398,11 +3399,11 @@ IsDaemonActive()
 	#	$? = true  : $daemon_exec_pathfile is in memory.
 	#	$? = false : $daemon_exec_pathfile is not in memory.
 
-	if IsVarDefined daemon_pid_pathfile && [[ -s $daemon_pid_pathfile && -d /proc/"$(< $daemon_pid_pathfile)" ]]; then
+	if IsVarDefined daemon_pid_pathfile && [[ -s $daemon_pid_pathfile && -d /proc/"$(< "$daemon_pid_pathfile")" ]]; then
 		if IsDaemonCheck; then
-			[[ $(/usr/bin/readlink /proc/"$(< $daemon_pid_pathfile)"/exe) = "$daemon_check_pathfile" ]]
+			[[ $(/usr/bin/readlink /proc/"$(< "$daemon_pid_pathfile")"/exe) = "$daemon_check_pathfile" ]]
 		else
-			[[ $(</proc/"$(< $daemon_pid_pathfile)"/cmdline) =~ $daemon_exec_pathfile ]]
+			[[ $(</proc/"$(< "$daemon_pid_pathfile")"/cmdline) =~ $daemon_exec_pathfile ]]
 		fi
 	else
 		false
