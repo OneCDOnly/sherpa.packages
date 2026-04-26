@@ -22,14 +22,14 @@ InitLibrary()
 
 	IsQNAP || exit
 
-	debug=${DEBUG_QPKG:=false}
+	useropt_debug=${DEBUG_QPKG:=false}
 	useropt_verbose=false
 
 	local re=''
 
 	for re in \\bd\\b \\bD\\b \\bdebug\\b \\bdbug\\b \\bverbose\\b; do
 		[[ $r_user_args_raw =~ $re ]] || continue
-		debug=true
+		useropt_debug=true
 		useropt_verbose=true
 		break
 	done
@@ -1534,13 +1534,13 @@ CloneGitRepo()
 	{
 
 	# Inputs: (global)
-	#	$debug
 	#	$qpkg_repo_path
 	#	$r_nas_arch
 	#	$r_qpkg_name
 	#	$source_git_branch
 	#	$source_git_branch_depth
 	#	$source_git_url
+	#	$useropt_debug
 
 	IsSourceGit || return 0
 
@@ -1557,7 +1557,7 @@ CloneGitRepo()
 	local progress_opt=''
 
 	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
-	[[ $debug = true ]] && progress_opt='--progress'
+	[[ $useropt_debug = true ]] && progress_opt='--progress'
 
 	WatchForGit || return
 
@@ -2143,7 +2143,7 @@ DisplayRunAndLog()
 	#	$4 (optional) = true/false - if true, run command in a `screen` session.
 
 	# Inputs: (global)
-	#	$debug
+	#	$useropt_debug
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nocmd" || return
@@ -2157,7 +2157,7 @@ DisplayRunAndLog()
 	z=$?
 
 	if [[ $z -eq 0 ]]; then
-		if [[ $debug = true ]]; then
+		if [[ $useropt_debug = true ]]; then
 			CommitToServiceLog OK
 		else
 			DisplayAndCommitToServiceLog OK
@@ -2165,7 +2165,7 @@ DisplayRunAndLog()
 
 		[[ ${3:-} != log:failure-only ]] && AddFileToDebug "$r_log_pathfile"
 	else
-		if [[ $debug = true ]]; then
+		if [[ $useropt_debug = true ]]; then
 			CommitToServiceLog failed
 		else
 			DisplayAndCommitToServiceLog failed
@@ -2190,12 +2190,12 @@ Executer()
 	#	$3 (optional) = true/false - if true, run command in a `screen` session.
 
 	# Inputs: (global)
-	#	$debug
 	#	$e_nocmd
 	#	$e_nopfi
 	#	$r_qpkg_name
 	#	$r_screen_conf_pathfile
 	#	$r_screen_log_pathfile
+	#	$useropt_debug
 
 	# Outputs:
 	#	stdout = commandstring stdout and stderr if script is in 'debug' mode.
@@ -2211,7 +2211,7 @@ Executer()
 
 	FormatAsCommand "$1" > "$2"
 
-	if [[ $debug = true ]]; then
+	if [[ $useropt_debug = true ]]; then
 		local exec_msg='{ exec'
 		[[ $run_in_screen = true ]] && exec_msg+=" (in 'screen' session)"
 		exec_msg+=':'
@@ -2230,7 +2230,7 @@ Executer()
 		FormatAsCommand "$1" >> "$r_screen_log_pathfile"
 		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 		z=$?
-	elif [[ $debug = true ]]; then
+	elif [[ $useropt_debug = true ]]; then
 		eval "$1 2>&1 | /usr/bin/tee $r_log_pathfile"		# NOTE: stdout is buffered here.
 		z=${PIPESTATUS[0]}									# Must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
 	else
@@ -2244,7 +2244,7 @@ Executer()
 		FormatAsResultAndStdout "$z" '<null>' >> "$2"
 	fi
 
-	if [[ $debug = true ]]; then
+	if [[ $useropt_debug = true ]]; then
 		exec_msg='} exec: completed'
 
 		if [[ $z -eq 0 ]]; then
@@ -2306,20 +2306,21 @@ AddFileToDebug()
 	#	$1 = pathfilename of log to add.
 
 	# Inputs: (global)
-	#	$debug
+	#	$useropt_debug
 
 	# Outputs: (global)
-	#	$debug
+	#	$useropt_debug
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nofil" || return
 
 	[[ -s $1 ]] || return
 
 	local a=''
-	local debug_was_set=$debug
+	local debug_was_set=$useropt_debug
 
 	# Prevent external log contents appearing on-screen again, as they have already been seen "live".
-	debug=false
+
+	useropt_debug=false
 
 	DebugAsLog ''
 	DebugAsLog 'adding external log to main log ...'
@@ -2331,7 +2332,7 @@ AddFileToDebug()
 	done < "$1"
 
 	DebugExtLogMinorSeparator
-	debug=$debug_was_set
+	useropt_debug=$debug_was_set
 
 	}
 
@@ -2433,11 +2434,11 @@ DebugThis()
 	{
 
 	# Inputs: (global)
-	#	$debug
+	#	$useropt_debug
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
 
-	[[ $debug = true ]] && Display "$1"
+	[[ $useropt_debug = true ]] && Display "$1"
 	WriteAsDebug "$1"
 
 	}
@@ -3958,7 +3959,7 @@ DownloadReleasePackage()
 
 	# Inputs: (global)
 	#	$curl_insecure_opt
-	#	$debug
+	#	$useropt_debug
 
 	[[ -n ${1:-} ]] || return
 	[[ -n ${2:-} ]] || return
@@ -3966,7 +3967,7 @@ DownloadReleasePackage()
 	local a=$curl_insecure_opt
 	local b=''
 
-	[[ $debug = false ]] && a+=' --silent'
+	[[ $useropt_debug = false ]] && a+=' --silent'
 
 	if [[ -s $2 ]]; then
 		b='refresh existing release package (only-if-newer)'
@@ -3990,8 +3991,8 @@ ExtractReleasePackage()
 
 	# Inputs: (global)
 	#	$compare_release_filename
-	#	$debug
 	#	$qpkg_repo_path
+	#	$useropt_debug
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
@@ -4000,7 +4001,7 @@ ExtractReleasePackage()
 	local unzip_opts=''
 	local unzip_verbose=''
 
-	if [[ $debug = true ]]; then
+	if [[ $useropt_debug = true ]]; then
 		tar_verbose+='--verbose'
 #		unzip_verbose+=' -v'			# Don't enable this, seems to prevent file extraction.
 	fi
@@ -5311,7 +5312,7 @@ ProcessArgs()						# unused-ignore.
 				fi
 				;;
 			?(--)deactivate|?(--)stop)
-				IsUninstall && exit					# No-need to 'stop' during 'uninstall' from sherpa, as 'stop' has already been done by sherpa.
+				IsUninstall && exit					# No-need to 'stop' during 'uninstall' from sherpa, as 'stop' has already been performed by sherpa.
 
 				SetServiceAction stop
 				SetTraps
