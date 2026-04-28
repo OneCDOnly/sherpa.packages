@@ -1581,20 +1581,18 @@ CloneGitRepo()
 
 		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; $r_git_cmd $opts" log:failure-only
 
-		if [[ $? -ne 0 ]]; then
-			DisplayAndCommitErrorToAllLogs "'git clone' failed"
+		if [[ $? -ne 0 && $useropt_verbose = true ]]; then
+			DisplayAndCommitErrorToAllLogs 'clone failed'
 			SetError; return
 		fi
 	elif IsAutoUpdate; then
 		# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
+
 		opts="-C \"$qpkg_repo_path\" clean -f; $r_git_cmd -C \"$qpkg_repo_path\" reset --hard origin/$source_git_branch; $r_git_cmd -C \"$qpkg_repo_path\" pull"
 
 		DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; $r_git_cmd $opts" log:failure-only
 
-		if [[ $? -ne 0 ]]; then
-			DisplayAndCommitErrorToAllLogs "'git pull' failed"
-			SetError; return
-		fi
+		[[ $? -ne 0 && $useropt_verbose = true ]] && DisplayAndCommitErrorToAllLogs 'update failed'
 	fi
 
 	active_branch=$(GetPathGitBranch "$qpkg_repo_path")
@@ -2195,6 +2193,8 @@ Executer()
 	#	$r_qpkg_name
 	#	$r_screen_conf_pathfile
 	#	$r_screen_log_pathfile
+	#	$r_sys_log_path
+	#	$r_sys_run_path
 	#	$useropt_debug
 
 	# Outputs:
@@ -2205,7 +2205,7 @@ Executer()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nocmd" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
 
-	local -r r_log_pathfile=$(/bin/mktemp $r_sys_log_path/"${FUNCNAME[0]}"_XXXXXX)
+	local -r r_log_pathfile=$(/bin/mktemp $r_sys_log_path/${FUNCNAME[0]}_XXXXXX)
 	local run_in_screen=${3:-false}
 	local -i z=0
 
@@ -2231,8 +2231,17 @@ Executer()
 		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 		z=$?
 	elif [[ $useropt_debug = true ]]; then
-		eval "$1 2>&1 | /usr/bin/tee $r_log_pathfile"		# NOTE: stdout is buffered here.
-		z=${PIPESTATUS[0]}									# Must use $PIPESTATUS after `tee` to get returncode of previous command: https://stackoverflow.com/questions/1221833/pipe-output-and-capture-exit-status-in-bash
+		# https://stackoverflow.com/a/1221844
+
+		local -r r_executer_log_pipe=${r_sys_run_path}/pipe-$(/bin/date +%s%N)
+
+		/bin/mknod "$r_executer_log_pipe" p
+		/usr/bin/tee "$r_log_pathfile" < "$r_executer_log_pipe" &
+
+		eval "$1" > "$r_executer_log_pipe" 2>&1
+		z=$?
+
+		rm "$r_executer_log_pipe"
 	else
 		(eval "$1" > "$r_log_pathfile" 2>&1)				# Run within a subshell to suppress "Terminated" message later.
 		z=$?
