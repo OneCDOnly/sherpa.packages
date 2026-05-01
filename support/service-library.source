@@ -1122,6 +1122,7 @@ ShowHelp()
 	IsSupportReset && DisplayAsHelp reset-config "revert $(FormatAsPackageName $r_qpkg_name) configuration, databases and history to defaults"
 	IsSupportBackup && DisplayAsHelp restore 'restore a previously saved configuration from persistent storage'
 	DisplayAsHelp 's, status' "check if $(FormatAsPackageName $r_qpkg_name) application is active. Returns \$? = 0 if active, 1 if not"
+	IsSourcedOnline && DisplayAsHelp update "update existing $(FormatAsPackageName $r_qpkg_name) files from source"
 	DisplayAsHelp 'v, V, version' 'display the package version numbers'
 	Display
 	Display '[OPTION] may be one of the following:'
@@ -1585,7 +1586,7 @@ CloneGitRepo()
 			DisplayAndCommitErrorToAllLogs 'clone failed'
 			SetError; return
 		fi
-	elif IsAutoUpdate; then
+	elif IsUpdate || IsAutoUpdate; then
 		# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
 
 		opts="-C \"$qpkg_repo_path\" clean -f; $r_git_cmd -C \"$qpkg_repo_path\" reset --hard origin/$source_git_branch; $r_git_cmd -C \"$qpkg_repo_path\" pull"
@@ -2233,7 +2234,7 @@ Executer()
 	elif [[ $useropt_debug = true ]]; then
 		# https://stackoverflow.com/a/1221844
 
-		local -r r_executer_log_pipe=${r_sys_run_path}/pipe-$(/bin/date +%s%N)
+		local -r r_executer_log_pipe=$r_sys_run_path/pipe-$(/bin/date +%s%N)
 
 		/bin/mknod "$r_executer_log_pipe" p
 		/usr/bin/tee "$r_log_pathfile" < "$r_executer_log_pipe" &
@@ -4343,6 +4344,13 @@ IsNtClean()
 
 	}
 
+IsUpdate()
+	{
+
+	[[ $service_action = update ]]
+
+	}
+
 IsUnsupported()
 	{
 
@@ -5308,7 +5316,7 @@ ProcessArgs()						# unused-ignore.
 					ShowUnsupportedAction "$user_arg"
 				fi
 				;;
-			?(--)clean|?(--)update|?(--)upgrade)
+			?(--)clean)
 				if IsSourcedOnline; then
 					SetServiceAction clean
 					SetTraps
@@ -5436,8 +5444,19 @@ ProcessArgs()						# unused-ignore.
 				SetStatusGet
 				StatusQpkg
 				;;
-			uninstall)
+			?(--)uninstall)
 				: # Ignore.
+				;;
+			?(--)update)
+				if IsSourcedOnline; then
+					SetServiceAction update
+					SetTraps
+					StopQpkg
+					IsQpkgEnabled && StartQpkg
+				else
+					SetServiceAction unsupported
+					ShowUnsupportedAction "$user_arg"
+				fi
 				;;
 			?(-)+(v|V)|?(--)version?(s))
 				Display "QPKG: $(ConvertAsSmartDate ${r_qpkg_version:-undefined})"
