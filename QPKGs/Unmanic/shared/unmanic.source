@@ -171,7 +171,7 @@ InitService()
 
 		# watch_pid_kill_seconds=120
 			# Default
-		# watch_pid_kill_seconds=
+		watch_pid_kill_seconds=5
 			# Custom
 		# > This value is adaptive (increases with system load average).
 
