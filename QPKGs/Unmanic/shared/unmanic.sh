@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Unmanic
-readonly r_service_script_version=260421
+readonly r_service_script_version=260501
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true
@@ -42,6 +42,7 @@ run_daemon_in_screen_session=true
 silence_pypi_errors=true
 start_retries=3
 ui_listening_address=0.0.0.0
+watch_pid_kill_seconds=5
 qpkg_config_path=$r_qpkg_path/config
 qpkg_pip_path=$r_qpkg_path/pip-cache
 qpkg_venv_path=$r_qpkg_path/venv
