@@ -7,7 +7,7 @@
 this_path=$PWD
 . $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
-cd "$support_path" || exit
+cd "$qpkgs_support_path" || exit
 ./clean-source.sh
 
 # if [[ ${2:-} != nocheck ]]; then
@@ -15,7 +15,7 @@ cd "$support_path" || exit
 # 	./check-whitespace.sh || exit
 # fi
 
-cd "$root_path" || exit
+cd "$qpkgs_root_path" || exit
 
 if [[ -z ${1:-} ]]; then
 	git add . && git commit && git push || exit
