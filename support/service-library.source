@@ -1562,12 +1562,10 @@ CloneGitRepo()
 
 	WatchForGit || return
 
-	if [[ -d $qpkg_repo_path/.git ]]; then
-		if [[ $active_branch != "$source_git_branch" ]]; then
-			DisplayAndCommitInfoToServiceLog "new git branch specified: $source_git_branch"
-			branch_switch=true
-			CleanLocalRepo
-		fi
+	if [[ -d $qpkg_repo_path/.git && $active_branch != "$source_git_branch" ]]; then
+		DisplayAndCommitInfoToServiceLog "new git branch specified: $source_git_branch"
+		branch_switch=true
+		CleanLocalRepo
 	fi
 
 	local branch_opt="--branch $source_git_branch $branch_depth"
@@ -1599,7 +1597,7 @@ CloneGitRepo()
 	active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 	DisplayAndCommitInfoToServiceLog "active git branch: $active_branch"
 
-	if [[ -z $active_branch ]]; then
+	if [[ -z $active_branch || $active_branch = none ]]; then
 		DisplayAndCommitErrorToAllLogs 'no active git branch found'
 		SetError; return
 	fi
@@ -5022,7 +5020,10 @@ GetPathGitBranch()
 
 	[[ -n $1 ]] || return
 
-	$r_git_cmd -C "$1" branch | /bin/grep '^\*' | /bin/sed 's|^\* ||'
+	local a=$($r_git_cmd -C "$1" branch | /bin/grep '^\*' | /bin/sed 's|^\* ||')
+	[[ -n $a ]] || a=none
+
+	printf '%s' "$a"
 
 	} 2> /dev/null
 
