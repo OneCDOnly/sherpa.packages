@@ -22,6 +22,9 @@ InitLibrary()
 
 	IsQNAP || exit
 
+	service_action=undefined
+	service_explanation=undefined
+	service_result=undefined
 	useropt_debug=${DEBUG_QPKG:=false}
 	useropt_verbose=false
 
@@ -77,9 +80,9 @@ InitLibrary()
 				readonly r_service_result_path=$r_sys_log_path
 			readonly r_sys_run_path=/var/run
 
-			local test_backup_path=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)
-			ConfirmVarIsDefined test_backup_path "${test_backup_path:-}" "$e_nopth" || return
-				readonly r_backup_path=$test_backup_path/.qpkg_config_backup
+			local default_vol_mount_point=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)
+			ConfirmVarIsDefined default_vol_mount_point "${default_vol_mount_point:-}" "$e_nopth" || return
+				readonly r_backup_path=$default_vol_mount_point/.qpkg_config_backup
 
 			readonly r_opkg_path=/opt/bin:/opt/sbin
 				export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
@@ -94,6 +97,7 @@ InitLibrary()
 			readonly r_appl_version_store_pathfile=$r_qpkg_path/version.stored
 			readonly r_screen_conf_pathfile=$r_qpkg_log_path/screen.conf
 			readonly r_screen_log_pathfile=$r_qpkg_log_path/screen.log
+			readonly r_screen_pid_pathfile=$r_qpkg_log_path/screen.pid
 			readonly r_service_action_pathfile=$r_service_result_path/$r_qpkg_name.action
 			readonly r_service_explanation_pathfile=$r_service_result_path/$r_qpkg_name.explanation
 			readonly r_service_log_pathfile=$r_service_result_path/$r_qpkg_name.log
@@ -130,9 +134,6 @@ InitLibrary()
 	get_remote_filename_timeout_seconds=5
 	new_env=false
 	pyver=''
-	service_action=undefined
-	service_explanation=undefined
-	service_result=undefined
 	MakePaths
 	EnsureConfigFileExists
 	EnsureVirtualConfigFileExists
@@ -1690,6 +1691,28 @@ RefreshPidFile()
 	fi
 
 	[[ -n $a && $a -gt 0 ]] && echo "$a" > "$daemon_pid_pathfile"
+
+	}
+
+RefreshScreenPidFile()
+	{
+
+	# Inputs: (global)
+	#	$daemon_exec_pathfile
+	#	$r_screen_pid_pathfile
+
+	# Outputs:
+	#	stdout > $r_screen_pid_pathfile
+
+	local -i a=0
+
+	if [[ -s $r_screen_pid_pathfile && ! -d /proc/"$(< "$r_screen_pid_pathfile")" ]]; then
+		rm -f "$r_screen_pid_pathfile"
+	fi
+
+	a=$(FindPid "$daemon_exec_pathfile" /usr/bin/SCREEN)
+
+	[[ -n $a && $a -gt 0 ]] && echo "$a" > "$r_screen_pid_pathfile"
 
 	}
 
@@ -3320,6 +3343,19 @@ IsNtSourcedOnline()
 
 	}
 
+IsDaemonInScreen()
+	{
+
+	# Inputs: (global)
+	#	$run_daemon_in_screen_session
+
+	# Outputs: (local)
+	#	$? = true/false
+
+	[[ $run_daemon_in_screen_session = true ]]
+
+	}
+
 UsesTemp()
 	{
 
@@ -3392,6 +3428,17 @@ ShowDaemonState()
 		DisplayAndCommitInfoToServiceLog "daemon PID: $(< "$daemon_pid_pathfile")"
 	else
 		DisplayAndCommitInfoToServiceLog 'daemon PID: none'
+	fi
+
+	}
+
+ShowScreenState()
+	{
+
+	if IsVarDefined r_screen_pid_pathfile && [[ -s $r_screen_pid_pathfile ]]; then
+		DisplayAndCommitInfoToServiceLog "screen PID: $(< "$r_screen_pid_pathfile")"
+	else
+		DisplayAndCommitInfoToServiceLog 'screen PID: none'
 	fi
 
 	}
@@ -4349,6 +4396,13 @@ IsUpdate()
 
 	}
 
+IsNtUpdate()
+	{
+
+	! IsUpdate
+
+	}
+
 IsUnsupported()
 	{
 
@@ -4658,6 +4712,7 @@ CommitToServiceLog()
 	{
 
 	if IsNtStatus && IsNtLog && IsNtNone; then
+		[[ -n ${r_service_log_pathfile:-} ]] || return
 		[[ ${1:-} = '•' && ! -s "$r_service_log_pathfile" ]] || echo -e "${1:-}" >> "$r_service_log_pathfile"
 	fi
 
