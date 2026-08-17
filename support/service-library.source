@@ -2788,7 +2788,7 @@ GetNasArch()
 GetOsFirmwareVer()
 	{
 
-	# Same as firmware version, but an integer-only (no periods).
+	# Same as GetOsFirmwareVersion(), but as an integer-only (no periods).
 
 	# Outputs: (local)
 	#	stdout = integer.
@@ -2986,7 +2986,7 @@ SetQpkgArch()
 SetOsFirmwareVer()
 	{
 
-	# Same as firmware version, but as an integer-only (no periods).
+	# Same as SetOsFirmwareVersion(), but as an integer-only (no periods).
 
 	# Outputs: (global)
 	#	$r_nas_firmware_ver
@@ -3731,14 +3731,24 @@ IsNtVirtualPythonEnvFound()
 IsOsCanSecureDownload()
 	{
 
+	# NOTE: `/sbin/curl` with SSL certificate verification enabled:
+	#	- fails in:
+	#		QTS 4.2.6
+	#		QTS 4.4.1
+	#		QTS 4.5.1
+	#		QTS 4.5.4.1715
+	#	- works in:
+	#		QTS 4.5.4.2627
+
+	# NOTE: secure `curl` ops fail on a41 running QTS upto 5.2.5, but work in QTS 5.2.10
+
 	# Inputs: (global)
 	#	$r_nas_firmware_ver
 
-	# Outputs: (local)
-	#	$? = 0 : true
-	#	$? = 1 : false
+	SetQpkgArch
+	SetOsFirmwareVer
 
-	[[ $r_nas_firmware_ver -ge 500 ]]
+	[[ $r_nas_firmware_ver -ge 455 && $r_nas_qpkg_arch != a41 ]] || [[ $r_nas_firmware_ver -ge 5210 ]]
 
 	}
 
@@ -4722,6 +4732,7 @@ CommitWaitToServiceLog()
 	{
 
 	if IsNtStatus && IsNtLog && IsNtNone; then
+		[[ -n ${r_service_log_pathfile:-} ]] || return
 		printf '%s' "${1:-} " >> "$r_service_log_pathfile"
 	fi
 
