@@ -37,10 +37,13 @@ set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=260620
+readonly r_service_library_version=260817
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
+service_action=undefined
+service_explanation=undefined
+service_result=undefined
 useropt_debug=${DEBUG_QPKG:=false}
 useropt_verbose=false
 local re=''
@@ -80,9 +83,9 @@ readonly e_novar='undefined variable'
 readonly r_sys_log_path=/var/log
 readonly r_service_result_path=$r_sys_log_path
 readonly r_sys_run_path=/var/run
-local test_backup_path=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)
-ConfirmVarIsDefined test_backup_path "${test_backup_path:-}" "$e_nopth"||return
-readonly r_backup_path=$test_backup_path/.qpkg_config_backup
+local default_vol_mount_point=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)
+ConfirmVarIsDefined default_vol_mount_point "${default_vol_mount_point:-}" "$e_nopth"||return
+readonly r_backup_path=$default_vol_mount_point/.qpkg_config_backup
 readonly r_opkg_path=/opt/bin:/opt/sbin
 export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||"<<<"$PATH")
 readonly r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
@@ -92,6 +95,7 @@ readonly r_qpkg_pypi_module_lists_path=$r_qpkg_path/pypi-lists
 readonly r_appl_version_store_pathfile=$r_qpkg_path/version.stored
 readonly r_screen_conf_pathfile=$r_qpkg_log_path/screen.conf
 readonly r_screen_log_pathfile=$r_qpkg_log_path/screen.log
+readonly r_screen_pid_pathfile=$r_qpkg_log_path/screen.pid
 readonly r_service_action_pathfile=$r_service_result_path/$r_qpkg_name.action
 readonly r_service_explanation_pathfile=$r_service_result_path/$r_qpkg_name.explanation
 readonly r_service_log_pathfile=$r_service_result_path/$r_qpkg_name.log
@@ -122,9 +126,6 @@ IsOsCanSecureDownload ||curl_insecure_opt=' --insecure'
 get_remote_filename_timeout_seconds=5
 new_env=false
 pyver=''
-service_action=undefined
-service_explanation=undefined
-service_result=undefined
 MakePaths
 EnsureConfigFileExists
 EnsureVirtualConfigFileExists
@@ -756,12 +757,10 @@ local progress_opt=''
 [[ $source_git_branch_depth = single-branch ]]&&branch_depth='--single-branch'
 [[ $useropt_debug = true ]]&&progress_opt='--progress'
 WatchForGit||return
-if [[ -d $qpkg_repo_path/.git ]];then
-if [[ $active_branch != "$source_git_branch" ]];then
+if [[ -d $qpkg_repo_path/.git &&$active_branch != "$source_git_branch" ]];then
 DisplayAndCommitInfoToServiceLog "new git branch specified: $source_git_branch"
 branch_switch=true
 CleanLocalRepo
-fi
 fi
 local branch_opt="--branch $source_git_branch $branch_depth"
 if [[ ! -d $qpkg_repo_path/.git ]];then
@@ -782,7 +781,7 @@ DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repos
 fi
 active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 DisplayAndCommitInfoToServiceLog "active git branch: $active_branch"
-if [[ -z $active_branch ]];then
+if [[ -z $active_branch ||$active_branch = none ]];then
 DisplayAndCommitErrorToAllLogs 'no active git branch found'
 SetError;return
 fi
@@ -823,6 +822,13 @@ else
 a=$(FindPid "$daemon_exec_pathfile" "$daemon_script_pathfile")
 fi
 [[ -n $a &&$a -gt 0 ]]&&echo "$a">"$daemon_pid_pathfile";}
+RefreshScreenPidFile(){
+local -i a=0
+if [[ -s $r_screen_pid_pathfile &&! -d /proc/"$(<"$r_screen_pid_pathfile")" ]];then
+rm -f "$r_screen_pid_pathfile"
+fi
+a=$(FindPid "$daemon_exec_pathfile" /usr/bin/SCREEN)
+[[ -n $a &&$a -gt 0 ]]&&echo "$a">"$r_screen_pid_pathfile";}
 FindPid(){
 ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi"||return
 local -i a=0
@@ -1450,6 +1456,8 @@ IsSourcedOnline(){
 IsSourceGit ||UsesPipCache ||UsesReleasePackage valid;}
 IsNtSourcedOnline(){
 ! IsSourcedOnline;}
+IsDaemonInScreen(){
+[[ $run_daemon_in_screen_session = true ]];}
 UsesTemp(){
 IsVarDefined qpkg_temp_path;}
 IsSSLEnabled(){
@@ -1465,6 +1473,12 @@ if IsVarDefined daemon_pid_pathfile &&[[ -s $daemon_pid_pathfile ]];then
 DisplayAndCommitInfoToServiceLog "daemon PID: $(<"$daemon_pid_pathfile")"
 else
 DisplayAndCommitInfoToServiceLog 'daemon PID: none'
+fi;}
+ShowScreenState(){
+if IsVarDefined r_screen_pid_pathfile &&[[ -s $r_screen_pid_pathfile ]];then
+DisplayAndCommitInfoToServiceLog "screen PID: $(<"$r_screen_pid_pathfile")"
+else
+DisplayAndCommitInfoToServiceLog 'screen PID: none'
 fi;}
 IsDaemonActive(){
 if IsVarDefined daemon_pid_pathfile &&[[ -s $daemon_pid_pathfile &&-d /proc/"$(<"$daemon_pid_pathfile")" ]];then
@@ -1585,7 +1599,9 @@ IsVirtualPythonEnvFound(){
 IsNtVirtualPythonEnvFound(){
 ! IsVirtualPythonEnvFound;}
 IsOsCanSecureDownload(){
-[[ $r_nas_firmware_ver -ge 500 ]];}
+SetQpkgArch
+SetOsFirmwareVer
+[[ $r_nas_firmware_ver -ge 455 &&$r_nas_qpkg_arch != a41 ]]||[[ $r_nas_firmware_ver -ge 5210 ]];}
 IsSiteUp(){
 ConfirmVarIsDefined 1 "${1:-}" "$e_nourl"||return
 local a=$(cut -d'/' -f3<<<"$1"|cut -d':' -f1)
@@ -1829,6 +1845,8 @@ IsNtClean(){
 ! IsClean;}
 IsUpdate(){
 [[ $service_action = update ]];}
+IsNtUpdate(){
+! IsUpdate;}
 IsUnsupported(){
 [[ $service_action = unsupported ]];}
 IsInProgress(){
@@ -1941,10 +1959,12 @@ CommitErrorToSysLog(){
 CommitToSysLog "${1:-}. Please check the service log for more information." 1;}
 CommitToServiceLog(){
 if IsNtStatus&&IsNtLog&&IsNtNone;then
+[[ -n ${r_service_log_pathfile:-} ]]||return
 [[ ${1:-} = '•' &&! -s "$r_service_log_pathfile" ]]||echo -e "${1:-}">>"$r_service_log_pathfile"
 fi;}
 CommitWaitToServiceLog(){
 if IsNtStatus&&IsNtLog&&IsNtNone;then
+[[ -n ${r_service_log_pathfile:-} ]]||return
 printf '%s' "${1:-} ">>"$r_service_log_pathfile"
 fi;}
 CommitToSysLog(){
@@ -2065,7 +2085,9 @@ StoreAutoUpdateSelection(){
 DisplayAndCommitInfoToServiceLog "application auto-update: $1";}
 GetPathGitBranch(){
 [[ -n $1 ]]||return
-$r_git_cmd -C "$1" branch|/bin/grep '^\*'|/bin/sed 's|^\* ||'
+local a=$($r_git_cmd -C "$1" branch|/bin/grep '^\*'|/bin/sed 's|^\* ||')
+[[ -n $a ]]||a=none
+printf '%s' "$a"
 } 2>/dev/null
 IsSU(){
 if [[ $EUID -ne 0 ]];then

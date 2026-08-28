@@ -80,7 +80,7 @@ InitLibrary()
 				readonly r_service_result_path=$r_sys_log_path
 			readonly r_sys_run_path=/var/run
 
-			local default_vol_mount_point=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)
+			local default_vol_mount_point=$(GetUserDefVol)
 			ConfirmVarIsDefined default_vol_mount_point "${default_vol_mount_point:-}" "$e_nopth" || return
 				readonly r_backup_path=$default_vol_mount_point/.qpkg_config_backup
 
@@ -111,7 +111,7 @@ InitLibrary()
 			readonly r_debug_log_datawidth=100
 			readonly r_extended_datetime_format='+%a %-d %b %Y'
 			readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
-			readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
+			readonly r_nas_firmware_version=$(GetOsFirmwareVersion)
 			ConfirmVarIsDefined r_nas_firmware_version "${r_nas_firmware_version:-}" "$e_noval" || return
 			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -f /etc/config/qpkg.conf)
 			ConfirmVarIsDefined r_qpkg_version "${r_qpkg_version:-}" "$e_noval" || return
@@ -2785,6 +2785,17 @@ GetNasArch()
 
 	}
 
+GetOsFirmwareVersion()
+	{
+
+	# Outputs: (local)
+	#	stdout = text string.
+	#	$? = 0 if found, 250 if not.
+
+	/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf
+
+	}
+
 GetOsFirmwareVer()
 	{
 
@@ -2794,7 +2805,7 @@ GetOsFirmwareVer()
 	#	stdout = integer.
 	#	$? = 0 if found, 250 if not.
 
-	/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf | tr -d '.'
+	GetOsFirmwareVersion | tr -d '.'
 
 	}
 
@@ -2805,6 +2816,16 @@ GetHardwarePlatform()
 	#	$? = 0 if found, 250 if not.
 
 	/sbin/getcfg '' Platform -d undefined -f /etc/platform.conf
+
+	}
+
+GetUserDefVol()
+	{
+
+	# Outputs: (local)
+	#	$? = 0 if found, 250 if not.
+
+	/sbin/getcfg SHARE_DEF defVolMP -d undefined -f /etc/config/def_share.info
 
 	}
 
@@ -3732,23 +3753,77 @@ IsOsCanSecureDownload()
 	{
 
 	# NOTE: `/sbin/curl` with SSL certificate verification enabled:
-	#	- fails in:
+	# - fails in:
 	#		QTS 4.2.6
 	#		QTS 4.4.1
 	#		QTS 4.5.1
 	#		QTS 4.5.4.1715
-	#	- works in:
+	#		QTS 5.0.0.1986	- https://github.com/OneCDOnly/sherpa/issues/342#issuecomment-5310853477
+	# - works in:
+	#		QTS 4.5.4.2374
+	#		QTS 4.5.4.2627
+	#		QTS 5.0.1.2376
+	#		QTS 5.1.0.2466
+	#		QTS 5.1.9.2954
+	#		QTS 5.2.4.3092
+	#		QTS 5.2.5.3145
+	#		QTS 5.2.9.3451
+	#		QTS 5.2.10.3577
+
+	# Tested with:
+	#		curl 'https://raw.githubusercontent.com/OneCDOnly/sherpa/stable/sherpa-manager.tar.gz' > /share/Public/temp.tar.gz
+
+	#		QTS 4.5.4.2374
+	# curl 7.43.0 (arm-unknown-linux-gnueabihf) libcurl/7.43.0 OpenSSL/1.0.2z zlib/1.2.8 libidn/1.9
+	# Protocols: dict file ftp ftps gopher http https imap imaps ldap ldaps pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: IDN IPv6 Largefile GSS-API Kerberos SPNEGO NTLM NTLM_WB SSL libz TLS-SRP UnixSockets
+
+	#		QTS 5.0.1.2376
+	# curl 7.81.0 (arm-unknown-linux-gnueabihf) libcurl/7.81.0 OpenSSL/1.1.1t zlib/1.2.8
+	# Release-Date: 2022-01-05
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM NTLM_WB SPNEGO SSL TLS-SRP UnixSockets
+
+	#		QTS 5.1.0.2466
+	# curl 7.81.0 (arm-unknown-linux-gnueabihf) libcurl/7.81.0 OpenSSL/1.1.1t zlib/1.2.8
+	# Release-Date: 2022-01-05
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM NTLM_WB SPNEGO SSL TLS-SRP UnixSockets
+
+	#		QTS 5.1.9.2954
+	# curl 8.5.0 (arm-unknown-linux-gnueabihf) libcurl/8.5.0 OpenSSL/1.1.1t zlib/1.2.8
+	# Release-Date: 2023-12-06
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM SPNEGO SSL threadsafe TLS-SRP UnixSockets
+
 	#		QTS 4.5.4.2627
 
-	# NOTE: secure `curl` ops fail on a41 running QTS upto 5.2.5, but work in QTS 5.2.10
+	#		QTS 5.2.4.3092
+	# curl 8.5.0 (arm-unknown-linux-gnueabihf) libcurl/8.5.0 OpenSSL/3.0.9 zlib/1.2.8
+	# Release-Date: 2023-12-06
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM SPNEGO SSL threadsafe TLS-SRP UnixSockets
+
+	#		QTS 5.2.9.3451
+	# curl 8.5.0 (arm-unknown-linux-gnueabihf) libcurl/8.5.0 OpenSSL/3.0.9 zlib/1.2.8
+	# Release-Date: 2023-12-06
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM SPNEGO SSL threadsafe TLS-SRP UnixSockets
+
+	#		QTS 5.2.10.3577
+	# curl 8.5.0 (arm-unknown-linux-gnueabihf) libcurl/8.5.0 OpenSSL/3.0.20 zlib/1.2.8
+	# Release-Date: 2023-12-06
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM SPNEGO SSL threadsafe TLS-SRP UnixSockets
 
 	# Inputs: (global)
 	#	$r_nas_firmware_ver
 
-	SetQpkgArch
+#	SetQpkgArch
 	SetOsFirmwareVer
 
-	[[ $r_nas_firmware_ver -ge 455 && $r_nas_qpkg_arch != a41 ]] || [[ $r_nas_firmware_ver -ge 5210 ]]
+#	[[ $r_nas_firmware_ver -ge 455 && $r_nas_qpkg_arch != a41 ]] || [[ $r_nas_firmware_ver -ge 5210 ]]
+	[[ $r_nas_firmware_ver -ge 455 ]]
 
 	}
 

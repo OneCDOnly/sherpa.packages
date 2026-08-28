@@ -137,7 +137,7 @@ IsOsCanSecureDownload()
 	#	- works in:
 	#		QTS 4.5.4.2627
 
-	# NOTE: secure `curl` ops fail on a41 running QTS upto 5.2.5, but work in QTS 5.2.10
+	# NOTE: also fails on a41 running QTS upto 5.2.5, but work in QTS 5.2.10
 
 	# Inputs: (global)
 	#	$r_nas_firmware_ver

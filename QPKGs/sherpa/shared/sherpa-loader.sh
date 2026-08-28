@@ -1,9 +1,9 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it has been programmatically built or modified with the 'build-qpkgs.sh' script. (source: 'sherpa-loader.source')
+#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'sherpa-loader.source')
 #*
 #* sherpa-loader.sh
-#*	  Copyright (C) 2017-2025 OneCD.
+#*	  Copyright (C) 2017-2026 OneCD.
 #*
 #* Contact:
 #*	  one.cd.only@gmail.com
@@ -58,13 +58,13 @@ local -r r_manager_archive_file=${r_manager_file%.*}.tar.gz
 readonly r_manager_archive_url='https://raw.githubusercontent.com/OneCDOnly/sherpa'/$source_git_branch/$r_manager_archive_file
 readonly r_manager_archive_pathfile=$r_work_path/$r_manager_archive_file
 readonly r_manager_pathfile=$r_work_path/$r_manager_file
-local -r r_nas_firmware_ver=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
-[[ ${r_nas_firmware_ver//.} -ge 455 ]]&&curl_options='' ||curl_options=' --insecure'
+curl_insecure_opt=''
+IsOsCanSecureDownload ||curl_insecure_opt='--insecure'
 previous_msg=''
 return 0;}
 EnsureFileIsCurrent(){
 if [[ ! -e $1 ]]||! IsThisFileRecent "$1" 60;then
-if ! (/sbin/curl${curl_options} --silent --fail "$2">"$3");then
+if ! (/sbin/curl $curl_insecure_opt --silent --fail "$2">"$3");then
 ShowAsWarn 'Remote file download failed'
 else
 /bin/tar --extract --gzip --no-same-owner --file="$3" --directory="$(/usr/bin/dirname "$3")" 2>/dev/null
@@ -89,6 +89,51 @@ fi
 return 1
 fi
 return 0;}
+IsOsCanSecureDownload(){
+SetQpkgArch
+SetOsFirmwareVer
+[[ $r_nas_firmware_ver -ge 455 &&$r_nas_qpkg_arch != a41 ]]||[[ $r_nas_firmware_ver -ge 5210 ]];}
+GetOsFirmwareVer(){
+/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf|tr -d '.';}
+GetNasArch(){
+/bin/uname -m;}
+GetQpkgArch(){
+if [[ $(get_display_name) = 'TS-269H' ]];then
+printf i53
+return
+fi
+SetNasArch
+SetOsFirmwareVer
+SetHardwarePlatform
+case $r_nas_arch in
+x86_64)
+[[ $r_nas_firmware_ver -ge 430 ]]&&printf i64||printf i86;;
+i686|x86)
+printf i86;;
+armv5tel)
+printf a19;;
+armv7l)
+case $r_nas_platform in
+ARM_MS)
+printf a31;;
+ARM_AL)
+printf a41;;
+*)printf unknown
+esac;;
+aarch64)
+printf a64;;
+*)printf unknown
+esac;}
+GetHardwarePlatform(){
+/sbin/getcfg '' Platform -d undefined -f /etc/platform.conf;}
+SetNasArch(){
+[[ ${r_nas_arch:-unset} = unset ]]&&readonly r_nas_arch=$(GetNasArch);}
+SetQpkgArch(){
+[[ ${r_nas_qpkg_arch:-unset} = unset ]]&&readonly r_nas_qpkg_arch=$(GetQpkgArch);}
+SetOsFirmwareVer(){
+[[ ${r_nas_firmware_ver:-unset} = unset ]]&&readonly r_nas_firmware_ver=$(GetOsFirmwareVer);}
+SetHardwarePlatform(){
+[[ ${r_nas_platform:-unset} = unset ]]&&readonly r_nas_platform=$(GetHardwarePlatform);}
 ShowAsWarn(){
 WriteToDisplay.New "$(TextBrightOrange warn)" "${1:-}"
 return 0;}

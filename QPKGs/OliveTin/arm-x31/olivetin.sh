@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=OliveTin
-readonly r_service_script_version=260620
+readonly r_service_script_version=260817
 InitService(){
 can_restart_to_update=true
 resolve_source_url=true

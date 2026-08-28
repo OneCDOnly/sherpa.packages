@@ -1,9 +1,9 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it has been programmatically built or modified with the 'build-qpkgs.sh' script. (source: 'sherpa-service.source')
+#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'sherpa-service.source')
 #*
 #* sherpa-service.sh
-#*	  Copyright (C) 2017-2025 OneCD.
+#*	  Copyright (C) 2017-2026 OneCD.
 #*
 #* Contact:
 #*	  one.cd.only@gmail.com
