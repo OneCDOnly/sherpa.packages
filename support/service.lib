@@ -37,7 +37,7 @@ set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=260817
+readonly r_service_library_version=260829
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -83,7 +83,7 @@ readonly e_novar='undefined variable'
 readonly r_sys_log_path=/var/log
 readonly r_service_result_path=$r_sys_log_path
 readonly r_sys_run_path=/var/run
-local default_vol_mount_point=$(/sbin/getcfg SHARE_DEF defVolMP -f /etc/config/def_share.info)
+local default_vol_mount_point=$(GetUserDefVol)
 ConfirmVarIsDefined default_vol_mount_point "${default_vol_mount_point:-}" "$e_nopth"||return
 readonly r_backup_path=$default_vol_mount_point/.qpkg_config_backup
 readonly r_opkg_path=/opt/bin:/opt/sbin
@@ -106,7 +106,7 @@ readonly r_chars_super_prompt='# '
 readonly r_debug_log_datawidth=100
 readonly r_extended_datetime_format='+%a %-d %b %Y'
 readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
-readonly r_nas_firmware_version=$(/sbin/getcfg System Version -f /etc/config/uLinux.conf)
+readonly r_nas_firmware_version=$(GetOsFirmwareVersion)
 ConfirmVarIsDefined r_nas_firmware_version "${r_nas_firmware_version:-}" "$e_noval"||return
 readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -f /etc/config/qpkg.conf)
 ConfirmVarIsDefined r_qpkg_version "${r_qpkg_version:-}" "$e_noval"||return
@@ -1307,10 +1307,14 @@ printf a64;;
 esac;}
 GetNasArch(){
 /bin/uname -m;}
+GetOsFirmwareVersion(){
+/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf;}
 GetOsFirmwareVer(){
-/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf|tr -d '.';}
+GetOsFirmwareVersion|tr -d '.';}
 GetHardwarePlatform(){
 /sbin/getcfg '' Platform -d undefined -f /etc/platform.conf;}
+GetUserDefVol(){
+/sbin/getcfg SHARE_DEF defVolMP -d undefined -f /etc/config/def_share.info;}
 parse_yaml(){
 local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
 /bin/sed -ne "s|^\($s\):|\1|" \
@@ -1599,9 +1603,8 @@ IsVirtualPythonEnvFound(){
 IsNtVirtualPythonEnvFound(){
 ! IsVirtualPythonEnvFound;}
 IsOsCanSecureDownload(){
-SetQpkgArch
 SetOsFirmwareVer
-[[ $r_nas_firmware_ver -ge 455 &&$r_nas_qpkg_arch != a41 ]]||[[ $r_nas_firmware_ver -ge 5210 ]];}
+[[ $r_nas_firmware_ver -ge 455 ]];}
 IsSiteUp(){
 ConfirmVarIsDefined 1 "${1:-}" "$e_nourl"||return
 local a=$(cut -d'/' -f3<<<"$1"|cut -d':' -f1)

@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Readarr
-readonly r_service_script_version=260817
+readonly r_service_script_version=260829
 InitService(){
 can_restart_to_update=true
 check_network_before_start=true

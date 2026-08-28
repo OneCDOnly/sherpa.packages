@@ -34,7 +34,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WeeWX
-readonly r_service_script_version=260817
+readonly r_service_script_version=260829
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true
