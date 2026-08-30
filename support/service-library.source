@@ -1738,7 +1738,7 @@ FindPid()
 		[[ $a -gt 1 ]] || continue
 		[[ -d /proc/$a ]] || continue
 		[[ -e /proc/$a/cmdline && -L /proc/$a/exe ]] || continue
-		[[ $(</proc/$a/cmdline) =~ $1 || $(/usr/bin/readlink /proc/$a/exe) = "$1" ]] || continue
+		[[ $(</proc/$a/cmdline) =~ $1 || $(/usr/bin/readlink /proc/$a/exe 2> /dev/null) = "$1" ]] || continue
 
 		if [[ -n $b ]]; then
 			[[ $(</proc/$a/cmdline) =~ $b ]] || continue	# Check for additional string (if-specified).
@@ -3478,7 +3478,7 @@ IsDaemonActive()
 
 	if IsVarDefined daemon_pid_pathfile && [[ -s $daemon_pid_pathfile && -d /proc/"$(< "$daemon_pid_pathfile")" ]]; then
 		if IsDaemonCheck; then
-			[[ $(/usr/bin/readlink /proc/"$(< "$daemon_pid_pathfile")"/exe) = "$daemon_check_pathfile" ]]
+			[[ $(/usr/bin/readlink /proc/"$(< "$daemon_pid_pathfile")"/exe 2> /dev/null) = "$daemon_check_pathfile" ]]
 		else
 			[[ $(</proc/"$(< "$daemon_pid_pathfile")"/cmdline) =~ $daemon_exec_pathfile ]]
 		fi
