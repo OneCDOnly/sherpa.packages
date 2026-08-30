@@ -37,7 +37,7 @@ set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=260829
+readonly r_service_library_version=260830
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -838,7 +838,7 @@ for a in $(/bin/pidof "$(/usr/bin/basename "$1")");do
 [[ $a -gt 1 ]]||continue
 [[ -d /proc/$a ]]||continue
 [[ -e /proc/$a/cmdline &&-L /proc/$a/exe ]]||continue
-[[ $(</proc/$a/cmdline) =~ $1 ||$(/usr/bin/readlink /proc/$a/exe) = "$1" ]]||continue
+[[ $(</proc/$a/cmdline) =~ $1 ||$(/usr/bin/readlink /proc/$a/exe 2>/dev/null) = "$1" ]]||continue
 if [[ -n $b ]];then
 [[ $(</proc/$a/cmdline) =~ $b ]]||continue
 fi
@@ -1487,7 +1487,7 @@ fi;}
 IsDaemonActive(){
 if IsVarDefined daemon_pid_pathfile &&[[ -s $daemon_pid_pathfile &&-d /proc/"$(<"$daemon_pid_pathfile")" ]];then
 if IsDaemonCheck;then
-[[ $(/usr/bin/readlink /proc/"$(<"$daemon_pid_pathfile")"/exe) = "$daemon_check_pathfile" ]]
+[[ $(/usr/bin/readlink /proc/"$(<"$daemon_pid_pathfile")"/exe 2>/dev/null) = "$daemon_check_pathfile" ]]
 else
 [[ $(</proc/"$(<"$daemon_pid_pathfile")"/cmdline) =~ $daemon_exec_pathfile ]]
 fi
