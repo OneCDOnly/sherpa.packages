@@ -40,7 +40,7 @@ Init()
 
 	local -r r_manager_file='<?management_file?>'
 	local -r r_manager_archive_file=${r_manager_file%.*}.tar.gz
-	readonly r_manager_archive_url='<?cdn_sherpa_base_url?>'/$source_git_branch/$r_manager_archive_file
+	readonly r_manager_archive_url='<?sherpa_base_raw_url?>'/$source_git_branch/$r_manager_archive_file
 	readonly r_manager_archive_pathfile=$r_work_path/$r_manager_archive_file
 	readonly r_manager_pathfile=$r_work_path/$r_manager_file
 
