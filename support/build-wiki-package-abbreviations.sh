@@ -10,7 +10,7 @@ LoadObjects()
 	readonly r_objects_pathfile=$support_path/$objects_file
 
 	if [[ ! -e $r_objects_pathfile ]]; then
-		$support_path/build-objects.sh &>/dev/null
+		$support_path/build-objects.sh &> /dev/null
 		objects_built=true
 	fi
 
@@ -43,7 +43,7 @@ echo -n "building wiki 'Package abbreviations' page ... "
 a=$wiki_path/Package-abbreviations.md
 
 LoadObjects
-LoadPackages 2>/dev/null	# packages source file throws a lot of syntax errors until it's processed - ignore these.
+LoadPackages 2> /dev/null	# packages.source files throw a lot of "syntax error near unexpected token `<'" errors until they're processed - ignore these.
 
 	{
 
