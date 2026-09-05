@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=FileBrowser
-readonly r_service_script_version=260905
+readonly r_service_script_version=260906
 InitService(){
 can_restart_to_update=true
 resolve_source_url=true
