@@ -129,36 +129,137 @@ IsOsCanSecureDownload()
 	{
 
 	# NOTE: `/sbin/curl` with SSL certificate verification enabled:
-	#	- fails in:
+	# - fails in:
 	#		QTS 4.2.6
 	#		QTS 4.4.1
 	#		QTS 4.5.1
 	#		QTS 4.5.4.1715
-	#	- works in:
+	#		QTS 5.0.0.1986	- https://github.com/OneCDOnly/sherpa/issues/342#issuecomment-5310853477
+	# - works in:
+	#		QTS 4.5.4.2374
+	#		QTS 4.5.4.2627
+	#		QTS 5.0.1.2376
+	#		QTS 5.1.0.2466
+	#		QTS 5.1.9.2954
+	#		QTS 5.2.4.3092
+	#		QTS 5.2.5.3145
+	#		QTS 5.2.9.3451
+	#		QTS 5.2.10.3577
+
+	# Tested with:
+	#		curl 'https://raw.githubusercontent.com/OneCDOnly/sherpa/stable/sherpa-manager.tar.gz' > /share/Public/temp.tar.gz
+
+	#		QTS 4.5.4.2374
+	# curl 7.43.0 (arm-unknown-linux-gnueabihf) libcurl/7.43.0 OpenSSL/1.0.2z zlib/1.2.8 libidn/1.9
+	# Protocols: dict file ftp ftps gopher http https imap imaps ldap ldaps pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: IDN IPv6 Largefile GSS-API Kerberos SPNEGO NTLM NTLM_WB SSL libz TLS-SRP UnixSockets
+
+	#		QTS 5.0.1.2376
+	# curl 7.81.0 (arm-unknown-linux-gnueabihf) libcurl/7.81.0 OpenSSL/1.1.1t zlib/1.2.8
+	# Release-Date: 2022-01-05
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM NTLM_WB SPNEGO SSL TLS-SRP UnixSockets
+
+	#		QTS 5.1.0.2466
+	# curl 7.81.0 (arm-unknown-linux-gnueabihf) libcurl/7.81.0 OpenSSL/1.1.1t zlib/1.2.8
+	# Release-Date: 2022-01-05
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM NTLM_WB SPNEGO SSL TLS-SRP UnixSockets
+
+	#		QTS 5.1.9.2954
+	# curl 8.5.0 (arm-unknown-linux-gnueabihf) libcurl/8.5.0 OpenSSL/1.1.1t zlib/1.2.8
+	# Release-Date: 2023-12-06
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM SPNEGO SSL threadsafe TLS-SRP UnixSockets
+
 	#		QTS 4.5.4.2627
 
-	# NOTE: also fails on a41 running QTS upto 5.2.5, but work in QTS 5.2.10
+	#		QTS 5.2.4.3092
+	# curl 8.5.0 (arm-unknown-linux-gnueabihf) libcurl/8.5.0 OpenSSL/3.0.9 zlib/1.2.8
+	# Release-Date: 2023-12-06
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM SPNEGO SSL threadsafe TLS-SRP UnixSockets
+
+	#		QTS 5.2.9.3451
+	# curl 8.5.0 (arm-unknown-linux-gnueabihf) libcurl/8.5.0 OpenSSL/3.0.9 zlib/1.2.8
+	# Release-Date: 2023-12-06
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM SPNEGO SSL threadsafe TLS-SRP UnixSockets
+
+	#		QTS 5.2.10.3577
+	# curl 8.5.0 (arm-unknown-linux-gnueabihf) libcurl/8.5.0 OpenSSL/3.0.20 zlib/1.2.8
+	# Release-Date: 2023-12-06
+	# Protocols: dict file ftp ftps gopher gophers http https imap imaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+	# Features: alt-svc AsynchDNS GSS-API HSTS HTTPS-proxy IPv6 Kerberos Largefile libz NTLM SPNEGO SSL threadsafe TLS-SRP UnixSockets
 
 	# Inputs: (global)
 	#	$r_nas_firmware_ver
 
-	SetQpkgArch
 	SetOsFirmwareVer
 
-	[[ $r_nas_firmware_ver -ge 455 && $r_nas_qpkg_arch != a41 ]] || [[ $r_nas_firmware_ver -ge 5210 ]]
+	[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.5.5))) ]]
+
+	}
+
+GetOsFirmwareVersion()
+	{
+
+	# Outputs: (local)
+	#	stdout = text string.
+	#	$? = 0 if found, 250 if not.
+
+	/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf
+
+	}
+
+GetOsFirmwareBuild()
+	{
+
+	# Outputs: (local)
+	#	stdout = text string.
+	#	$? = 0 if found, 250 if not.
+
+	/sbin/getcfg System Number -d undefined -f /etc/config/uLinux.conf
 
 	}
 
 GetOsFirmwareVer()
 	{
 
-	# Same as GetOsFirmwareVersion(), but returns an integer-only (no periods).
+	# Returns an evaluable integer-only.
 
 	# Outputs: (local)
 	#	stdout = integer.
-	#	$? = 0 if found, 250 if not.
 
-	/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf | tr -d '.'
+	ConvertFirmwareVersionStringToNumber "$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)"
+
+	}
+
+ConvertFirmwareVersionStringToNumber()
+	{
+
+	# Convert regular QTS version string into a number evaluable against another.
+	#	Example: '5.2.10' becomes '0502100000'
+	#	Example: '4.6.99.1234' becomes '0406991234'
+
+	# Output should be compared using forced base-10 syntax (to handle leading zero):
+	#	Example: [[ $((10#$a)) -gt $((10#$b)) ]]
+
+	local -i major=0
+	local -i intermediate=0
+	local -i minor=0
+	local -i build=0
+
+	# Use only this many digits from start of each field.
+
+	local -i major_trim=2
+	local -i intermediate_trim=2
+	local -i minor_trim=2
+	local -i build_trim=4
+
+	while IFS=. read -r major intermediate minor build; do
+		printf "%0${major_trim}d%0${intermediate_trim}d%0${minor_trim}d%0${build_trim}d" "${major:0:major_trim}" "${intermediate:0:intermediate_trim}" "${minor:0:minor_trim}" "${build:0:build_trim}"
+	done <<< "$1"
 
 	}
 
@@ -196,7 +297,7 @@ GetQpkgArch()
 
 	case $r_nas_arch in
 		x86_64)
-			[[ $r_nas_firmware_ver -ge 430 ]] && printf i64 || printf i86
+			[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.3.0))) ]] && printf i64 || printf i86
 			;;
 		i686|x86)
 			printf i86
@@ -255,10 +356,20 @@ SetQpkgArch()
 
 	}
 
+SetOsFirmwareVersion()
+	{
+
+	# Outputs: (global)
+	#	$r_nas_firmware_version
+
+	[[ ${r_nas_firmware_version:-unset} = unset ]] && readonly r_nas_firmware_version=$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)
+
+	}
+
 SetOsFirmwareVer()
 	{
 
-	# Same as SetOsFirmwareVersion(), but returns an integer-only (no periods).
+	# Same as SetOsFirmwareVersion(), but as an integer-only (no periods).
 
 	# Outputs: (global)
 	#	$r_nas_firmware_ver
