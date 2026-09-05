@@ -111,8 +111,6 @@ InitLibrary()
 			readonly r_debug_log_datawidth=100
 			readonly r_extended_datetime_format='+%a %-d %b %Y'
 			readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
-			readonly r_nas_firmware_version=$(GetOsFirmwareVersion)
-			ConfirmVarIsDefined r_nas_firmware_version "${r_nas_firmware_version:-}" "$e_noval" || return
 			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -f /etc/config/qpkg.conf)
 			ConfirmVarIsDefined r_qpkg_version "${r_qpkg_version:-}" "$e_noval" || return
 			r_qpkgs_name_arrs=(Readarr Sonarr Whisparr)
@@ -1749,7 +1747,7 @@ FindPid()
 		[[ $a -gt 1 ]] || continue
 		[[ -d /proc/$a ]] || continue
 		[[ -e /proc/$a/cmdline && -L /proc/$a/exe ]] || continue
-		[[ $(</proc/$a/cmdline) =~ $1 || $(/usr/bin/readlink /proc/$a/exe) = "$1" ]] || continue
+		[[ $(</proc/$a/cmdline) =~ $1 || $(/usr/bin/readlink /proc/$a/exe 2> /dev/null) = "$1" ]] || continue
 
 		if [[ -n $b ]]; then
 			[[ $(</proc/$a/cmdline) =~ $b ]] || continue	# Check for additional string (if-specified).
@@ -2760,7 +2758,7 @@ GetQpkgArch()
 
 	case $r_nas_arch in
 		x86_64)
-			[[ $r_nas_firmware_ver -ge 430 ]] && printf i64 || printf i86
+			[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.3.0))) ]] && printf i64 || printf i86
 			;;
 		i686|x86)
 			printf i86
@@ -2807,16 +2805,54 @@ GetOsFirmwareVersion()
 
 	}
 
+GetOsFirmwareBuild()
+	{
+
+	# Outputs: (local)
+	#	stdout = text string.
+	#	$? = 0 if found, 250 if not.
+
+	/sbin/getcfg System Number -d undefined -f /etc/config/uLinux.conf
+
+	}
+
 GetOsFirmwareVer()
 	{
 
-	# Same as GetOsFirmwareVersion(), but as an integer-only (no periods).
+	# Returns an evaluable integer-only.
 
 	# Outputs: (local)
 	#	stdout = integer.
-	#	$? = 0 if found, 250 if not.
 
-	GetOsFirmwareVersion | tr -d '.'
+	ConvertFirmwareVersionStringToNumber "$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)"
+
+	}
+
+ConvertFirmwareVersionStringToNumber()
+	{
+
+	# Convert regular QTS version string into a number evaluable against another.
+	#	Example: '5.2.10' becomes '0502100000'
+	#	Example: '4.6.99.1234' becomes '0406991234'
+
+	# Output should be compared using forced base-10 syntax (to handle leading zero):
+	#	Example: [[ $((10#$a)) -gt $((10#$b)) ]]
+
+	local -i major=0
+	local -i intermediate=0
+	local -i minor=0
+	local -i build=0
+
+	# Use only this many digits from start of each field.
+
+	local -i major_trim=2
+	local -i intermediate_trim=2
+	local -i minor_trim=2
+	local -i build_trim=4
+
+	while IFS=. read -r major intermediate minor build; do
+		printf "%0${major_trim}d%0${intermediate_trim}d%0${minor_trim}d%0${build_trim}d" "${major:0:major_trim}" "${intermediate:0:intermediate_trim}" "${minor:0:minor_trim}" "${build:0:build_trim}"
+	done <<< "$1"
 
 	}
 
@@ -3012,6 +3048,16 @@ SetQpkgArch()
 	#	$r_nas_qpkg_arch
 
 	[[ ${r_nas_qpkg_arch:-unset} = unset ]] && readonly r_nas_qpkg_arch=$(GetQpkgArch)
+
+	}
+
+SetOsFirmwareVersion()
+	{
+
+	# Outputs: (global)
+	#	$r_nas_firmware_version
+
+	[[ ${r_nas_firmware_version:-unset} = unset ]] && readonly r_nas_firmware_version=$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)
 
 	}
 
@@ -3489,7 +3535,7 @@ IsDaemonActive()
 
 	if IsVarDefined daemon_pid_pathfile && [[ -s $daemon_pid_pathfile && -d /proc/"$(< "$daemon_pid_pathfile")" ]]; then
 		if IsDaemonCheck; then
-			[[ $(/usr/bin/readlink /proc/"$(< "$daemon_pid_pathfile")"/exe) = "$daemon_check_pathfile" ]]
+			[[ $(/usr/bin/readlink /proc/"$(< "$daemon_pid_pathfile")"/exe 2> /dev/null) = "$daemon_check_pathfile" ]]
 		else
 			[[ $(</proc/"$(< "$daemon_pid_pathfile")"/cmdline) =~ $daemon_exec_pathfile ]]
 		fi
@@ -3830,11 +3876,9 @@ IsOsCanSecureDownload()
 	# Inputs: (global)
 	#	$r_nas_firmware_ver
 
-#	SetQpkgArch
 	SetOsFirmwareVer
 
-#	[[ $r_nas_firmware_ver -ge 455 && $r_nas_qpkg_arch != a41 ]] || [[ $r_nas_firmware_ver -ge 5210 ]]
-	[[ $r_nas_firmware_ver -ge 455 ]]
+	[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.5.5))) ]]
 
 	}
 

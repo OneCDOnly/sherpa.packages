@@ -101,16 +101,16 @@ GetOsFirmwareBuild(){
 GetOsFirmwareVer(){
 ConvertFirmwareVersionStringToNumber "$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)";}
 ConvertFirmwareVersionStringToNumber(){
-local -i major=0
-local -i intermediate=0
-local -i minor=0
-local -i build=0
+local major=0
+local intermediate=0
+local minor=0
+local build=0
 local -i major_trim=2
 local -i intermediate_trim=2
 local -i minor_trim=2
 local -i build_trim=4
 while IFS=. read -r major intermediate minor build;do
-printf "%0${major_trim}d%0${intermediate_trim}d%0${minor_trim}d%0${build_trim}d" "${major:0:major_trim}" "${intermediate:0:intermediate_trim}" "${minor:0:minor_trim}" "${build:0:build_trim}"
+printf "%0${major_trim}d%0${intermediate_trim}d%0${minor_trim}d%0${build_trim}d" "$((10#${major:0:major_trim}))" "$((10#${intermediate:0:intermediate_trim}))" "$((10#${minor:0:minor_trim}))" "$((10#${build:0:build_trim}))"
 done<<<"$1";}
 GetNasArch(){
 /bin/uname -m;}
