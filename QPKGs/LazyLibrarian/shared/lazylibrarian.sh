@@ -14,14 +14,16 @@
 #* Project:
 #*	  https://git.io/sherpa
 #*
-#* Support forums:
+#* Support forum topic:
 #*	  https://community.qnap.com/t/qpkg-sherpa-a-mini-package-manager-cli/1081
-#*	  https://forum.qnap.com/viewtopic.php?t=132373
 #*
 #* Tested on:
 #*	  GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
-#*	  GNU bash, version 3.2.57(1)-release (x86_64-QNAP-linux-gnu)
+#*	  GNU bash, version 3.2.57(1)-release (arm-none-linux-gnueabi)
+#*	  GNU bash, version 3.2.57(1)-release (arm-openwrt-linux-gnu)
+#*	  GNU bash, version 3.2.57(4)-release (arm-unknown-linux-gnueabihf)
 #*	  GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
+#*	  GNU bash, version 3.2.57(1)-release (x86_64-QNAP-linux-gnu)
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
 #*
 #* Notes:
@@ -34,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=LazyLibrarian
-readonly r_service_script_version=260830
+readonly r_service_script_version=260905
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true

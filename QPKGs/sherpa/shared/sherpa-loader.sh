@@ -14,14 +14,16 @@
 #* Project:
 #*	  https://git.io/sherpa
 #*
-#* Support forums:
+#* Support forum topic:
 #*	  https://community.qnap.com/t/qpkg-sherpa-a-mini-package-manager-cli/1081
-#*	  https://forum.qnap.com/viewtopic.php?t=132373
 #*
 #* Tested on:
 #*	  GNU bash, version 3.2.57(1)-release (aarch64-QNAP-linux-gnu)
-#*	  GNU bash, version 3.2.57(1)-release (x86_64-QNAP-linux-gnu)
+#*	  GNU bash, version 3.2.57(1)-release (arm-none-linux-gnueabi)
+#*	  GNU bash, version 3.2.57(1)-release (arm-openwrt-linux-gnu)
+#*	  GNU bash, version 3.2.57(4)-release (arm-unknown-linux-gnueabihf)
 #*	  GNU bash, version 3.2.57(2)-release (i686-pc-linux-gnu)
+#*	  GNU bash, version 3.2.57(1)-release (x86_64-QNAP-linux-gnu)
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
 #*
 #* Notes:
@@ -90,11 +92,26 @@ return 1
 fi
 return 0;}
 IsOsCanSecureDownload(){
-SetQpkgArch
 SetOsFirmwareVer
-[[ $r_nas_firmware_ver -ge 455 &&$r_nas_qpkg_arch != a41 ]]||[[ $r_nas_firmware_ver -ge 5210 ]];}
+[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.5.5))) ]];}
+GetOsFirmwareVersion(){
+/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf;}
+GetOsFirmwareBuild(){
+/sbin/getcfg System Number -d undefined -f /etc/config/uLinux.conf;}
 GetOsFirmwareVer(){
-/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf|tr -d '.';}
+ConvertFirmwareVersionStringToNumber "$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)";}
+ConvertFirmwareVersionStringToNumber(){
+local -i major=0
+local -i intermediate=0
+local -i minor=0
+local -i build=0
+local -i major_trim=2
+local -i intermediate_trim=2
+local -i minor_trim=2
+local -i build_trim=4
+while IFS=. read -r major intermediate minor build;do
+printf "%0${major_trim}d%0${intermediate_trim}d%0${minor_trim}d%0${build_trim}d" "${major:0:major_trim}" "${intermediate:0:intermediate_trim}" "${minor:0:minor_trim}" "${build:0:build_trim}"
+done<<<"$1";}
 GetNasArch(){
 /bin/uname -m;}
 GetQpkgArch(){
@@ -107,7 +124,7 @@ SetOsFirmwareVer
 SetHardwarePlatform
 case $r_nas_arch in
 x86_64)
-[[ $r_nas_firmware_ver -ge 430 ]]&&printf i64||printf i86;;
+[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.3.0))) ]]&&printf i64||printf i86;;
 i686|x86)
 printf i86;;
 armv5tel)
@@ -130,6 +147,8 @@ SetNasArch(){
 [[ ${r_nas_arch:-unset} = unset ]]&&readonly r_nas_arch=$(GetNasArch);}
 SetQpkgArch(){
 [[ ${r_nas_qpkg_arch:-unset} = unset ]]&&readonly r_nas_qpkg_arch=$(GetQpkgArch);}
+SetOsFirmwareVersion(){
+[[ ${r_nas_firmware_version:-unset} = unset ]]&&readonly r_nas_firmware_version=$(GetOsFirmwareVersion).$(GetOsFirmwareBuild);}
 SetOsFirmwareVer(){
 [[ ${r_nas_firmware_ver:-unset} = unset ]]&&readonly r_nas_firmware_ver=$(GetOsFirmwareVer);}
 SetHardwarePlatform(){
