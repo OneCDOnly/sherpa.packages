@@ -1,3 +1,4 @@
+JSON-log-formatter~=0.5.2
 blessed
 charset-normalizer
 click
@@ -12,10 +13,11 @@ psutil~=6.0.0
 py-cpuinfo>=7.0.0
 pyyaml
 readchar
-requests>=2.28.2,<2.32.5
+requests>=2.28.2 #,<2.32.5
 requests_toolbelt>=0.9.1
 runs
 schedule==1.2.2
+sentry-sdk>=2.0.0
 swagger-ui-py				# Required for hosting the API docs
 tornado==6.3.3
 unmanic
@@ -23,4 +25,4 @@ watchdog>=2.1.1				# Optional requirements
 wcwidth
 wheel
 xmod
-xxhash
+xxhash>=3.6.0
