@@ -4775,8 +4775,8 @@ DisplayAndCommitToServiceLog()
 DisplayAndCommitProcessWaitToServiceLog()
 	{
 
-	DisplayWait "> ${1:-}:"					# squeezer-ignore
-	CommitWaitToServiceLog "> ${1:-}:"		# squeezer-ignore
+	DisplayWait "> ${1:-}:"					# dont-squeeze
+	CommitWaitToServiceLog "> ${1:-}:"		# dont-squeeze
 
 	}
 
