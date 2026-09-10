@@ -152,7 +152,7 @@ InitLibrary()
 
 	# Create a `screen.conf` for this QPKG.
 
-	if [[ $run_daemon_in_screen_session = true && ! -s $r_screen_conf_pathfile ]]; then
+	if IsDaemonInScreen && [[ ! -s $r_screen_conf_pathfile ]]; then
 		echo -e "logfile $r_screen_log_pathfile\nlogfile flush 1\nlog on" > "$r_screen_conf_pathfile"
 	fi
 
@@ -670,6 +670,7 @@ StatusQpkg()
 
 	IsNtError || return
 	ShowQpkgStates
+	IsDaemonInScreen && ShowScreenState
 	IsDaemon && ShowDaemonState
 
 	if IsFuncExist StatusQpkgCustom; then
@@ -688,7 +689,7 @@ StatusQpkgLibrary()
 
 	# NOTE: Processing will terminate in this function (no-return).
 
-	# RefreshScreenPidFile
+	RefreshScreenPidFile
 	RefreshDaemonPidFile
 
 	if IsDaemon && IsDaemonActive; then
@@ -832,7 +833,7 @@ StartDaemon()
 	local b=$daemon_launch_cmd
 	local -i c=0
 
-	[[ $run_daemon_in_screen_session = true ]] && a+=" (in 'screen' session)"
+	IsDaemonInScreen && a+=" (in 'screen' session)"
 
 	if ((nice_daemon_to != 0)) && ((nice_daemon_to >= -20)) && ((nice_daemon_to <= 19)) && [[ -x $r_gnu_nice_cmd ]]; then
 		b="$r_gnu_nice_cmd -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
@@ -845,7 +846,7 @@ StartDaemon()
 	fi
 
 	while true; do
-		[[ $run_daemon_in_screen_session = true ]] && rm -f "$r_screen_log_pathfile"
+		IsDaemonInScreen && rm -f "$r_screen_log_pathfile"
 
 		if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; then
 			DisplayAndCommitWarnToServiceLog 'there has been a daemon launch failure'
@@ -859,7 +860,7 @@ StartDaemon()
 
 		if ! IsDaemonActive &> /dev/null || (IsWebUi && ! WatchForPortsActive); then
 			DisplayAndCommitWarnToServiceLog 'daemon PID check failed: there appears to have been a post-launch failure'
-			[[ $run_daemon_in_screen_session = true ]] && AddFileToDebug "$r_screen_log_pathfile"
+			IsDaemonInScreen && AddFileToDebug "$r_screen_log_pathfile"
 			StopDaemon
 			((c++))
 
