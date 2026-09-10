@@ -653,7 +653,7 @@ StopQpkgLibrary()
 		return
 	fi
 
-	RefreshPidFile
+	RefreshDaemonPidFile
 
 	if IsDaemon && IsDaemonActive; then
 		SetDaemonWasActive
@@ -688,7 +688,8 @@ StatusQpkgLibrary()
 
 	# NOTE: Processing will terminate in this function (no-return).
 
-	RefreshPidFile
+	# RefreshScreenPidFile
+	RefreshDaemonPidFile
 
 	if IsDaemon && IsDaemonActive; then
 		if IsWebUi; then
@@ -1664,7 +1665,7 @@ WatchForGit()
 
 	}
 
-RefreshPidFile()
+RefreshDaemonPidFile()
 	{
 
 	# Inputs: (global)
@@ -1781,7 +1782,7 @@ PauseForStartPid()
 		DisplayAndCommitOutcomeToServiceLog 'done'
 	fi
 
-	RefreshPidFile || return
+	RefreshDaemonPidFile || return
 
 	}
 
@@ -1806,7 +1807,7 @@ PauseForKillPid()
 		DisplayAndCommitOutcomeToServiceLog 'done'
 	fi
 
-	! RefreshPidFile || return
+	! RefreshDaemonPidFile || return
 
 	}
 
@@ -1877,7 +1878,7 @@ WatchForDaemon()
 				/bin/sleep 1
 				DisplayWait "$i,"
 
-				RefreshPidFile
+				RefreshDaemonPidFile
 
 				if IsDaemonActive; then
 					DisplayAndCommitOutcomeToServiceLog OK
