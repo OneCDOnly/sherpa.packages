@@ -79,19 +79,22 @@ InitLibrary()
 			readonly r_sys_log_path=/var/log
 				readonly r_service_result_path=$r_sys_log_path
 			readonly r_sys_run_path=/var/run
+			local r_default_vol_mount_point=''
 
-			local default_vol_mount_point=''
-			default_vol_mount_point=$(GetUserDefVol)
-			ConfirmVarIsDefined default_vol_mount_point "${default_vol_mount_point:-}" "$e_nopth" || return
-				readonly r_backup_path=$default_vol_mount_point/.qpkg_config_backup
+			r_default_vol_mount_point=$(GetUserDefVol)
 
+			ConfirmVarIsDefined r_default_vol_mount_point "${r_default_vol_mount_point:-}" "$e_nopth" || return
+
+			local -r r_default_vol_mount_point
+			readonly r_backup_path=$r_default_vol_mount_point/.qpkg_config_backup
 			readonly r_opkg_path=/opt/bin:/opt/sbin
 				export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
-
 			readonly r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
+
 			ConfirmVarIsDefined r_qpkg_path "${r_qpkg_path:-}" "$e_nopth" || return
-				readonly r_qpkg_log_path=$r_qpkg_path/log
-				readonly r_qpkg_pypi_module_lists_path=$r_qpkg_path/pypi-lists
+
+			readonly r_qpkg_log_path=$r_qpkg_path/log
+			readonly r_qpkg_pypi_module_lists_path=$r_qpkg_path/pypi-lists
 
 		# Pathfilenames.
 
@@ -112,12 +115,15 @@ InitLibrary()
 			readonly r_debug_log_datawidth=100
 			readonly r_extended_datetime_format='+%a %-d %b %Y'
 			readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
-			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -f /etc/config/qpkg.conf)
+			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d undefined -f /etc/config/qpkg.conf)
+
 			ConfirmVarIsDefined r_qpkg_version "${r_qpkg_version:-}" "$e_noval" || return
-			r_qpkgs_name_arrs=(Readarr Sonarr Whisparr)
-				readonly r_qpkgs_name_arrs
-			r_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
-				readonly r_qpkgs_name_migrated
+
+			ar_qpkgs_name_arrs=(Readarr Sonarr Whisparr)
+			ar_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
+
+			readonly ar_qpkgs_name_arrs
+			readonly ar_qpkgs_name_migrated
 
 	IsSU || exit
 
@@ -699,6 +705,7 @@ StatusQpkgLibrary()
 
 			if ! WatchForPortsActive; then
 				Display '! no response from port(s)'
+
 				exit 1
 			fi
 		fi
@@ -828,6 +835,7 @@ StartDaemon()
 	if IsDaemonActive; then
 		DisplayAndCommitInfoToServiceLog 'daemon is already active'
 		ShowDaemonState
+
 		return
 	fi
 
@@ -869,6 +877,7 @@ StartDaemon()
 
 			if [[ $((c-1)) -lt $start_retries ]]; then
 				DisplayAndCommitRetryToServiceLog "retry $c/$start_retries"
+
 				continue
 			fi
 
@@ -923,6 +932,7 @@ StopDaemon()
 				[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
 
 				DisplayAndCommitOutcomeToServiceLog OK					# Assume `kill -9` actually worked.
+
 				break 2
 			fi
 		done
@@ -1186,36 +1196,42 @@ InstallVirtualPythonPackages()
 	for a in $r_qpkg_pypi_module_lists_path/excluded.txt; do
 		[[ -n $a && -s $a ]] || continue
 		excluded_modules_pathfile=$a
+
 		break
 	done
 
 	for a in $r_qpkg_pypi_module_lists_path/base.txt; do
 		[[ -n $a && -s $a ]] || continue
 		base_modules_pathfile=$a
+
 		break
 	done
 
 	for a in $r_qpkg_pypi_module_lists_path/essential.txt; do
 		[[ -n $a && -s $a ]] || continue
 		essential_modules_pathfile=$a
+
 		break
 	done
 
 	for a in $r_qpkg_pypi_module_lists_path/required.txt $qpkg_repo_path/requirements.txt; do
 		[[ -n $a && -s $a ]] || continue
 		required_modules_pathfile=$a
+
 		break
 	done
 
 	for a in $r_qpkg_pypi_module_lists_path/recommended.txt $qpkg_repo_path/recommended.txt; do
 		[[ -n $a && -s $a ]] || continue
 		recommended_modules_pathfile=$a
+
 		break
 	done
 
 	for a in $r_qpkg_pypi_module_lists_path/renamed.txt; do
 		[[ -n $a && -s $a ]] || continue
 		renamed_modules_pathfile=$a
+
 		break
 	done
 
@@ -1488,9 +1504,11 @@ GetApplVersion()
 
 	if IsSupportGetApplVersion && [[ -s $appl_version_pathfile ]]; then
 		appl_version=$(eval "$get_appl_version_cmd")
+
 		return 0
 	else
 		appl_version=unknown
+
 		return 1
 	fi
 
@@ -1592,6 +1610,7 @@ CloneGitRepo()
 
 		if [[ $? -ne 0 && $useropt_verbose = true ]]; then
 			DisplayAndCommitErrorToAllLogs 'clone failed'
+
 			SetError; return
 		fi
 	elif IsUpdate || IsAutoUpdate; then
@@ -1609,6 +1628,7 @@ CloneGitRepo()
 
 	if [[ -z $active_branch || $active_branch = none ]]; then
 		DisplayAndCommitErrorToAllLogs 'no active git branch found'
+
 		SetError; return
 	fi
 
@@ -1658,16 +1678,19 @@ WatchForGit()
 
 	if IsNtQpkgInstalled Entware; then
 		DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not installed"
+
 		SetError; return
 	fi
 
 	if IsNtQpkgEnabled Entware; then
 		DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not enabled"
+
 		SetError; return
 	fi
 
 	if WatchForFileToAppear "$r_git_cmd" 300; then
 		export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
+
 		return 0
 	fi
 
@@ -1860,6 +1883,7 @@ WatchForAnyInterfaceUp()
 
 		if [[ $? -ne 0 ]]; then
 			DisplayAndCommitErrorToAllLogs "operational network interface not found (exceeded timeout: $a second$(Pluralise "$a"))"
+
 			return 1
 		fi
 	fi
@@ -1909,6 +1933,7 @@ WatchForDaemon()
 
 		if [[ $? -ne 0 ]]; then
 			DisplayAndCommitWarnToServiceLog "process name not found (exceeded timeout: $a second$(Pluralise "$a"))"
+
 			return 1
 		fi
 	fi
@@ -1961,6 +1986,7 @@ WatchForFileToAppear()
 
 		if [[ $? -ne 0 ]]; then
 			DisplayAndCommitErrorToAllLogs "file $1 not found (exceeded timeout: $a second$(Pluralise "$a"))"
+
 			return 1
 		fi
 	fi
@@ -2221,6 +2247,7 @@ DisplayRunAndLog()
 	fi
 
 	[[ -e $r_log_pathfile ]] && rm -f "$r_log_pathfile"
+
 	return $z
 
 	}
@@ -2322,6 +2349,7 @@ Executer()
 	fi
 
 	[[ -e $r_log_pathfile ]] && rm -f "$r_log_pathfile"
+
 	return $z
 
 	}
@@ -2648,9 +2676,11 @@ WatchForPortsActive()
 
 	if [[ -z $a ]]; then
 		DisplayAndCommitWarnToServiceLog 'no response on configured port(s)'
+
 		return 1
 	else
 		ReWriteUIPorts
+
 		return 0
 	fi
 
@@ -2779,6 +2809,7 @@ GetQpkgArch()
 
 	if [[ $(get_display_name) = 'TS-269H' ]]; then
 		printf i53
+
 		return
 	fi
 
@@ -3011,6 +3042,7 @@ GetKeyFromPyload()
 
 	if [[ $start_line_num -eq 0 ]]; then
 		echo 'section match not found'
+
 		return 1
 	fi
 
@@ -3205,7 +3237,7 @@ IsQpkgArr()
 
 	local re=\\b${1:-${r_qpkg_name:?${FUNCNAME[0]}(): $e_nopnm}}\\b			# bash 3.2 regex with word boundaries: https://stackoverflow.com/a/9793094
 
-	[[ ${r_qpkgs_name_arrs[*]} =~ $re ]]
+	[[ ${ar_qpkgs_name_arrs[*]} =~ $re ]]
 
 	}
 
@@ -3259,7 +3291,7 @@ IsQpkgMigrated()
 
 	local re=\\b${1:-$r_qpkg_name}\\b			# bash 3.2 regex with word boundaries: https://stackoverflow.com/a/9793094
 
-	[[ ${r_qpkgs_name_migrated[*]} =~ $re ]]
+	[[ ${ar_qpkgs_name_migrated[*]} =~ $re ]]
 
 	}
 
@@ -5609,11 +5641,13 @@ ProcessArgs()						# unused-ignore.
 
 	if IsReinstall; then			# Ignore 'start' and 'stop' requests issued by QTS during QPKG reinstallation. If QPKG is disabled, then reinstalled, the service result will be 'failed' (which is technically correct as the last action after reinstall is 'start', but probably better to see the reinstall result instead).
 		echo "Detected 'reinstall' in-progress, so not processing internal QPKG actions further."
+
 		exit
 	fi
 
 	if IsUpgrade; then				# Ignore 'start' and 'stop' requests issued by QTS during QPKG upgrade. If QPKG is disabled, then upgraded, the service result will be 'failed' (which is technically correct as the last action after upgrade is 'start', but probably better to see the upgrade result instead).
 		echo "Detected 'upgrade' in-progress, so not processing internal QPKG actions further."
+
 		exit
 	fi
 
