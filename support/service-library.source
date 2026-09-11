@@ -34,6 +34,7 @@ InitLibrary()
 		[[ $r_user_args_raw =~ $re ]] || continue
 		useropt_debug=true
 		useropt_verbose=true
+
 		break
 	done
 
@@ -610,6 +611,7 @@ StartQpkgLibrary()
 
 	if IsNtDaemon; then
 		CreateUserlinkToExec
+
 		return
 	fi
 
@@ -657,6 +659,7 @@ StopQpkgLibrary()
 
 	if IsNtDaemon; then
 		RemoveUserlinkToExec
+
 		return
 	fi
 
@@ -861,6 +864,7 @@ StartDaemon()
 
 		if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; then
 			DisplayAndCommitWarnToServiceLog 'there has been a daemon launch failure'
+
 			SetError; return
 		fi
 
@@ -942,6 +946,7 @@ StopDaemon()
 		DisplayAndCommitOutcomeToServiceLog OK
 		CommitInfoToServiceLog "stopped in $c second$(Pluralise "$c")"
 		CommitInfoToSysLog "$a: OK"
+
 		break
 	done
 
@@ -1486,6 +1491,7 @@ LoadPorts()
 	[[ -z $daemon_port || $daemon_port -lt 0 || $daemon_port -gt 65535 ]] && daemon_port=0
 
 	[[ -z $ui_listening_address ]] && ui_listening_address=undefined
+
 	return 0
 
 	}
