@@ -80,7 +80,8 @@ InitLibrary()
 				readonly r_service_result_path=$r_sys_log_path
 			readonly r_sys_run_path=/var/run
 
-			local default_vol_mount_point=$(GetUserDefVol)
+			local default_vol_mount_point=''
+			default_vol_mount_point=$(GetUserDefVol)
 			ConfirmVarIsDefined default_vol_mount_point "${default_vol_mount_point:-}" "$e_nopth" || return
 				readonly r_backup_path=$default_vol_mount_point/.qpkg_config_backup
 
@@ -770,9 +771,10 @@ CreateVirtualPythonEnv()
 	ConfirmVarIsDefined qpkg_venv_path "${qpkg_venv_path:-}" "$e_nopth" || return
 	ConfirmVarIsDefined qpkg_pip_path "${qpkg_pip_path:-}" "$e_nopth" || return
 
-	new_env=false
 	local a=''
 	local b=$qpkg_venv_path/pip.conf
+
+	new_env=false
 
 	[[ $allow_access_to_sys_packages = true ]] && a='--system-site-packages'
 
@@ -829,9 +831,10 @@ StartDaemon()
 		return
 	fi
 
+	local -i c=0
+
 	local a='start daemon'
 	local b=$daemon_launch_cmd
-	local -i c=0
 
 	IsDaemonInScreen && a+=" (in 'screen' session)"
 
@@ -890,10 +893,14 @@ StopDaemon()
 
 	[[ -s $daemon_pid_pathfile ]] || return
 
-	local a='stop daemon'
-	local -i b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
+	local -i b=0
 	local -i c=0
-	local -i d=$(< "$daemon_pid_pathfile")
+	local -i d=0
+
+	local a='stop daemon'
+
+	b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
+	d=$(< "$daemon_pid_pathfile")
 
 	[[ $d -gt 1 ]] || return
 
@@ -1551,12 +1558,14 @@ CloneGitRepo()
 	ConfirmVarIsDefined source_git_branch_depth "${source_git_branch_depth:-}" "$e_nostr" || return
 	ConfirmVarIsDefined source_git_url "${source_git_url:-}" "$e_nourl" || return
 
-	local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
+	local active_branch=''
 	local branch_depth='--depth 1'
 	local branch_switch=false
 	local hide_advice_opt='-c advice.detachedHead=false'
 	local opts=''
 	local progress_opt=''
+
+	active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 
 	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
 	[[ $useropt_debug = true ]] && progress_opt='--progress'
@@ -1680,9 +1689,7 @@ RefreshDaemonPidFile()
 
 	local -i a=0
 
-	if [[ -s $daemon_pid_pathfile && ! -d /proc/"$(< "$daemon_pid_pathfile")" ]]; then
-		rm -f "$daemon_pid_pathfile"
-	fi
+	[[ -s $daemon_pid_pathfile && ! -d /proc/"$(< "$daemon_pid_pathfile")" ]] && rm -f "$daemon_pid_pathfile"
 
 	if IsVarDefined daemon_check_pathfile; then
 		a=$(FindPid "$daemon_check_pathfile")
@@ -1706,9 +1713,7 @@ RefreshScreenPidFile()
 
 	local -i a=0
 
-	if [[ -s $r_screen_pid_pathfile && ! -d /proc/"$(< "$r_screen_pid_pathfile")" ]]; then
-		rm -f "$r_screen_pid_pathfile"
-	fi
+	[[ -s $r_screen_pid_pathfile && ! -d /proc/"$(< "$r_screen_pid_pathfile")" ]] && rm -f "$r_screen_pid_pathfile"
 
 	a=$(FindPid "$daemon_exec_pathfile" /usr/bin/SCREEN)
 
@@ -1730,6 +1735,7 @@ FindPid()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
 	local -i a=0
+
 	local b=''
 
 	[[ -n ${2:-} && $2 != undefined ]] && b=$2
@@ -1763,8 +1769,10 @@ PauseForStartPid()
 	#	$wait_pid_start_seconds
 	#	$watch_pidfile_start_seconds
 
-	local -i a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
+	local -i a=0
 	local -i i=0
+
+	a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
 
 	if [[ $daemon_pidfile_is_managed_by_app = true ]]; then
 		if WatchForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$watch_pidfile_start_seconds")"; then
@@ -1794,8 +1802,10 @@ PauseForKillPid()
 	#	$recheck_daemon_pid_after_kill
 	#	$wait_pid_kill_seconds
 
-	local -i a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
+	local -i a=0
 	local -i i=0
+
+	a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
 
 	if [[ $recheck_daemon_pid_after_kill = true ]]; then
 		DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") to confirm PID is still dead"
@@ -1821,10 +1831,12 @@ WatchForAnyInterfaceUp()
 	# Outputs: (local)
 	#	$? = 0 (network was found) or 1 (network not found: timeout)
 
-	local -i a=$(CalcAdaptiveSeconds "$watch_interface_up_seconds")
+	local -i a=0
 	local -i i=0
 
 	local interface_name=''
+
+	a=$(CalcAdaptiveSeconds "$watch_interface_up_seconds")
 
 	if ! IsAnyInterfaceUp; then
 		DisplayAndCommitProcessWaitToServiceLog "watch for a network interface to become operational (no-more than $a second$(Pluralise "$a"))"
@@ -1868,8 +1880,10 @@ WatchForDaemon()
 	# Outputs: (local)
 	#	$? = 0 (file was found) or 1 (file not found: timeout)
 
-	local -i a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
+	local -i a=0
 	local -i i=0
+
+	a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
 
 	if [[ ! -s $daemon_pid_pathfile ]]; then
 		DisplayAndCommitProcessWaitToServiceLog "watch for daemon process name to appear (no-more than $a second$(Pluralise "$a"))"
@@ -1998,14 +2012,18 @@ DisplayFileInViewport()
 	[[ -s $1 ]] || return
 
 	local report_pathfile=$1
+
 	shift															# Shift all arguments one position to the left.
-	local arg=''
+
 	local -a b=("${@:-}")
+
+	local -r r_prompt=' use arrow-keys to scroll up-down & left-right, press Q to quit '
+
+	local arg=''
 	local headers=false
 	local linenumbers=false
 	local linewrap=false
 	local options=''
-	local -r r_prompt=' use arrow-keys to scroll up-down & left-right, press Q to quit '
 	local scrolltoend=false
 
 	for arg in "${b[@]}"; do
@@ -2075,10 +2093,11 @@ CalcReportFirstColumnWidth()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 	[[ -s $1 ]] || return
 
-	local a=$(< "$1")
+	local a=''
 	local b=''
 	local c=''
 
+	a=$(< "$1")
 	a=$(/bin/sed '/^#[[:space:]].*/d;/#$/d;s/[[:space:]]#[[:space:]].*//' <<< "$a")		# Remove comment lines and line comments.
 	a=$(/bin/sed 's/[[:space:]]*$//' <<< "$a")											# Remove line trailing whitespace.
 	a=$(/bin/sed '/^$/d' <<< "$a")														# Remove empty lines.
@@ -2168,9 +2187,16 @@ DisplayRunAndLog()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nocmd" || return
 
-	local a=$(tr -s ' ' <<< "$2")							# Squeeze multiple whitespace chars into singles.
-	local -r r_log_pathfile=$(/bin/mktemp $r_sys_log_path/"${FUNCNAME[0]}"_XXXXXX)
 	local -i z=0
+
+	local a=''
+	local r_log_pathfile=''
+
+	r_log_pathfile=$(/bin/mktemp $r_sys_log_path/"${FUNCNAME[0]}"_XXXXXX)
+
+	local -r r_log_pathfile
+
+	a=$(tr -s ' ' <<< "$2")							# Squeeze multiple whitespace chars into singles.
 
 	DisplayAndCommitProcessWaitToServiceLog "$1"
 	Executer "$a" "$r_log_pathfile" "${4:-false}"
@@ -2227,14 +2253,20 @@ Executer()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nocmd" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
 
-	local -r r_log_pathfile=$(/bin/mktemp $r_sys_log_path/${FUNCNAME[0]}_XXXXXX)
-	local run_in_screen=${3:-false}
 	local -i z=0
+
+	local r_log_pathfile=''
+	local run_in_screen=${3:-false}
+
+	r_log_pathfile=$(/bin/mktemp $r_sys_log_path/${FUNCNAME[0]}_XXXXXX)
+
+	local -r r_log_pathfile
 
 	FormatAsCommand "$1" > "$2"
 
 	if [[ $useropt_debug = true ]]; then
 		local exec_msg='{ exec'
+
 		[[ $run_in_screen = true ]] && exec_msg+=" (in 'screen' session)"
 		exec_msg+=':'
 
@@ -2255,7 +2287,11 @@ Executer()
 	elif [[ $useropt_debug = true ]]; then
 		# https://stackoverflow.com/a/1221844
 
-		local -r r_executer_log_pipe=$r_sys_run_path/pipe-$(/bin/date +%s%N)
+		local r_executer_log_pipe=''
+
+		r_executer_log_pipe=$r_sys_run_path/pipe-$(/bin/date +%s%N)
+
+		local -r r_executer_log_pipe
 
 		/bin/mknod "$r_executer_log_pipe" p
 		/usr/bin/tee "$r_log_pathfile" < "$r_executer_log_pipe" &
@@ -2435,10 +2471,13 @@ DebugBulletSeparatorWithText()
 	#	$r_debug_log_datawidth
 
 	local a=''
+	local b=''
+	local c=''
+
 	[[ -n ${1:-} ]] && a=" ${1:-} "
 
-	local b=$(((r_debug_log_datawidth-${#a})/2))
-	local c=$((r_debug_log_datawidth-${#a}-b))
+	b=$(((r_debug_log_datawidth-${#a})/2))
+	c=$((r_debug_log_datawidth-${#a}-b))
 
 	eval printf '%0.s•' "{1..$b}"; printf '%s' "$a"; eval printf '%0.s•' "{1..$c}"; echo	# `seq` is unavailable in QTS, so must resort to `eval` trickery instead.
 
@@ -2789,7 +2828,7 @@ GetOsFirmwareVersion()
 	{
 
 	# Outputs: (local)
-	#	stdout = text string.
+	#	stdout = version string.
 	#	$? = 0 if found, 250 if not.
 
 	/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf
@@ -2799,51 +2838,25 @@ GetOsFirmwareVersion()
 GetOsFirmwareBuild()
 	{
 
+	# Returns an evaluable integer, with leading zeros.
+
 	# Outputs: (local)
-	#	stdout = text string.
+	#	stdout = 4 char string.
 	#	$? = 0 if found, 250 if not.
 
-	/sbin/getcfg System Number -d undefined -f /etc/config/uLinux.conf
+	printf '%04d' "$((10#$(/sbin/getcfg System Number -d 0 -f /etc/config/uLinux.conf)))"
 
 	}
 
 GetOsFirmwareVer()
 	{
 
-	# Returns an evaluable integer-only.
+	# Returns an evaluable integer, with leading zeros.
 
 	# Outputs: (local)
-	#	stdout = integer.
+	#	stdout = 10 char string, with build number.
 
-	ConvertFirmwareVersionStringToNumber "$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)"
-
-	}
-
-ConvertFirmwareVersionStringToNumber()
-	{
-
-	# Convert regular QTS version string into a number evaluable against another.
-	#	Example: '5.2.10' becomes '0502100000'
-	#	Example: '4.6.99.1234' becomes '0406991234'
-
-	# Output should be compared using forced base-10 syntax (to handle leading zero):
-	#	Example: [[ $((10#$a)) -gt $((10#$b)) ]]
-
-	local major=0
-	local intermediate=0
-	local minor=0
-	local build=0
-
-	# Use only this many digits from start of each field.
-
-	local -i major_trim=2
-	local -i intermediate_trim=2
-	local -i minor_trim=2
-	local -i build_trim=4
-
-	while IFS=. read -r major intermediate minor build; do
-		printf "%0${major_trim}d%0${intermediate_trim}d%0${minor_trim}d%0${build_trim}d" "$((10#${major:0:major_trim}))" "$((10#${intermediate:0:intermediate_trim}))" "$((10#${minor:0:minor_trim}))" "$((10#${build:0:build_trim}))"
-	done <<< "$1"
+	printf '%010d' "$((10#$(ConvertFirmwareVersionStringToNumber "$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)")))"
 
 	}
 
@@ -2958,12 +2971,15 @@ GetKeyFromPyload()
 
 	if [[ ! -s $3 ]]; then
 		echo false
+
 		return
 	fi
 
+	local -i line_num=0
+	local -i start_line_num=0
+
 	local blank=''
 	local end_line_num='$'
-	local -i line_num=0
 	local raw_var_type=''
 	local raw_var_description=''
 	local result_line=''
@@ -2971,7 +2987,6 @@ GetKeyFromPyload()
 	local section_line=''
 	local section_name=''
 	local section_raw=''
-	local -i start_line_num=0
 	local target_section=''
 	local value=''
 	local value_raw=''
@@ -2988,6 +3003,7 @@ GetKeyFromPyload()
 		else
 			if [[ $start_line_num -ne 0 ]]; then
 				end_line_num=$((line_num-2))
+
 				break
 			fi
 		fi
@@ -3010,11 +3026,13 @@ GetKeyFromPyload()
 		IFS='"' read -r blank var_description value_raw <<< "$raw_var_description"
 		IFS='=' read -r blank value <<< "$value_raw"
 		value=${value% }; value=${value# }
+
 		break
 	done <<< "$target_section"
 
 	if [[ $var_found = false ]]; then
 		echo 'variable match not found'
+
 		return 1
 	fi
 
@@ -3028,7 +3046,10 @@ SetNasArch()
 	# Outputs: (global)
 	#	$r_nas_arch
 
-	[[ ${r_nas_arch:-unset} = unset ]] && readonly r_nas_arch=$(GetNasArch)
+	if [[ ${r_nas_arch:-unset} = unset ]]; then
+		r_nas_arch=$(GetNasArch)
+		readonly r_nas_arch
+	fi
 
 	}
 
@@ -3038,7 +3059,10 @@ SetQpkgArch()
 	# Outputs: (global)
 	#	$r_nas_qpkg_arch
 
-	[[ ${r_nas_qpkg_arch:-unset} = unset ]] && readonly r_nas_qpkg_arch=$(GetQpkgArch)
+	if [[ ${r_nas_qpkg_arch:-unset} = unset ]]; then
+		r_nas_qpkg_arch=$(GetQpkgArch)
+		readonly r_nas_qpkg_arch
+	fi
 
 	}
 
@@ -3048,7 +3072,10 @@ SetOsFirmwareVersion()
 	# Outputs: (global)
 	#	$r_nas_firmware_version
 
-	[[ ${r_nas_firmware_version:-unset} = unset ]] && readonly r_nas_firmware_version=$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)
+	if [[ ${r_nas_firmware_version:-unset} = unset ]]; then
+		r_nas_firmware_version=$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)
+		readonly r_nas_firmware_version
+	fi
 
 	}
 
@@ -3060,7 +3087,10 @@ SetOsFirmwareVer()
 	# Outputs: (global)
 	#	$r_nas_firmware_ver
 
-	[[ ${r_nas_firmware_ver:-unset} = unset ]] && readonly r_nas_firmware_ver=$(GetOsFirmwareVer)
+	if [[ ${r_nas_firmware_ver:-unset} = unset ]]; then
+		r_nas_firmware_ver=$(GetOsFirmwareVer)
+		readonly r_nas_firmware_ver
+	fi
 
 	}
 
@@ -3594,14 +3624,18 @@ IsPortResponds()
 	#	$? = 1 : not OK.
 
 	local -i a=${1//[!0-9]/}			# Strip all non-numerals.
-	local -i b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
+	local -i b=0
 	local -i c=0
+
+	b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
 
 	if [[ -z $a ]]; then
 		Display 'empty port: not testing for response'
+
 		return 1
 	elif [[ $a -eq 0 ]]; then
 		Display 'port 0: not testing for response'
+
 		return 1
 	fi
 
@@ -3610,6 +3644,7 @@ IsPortResponds()
 	while true; do
 		if ! IsDaemonActive; then
 			DisplayAndCommitToServiceLog 'process not active'
+
 			break
 		fi
 
@@ -3619,6 +3654,7 @@ IsPortResponds()
 			0|22|52)	# Accept these exitcodes as evidence of valid responses.
 				DisplayAndCommitOutcomeToServiceLog OK
 				CommitDoneToServiceLog "responded in $c second$(Pluralise "$c")"
+
 				return 0
 				;;
 			28)			# Timed-out.
@@ -3637,6 +3673,7 @@ IsPortResponds()
 		if [[ $c -ge $b ]]; then
 			DisplayAndCommitOutcomeToServiceLog failed
 			CommitErrorToSysLog "port $a failed to respond after $c second$(Pluralise "$c")"
+
 			break
 		fi
 	done
@@ -3659,14 +3696,18 @@ IsPortSecureResponds()
 	#	$? = 1 : not OK or secure port unspecified.
 
 	local -i a=${1//[!0-9]/}			# Strip all non-numerals.
-	local -i b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
+	local -i b=0
 	local -i c=0
+
+	b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
 
 	if [[ -z $a ]]; then
 		Display 'empty port: not testing for response'
+
 		return 1
 	elif [[ $a -eq 0 ]]; then
 		Display 'port 0: not testing for response'
+
 		return 1
 	fi
 
@@ -3675,6 +3716,7 @@ IsPortSecureResponds()
 	while true; do
 		if ! IsDaemonActive; then
 			DisplayAndCommitToServiceLog 'process not active'
+
 			break
 		fi
 
@@ -3684,10 +3726,12 @@ IsPortSecureResponds()
 			0|22|52)	# Accept these exitcodes as evidence of valid responses.
 				Display OK
 				CommitToServiceLog "port responded after $c second$(Pluralise "$c")"
+
 				return 0
 				;;
 			35)
 				DisplayAndCommitToServiceLog 'TLS inactive'
+
 				break
 				;;
 			28)			# Timed-out.
@@ -3706,6 +3750,7 @@ IsPortSecureResponds()
 		if [[ $c -ge $b ]]; then
 			DisplayAndCommitToServiceLog failed
 			CommitErrorToSysLog "secure port $a failed to respond after $c second$(Pluralise "$c")"
+
 			break
 		fi
 	done
@@ -3887,7 +3932,9 @@ IsSiteUp()
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nourl" || return
 
-	local a=$(cut -d'/' -f3 <<< "$1" | cut -d':' -f1)
+	local a=''
+
+	a=$(cut -d'/' -f3 <<< "$1" | cut -d':' -f1)
 
 	ConfirmVarIsDefined a "${a:-}" "$e_nourl" || return
 
@@ -3919,7 +3966,9 @@ IsHaveSingleQuote()
 IsGnuLessSupportHeaders()
 	{
 
-	local a=$(GetGnuLessVersion)
+	local a=''
+
+	a=$(GetGnuLessVersion)
 
 	IsNumber $a && [[ $a -ge 685 ]]
 
@@ -3934,12 +3983,17 @@ IsReportLargerThanViewport()
 	[[ -n ${1:-} && -e $1 ]] || return
 
 	if [[ -x $r_gnu_stty_cmd ]] && IsInTerminal; then
-		local -r r_terminal_dimensions=$($r_gnu_stty_cmd size)
-		local -r r_sess_rows=${r_terminal_dimensions% *}
-		local -r r_sess_columns=${r_terminal_dimensions#* }
+		local r_terminal_dimensions=''
+
+		r_terminal_dimensions=$($r_gnu_stty_cmd size)
+
+		local -r r_terminal_dimensions
+
+		local -ir r_sess_rows=${r_terminal_dimensions% *}
+		local -ir r_sess_columns=${r_terminal_dimensions#* }
 	else
-		local -r r_sess_rows=40
-		local -r r_sess_columns=156
+		local -ir r_sess_rows=40
+		local -ir r_sess_columns=156
 	fi
 
 	[[ $(/usr/bin/wc -l < "$1") -ge $r_sess_rows || $(StripANSICodes "$(< "$1")" | /usr/bin/wc -L) -gt $r_sess_columns ]]
@@ -3995,6 +4049,7 @@ IsAnyInterfaceUp()
 	#	$interface_name
 
 	local a=''
+
 	interface_name=null
 
 	for a in $(/bin/grep ':' /proc/net/dev | cut -d':' -f1 | tr -d ' '); do
@@ -4008,6 +4063,7 @@ IsAnyInterfaceUp()
 		if IsInterfaceUp "$a"; then
 			echo "interface $a is operational"
 			interface_name=$a
+
 			return
 		fi
 	done
@@ -4042,7 +4098,7 @@ GetGnuLessVersion()
 	if [[ -x $r_gnu_less_cmd ]]; then
 		$r_gnu_less_cmd -V | head -n1 | cut -d' ' -f2
 	else
-		printf unknown
+		printf 0
 	fi
 
 	}
@@ -4068,25 +4124,33 @@ RequestLatestReleaseFilename()
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nourl" || return
 
+	local -i c=0
+
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
-	local b=$(/sbin/curl $a "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
+	local b=''
+
+	b=$(/sbin/curl $a "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
+
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
 
 	# Trim whitespace from beginning-and-end of $b, then test length.
 
-	local -i c=$(wc -l <<< "$b")
+	c=$(wc -l <<< "$b")
 
 	case $c in
 		0)
 			printf '%s' "${FUNCNAME[0]}(): zero filenames matched"
+
 			return 1
 			;;
 		1)
 			printf '%s' "$b"
+
 			return 0
 			;;
 		*)
 			printf '%s' "${FUNCNAME[0]}(): multiple filenames matched"
+
 			return 1
 	esac
 
@@ -4110,25 +4174,33 @@ RequestLatestReleaseURL()
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nourl" || return
 
+	local -i c=0
+
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
-	local b=$(/sbin/curl $a "$1" | /bin/grep browser_download_url | cut -d\" -f4)
+	local b=''
+
+	b=$(/sbin/curl $a "$1" | /bin/grep browser_download_url | cut -d\" -f4)
+
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
 
 	# Need to trim whitespace from beginning-and-end of $b, then test length.
 
-	local -i c=$(wc -l <<< "$b")
+	c=$(wc -l <<< "$b")
 
 	case $c in
 		0)
 			printf '%s' "${FUNCNAME[0]}(): zero URLs matched"
+
 			return 1
 			;;
 		1)
 			printf '%s' "$b"
+
 			return 0
 			;;
 		*)
 			printf '%s' "${FUNCNAME[0]}(): multiple URLs matched"
+
 			return 1
 	esac
 
@@ -4197,6 +4269,7 @@ ExtractReleasePackage()
 		unzip_opts="$unzip_verbose -o \"$1\" -d \"$qpkg_repo_path\""
 
 		# Try as '.zip' first, then '.tar.gz'
+
 		DisplayRunAndLog 'extract from release package' "/usr/bin/unzip $unzip_opts 2> /dev/null || /bin/tar $tar_opts" log:failure-only
 
 		if [[ $compare_release_filename = true && -n $2 ]]; then
@@ -4605,9 +4678,10 @@ ShowAsBug()
 	[[ -n ${1:-} ]] || return
 	[[ -n ${2:-} ]] || return
 
+	local -i i=0
+
 	local a='fstack: '
 	local b=' '
-	local -i i=0
 
 	# Re-order FUNCNAME[] elements in-reverse.
 
@@ -4721,9 +4795,11 @@ DisplayAndCommitActionToServiceLog()
 	[[ $service_action = undefined ]] && return
 
 	starttime=$(ConvertNowToNanoseconds)
-	local msg="- source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
-	msg="$(/bin/tr -s ' ' <<< "$msg") "
+
 	local a=DisplayAndCommitToServiceLog
+	local msg="- source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
+
+	msg="$(/bin/tr -s ' ' <<< "$msg") "
 
 	if IsNtStatus && IsNtLog && IsNtNone; then
 		IsUnsupported && a=CommitToServiceLog
@@ -4745,9 +4821,10 @@ DisplayAndCommitResultToServiceLog()
 
 	[[ $service_action = undefined ]] && return
 
-	local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
-	msg="$(/bin/tr -s ' ' <<< "$msg") "
 	local a=DisplayAndCommitToServiceLog
+	local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
+
+	msg="$(/bin/tr -s ' ' <<< "$msg") "
 
 	if IsNtStatus && IsNtLog && IsNtNone; then
 		IsUnsupported && a=CommitToServiceLog
@@ -4777,8 +4854,8 @@ DisplayAndCommitToServiceLog()
 DisplayAndCommitProcessWaitToServiceLog()
 	{
 
-	DisplayWait "> ${1:-}:"					# dont-squeeze
-	CommitWaitToServiceLog "> ${1:-}:"		# dont-squeeze
+	DisplayWait "> ${1:-}:"					# directive:dont-squeeze
+	CommitWaitToServiceLog "> ${1:-}:"		# directive:dont-squeeze
 
 	}
 
@@ -5006,8 +5083,10 @@ ConvertAsSmartDate()
 
 	[[ -n ${1:-} ]] || return
 
-	local a=$(/bin/sed 's/[^0-9]*//g' <<< "$1")		# Strip non-digits.
+	local a=''
 	local b=''
+
+	a=$(/bin/sed 's/[^0-9]*//g' <<< "$1")		# Strip non-digits.
 
 	case ${#a} in
 		6)		# Assume input is datecode, so convert to extended date format.
@@ -5060,6 +5139,38 @@ ConvertNowToNanoseconds()
 
 	} 2> /dev/null
 
+ConvertFirmwareVersionStringToNumber()
+	{
+
+	# Convert regular QTS version string into a number evaluable against another.
+	#	Example: '5.2.10' becomes '0502100000'
+	#	Example: '4.6.99.1234' becomes '0406991234'
+
+	# Output should be compared using forced base-10 syntax (to handle leading zeros):
+	#	Example: [[ $((10#$a)) -gt $((10#$b)) ]]
+
+	# Use only this many digits from start of each field.
+
+	# Outputs: (local)
+	#	stdout = 10 char string.
+
+	local -ir r_build_trim=4
+	local -ir r_intermediate_trim=2
+	local -ir r_major_trim=2
+	local -ir r_minor_trim=2
+
+	local -i intermediate=0
+	local -i major=0
+	local -i minor=0
+
+	local build=0
+
+	while IFS=. read -r major intermediate minor build; do
+		printf "%0${r_major_trim}d%0${r_intermediate_trim}d%0${r_minor_trim}d%0${r_build_trim}d" "$((10#${major:0:r_major_trim}))" "$((10#${intermediate:0:r_intermediate_trim}))" "$((10#${minor:0:r_minor_trim}))" "$((10#${build:0:r_build_trim}))"
+	done <<< "$1"
+
+	}
+
 FormatAsThous()
 	{
 
@@ -5074,9 +5185,11 @@ FormatAsThous()
 	# Outputs: (local)
 	#	stdout = formatted number string
 
-	local rightside_group=''
 	local foutput=''
-	local remainder=$(/bin/sed 's/[^0-9]*//g' <<< "${1:-}")	# Strip all non-numerals.
+	local remainder=''
+	local rightside_group=''
+
+	remainder=$(/bin/sed 's/[^0-9]*//g' <<< "${1:-}")	# Strip all non-numerals.
 
 	while [[ ${#remainder} -gt 0 ]]; do
 		rightside_group=${remainder:${#remainder}<3?0:-3}	# A nifty trick found here: https://stackoverflow.com/a/19858692
@@ -5109,27 +5222,49 @@ FormatAsDuration()
 	if [[ ${1:-0} -lt 10000 ]]; then
 		printf '%s' "$(FormatAsThous "${1:-0}")ms"
 	else
-		FormatSecsToHoursMinutesSecs "$(((${1:-0}+500)/1000))"		# Add 0.5s to improve apparent rounding accuracy.
+		ConvertSecondsToDuration "$(((${1:-0}+500)/1000))"		# Add 0.5s to improve apparent rounding accuracy.
 	fi
 
 	}
 
-FormatSecsToHoursMinutesSecs()
+ConvertSecondsToDuration()
 	{
 
-	# http://stackoverflow.com/questions/12199631/convert-seconds-to-hours-minutes-seconds
+	# Adapted from http://stackoverflow.com/questions/12199631/convert-seconds-to-hours-minutes-seconds
 
 	# Inputs: (local)
-	#	$1 = a time in seconds to convert to `HHh:MMm:SSs`
+	#	$1 = an integer in seconds to convert to 'Dd:HHh:MMm:SSs'
+	#		or, if less than 1 day, to 'Hh:MMm:SSs'
+	#		or, if less than 1 hour, to 'Mm:SSs'
+	#		or, if less than 1 minute, to 'S seconds'
+	#		or, if less than 1 second, to '< 1 second'
 
-	# Outputs: (local)
-	#	stdout = formatted time string
+	local -i d=0
+	local -i h=0
+	local -i m=0
+	local -i s=0
 
-	((h=${1:-0}/3600))
-	((m=(${1:-0}%3600)/60))
-	((s=${1:-0}%60))
+#	((d=${1:-0}/86400))
+	d=${1:-0}/86400
+#	((h=(${1:-0}%86400)/3600))
+	h=${1:-0}%86400/3600
+#	((m=(${1:-0}%3600)/60))
+	m=${1:-0}%3600/60
+#	((s=${1:-0}%60))
+	s=${1:-0}%60
 
-	printf '%01dh:%02dm:%02ds\n' "$h" "$m" "$s"
+	if [[ $d -ge 1 ]]; then
+		printf '%01dd:%02dh:%02dm:%02ds' "$d" "$h" "$m" "$s"
+	elif [[ $h -ge 1 ]]; then
+		printf '%01dh:%02dm:%02ds' "$h" "$m" "$s"
+	elif [[ $m -ge 1 ]]; then
+		printf '%01dm:%02ds' "$m" "$s"
+	elif [[ $s -ge 1 ]]; then
+		printf "%d second$(Pluralise $s)" "$s"
+	else
+		s=1							# Never show zero seconds as a duration (bash isn't that fast).
+		printf '< %d second' "$s"	# directive:dont-squeeze
+	fi
 
 	} 2> /dev/null
 
@@ -5207,7 +5342,10 @@ GetPathGitBranch()
 
 	[[ -n $1 ]] || return
 
-	local a=$($r_git_cmd -C "$1" branch | /bin/grep '^\*' | /bin/sed 's|^\* ||')
+	local a=''
+
+	a=$($r_git_cmd -C "$1" branch | /bin/grep '^\*' | /bin/sed 's|^\* ||')
+
 	[[ -n $a ]] || a=none
 
 	printf '%s' "$a"
@@ -5266,12 +5404,17 @@ CalcAdaptiveSeconds()
 	# Outputs: (local)
 	#	stdout = Integer of adapted seconds based-on present 1 minute load average. Maximum of 1800.
 
-	local a=$(GetSysLoad1MinAverage); a=${a/./}0	# Convert to thousands. Increase this to workaround decimal rounding.
-	local b=$(($(GetCPUCores)*100))					# Convert to hundreds.
-	local c=$((10#$a/10#$b))						# Multiplier.
-	local d=$((10#${1:-1}))
+	local a=''
+	local b=''
+	local c=''
+	local d=''
 
-	[[ $((10#$c)) -gt 10 ]] && d=$(((c*d)/10))		# Decrease this as decimal rounding is now a non-issue.
+	a=$(GetSysLoad1MinAverage); a=${a/./}0		# Convert to thousands. Increase this to workaround decimal rounding.
+	b=$(($(GetCPUCores)*100))					# Convert to hundreds.
+	c=$((10#$a/10#$b))							# Multiplier.
+	d=$((10#${1:-1}))
+
+	[[ $((10#$c)) -gt 10 ]] && d=$(((c*d)/10))	# Decrease this as decimal rounding is now a non-issue.
 	[[ $((10#$d)) -gt 1800 ]] && d=1800
 
 	printf '%s' "$d"
@@ -5288,7 +5431,9 @@ GetSysLoad1MinAverage()
 GetCPUCores()
 	{
 
-	local a=$(/bin/grep -c '^processor' /proc/cpuinfo)
+	local a=''
+
+	a=$(/bin/grep -c '^processor' /proc/cpuinfo)
 
 	[[ $a -eq 0 ]] && a=$(/bin/grep -c '^Processor' /proc/cpuinfo)
 
@@ -5362,7 +5507,9 @@ SetQpkgPostInstallDeps()
 
 	[[ -n ${1:-} ]] || return
 
-	local a=$(CleanDependencyField "${2:-}")
+	local a=''
+
+	a=$(CleanDependencyField "${2:-}")
 
 	if [[ -n $a ]]; then
 		/sbin/setcfg "$1" Dependency "$a" -f /etc/config/qpkg.conf
@@ -5386,7 +5533,10 @@ CleanDependencyField()
 
 	[[ -n ${1:-} ]] || return
 
-	local a=$(/bin/tr -s ':' <<< "$1")
+	local a=''
+
+	a=$(/bin/tr -s ':' <<< "$1")
+
 	[[ -n $a && ${a:0:1} = ':' ]] && a=${a#?}
 	[[ -n $a && ${a: -1:1} = ':' ]] && a=${a%?}
 
@@ -5468,7 +5618,9 @@ ProcessArgs()						# unused-ignore.
 	fi
 
 	if IsSourceGit; then
-		local test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
+		local test_branch=''
+
+		test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
 
 		if [[ $test_branch = unknown ]]; then
 			/sbin/setcfg $r_qpkg_name Git_Branch $source_git_branch -f /etc/config/qpkg.conf
