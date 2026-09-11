@@ -13,8 +13,8 @@ a_a+=("$service_library_source_file")
 for i in "${!a_a[@]}"; do
 	echo -n "checking for unwanted whitespace '${a_a[i]}' ... "
 
-	b=$(grep -nP ' \t' "${a_a[i]}")												# check for space char followed by tab char (should never happen).
-	b+=$(grep -nF '    ' "${a_a[i]}" | grep -v 'dont-squeeze\|ignore-leader')	# check for 4 consecutive space chars.
+	b=$(grep -nP ' \t' "${a_a[i]}")										# check for space char followed by tab char (should never happen).
+	b+=$(grep -nF '    ' "${a_a[i]}" | grep -v 'directive:dont-squeeze\|directive:ignore-leader')	# check for 4 consecutive space chars.
 
 	if [[ -z $b ]]; then
 		ShowDone
