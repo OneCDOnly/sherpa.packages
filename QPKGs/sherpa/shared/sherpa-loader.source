@@ -67,7 +67,7 @@ EnsureFileIsCurrent()
 		if ! (/sbin/curl $curl_insecure_opt --silent --fail "$2" > "$3"); then
 			ShowAsWarn 'Remote file download failed'
 		else
-			/bin/tar --extract --gzip --no-same-owner --file="$3" --directory="$(/usr/bin/dirname "$3")" 2>/dev/null
+			/bin/tar --extract --gzip --no-same-owner --file="$3" --directory="$(/usr/bin/dirname "$3")" 2> /dev/null
 		fi
 	fi
 
@@ -97,6 +97,7 @@ IsQNAP()
 
 	if [[ ! -e /etc/init.d/functions ]]; then
 		ShowAsAbort 'QNAP functions not found ... is this a QNAP NAS?'
+
 		return 1
 	fi
 
@@ -288,6 +289,7 @@ GetQpkgArch()
 
 	if [[ $(get_display_name) = 'TS-269H' ]]; then
 		printf i53
+
 		return
 	fi
 
