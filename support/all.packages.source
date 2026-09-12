@@ -1,5 +1,7 @@
 # Use pseudo-alpha-sorted QPKG name order (i.e. disregard character-case and leading 'O').
 
+r_qpkgs_name_prohibited=(OMedusa OqBittorrent OReadarr OSickGear OSonarr OTautulli OTransmission OWhisparr)
+
 r_qpkg_name+=(Entware)
 r_qpkg_version+=(<?version?>)
 r_qpkg_hash+=(<?hash?>)
