@@ -39,7 +39,7 @@ set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=260906
+readonly r_service_library_version=260912
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -85,9 +85,11 @@ readonly e_novar='undefined variable'
 readonly r_sys_log_path=/var/log
 readonly r_service_result_path=$r_sys_log_path
 readonly r_sys_run_path=/var/run
-local default_vol_mount_point=$(GetUserDefVol)
-ConfirmVarIsDefined default_vol_mount_point "${default_vol_mount_point:-}" "$e_nopth"||return
-readonly r_backup_path=$default_vol_mount_point/.qpkg_config_backup
+local r_default_vol_mount_point=''
+r_default_vol_mount_point=$(GetUserDefVol)
+ConfirmVarIsDefined r_default_vol_mount_point "${r_default_vol_mount_point:-}" "$e_nopth"||return
+local -r r_default_vol_mount_point
+readonly r_backup_path=$r_default_vol_mount_point/.qpkg_config_backup
 readonly r_opkg_path=/opt/bin:/opt/sbin
 export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||"<<<"$PATH")
 readonly r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
@@ -108,12 +110,12 @@ readonly r_chars_super_prompt='# '
 readonly r_debug_log_datawidth=100
 readonly r_extended_datetime_format='+%a %-d %b %Y'
 readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
-readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -f /etc/config/qpkg.conf)
+readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d undefined -f /etc/config/qpkg.conf)
 ConfirmVarIsDefined r_qpkg_version "${r_qpkg_version:-}" "$e_noval"||return
-r_qpkgs_name_arrs=(Readarr Sonarr Whisparr)
-readonly r_qpkgs_name_arrs
-r_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
-readonly r_qpkgs_name_migrated
+ar_qpkgs_name_arrs=(Readarr Sonarr Whisparr)
+ar_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
+readonly ar_qpkgs_name_arrs
+readonly ar_qpkgs_name_migrated
 IsSU||exit
 SetNasArch
 SetQpkgArch
@@ -136,7 +138,7 @@ rm -f "$r_screen_conf_pathfile"
 if IsQpkgArr &&[[ -s $qpkg_config_pathfile ]]&&/bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &>/dev/null;then
 /bin/sed -i "s|O${r_qpkg_name}|$r_qpkg_name|g" "$qpkg_config_pathfile"
 fi
-if [[ $run_daemon_in_screen_session = true &&! -s $r_screen_conf_pathfile ]];then
+if IsDaemonInScreen &&[[ ! -s $r_screen_conf_pathfile ]];then
 echo -e "logfile $r_screen_log_pathfile\nlogfile flush 1\nlog on">"$r_screen_conf_pathfile"
 fi;}
 LoadUserVarDefaults(){
@@ -264,7 +266,7 @@ if IsNtDaemon;then
 RemoveUserlinkToExec
 return
 fi
-RefreshPidFile
+RefreshDaemonPidFile
 if IsDaemon&&IsDaemonActive;then
 SetDaemonWasActive
 StopDaemon
@@ -274,6 +276,7 @@ return;}
 StatusQpkg(){
 IsNtError||return
 ShowQpkgStates
+IsDaemonInScreen &&ShowScreenState
 IsDaemon &&ShowDaemonState
 if IsFuncExist StatusQpkgCustom;then
 StatusQpkgCustom
@@ -281,7 +284,8 @@ else
 StatusQpkgLibrary
 fi;}
 StatusQpkgLibrary(){
-RefreshPidFile
+RefreshScreenPidFile
+RefreshDaemonPidFile
 if IsDaemon&&IsDaemonActive;then
 if IsWebUi;then
 LoadPorts app
@@ -319,9 +323,9 @@ fi;}
 CreateVirtualPythonEnv(){
 ConfirmVarIsDefined qpkg_venv_path "${qpkg_venv_path:-}" "$e_nopth"||return
 ConfirmVarIsDefined qpkg_pip_path "${qpkg_pip_path:-}" "$e_nopth"||return
-new_env=false
 local a=''
 local b=$qpkg_venv_path/pip.conf
+new_env=false
 [[ $allow_access_to_sys_packages = true ]]&&a='--system-site-packages'
 if IsNtVirtualPythonEnvFound;then
 DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=\"$qpkg_pip_path\" VIRTUALENV_OVERRIDE_APP_DATA=\"$qpkg_pip_path\";\"$interpreter\" -m virtualenv \"$qpkg_venv_path\" $a" log:failure-only
@@ -347,10 +351,10 @@ DisplayAndCommitInfoToServiceLog 'daemon is already active'
 ShowDaemonState
 return
 fi
+local -i c=0
 local a='start daemon'
 local b=$daemon_launch_cmd
-local -i c=0
-[[ $run_daemon_in_screen_session = true ]]&&a+=" (in 'screen' session)"
+IsDaemonInScreen &&a+=" (in 'screen' session)"
 if((nice_daemon_to != 0)) &&((nice_daemon_to>= -20)) &&((nice_daemon_to<= 19)) &&[[ -x $r_gnu_nice_cmd ]];then
 b="$r_gnu_nice_cmd -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 DisplayAndCommitInfoToServiceLog "nice daemon to: $nice_daemon_to"
@@ -360,7 +364,7 @@ ConfirmVarIsDefined qpkg_config_path "${qpkg_config_path:-}" "$e_nopth"||return
 ConfirmVarIsDefined qpkg_config_pathfile "${qpkg_config_pathfile:-}" "$e_nopfi"||return
 fi
 while true;do
-[[ $run_daemon_in_screen_session = true ]]&&rm -f "$r_screen_log_pathfile"
+IsDaemonInScreen &&rm -f "$r_screen_log_pathfile"
 if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";then
 DisplayAndCommitWarnToServiceLog 'there has been a daemon launch failure'
 SetError;return
@@ -371,7 +375,7 @@ PauseForStartPid
 ShowDaemonState
 if ! IsDaemonActive &>/dev/null ||(IsWebUi &&! WatchForPortsActive);then
 DisplayAndCommitWarnToServiceLog 'daemon PID check failed: there appears to have been a post-launch failure'
-[[ $run_daemon_in_screen_session = true ]]&&AddFileToDebug "$r_screen_log_pathfile"
+IsDaemonInScreen &&AddFileToDebug "$r_screen_log_pathfile"
 StopDaemon
 ((c++))
 if [[ $((c-1)) -lt $start_retries ]];then
@@ -386,10 +390,12 @@ done
 CommitInfoToSysLog "$a: OK";}
 StopDaemon(){
 [[ -s $daemon_pid_pathfile ]]||return
-local a='stop daemon'
-local -i b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
+local -i b=0
 local -i c=0
-local -i d=$(<"$daemon_pid_pathfile")
+local -i d=0
+local a='stop daemon'
+b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
+d=$(<"$daemon_pid_pathfile")
 [[ $d -gt 1 ]]||return
 DisplayAndCommitProcessWaitToServiceLog "$a PID $d with SIGTERM (no-more than $b second$(Pluralise "$b"))"
 kill "$d"
@@ -748,12 +754,13 @@ ConfirmVarIsDefined qpkg_repo_path "${qpkg_repo_path:-}" "$e_nopth"||return
 ConfirmVarIsDefined source_git_branch "${source_git_branch:-}" "$e_nostr"||return
 ConfirmVarIsDefined source_git_branch_depth "${source_git_branch_depth:-}" "$e_nostr"||return
 ConfirmVarIsDefined source_git_url "${source_git_url:-}" "$e_nourl"||return
-local active_branch=$(GetPathGitBranch "$qpkg_repo_path")
+local active_branch=''
 local branch_depth='--depth 1'
 local branch_switch=false
 local hide_advice_opt='-c advice.detachedHead=false'
 local opts=''
 local progress_opt=''
+active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 [[ $source_git_branch_depth = single-branch ]]&&branch_depth='--single-branch'
 [[ $useropt_debug = true ]]&&progress_opt='--progress'
 WatchForGit||return
@@ -811,11 +818,9 @@ export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||"<<<"$PATH")
 return 0
 fi
 SetError;return;}
-RefreshPidFile(){
+RefreshDaemonPidFile(){
 local -i a=0
-if [[ -s $daemon_pid_pathfile &&! -d /proc/"$(<"$daemon_pid_pathfile")" ]];then
-rm -f "$daemon_pid_pathfile"
-fi
+[[ -s $daemon_pid_pathfile &&! -d /proc/"$(<"$daemon_pid_pathfile")" ]]&&rm -f "$daemon_pid_pathfile"
 if IsVarDefined daemon_check_pathfile;then
 a=$(FindPid "$daemon_check_pathfile")
 else
@@ -824,9 +829,7 @@ fi
 [[ -n $a &&$a -gt 0 ]]&&echo "$a">"$daemon_pid_pathfile";}
 RefreshScreenPidFile(){
 local -i a=0
-if [[ -s $r_screen_pid_pathfile &&! -d /proc/"$(<"$r_screen_pid_pathfile")" ]];then
-rm -f "$r_screen_pid_pathfile"
-fi
+[[ -s $r_screen_pid_pathfile &&! -d /proc/"$(<"$r_screen_pid_pathfile")" ]]&&rm -f "$r_screen_pid_pathfile"
 a=$(FindPid "$daemon_exec_pathfile" /usr/bin/SCREEN)
 [[ -n $a &&$a -gt 0 ]]&&echo "$a">"$r_screen_pid_pathfile";}
 FindPid(){
@@ -847,8 +850,9 @@ return
 done
 return 1;}
 PauseForStartPid(){
-local -i a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
+local -i a=0
 local -i i=0
+a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
 if [[ $daemon_pidfile_is_managed_by_app = true ]];then
 if WatchForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$watch_pidfile_start_seconds")";then
 /bin/sleep 1
@@ -862,10 +866,11 @@ DisplayWait "$i,"
 done
 DisplayAndCommitOutcomeToServiceLog 'done'
 fi
-RefreshPidFile||return;}
+RefreshDaemonPidFile||return;}
 PauseForKillPid(){
-local -i a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
+local -i a=0
 local -i i=0
+a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
 if [[ $recheck_daemon_pid_after_kill = true ]];then
 DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") to confirm PID is still dead"
 for((i=1;i<=a;i++));do
@@ -874,11 +879,12 @@ DisplayWait "$i,"
 done
 DisplayAndCommitOutcomeToServiceLog 'done'
 fi
-! RefreshPidFile||return;}
+! RefreshDaemonPidFile||return;}
 WatchForAnyInterfaceUp(){
-local -i a=$(CalcAdaptiveSeconds "$watch_interface_up_seconds")
+local -i a=0
 local -i i=0
 local interface_name=''
+a=$(CalcAdaptiveSeconds "$watch_interface_up_seconds")
 if ! IsAnyInterfaceUp;then
 DisplayAndCommitProcessWaitToServiceLog "watch for a network interface to become operational (no-more than $a second$(Pluralise "$a"))"
 (
@@ -902,15 +908,16 @@ fi
 DisplayAndCommitInfoToServiceLog "operational network interface found: $interface_name"
 return 0;}
 WatchForDaemon(){
-local -i a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
+local -i a=0
 local -i i=0
+a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
 if [[ ! -s $daemon_pid_pathfile ]];then
 DisplayAndCommitProcessWaitToServiceLog "watch for daemon process name to appear (no-more than $a second$(Pluralise "$a"))"
 (
 for((i=1;i<=a;i++));do
 /bin/sleep 1
 DisplayWait "$i,"
-RefreshPidFile
+RefreshDaemonPidFile
 if IsDaemonActive;then
 DisplayAndCommitOutcomeToServiceLog OK
 CommitDoneToServiceLog "process name appeared in $i second$(Pluralise "$i")"
@@ -971,13 +978,13 @@ ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi"||return
 [[ -s $1 ]]||return
 local report_pathfile=$1
 shift
-local arg=''
 local -a b=("${@:-}")
+local -r r_prompt=' use arrow-keys to scroll up-down & left-right, press Q to quit '
+local arg=''
 local headers=false
 local linenumbers=false
 local linewrap=false
 local options=''
-local -r r_prompt=' use arrow-keys to scroll up-down & left-right, press Q to quit '
 local scrolltoend=false
 for arg in "${b[@]}";do
 [[ $arg = headers:on ]]&&headers=true
@@ -1014,9 +1021,10 @@ fi;}
 CalcReportFirstColumnWidth(){
 ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi"||return
 [[ -s $1 ]]||return
-local a=$(<"$1")
+local a=''
 local b=''
 local c=''
+a=$(<"$1")
 a=$(/bin/sed '/^#[[:space:]].*/d;/#$/d;s/[[:space:]]#[[:space:]].*//'<<<"$a")
 a=$(/bin/sed 's/[[:space:]]*$//'<<<"$a")
 a=$(/bin/sed '/^$/d'<<<"$a")
@@ -1053,9 +1061,12 @@ IsVarDefined appl_version &&echo "$appl_version">"$r_appl_version_store_pathfile
 DisplayRunAndLog(){
 ConfirmVarIsDefined 1 "${1:-}" "$e_nostr"||return
 ConfirmVarIsDefined 2 "${2:-}" "$e_nocmd"||return
-local a=$(tr -s ' '<<<"$2")
-local -r r_log_pathfile=$(/bin/mktemp $r_sys_log_path/"${FUNCNAME[0]}"_XXXXXX)
 local -i z=0
+local a=''
+local r_log_pathfile=''
+r_log_pathfile=$(/bin/mktemp $r_sys_log_path/"${FUNCNAME[0]}"_XXXXXX)
+local -r r_log_pathfile
+a=$(tr -s ' '<<<"$2")
 DisplayAndCommitProcessWaitToServiceLog "$1"
 Executer "$a" "$r_log_pathfile" "${4:-false}"
 z=$?
@@ -1079,9 +1090,11 @@ return $z;}
 Executer(){
 ConfirmVarIsDefined 1 "${1:-}" "$e_nocmd"||return
 ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi"||return
-local -r r_log_pathfile=$(/bin/mktemp $r_sys_log_path/${FUNCNAME[0]}_XXXXXX)
-local run_in_screen=${3:-false}
 local -i z=0
+local r_log_pathfile=''
+local run_in_screen=${3:-false}
+r_log_pathfile=$(/bin/mktemp $r_sys_log_path/${FUNCNAME[0]}_XXXXXX)
+local -r r_log_pathfile
 FormatAsCommand "$1">"$2"
 if [[ $useropt_debug = true ]];then
 local exec_msg='{ exec'
@@ -1100,7 +1113,9 @@ FormatAsCommand "$1">>"$r_screen_log_pathfile"
 /usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 z=$?
 elif [[ $useropt_debug = true ]];then
-local -r r_executer_log_pipe=$r_sys_run_path/pipe-$(/bin/date +%s%N)
+local r_executer_log_pipe=''
+r_executer_log_pipe=$r_sys_run_path/pipe-$(/bin/date +%s%N)
+local -r r_executer_log_pipe
 /bin/mknod "$r_executer_log_pipe" p
 /usr/bin/tee "$r_log_pathfile"<"$r_executer_log_pipe" &
 eval "$1">"$r_executer_log_pipe" 2>&1
@@ -1177,9 +1192,11 @@ DebugExtLogMinorSeparator(){
 DebugAsLog "$(DebugMinorSeparator)";}
 DebugBulletSeparatorWithText(){
 local a=''
+local b=''
+local c=''
 [[ -n ${1:-} ]]&&a=" ${1:-} "
-local b=$(((r_debug_log_datawidth-${#a})/2))
-local c=$((r_debug_log_datawidth-${#a}-b))
+b=$(((r_debug_log_datawidth-${#a})/2))
+c=$((r_debug_log_datawidth-${#a}-b))
 eval printf '%0.s•' "{1..$b}";printf '%s' "$a";eval printf '%0.s•' "{1..$c}";echo;}
 DebugMinorSeparator(){
 eval printf '%0.s-' "{1..$r_debug_log_datawidth}";}
@@ -1310,21 +1327,9 @@ GetNasArch(){
 GetOsFirmwareVersion(){
 /sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf;}
 GetOsFirmwareBuild(){
-/sbin/getcfg System Number -d undefined -f /etc/config/uLinux.conf;}
+printf '%04d' "$((10#$(/sbin/getcfg System Number -d 0 -f /etc/config/uLinux.conf)))";}
 GetOsFirmwareVer(){
-ConvertFirmwareVersionStringToNumber "$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)";}
-ConvertFirmwareVersionStringToNumber(){
-local major=0
-local intermediate=0
-local minor=0
-local build=0
-local -i major_trim=2
-local -i intermediate_trim=2
-local -i minor_trim=2
-local -i build_trim=4
-while IFS=. read -r major intermediate minor build;do
-printf "%0${major_trim}d%0${intermediate_trim}d%0${minor_trim}d%0${build_trim}d" "$((10#${major:0:major_trim}))" "$((10#${intermediate:0:intermediate_trim}))" "$((10#${minor:0:minor_trim}))" "$((10#${build:0:build_trim}))"
-done<<<"$1";}
+printf '%010d' "$((10#$(ConvertFirmwareVersionStringToNumber "$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)")))";}
 GetHardwarePlatform(){
 /sbin/getcfg '' Platform -d undefined -f /etc/platform.conf;}
 GetUserDefVol(){
@@ -1362,9 +1367,10 @@ if [[ ! -s $3 ]];then
 echo false
 return
 fi
+local -i line_num=0
+local -i start_line_num=0
 local blank=''
 local end_line_num='$'
-local -i line_num=0
 local raw_var_type=''
 local raw_var_description=''
 local result_line=''
@@ -1372,7 +1378,6 @@ local section_description=''
 local section_line=''
 local section_name=''
 local section_raw=''
-local -i start_line_num=0
 local target_section=''
 local value=''
 local value_raw=''
@@ -1412,13 +1417,25 @@ return 1
 fi
 echo "$value";}
 SetNasArch(){
-[[ ${r_nas_arch:-unset} = unset ]]&&readonly r_nas_arch=$(GetNasArch);}
+if [[ ${r_nas_arch:-unset} = unset ]];then
+r_nas_arch=$(GetNasArch)
+readonly r_nas_arch
+fi;}
 SetQpkgArch(){
-[[ ${r_nas_qpkg_arch:-unset} = unset ]]&&readonly r_nas_qpkg_arch=$(GetQpkgArch);}
+if [[ ${r_nas_qpkg_arch:-unset} = unset ]];then
+r_nas_qpkg_arch=$(GetQpkgArch)
+readonly r_nas_qpkg_arch
+fi;}
 SetOsFirmwareVersion(){
-[[ ${r_nas_firmware_version:-unset} = unset ]]&&readonly r_nas_firmware_version=$(GetOsFirmwareVersion).$(GetOsFirmwareBuild);}
+if [[ ${r_nas_firmware_version:-unset} = unset ]];then
+r_nas_firmware_version=$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)
+readonly r_nas_firmware_version
+fi;}
 SetOsFirmwareVer(){
-[[ ${r_nas_firmware_ver:-unset} = unset ]]&&readonly r_nas_firmware_ver=$(GetOsFirmwareVer);}
+if [[ ${r_nas_firmware_ver:-unset} = unset ]];then
+r_nas_firmware_ver=$(GetOsFirmwareVer)
+readonly r_nas_firmware_ver
+fi;}
 SetHardwarePlatform(){
 [[ ${r_nas_platform:-unset} = unset ]]&&readonly r_nas_platform=$(GetHardwarePlatform);}
 IsQNAP(){
@@ -1438,14 +1455,14 @@ IsNtQpkgEnabled(){
 ! IsQpkgEnabled "${1:-$r_qpkg_name}";}
 IsQpkgArr(){
 local re=\\b${1:-${r_qpkg_name:?${FUNCNAME[0]}(): $e_nopnm}}\\b
-[[ ${r_qpkgs_name_arrs[*]} =~ $re ]];}
+[[ ${ar_qpkgs_name_arrs[*]} =~ $re ]];}
 IsConfigMigrated(){
 [[ $(/sbin/getcfg ${1:-$r_qpkg_name} Migrated -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]];}
 IsNtConfigMigrated(){
 ! IsConfigMigrated "${1:-$r_qpkg_name}";}
 IsQpkgMigrated(){
 local re=\\b${1:-$r_qpkg_name}\\b
-[[ ${r_qpkgs_name_migrated[*]} =~ $re ]];}
+[[ ${ar_qpkgs_name_migrated[*]} =~ $re ]];}
 IsSupportBackup(){
 IsVarDefined qpkg_backup_pathfile;}
 IsSupportReset(){
@@ -1521,8 +1538,9 @@ IsNtPortAvailable(){
 ! IsPortAvailable "${1:-0}";}
 IsPortResponds(){
 local -i a=${1//[!0-9]/}
-local -i b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
+local -i b=0
 local -i c=0
+b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
 if [[ -z $a ]];then
 Display 'empty port: not testing for response'
 return 1
@@ -1559,8 +1577,9 @@ done
 return 1;}
 IsPortSecureResponds(){
 local -i a=${1//[!0-9]/}
-local -i b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
+local -i b=0
 local -i c=0
+b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
 if [[ -z $a ]];then
 Display 'empty port: not testing for response'
 return 1
@@ -1623,7 +1642,8 @@ SetOsFirmwareVer
 [[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.5.5))) ]];}
 IsSiteUp(){
 ConfirmVarIsDefined 1 "${1:-}" "$e_nourl"||return
-local a=$(cut -d'/' -f3<<<"$1"|cut -d':' -f1)
+local a=''
+a=$(cut -d'/' -f3<<<"$1"|cut -d':' -f1)
 ConfirmVarIsDefined a "${a:-}" "$e_nourl"||return
 local -i n=0
 for((n=0;n<20;n++));do
@@ -1636,17 +1656,20 @@ IsHaveSingleQuote(){
 /bin/grep "'"<<<"${1:-}"
 } &>/dev/null
 IsGnuLessSupportHeaders(){
-local a=$(GetGnuLessVersion)
+local a=''
+a=$(GetGnuLessVersion)
 IsNumber $a &&[[ $a -ge 685 ]];}
 IsReportLargerThanViewport(){
 [[ -n ${1:-} &&-e $1 ]]||return
 if [[ -x $r_gnu_stty_cmd ]]&&IsInTerminal;then
-local -r r_terminal_dimensions=$($r_gnu_stty_cmd size)
-local -r r_sess_rows=${r_terminal_dimensions% *}
-local -r r_sess_columns=${r_terminal_dimensions#* }
+local r_terminal_dimensions=''
+r_terminal_dimensions=$($r_gnu_stty_cmd size)
+local -r r_terminal_dimensions
+local -ir r_sess_rows=${r_terminal_dimensions% *}
+local -ir r_sess_columns=${r_terminal_dimensions#* }
 else
-local -r r_sess_rows=40
-local -r r_sess_columns=156
+local -ir r_sess_rows=40
+local -ir r_sess_columns=156
 fi
 [[ $(/usr/bin/wc -l<"$1") -ge $r_sess_rows ||$(StripANSICodes "$(<"$1")"|/usr/bin/wc -L) -gt $r_sess_columns ]];}
 IsNumber(){
@@ -1686,14 +1709,16 @@ GetGnuLessVersion(){
 if [[ -x $r_gnu_less_cmd ]];then
 $r_gnu_less_cmd -V|head -n1|cut -d' ' -f2
 else
-printf unknown
+printf 0
 fi;}
 RequestLatestReleaseFilename(){
 ConfirmVarIsDefined 1 "${1:-}" "$e_nourl"||return
+local -i c=0
 local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"
-local b=$(/sbin/curl $a "${1/https/http}"|/bin/grep -v 'Location:'|/bin/grep filename|cut -d';' -f2|cut -d'=' -f2|/bin/sed -e 's|\r||g')
+local b=''
+b=$(/sbin/curl $a "${1/https/http}"|/bin/grep -v 'Location:'|/bin/grep filename|cut -d';' -f2|cut -d'=' -f2|/bin/sed -e 's|\r||g')
 [[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep -e "$2"<<<"$b")
-local -i c=$(wc -l<<<"$b")
+c=$(wc -l<<<"$b")
 case $c in
 0)
 printf '%s' "${FUNCNAME[0]}(): zero filenames matched"
@@ -1707,10 +1732,12 @@ esac
 } 2>/dev/null
 RequestLatestReleaseURL(){
 ConfirmVarIsDefined 1 "${1:-}" "$e_nourl"||return
+local -i c=0
 local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"
-local b=$(/sbin/curl $a "$1"|/bin/grep browser_download_url|cut -d\" -f4)
+local b=''
+b=$(/sbin/curl $a "$1"|/bin/grep browser_download_url|cut -d\" -f4)
 [[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep -e "$2"<<<"$b")
-local -i c=$(wc -l<<<"$b")
+c=$(wc -l<<<"$b")
 case $c in
 0)
 printf '%s' "${FUNCNAME[0]}(): zero URLs matched"
@@ -1886,9 +1913,9 @@ Display "$(TextBrightRed derp): ${1:-}"
 ShowAsBug(){
 [[ -n ${1:-} ]]||return
 [[ -n ${2:-} ]]||return
+local -i i=0
 local a='fstack: '
 local b=' '
-local -i i=0
 for((i=${#FUNCNAME[@]}-1;i>=0;i--));do
 [[ $i -ne $((${#FUNCNAME[@]}-1)) ]]&&a+="${b}>${b}"
 if [[ ${FUNCNAME[$i]} = "$1" ]];then
@@ -1929,9 +1956,9 @@ DisplayAndCommitToServiceLog "~ ${1:-}";}
 DisplayAndCommitActionToServiceLog(){
 [[ $service_action = undefined ]]&&return
 starttime=$(ConvertNowToNanoseconds)
+local a=DisplayAndCommitToServiceLog
 local msg="- source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' '<<<"$msg") "
-local a=DisplayAndCommitToServiceLog
 if IsNtStatus&&IsNtLog&&IsNtNone;then
 IsUnsupported &&a=CommitToServiceLog
 CommitToServiceLog '•'
@@ -1940,9 +1967,9 @@ $a "- package: $r_qpkg_version, service: $r_service_script_version, library: $r_
 fi;}
 DisplayAndCommitResultToServiceLog(){
 [[ $service_action = undefined ]]&&return
+local a=DisplayAndCommitToServiceLog
 local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
 msg="$(/bin/tr -s ' '<<<"$msg") "
-local a=DisplayAndCommitToServiceLog
 if IsNtStatus&&IsNtLog&&IsNtNone;then
 IsUnsupported &&a=CommitToServiceLog
 case $service_result in
@@ -2032,8 +2059,9 @@ CalcMilliDifference(){
 echo "$(((${2:-1}-${1:-0})/1000000))";}
 ConvertAsSmartDate(){
 [[ -n ${1:-} ]]||return
-local a=$(/bin/sed 's/[^0-9]*//g'<<<"$1")
+local a=''
 local b=''
+a=$(/bin/sed 's/[^0-9]*//g'<<<"$1")
 case ${#a} in
 6)
 b=$(/bin/date -d "${a::2}-${a:2:2}-${a:4:2}" "$r_extended_datetime_format");;
@@ -2058,10 +2086,23 @@ ConvertNowToSeconds(){
 ConvertNowToNanoseconds(){
 /bin/date +%s%N
 } 2>/dev/null
+ConvertFirmwareVersionStringToNumber(){
+local -ir r_build_trim=4
+local -ir r_intermediate_trim=2
+local -ir r_major_trim=2
+local -ir r_minor_trim=2
+local -i intermediate=0
+local -i major=0
+local -i minor=0
+local build=0
+while IFS=. read -r major intermediate minor build;do
+printf "%0${r_major_trim}d%0${r_intermediate_trim}d%0${r_minor_trim}d%0${r_build_trim}d" "$((10#${major:0:r_major_trim}))" "$((10#${intermediate:0:r_intermediate_trim}))" "$((10#${minor:0:r_minor_trim}))" "$((10#${build:0:r_build_trim}))"
+done<<<"$1";}
 FormatAsThous(){
-local rightside_group=''
 local foutput=''
-local remainder=$(/bin/sed 's/[^0-9]*//g'<<<"${1:-}")
+local remainder=''
+local rightside_group=''
+remainder=$(/bin/sed 's/[^0-9]*//g'<<<"${1:-}")
 while [[ ${#remainder} -gt 0 ]];do
 rightside_group=${remainder:${#remainder}<3?0:-3}
 if [[ -z $foutput ]];then
@@ -2081,13 +2122,33 @@ FormatAsDuration(){
 if [[ ${1:-0} -lt 10000 ]];then
 printf '%s' "$(FormatAsThous "${1:-0}")ms"
 else
-FormatSecsToHoursMinutesSecs "$(((${1:-0}+500)/1000))"
+ConvertSecondsToDuration "$(((${1:-0}+500)/1000))"
 fi;}
-FormatSecsToHoursMinutesSecs(){
-((h=${1:-0}/3600))
-((m=(${1:-0}%3600)/60))
-((s=${1:-0}%60))
-printf '%01dh:%02dm:%02ds\n' "$h" "$m" "$s"
+ConvertSecondsToDuration(){
+local -i d=0
+local -i h=0
+local -i m=0
+local -i s=0
+#((d=${1:-0}/86400))
+d=${1:-0}/86400
+#((h=(${1:-0}%86400)/3600))
+h=${1:-0}%86400/3600
+#((m=(${1:-0}%3600)/60))
+m=${1:-0}%3600/60
+#((s=${1:-0}%60))
+s=${1:-0}%60
+if [[ $d -ge 1 ]];then
+printf '%01dd:%02dh:%02dm:%02ds' "$d" "$h" "$m" "$s"
+elif [[ $h -ge 1 ]];then
+printf '%01dh:%02dm:%02ds' "$h" "$m" "$s"
+elif [[ $m -ge 1 ]];then
+printf '%01dm:%02ds' "$m" "$s"
+elif [[ $s -ge 1 ]];then
+printf "%d second$(Pluralise $s)" "$s"
+else
+s=1
+printf '< %d second' "$s"
+fi
 } 2>/dev/null
 IsAutoUpdateMissing(){
 [[ $(/sbin/getcfg $r_qpkg_name Auto_Update -f /etc/config/qpkg.conf) = '' ]];}
@@ -2104,7 +2165,8 @@ StoreAutoUpdateSelection(){
 DisplayAndCommitInfoToServiceLog "application auto-update: $1";}
 GetPathGitBranch(){
 [[ -n $1 ]]||return
-local a=$($r_git_cmd -C "$1" branch|/bin/grep '^\*'|/bin/sed 's|^\* ||')
+local a=''
+a=$($r_git_cmd -C "$1" branch|/bin/grep '^\*'|/bin/sed 's|^\* ||')
 [[ -n $a ]]||a=none
 printf '%s' "$a"
 } 2>/dev/null
@@ -2128,17 +2190,22 @@ CommitInfoToServiceLog "specified action '$1' is unsupported."
 Display
 ShowHelp;}
 CalcAdaptiveSeconds(){
-local a=$(GetSysLoad1MinAverage);a=${a/./}0
-local b=$(($(GetCPUCores)*100))
-local c=$((10#$a/10#$b))
-local d=$((10#${1:-1}))
+local a=''
+local b=''
+local c=''
+local d=''
+a=$(GetSysLoad1MinAverage);a=${a/./}0
+b=$(($(GetCPUCores)*100))
+c=$((10#$a/10#$b))
+d=$((10#${1:-1}))
 [[ $((10#$c)) -gt 10 ]]&&d=$(((c*d)/10))
 [[ $((10#$d)) -gt 1800 ]]&&d=1800
 printf '%s' "$d";}
 GetSysLoad1MinAverage(){
 /usr/bin/uptime|/bin/sed 's/.*load average: //'|/bin/awk -F', ' '{print $1}';}
 GetCPUCores(){
-local a=$(/bin/grep -c '^processor' /proc/cpuinfo)
+local a=''
+a=$(/bin/grep -c '^processor' /proc/cpuinfo)
 [[ $a -eq 0 ]]&&a=$(/bin/grep -c '^Processor' /proc/cpuinfo)
 printf '%s' "$a";}
 AddToQpkgPostInstallDeps(){
@@ -2154,7 +2221,8 @@ local re=\\b${2}\\b
 SetQpkgPostInstallDeps "$1" "$(/bin/sed "s|${re}||g"<<<"$(GetQpkgPostInstallDeps "$1")")";}
 SetQpkgPostInstallDeps(){
 [[ -n ${1:-} ]]||return
-local a=$(CleanDependencyField "${2:-}")
+local a=''
+a=$(CleanDependencyField "${2:-}")
 if [[ -n $a ]];then
 /sbin/setcfg "$1" Dependency "$a" -f /etc/config/qpkg.conf
 else
@@ -2162,7 +2230,8 @@ else
 fi;}
 CleanDependencyField(){
 [[ -n ${1:-} ]]||return
-local a=$(/bin/tr -s ':'<<<"$1")
+local a=''
+a=$(/bin/tr -s ':'<<<"$1")
 [[ -n $a &&${a:0:1} = ':' ]]&&a=${a#?}
 [[ -n $a &&${a: -1:1} = ':' ]]&&a=${a%?}
 printf '%s' "$a";}
@@ -2203,7 +2272,8 @@ echo "Detected 'upgrade' in-progress, so not processing internal QPKG actions fu
 exit
 fi
 if IsSourceGit;then
-local test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
+local test_branch=''
+test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
 if [[ $test_branch = unknown ]];then
 /sbin/setcfg $r_qpkg_name Git_Branch $source_git_branch -f /etc/config/qpkg.conf
 else
