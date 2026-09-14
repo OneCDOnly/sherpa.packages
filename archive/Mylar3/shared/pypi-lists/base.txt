@@ -1,1 +1,0 @@
-../../../../support/pypi-lists/base.txt
