@@ -1,8 +1,8 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'filebrowser.source')
+#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'filebrowserquantum.source')
 #*
-#* filebrowser.sh
+#* filebrowserquantum.sh
 #*	  Copyright (C) 2017-2026 OneCD.
 #*
 #* Contact:
@@ -35,29 +35,30 @@
 #*	  You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/
 #*
 readonly r_user_args_raw=$*
-readonly r_qpkg_name=FileBrowser
-readonly r_service_script_version=260916
+readonly r_qpkg_name=FileBrowserQuantum
+readonly r_service_script_version=260918
 InitService(){
+can_restart_to_update=true
+package_is_exec=true
 resolve_source_url=true
 run_daemon_in_screen_session=true
-source_url_arch=386
-ui_listening_address=0.0.0.0
-ui_port=8641
+source_url_arch=amd64
+start_retries=3
 qpkg_config_path=$r_qpkg_path/config
 qpkg_repo_path=$r_qpkg_path/repo-cache
 qpkg_temp_path=$r_qpkg_path/tmp
-daemon_exec_pathfile=$qpkg_repo_path/filebrowser
+daemon_exec_pathfile=$qpkg_repo_path/linux-${source_url_arch}-filebrowser
 daemon_pid_pathfile=$r_sys_run_path/$r_qpkg_name.pid
 qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
-qpkg_config_pathfile=$qpkg_config_path/filebrowser.db
+qpkg_config_pathfile=$qpkg_config_path/config.yaml
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 export HOME=$qpkg_config_path
-source_asset_url_match=linux-${source_url_arch}-filebrowser.tar.gz
-source_asset_url=https://api.github.com/repos/filebrowser/filebrowser/releases/latest
-daemon_launch_cmd="$daemon_exec_pathfile --database $qpkg_config_pathfile --address $ui_listening_address --port $ui_port --root /"
-get_ui_listening_address_cmd="echo $ui_listening_address"
-get_ui_port_cmd="echo $ui_port"
-get_ui_port_secure_cmd=false
+source_asset_url_match=linux-${source_url_arch}-filebrowser
+source_asset_url=https://api.github.com/repos/gtsteffaniak/filebrowser/releases/latest
+daemon_launch_cmd="export FILEBROWSER_CONFIG=$qpkg_config_pathfile;cd $qpkg_repo_path &&$daemon_exec_pathfile"
+get_ui_listening_address_cmd="GetKeyFromYAML http:listen $qpkg_config_pathfile|cut -d: -f1"
+get_ui_port_cmd="GetKeyFromYAML http:port $qpkg_config_pathfile|cut -d: -f2"
+get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd=false;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0

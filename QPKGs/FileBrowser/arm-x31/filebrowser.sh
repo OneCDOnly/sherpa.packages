@@ -27,7 +27,7 @@
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
 #*
 #* Notes:
-#*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox) as this is the native QNAP NAS shell. Be-careful reusing code in other shells, as these scripts contain syntax quirks often compatible only with bash.
+#*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox), as this is the native QNAP NAS shell. Be-careful reusing code in other shells. These scripts contain syntax quirks often compatible only with bash.
 #*
 #* License:
 #*	  This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -36,9 +36,8 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=FileBrowser
-readonly r_service_script_version=260912
+readonly r_service_script_version=260916
 InitService(){
-can_restart_to_update=true
 resolve_source_url=true
 run_daemon_in_screen_session=true
 source_url_arch=armv7

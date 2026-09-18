@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Mylar3
-readonly r_service_script_version=260914
+readonly r_service_script_version=260916
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true
