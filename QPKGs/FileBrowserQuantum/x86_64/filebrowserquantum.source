@@ -8,13 +8,13 @@
 #* <?postamble?>
 #*
 readonly r_user_args_raw=$*
-readonly r_qpkg_name=FileBrowser
+readonly r_qpkg_name=FileBrowserQuantum
 readonly r_service_script_version='<?build_date?>'
 
 InitService()
 	{
 
-	# This is a type 8 service-script.
+	# This is a type 5 service-script.
 
 	# NOTE: default session variables are set below, but may be customised in the InitService() function for each QPKG. If a variable is set to a non-default value, any later variable that uses it must be recalculated (uncomment these lines).
 
@@ -27,7 +27,7 @@ InitService()
 
 		# can_restart_to_update=false
 			# Default
-		# can_restart_to_update=true
+		can_restart_to_update=true
 			# Custom
 		# > If 'true', application files can be updated by restarting service-script.
 
@@ -55,7 +55,7 @@ InitService()
 
 		# package_is_exec=false
 			# Default
-		# package_is_exec=true
+		package_is_exec=true
 			# Custom
 		# > If 'true', downloadable package is an executable file. If 'false', downloadable package is an archive that must be extracted-from.
 
@@ -128,7 +128,7 @@ InitService()
 
 		# start_retries=0
 			# Default
-		# start_retries=3
+		start_retries=3
 			# Typical
 		# start_retries=
 			# Custom
@@ -136,14 +136,14 @@ InitService()
 
 		# ui_listening_address=undefined
 			# Default
-		ui_listening_address=0.0.0.0
+		# ui_listening_address=0.0.0.0
 			# Typical
 		# ui_listening_address=
 			# Custom
 
 		# ui_port=0
 			# Default
-		ui_port=8641
+		# ui_port=
 			# Custom
 
 		# ui_port_secure=0
@@ -254,7 +254,7 @@ InitService()
 			# Default
 		# daemon_exec_pathfile=$qpkg_venv_path/bin/python3
 			# Typical
-		daemon_exec_pathfile=$qpkg_repo_path/filebrowser
+		daemon_exec_pathfile=$qpkg_repo_path/linux-${source_url_arch}-filebrowser
 			# Custom
 		# > The pathfilename of the main daemon. If $daemon_script_pathfile is set, then this is the interpreter used to run the script.
 
@@ -288,7 +288,7 @@ InitService()
 			# Default
 		# qpkg_config_pathfile=$qpkg_config_path/config.ini
 			# Typical
-		qpkg_config_pathfile=$qpkg_config_path/filebrowser.db
+		qpkg_config_pathfile=$qpkg_config_path/config.yaml
 			# Custom
 
 		# qpkg_config_default_pathfile=undefined
@@ -346,7 +346,7 @@ InitService()
 
 		# source_asset_url_match=undefined
 			# Default
-		source_asset_url_match=linux-${source_url_arch}-filebrowser.tar.gz
+		source_asset_url_match=linux-${source_url_arch}-filebrowser
 			# Custom
 		# > Longest string to match in URL to determine filename.
 
@@ -354,13 +354,15 @@ InitService()
 
 		# source_asset_url=undefined
 			# Default
-		# source_asset_url=https://api.github.com/
+		# source_asset_url=https://api.github.com/repos/<user>/<project>/releases/latest
 			# Typical
-		source_asset_url=https://api.github.com/repos/filebrowser/filebrowser/releases/latest
+		source_asset_url=https://api.github.com/repos/gtsteffaniak/filebrowser/releases/latest
 			# Custom
 
 		# source_git_url=undefined
 			# Default
+		# source_git_url=https://github.com/<user>/<project>.git
+			# Typical
 		# source_git_url=
 			# Custom
 		# > https://github.com/
@@ -370,7 +372,7 @@ InitService()
 
 		# daemon_launch_cmd=undefined
 			# Default
-		daemon_launch_cmd="$daemon_exec_pathfile --database $qpkg_config_pathfile --address $ui_listening_address --port $ui_port --root /"
+		daemon_launch_cmd="export FILEBROWSER_CONFIG=$qpkg_config_pathfile; cd $qpkg_repo_path && $daemon_exec_pathfile"
 			# Custom
 
 		# get_appl_version_cmd=undefined
@@ -385,17 +387,17 @@ InitService()
 
 		# get_ui_listening_address_cmd=undefined
 			# Default
-		get_ui_listening_address_cmd="echo $ui_listening_address"
+		get_ui_listening_address_cmd="GetKeyFromYAML http:listen $qpkg_config_pathfile | cut -d: -f1"
 			# Custom
 
 		# get_ui_port_cmd=undefined
 			# Default
-		get_ui_port_cmd="echo $ui_port"
+		get_ui_port_cmd="GetKeyFromYAML http:port $qpkg_config_pathfile | cut -d: -f2"
 			# Custom
 
 		# get_ui_port_secure_cmd=undefined
 			# Default
-		get_ui_port_secure_cmd=false
+		get_ui_port_secure_cmd='echo 0'
 			# Custom
 
 		# get_ui_port_secure_enabled_test_cmd=undefined
