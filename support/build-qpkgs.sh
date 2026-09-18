@@ -8,11 +8,11 @@
 
 . $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
-rebuild_functions=false
-rebuilt_functions=false
-a=$qpkgs_support_path/$service_library_source_file
-b=$qpkgs_support_path/$service_library_file
-	c=$b
+declare rebuild_functions=false
+declare rebuilt_functions=false
+declare a=$qpkgs_support_path/$service_library_source_file
+declare b=$qpkgs_support_path/$service_library_file
+	declare c=$b
 
 if [[ -e $c ]]; then
 	if [[ -n $(find -L "$a" -newer "$c") ]]; then
@@ -38,7 +38,7 @@ if [[ $rebuild_functions = true ]]; then
 fi
 
 for d in "$qpkgs_path"/*; do
-	echo -e "\n$(TextBrightWhite 'QPKG:') $(basename "$d")"
+	echo -e "\nQPKG: $(TextBrightWhite "$(basename "$d")")"
 	config_source_pathfile=$d/qpkg.source
 
 	if [[ ! -e $config_source_pathfile ]]; then

@@ -19,7 +19,7 @@ short_path=''
 this_path=''
 version=''
 
-[[ ! -f $highest_package_versions_found_pathfile ]] && ./build-multiple-packages.sh
+[[ ! -f $highest_package_versions_found_pathfile ]] && ./build-package-databases.sh
 
 if [[ -e $highest_package_versions_found_pathfile ]]; then
 	highest_table="$(StripComments "$(<"$highest_package_versions_found_pathfile")")"
@@ -28,7 +28,7 @@ else
 	exit 1
 fi
 
-echo -n 'loading latest QPKG versions ... '
+echo -n 'load: latest QPKG versions ... '
 
 while read -r qpkg_filename package_name version arch short_path hash; do
 	highest_qpkg_pathfilenames+=($checksum_root_path/$short_path/$qpkg_filename)
@@ -36,7 +36,7 @@ done <<< "$highest_table"
 
 ShowDone
 
-echo -n 'looking for obsolete QPKG versions ... '
+echo -n 'find: obsolete QPKG versions ... '
 
 while read -r checksum_pathfilename; do
 	qpkg_pathfilename=${checksum_pathfilename//.md5/}
@@ -57,7 +57,7 @@ ShowDone
 
 # echo "pathfiles_to_delete: [${pathfiles_to_delete[*]}]" | tr ' ' '\n'
 
-echo -n 'deleting obsolete QPKG versions ... '
+echo -n 'delete: obsolete QPKG versions ... '
 
 for f in ${pathfiles_to_delete[*]}; do
 	rm -f "$f"
@@ -68,7 +68,7 @@ ShowDone
 
 exit		# QPKGs are no-longer included in repository, so there's no-need to garbage collect anymore.
 
-echo 'running garbage collection ... '
+echo 'run: garbage collection ... '
 
 this_path="$PWD"
 cd "$qpkgs_root_path" || exit

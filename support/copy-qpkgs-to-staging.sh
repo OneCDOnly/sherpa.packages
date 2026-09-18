@@ -20,7 +20,7 @@ else
 	exit 1
 fi
 
-echo -n 'copy QPKGs to staging ... '
+echo -n 'copy: QPKGs to staging ... '
 [[ $debug = true ]] && echo
 
 while read -r qpkg_filename package_name version arch short_path hash; do

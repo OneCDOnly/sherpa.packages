@@ -2,27 +2,27 @@
 
 . $HOME/scripts/nas/sherpa/support/environment.sourced || exit
 
-arch=''
-checksum_filename=''
-checksum_pathfilename=''
-match=false
-package_name=''
-package_versions_raw_pathfile=$qpkgs_support_path/qpkg-versions.raw
-previous_arch=''
-previous_package_name=''
-previous_version=''
-qpkg_filename=''
-short_path=''
-tailend=''
-version=''
+declare arch=''
+declare checksum_filename=''
+declare checksum_pathfilename=''
+declare match=false
+declare package_name=''
+declare package_versions_raw_pathfile=$qpkgs_support_path/qpkg-versions.raw
+declare previous_arch=''
+declare previous_package_name=''
+declare previous_version=''
+declare qpkg_filename=''
+declare short_path=''
+declare tailend=''
+declare version=''
 
-echo -n 'locating QPKG checksum files ... '
+echo -n 'locate: QPKG checksum files ... '
 
 raw=$(find "$checksum_root_path" -name '*.qpkg.md5' ! -path '*/archive/*')
 
 ShowDone
 
-echo -n 'extracting highest QPKG version numbers ... '
+echo -n 'extract: highest QPKG version numbers ... '
 
 sorted=$(sort --version-sort --reverse <<< "$raw")
 

@@ -13,5 +13,5 @@ done
 
 ./build-qpkgs.sh sherpa || exit
 ./build-qpkg-version-table.sh || exit
-./build-wiki-package-abbreviations.sh || exit
-./build-multiple-archives.sh || exit
+./build-package-abbreviations-wiki.sh || exit
+./build-archives.sh || exit
