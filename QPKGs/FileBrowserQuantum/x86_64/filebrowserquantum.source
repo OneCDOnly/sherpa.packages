@@ -372,7 +372,7 @@ InitService()
 
 		# daemon_launch_cmd=undefined
 			# Default
-		daemon_launch_cmd="export FILEBROWSER_CONFIG=$qpkg_config_pathfile; cd $qpkg_repo_path && $daemon_exec_pathfile"
+		daemon_launch_cmd="cd $qpkg_repo_path && $daemon_exec_pathfile -c $qpkg_config_pathfile"
 			# Custom
 
 		# get_appl_version_cmd=undefined
@@ -387,12 +387,12 @@ InitService()
 
 		# get_ui_listening_address_cmd=undefined
 			# Default
-		get_ui_listening_address_cmd="GetKeyFromYAML http:listen $qpkg_config_pathfile | cut -d: -f1"
+		get_ui_listening_address_cmd="GetKeyFromYAML server:listen $qpkg_config_pathfile | cut -d: -f1"
 			# Custom
 
 		# get_ui_port_cmd=undefined
 			# Default
-		get_ui_port_cmd="GetKeyFromYAML http:port $qpkg_config_pathfile | cut -d: -f2"
+		get_ui_port_cmd="GetKeyFromYAML server:port $qpkg_config_pathfile | cut -d: -f2"
 			# Custom
 
 		# get_ui_port_secure_cmd=undefined

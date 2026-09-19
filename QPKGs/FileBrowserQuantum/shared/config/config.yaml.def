@@ -2,26 +2,22 @@ server:
   minSearchLength: 0
   disableUpdateCheck: false
   numImageProcessors: 4
+  socket: ""
+  tlsKey: ""
+  tlsCert: ""
   disablePreviews: false
   disablePreviewResize: false
   disableTypeDetectionByHeader: false
+  port: 1981
+  listen: 0.0.0.0
+  baseURL: ""
   logging: []
+  database: ../config/database.db
   sources:
-  - path: ./
+  - path: /share/Public
     name: ""
-    config:
-      private: false
-      rules: []
-      defaultUserScope: ""
-      defaultEnabled: false
-      createUserDir: false
-      useLogicalSize: false
-      defaultPermissions:
-        view: true
-        download: true
-        modify: false
-        delete: false
-        create: false
+  externalUrl: ""
+  internalUrl: ""
   cacheDir: ../tmp
   cacheDirCleanup: false
   maxArchiveSize: 20
@@ -34,14 +30,7 @@ server:
     walMode: false
     disableReuse: false
     startupIntegrityCheck: quickCheck
-  database:
-    path: ../config/filebrowser.sqlite
-    migrateFrom: ""
-    activity:
-      disabled: false
-      retentionDays: 30
-      flushIntervalSeconds: 10
-      maxBufferSize: 10000
+  disableWebDAV: false
 auth:
   tokenExpirationHours: 2
   methods:
@@ -163,6 +152,9 @@ userDefaults:
     highQuality: true
     folder: true
     models: true
+    disableHideSidebar: false
+    defaultMediaPlayer: false
+    autoplayMedia: false
   fileViewer:
     editorQuickSave: false
     autoplayMedia: true
@@ -170,6 +162,7 @@ userDefaults:
     disableOnlyOfficeExt: .md .txt .pdf .html .xml
     preferEditorForMarkdown: false
     debugOffice: false
+    defaultMediaPlayer: false
   ui:
     darkMode: true
     themeColor: var(--blue)
@@ -180,6 +173,19 @@ userDefaults:
     uploadChunkSizeMb: 10
     clearAll: false
     downloadChunkSizeMb: 0
+  account:
+    permissions:
+      api: false
+      admin: false
+      modify: false
+      share: false
+      realtime: false
+      delete: false
+      create: false
+      download: true
+    lockPassword: false
+    disableSettings: false
+    disableUpdateNotifications: false
 integrations:
   office:
     url: ""
@@ -213,16 +219,7 @@ integrations:
         wmv: true
     debug: false
     extractEmbeddedSubtitles: false
-    hardwareAcceleration: false
+    exiftoolPath: ""
 http:
-  socket: ""
-  tlsKey: ""
-  tlsCert: ""
-  port: 1981
-  listen: 0.0.0.0
-  baseURL: ""
-  externalUrl: ""
-  internalUrl: ""
-  disableWebDAV: false
-  trustProxyHeaders: false
+  trustedHeaders: []
   disableRateLimit: false
