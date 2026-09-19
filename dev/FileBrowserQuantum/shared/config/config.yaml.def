@@ -219,7 +219,7 @@ http:
   tlsKey: ""
   tlsCert: ""
   port: 1981
-  listen: ""
+  listen: 0.0.0.0
   baseURL: ""
   externalUrl: ""
   internalUrl: ""
