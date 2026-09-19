@@ -27,7 +27,7 @@
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
 #*
 #* Notes:
-#*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox) as this is the native QNAP NAS shell. Be-careful reusing code in other shells, as these scripts contain syntax quirks often compatible only with bash.
+#*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox), as this is the native QNAP NAS shell. Be-careful reusing code in other shells. These scripts contain syntax quirks often compatible only with bash.
 #*
 #* License:
 #*	  This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -36,12 +36,11 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version=260912
+readonly r_service_script_version=260920
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true
-resolve_source_url=true
 silence_pypi_errors=true
 nice_daemon_to=15
 source_url_arch=arm64
@@ -62,7 +61,7 @@ venv_pip_pathfile=$qpkg_venv_path/bin/pip
 export HOME=$qpkg_config_path
 interpreter=/opt/bin/python3
 source_asset_url_match=-${source_url_arch}-linux.zip
-source_asset_url=https://api.github.com/repos/theotherp/nzbhydra2/releases/latest
+source_asset_url=https://github.com/theotherp/nzbhydra2/releases/download/v8.9.0/nzbhydra2-8.9.0-${source_url_arch}-linux.zip
 daemon_launch_cmd="export NZBHYDRA_TEMP_FOLDER=$qpkg_temp_path;$daemon_exec_pathfile $daemon_script_pathfile --nobrowser --daemon --datafolder $qpkg_config_path --pidfile $daemon_pid_pathfile"
 get_ui_listening_address_cmd="GetKeyFromYAML main_host $qpkg_config_pathfile"
 get_ui_port_cmd="GetKeyFromYAML main:port $qpkg_config_pathfile"
