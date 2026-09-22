@@ -10,7 +10,7 @@
 <br>
 
 <h2>Package archive download counts per-architecture</h2>
-Counts for 'all' are cumulative for the last 30 archive releases only.<br>
+Counts for 'all' are for the last 30 archive releases only.<br>
 Counts for 'latest' reset to zero on each new release.<br>
 <sub>* Don't read too-much into these, they're only to help me see which NAS arches are actually in-use.</sub><br><br>
 
