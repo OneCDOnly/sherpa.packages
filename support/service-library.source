@@ -601,8 +601,11 @@ StartQpkgLibrary()
 		RefreshReleasePackageFiles || return
 	fi
 
-	if IsVirtualPythonEnv && IsNtVirtualPythonEnvFound; then
-		CreateVirtualPythonEnv || return
+	if IsVirtualPythonEnv; then
+		if IsNtVirtualPythonEnvFound; then
+			CreateVirtualPythonEnv || return
+		fi
+
 		InstallVirtualPythonPackages || return
 	fi
 
@@ -1169,8 +1172,8 @@ InstallVirtualPythonPackages()
 	#	$venv_pip_pathfile
 	#	$venv_python_pathfile
 
-	IsNtAutoUpdate && [[ $new_env = false ]] && return 0
 	IsVirtualPythonEnv || return 0
+	IsNtUpdate && IsNtAutoUpdate && [[ $new_env = false ]] && return 0
 
 	ConfirmVarIsDefined venv_pip_pathfile "${venv_pip_pathfile:-}" "$e_nopfi" || return
 
