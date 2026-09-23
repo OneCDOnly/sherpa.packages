@@ -1,7 +1,0 @@
-* Navidrome
-	- https://www.navidrome.org/
-
-* Chaptarr
-	- https://www.reddit.com/r/selfhosted/comments/1mimb0n/psa_readarr_replacement_chaptarr_under_very/
-	- to replace Readarr (no-longer maintained).
-	- no public repo yet.
