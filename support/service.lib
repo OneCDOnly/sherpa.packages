@@ -28,7 +28,7 @@
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
 #*
 #* Notes:
-#*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox) as this is the native QNAP NAS shell. Be-careful reusing code in other shells, as these scripts contain syntax quirks often compatible only with bash.
+#*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox), as this is the native QNAP NAS shell. Be-careful reusing code in other shells. These scripts contain syntax quirks often compatible only with bash.
 #*
 #* License:
 #*	  This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -39,7 +39,7 @@ set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=260912
+readonly r_service_library_version=260924
 InitLibrary(){
 [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
@@ -227,8 +227,10 @@ fi
 if IsSourceReleasePackage;then
 RefreshReleasePackageFiles||return
 fi
-if IsVirtualPythonEnv&&IsNtVirtualPythonEnvFound;then
+if IsVirtualPythonEnv;then
+if IsNtVirtualPythonEnvFound;then
 CreateVirtualPythonEnv||return
+fi
 InstallVirtualPythonPackages||return
 fi
 EnsureConfigFileExists
@@ -559,8 +561,8 @@ Display '[OPTION] may be one of the following:'
 DisplayAsHelp 'd, D, debug, verbose' "execute the specified [ACTION] in debug mode"
 Display;}
 InstallVirtualPythonPackages(){
-IsNtAutoUpdate &&[[ $new_env = false ]]&&return 0
 IsVirtualPythonEnv||return 0
+IsNtUpdate&&IsNtAutoUpdate &&[[ $new_env = false ]]&&return 0
 ConfirmVarIsDefined venv_pip_pathfile "${venv_pip_pathfile:-}" "$e_nopfi"||return
 if IsNtVirtualPythonEnvFound;then
 DisplayAndCommitErrorToServiceLog 'unable to install addons: virtual Python environment does not exist'
