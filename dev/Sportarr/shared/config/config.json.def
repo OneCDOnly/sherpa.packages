@@ -1,0 +1,12 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "SportarrApi": {
+    "BaseUrl": "https://sportarr.net/api/v2/json"
+  }
+}
