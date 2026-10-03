@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version=260929
+readonly r_service_script_version=260930
 InitService(){
 allow_access_to_sys_packages=true
 can_restart_to_update=true
@@ -46,6 +46,7 @@ silence_pypi_errors=true
 nice_daemon_to=15
 source_url_arch=arm64
 start_retries=3
+watch_port_check_seconds=360
 qpkg_config_path=$r_qpkg_path/config
 qpkg_pip_path=$r_qpkg_path/pip-cache
 qpkg_repo_path=$r_qpkg_path/repo-cache
