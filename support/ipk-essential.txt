@@ -1,7 +1,6 @@
 ca-certificates
 coreutils-dd
 coreutils-nice
-coreutils-sleep
 coreutils-stty
 coreutils-timeout
 gawk
