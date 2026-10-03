@@ -189,7 +189,7 @@ InitService()
 
 		# watch_port_check_seconds=120
 			# Default
-		# watch_port_check_seconds=
+		watch_port_check_seconds=360
 			# Custom
 		# > This value is adaptive (increases with system load average).
 
