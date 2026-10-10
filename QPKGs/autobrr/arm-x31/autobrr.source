@@ -279,7 +279,7 @@ InitService()
 
 		# qpkg_backup_pathfile=undefined
 			# Default
-		# qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
+		qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 			# Typical
 		# qpkg_backup_pathfile=
 			# Custom
