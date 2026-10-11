@@ -1,6 +1,7 @@
 # Use pseudo-alpha-sorted QPKG name order (i.e. disregard character-case and leading 'O').
 
 r_qpkg_names_prohibited=(OMedusa OqBittorrent OReadarr OSickGear OSonarr OTautulli OTransmission OWhisparr)
+r_websites=(bin.entware.net github.com api.github.com raw.githubusercontent.com gitlab.com readarr.servarr.com whisparr.servarr.com services.sonarr.tv)
 
 r_qpkg_name+=(Entware)
 r_qpkg_version+=(<?version?>)
