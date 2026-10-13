@@ -29,6 +29,7 @@ markdown-it-py
 mdurl
 netifaces2
 nvidia-ml-py
+opentelemetry-api
 orjson
 packaging
 paho-mqtt
