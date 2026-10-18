@@ -1,0 +1,16 @@
+server:
+  database:
+    path: "../config/filebrowser.sqlite"
+  sources:
+    - path: "/share"
+      config:
+        defaultEnabled: true
+http:
+  port: 1981
+  listen: 0.0.0.0
+auth:
+  methods:
+    noauth: true
+integrations:
+  media:
+    ffmpegPath: "/opt/bin"  # Directory containing ffmpeg and ffprobe

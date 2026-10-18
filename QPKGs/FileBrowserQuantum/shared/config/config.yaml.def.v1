@@ -1,0 +1,225 @@
+server:
+  minSearchLength: 0
+  disableUpdateCheck: false
+  numImageProcessors: 4
+  socket: ""
+  tlsCert: ""
+  disablePreviews: false
+  disablePreviewResize: false
+  disableTypeDetectionByHeader: false
+  listen: 0.0.0.0
+  baseURL: ""
+  logging: []
+  database:
+    path: ../config/filebrowser.sqlite
+  sources:
+  - path: /share/Public
+    config:
+        defaultEnabled: true
+  externalUrl: ""
+  internalUrl: ""
+  cacheDir: ../tmp
+  cacheDirCleanup: false
+  maxArchiveSize: 20
+  filesystem:
+    createFilePermission: "644"
+    createDirectoryPermission: "755"
+  indexSqlConfig:
+    batchSize: 1000
+    cacheSizeMB: 32
+    walMode: false
+    disableReuse: false
+    startupIntegrityCheck: quickCheck
+auth:
+  tokenExpirationHours: 2
+  methods:
+    proxy:
+      enabled: false
+      adminGroup: ""
+      userGroups: []
+      groupsClaim: ""
+      userIdentifier: ""
+      disableVerifyTLS: false
+      logoutRedirectUrl: ""
+      createUser: false
+      header: ""
+    noauth: false
+    password:
+      enabled: true
+      minLength: 5
+      signup: false
+      recaptcha:
+        host: ""
+        key: ""
+        secret: ""
+      enforcedOtp: false
+    oidc:
+      enabled: false
+      adminGroup: ""
+      userGroups: []
+      groupsClaim: ""
+      userIdentifier: ""
+      disableVerifyTLS: false
+      logoutRedirectUrl: ""
+      createUser: false
+      clientId: ""
+      clientSecret: ""
+      issuerUrl: ""
+      scopes: ""
+    ldap:
+      enabled: false
+      adminGroup: ""
+      userGroups: []
+      groupsClaim: ""
+      userIdentifier: ""
+      disableVerifyTLS: false
+      logoutRedirectUrl: ""
+      createUser: false
+      server: ""
+      baseDN: ""
+      userDN: ""
+      userPassword: ""
+      userFilter: ""
+    jwt:
+      enabled: false
+      adminGroup: ""
+      userGroups: []
+      groupsClaim: ""
+      userIdentifier: ""
+      disableVerifyTLS: false
+      logoutRedirectUrl: ""
+      createUser: false
+      header: ""
+      secret: ""
+      algorithm: ""
+    passkey:
+      enabled: false
+      rpDisplayName: ""
+      rpId: ""
+      rpOrigins: []
+      loginButtonText: ""
+  key: ""
+  adminUsername: admin
+  adminPassword: admin
+  totpSecret: ""
+frontend:
+  name: FileBrowser Quantum
+  disableDefaultLinks: false
+  disableUsedPercentage: false
+  externalLinks: []
+  disableNavButtons: false
+  styling:
+    disableEventThemes: false
+    customCSS: ""
+    lightBackground: ""
+    darkBackground: ""
+    customThemes: {}
+  favicon: ""
+  description: ""
+  loginIcon: ""
+  loginButtonText: ""
+  oidcLoginButtonText: ""
+  disablePWAInstall: false
+userDefaults:
+  sidebar:
+    disableQuickToggles: false
+    hideFileActions: false
+    disableHideOnPreview: false
+    sticky: true
+    hideFiles: false
+    showTools: true
+  listing:
+    deleteWithoutConfirming: false
+    dateFormat: false
+    showHidden: false
+    quickDownload: false
+    showSelectMultiple: false
+    singleClick: false
+    hideFileExt: ""
+    showCopyPath: false
+    deleteAfterArchive: true
+    viewMode: normal
+    gallerySize: 3
+  preview:
+    image: true
+    video: true
+    audio: true
+    motionVideoPreview: true
+    office: true
+    popup: true
+    disablePreviewExt: ""
+    highQuality: true
+    folder: true
+    models: true
+    disableHideSidebar: false
+    defaultMediaPlayer: false
+    autoplayMedia: false
+  fileViewer:
+    editorQuickSave: false
+    autoplayMedia: true
+    disableViewingExt: ""
+    disableOnlyOfficeExt: .md .txt .pdf .html .xml
+    preferEditorForMarkdown: false
+    debugOffice: false
+    defaultMediaPlayer: false
+  ui:
+    darkMode: true
+    themeColor: var(--blue)
+    customTheme: ""
+    locale: en
+  fileLoading:
+    maxConcurrentUpload: 10
+    uploadChunkSizeMb: 10
+    clearAll: false
+    downloadChunkSizeMb: 0
+  account:
+    permissions:
+      api: false
+      admin: false
+      modify: false
+      share: false
+      realtime: false
+      delete: false
+      create: false
+      download: true
+    lockPassword: false
+    disableSettings: false
+    disableUpdateNotifications: false
+integrations:
+  office:
+    url: ""
+    internalUrl: ""
+    secret: ""
+    viewOnly: false
+  media:
+    ffmpegPath: ""
+    convert:
+      imagePreview:
+        heic: false
+        jpeg: true
+      videoPreview:
+        3g2: true
+        3gp: true
+        asf: true
+        avi: true
+        f4v: true
+        flv: true
+        m2ts: true
+        m4v: true
+        mkv: true
+        mov: true
+        mp4: true
+        mpeg: true
+        mpg: true
+        ogv: true
+        ts: true
+        vob: true
+        webm: true
+        wmv: true
+    debug: false
+    extractEmbeddedSubtitles: false
+    exiftoolPath: ""
+http:
+  trustedHeaders: []
+  disableRateLimit: false
+  port: 1981

@@ -1,0 +1,1 @@
+* requires `ffmpeg` and `ffprobe` from Entware
