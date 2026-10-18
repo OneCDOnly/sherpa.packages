@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=FileBrowserQuantum
-readonly r_service_script_version=260924
+readonly r_service_script_version=261018
 InitService(){
 can_restart_to_update=true
 package_is_exec=true
@@ -56,8 +56,8 @@ export HOME=$qpkg_config_path
 source_asset_url_match=linux-${source_url_arch}-filebrowser
 source_asset_url=https://api.github.com/repos/gtsteffaniak/filebrowser/releases/latest
 daemon_launch_cmd="cd $qpkg_repo_path &&$daemon_exec_pathfile -c $qpkg_config_pathfile"
-get_ui_listening_address_cmd="GetKeyFromYAML server:listen $qpkg_config_pathfile|cut -d: -f1"
-get_ui_port_cmd="GetKeyFromYAML server:port $qpkg_config_pathfile|cut -d: -f2"
+get_ui_listening_address_cmd="GetKeyFromYAML http:listen $qpkg_config_pathfile|cut -d: -f1"
+get_ui_port_cmd="GetKeyFromYAML http:port $qpkg_config_pathfile|cut -d: -f2"
 get_ui_port_secure_cmd='echo 0'
 get_ui_port_secure_enabled_test_cmd=false;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
