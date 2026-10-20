@@ -819,7 +819,7 @@ ConfirmVarIsDefined()
 
 	local -i backdepth=1			# 0 = this function, 1 = calling function, etc...
 
-	[[ ${2:-undefined} != undefined ]] || { ShowAsBug "${FUNCNAME[$backdepth]}" "\$${1:-undefined}: '${3:-undefined}'"; return ;}
+	[[ ${2:-undefined} != undefined ]] || { ShowAsBug "${FUNCNAME[backdepth]}" "\$${1:-undefined}: '${3:-undefined}'"; return ;}
 
 	return 0
 
@@ -2827,11 +2827,8 @@ GetQpkgArch()
 	SetHardwarePlatform
 
 	case $r_nas_arch in
-		x86_64)
-			[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.3.0))) ]] && printf i64 || printf i86
-			;;
-		i686|x86)
-			printf i86
+		aarch64)
+			printf a64
 			;;
 		armv5tel)
 			printf a19
@@ -2848,8 +2845,11 @@ GetQpkgArch()
 					printf unknown
 			esac
 			;;
-		aarch64)
-			printf a64
+		i686|x86)
+			printf i86
+			;;
+		x86_64)
+			[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.3.0))) ]] && printf i64 || printf i86
 			;;
 		*)
 			printf unknown
@@ -4729,10 +4729,10 @@ ShowAsBug()
 	for ((i=${#FUNCNAME[@]}-1; i>=0; i--)); do
 		[[ $i -ne $((${#FUNCNAME[@]}-1)) ]] && a+="${b}>${b}"		# Insert separators.
 
-		if [[ ${FUNCNAME[$i]} = "$1" ]]; then
-			a+=$(TextBrightWhite "${FUNCNAME[$i]}($(TextBrightRed "$2")$(TextBrightWhite ')')")
+		if [[ ${FUNCNAME[i]} = "$1" ]]; then
+			a+=$(TextBrightWhite "${FUNCNAME[i]}($(TextBrightRed "$2")$(TextBrightWhite ')')")
 		else
-			a+=$(TextBrightWhite "${FUNCNAME[$i]}()")
+			a+=$(TextBrightWhite "${FUNCNAME[i]}()")
 		fi
 	done
 
@@ -4863,7 +4863,7 @@ DisplayAndCommitResultToServiceLog()
 	[[ $service_action = undefined ]] && return
 
 	local a=DisplayAndCommitToServiceLog
-	local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMilliDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
+	local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMillisecondsDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
 
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
 
@@ -5091,7 +5091,7 @@ Pluralise()
 
 	}
 
-CalcMilliDifference()
+CalcMillisecondsDifference()
 	{
 
 	# Inputs: (local)
@@ -5101,7 +5101,7 @@ CalcMilliDifference()
 	# Outputs: (local)
 	#	stdout = difference in milliseconds
 
-	echo "$(((${2:-1}-${1:-0})/1000000))"
+	echo "$(((${2:-1}-${1:-0})/(10**6)))"
 
 	}
 
