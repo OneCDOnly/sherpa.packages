@@ -36,9 +36,8 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Transmission
-readonly r_service_script_version=260924
-InitService(){
-daemon_pidfile_is_managed_by_app=true
+readonly r_service_script_version=261021
+InitService(){ daemon_pidfile_is_managed_by_app=true
 qpkg_config_path=$r_qpkg_path/config
 daemon_exec_pathfile=/opt/bin/transmission-daemon
 daemon_pid_pathfile=$r_sys_run_path/$r_qpkg_name.pid
@@ -57,10 +56,7 @@ library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 library_path=$(/usr/bin/dirname "$library_path")
 service_library_pathfile=$library_path/service-library.source
 [[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
-if [[ ! -e $service_library_pathfile ]];then
-printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
-exit 1
-fi
-. $service_library_pathfile
+if [[ ! -e $service_library_pathfile ]];then printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
+exit 1;fi;. $service_library_pathfile
 [[ $(/sbin/getcfg TrguiNG Use -d FALSE -u -f /etc/config/qpkg.conf) = TRUE ]]&&export TRANSMISSION_WEB_HOME=$(/sbin/getcfg TrguiNG Install_Path -f /etc/config/qpkg.conf)/repo-cache
 ProcessArgs

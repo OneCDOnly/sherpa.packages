@@ -36,9 +36,8 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Unmanic
-readonly r_service_script_version=260924
-InitService(){
-allow_access_to_sys_packages=true
+readonly r_service_script_version=261021
+InitService(){ allow_access_to_sys_packages=true
 can_restart_to_update=true
 run_daemon_in_screen_session=true
 silence_pypi_errors=true
@@ -70,9 +69,6 @@ library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 library_path=$(/usr/bin/dirname "$library_path")
 service_library_pathfile=$library_path/service-library.source
 [[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
-if [[ ! -e $service_library_pathfile ]];then
-printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
-exit 1
-fi
-. $service_library_pathfile
+if [[ ! -e $service_library_pathfile ]];then printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
+exit 1;fi;. $service_library_pathfile
 ProcessArgs

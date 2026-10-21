@@ -36,9 +36,8 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Medusa
-readonly r_service_script_version=260924
-InitService(){
-allow_access_to_sys_packages=true
+readonly r_service_script_version=261021
+InitService(){ allow_access_to_sys_packages=true
 can_restart_to_update=true
 install_pip_deps=true
 silence_pypi_errors=true
@@ -68,12 +67,8 @@ get_ui_listening_address_cmd="/sbin/getcfg general web_host -d undefined -f $qpk
 get_ui_port_cmd="/sbin/getcfg general web_port -d 0 -f $qpkg_config_pathfile"
 get_ui_port_secure_cmd="/sbin/getcfg general web_port -d 0 -f $qpkg_config_pathfile"
 get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg general enable_https -d 0 -f '$qpkg_config_pathfile') = 1 ]]'
-if [[ -e $qpkg_config_default_pathfile ]];then
-/sbin/setcfg General log_dir "$qpkg_config_path"/logs -f "$qpkg_config_default_pathfile"
-/sbin/setcfg General cache_dir "$qpkg_config_path"/cache -f "$qpkg_config_default_pathfile"
-fi
-if [[ -e $qpkg_config_pathfile ]];then
-/sbin/setcfg General log_dir "$qpkg_config_path"/logs -f "$qpkg_config_pathfile"
+if [[ -e $qpkg_config_default_pathfile ]];then /sbin/setcfg General log_dir "$qpkg_config_path"/logs -f "$qpkg_config_default_pathfile"
+/sbin/setcfg General cache_dir "$qpkg_config_path"/cache -f "$qpkg_config_default_pathfile";fi;if [[ -e $qpkg_config_pathfile ]];then /sbin/setcfg General log_dir "$qpkg_config_path"/logs -f "$qpkg_config_pathfile"
 /sbin/setcfg General cache_dir "$qpkg_config_path"/cache -f "$qpkg_config_pathfile"
 fi;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
@@ -81,9 +76,6 @@ library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 library_path=$(/usr/bin/dirname "$library_path")
 service_library_pathfile=$library_path/service-library.source
 [[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
-if [[ ! -e $service_library_pathfile ]];then
-printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
-exit 1
-fi
-. $service_library_pathfile
+if [[ ! -e $service_library_pathfile ]];then printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
+exit 1;fi;. $service_library_pathfile
 ProcessArgs

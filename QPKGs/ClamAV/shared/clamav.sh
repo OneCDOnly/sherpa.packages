@@ -36,52 +36,36 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=ClamAV
-readonly r_service_script_version=260924
-InitService(){
-daemon_pid_pathfile=$r_sys_run_path/$r_qpkg_name.pid
+readonly r_service_script_version=261021
+InitService(){ daemon_pid_pathfile=$r_sys_run_path/$r_qpkg_name.pid
 export HOME=$qpkg_config_path
 readonly r_target_service_pathfile=/etc/init.d/antivirus.sh
 readonly r_backup_service_pathfile=$r_target_service_pathfile.bak;}
-StartQpkgCustom(){
-IsError&&return
+StartQpkgCustom(){ IsError&&return
 MakePaths
-WatchForGit ||{ SetError;return 1;}
-if [[ ! -e $r_backup_service_pathfile ]];then
-cp "$r_target_service_pathfile" "$r_backup_service_pathfile"
+WatchForGit||{ SetError;return 1;}
+if [[ ! -e $r_backup_service_pathfile ]];then cp "$r_target_service_pathfile" "$r_backup_service_pathfile"
 /bin/sed -i 's|/usr/local/bin/clamscan|/opt/sbin/clamscan|' "$r_target_service_pathfile"
 /bin/sed -i 's|/usr/local/bin/freshclam|/opt/sbin/freshclam|' "$r_target_service_pathfile"
 /bin/sed -i ':a;N;$!ba;s|/bin/sh -c "$AV_SCAN_PATH $DRY_RUN_OPTIONS --dryrun|#/bin/sh -c "$AV_SCAN_PATH $DRY_RUN_OPTIONS --dryrun|2' "$r_target_service_pathfile"
 /bin/sed -i ':a;N;$!ba;s|OPTIONS="$OPTIONS --countfile=/tmp/antivirous.job.$job_id.scanning"|OPTIONS="$OPTIONS --database=$ANTIVIRUS_CLAMAV"|2' "$r_target_service_pathfile"
 /bin/sed -i 's|$FRESHCLAM -u admin -l /tmp/.freshclam.log|$FRESHCLAM -u admin --config-file=$FRESHCLAM_CONFIG --datadir=$ANTIVIRUS_CLAMAV -l /tmp/.freshclam.log|' "$r_target_service_pathfile"
-eval "$r_target_service_pathfile" restart &>/dev/null
-fi
-[[ "$(</etc/profile)" =~ "freshclam" ]]||echo "alias freshclam='/opt/sbin/freshclam -u admin --config-file=/etc/config/freshclam.conf --datadir=/share/$(/sbin/getcfg Public path -f /etc/config/smb.conf|cut -d '/' -f 3)/.antivirus/usr/share/clamav -l /tmp/.freshclam.log'">>/etc/profile
+eval "$r_target_service_pathfile" restart &>/dev/null;fi;[[ "$(</etc/profile)" =~ "freshclam" ]]||echo "alias freshclam='/opt/sbin/freshclam -u admin --config-file=/etc/config/freshclam.conf --datadir=/share/$(/sbin/getcfg Public path -f /etc/config/smb.conf|cut -d '/' -f 3)/.antivirus/usr/share/clamav -l /tmp/.freshclam.log'">>/etc/profile
 DisplayAndCommitInfoToServiceLog 'start: OK'
 return 0;}
-StopQpkgCustom(){
-IsError&&return
-if [[ -e $r_backup_service_pathfile ]];then
-mv "$r_backup_service_pathfile" "$r_target_service_pathfile"
-eval "$r_target_service_pathfile" restart &>/dev/null
-fi
-/bin/sed -i '/freshclam/d' /etc/profile
+StopQpkgCustom(){ IsError&&return
+if [[ -e $r_backup_service_pathfile ]];then mv "$r_backup_service_pathfile" "$r_target_service_pathfile"
+eval "$r_target_service_pathfile" restart &>/dev/null;fi;/bin/sed -i '/freshclam/d' /etc/profile
 DisplayAndCommitInfoToServiceLog 'stop: OK'
 return 0;}
-StatusQpkgCustom(){
-if IsNtError &&[[ -e $r_backup_service_pathfile ]];then
-printf active
-exit 0
-fi
-printf inactive
+StatusQpkgCustom(){ if IsNtError&&[[ -e $r_backup_service_pathfile ]];then printf active
+exit 0;fi;printf inactive
 exit 1;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")
 service_library_pathfile=$library_path/service-library.source
 [[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
-if [[ ! -e $service_library_pathfile ]];then
-printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
-exit 1
-fi
-. $service_library_pathfile
+if [[ ! -e $service_library_pathfile ]];then printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
+exit 1;fi;. $service_library_pathfile
 ProcessArgs

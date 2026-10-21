@@ -36,9 +36,8 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=nzbToMedia
-readonly r_service_script_version=260924
-InitService(){
-can_restart_to_update=true
+readonly r_service_script_version=261021
+InitService(){ can_restart_to_update=true
 silence_pypi_errors=true
 source_git_branch=master
 source_git_branch_depth=shallow
@@ -55,16 +54,12 @@ venv_pip_pathfile=$qpkg_venv_path/bin/pip
 venv_python_pathfile=$qpkg_venv_path/bin/python3
 interpreter=/opt/bin/python3
 source_git_url=https://github.com/clinton-hall/nzbToMedia.git;}
-StatusQpkgCustom(){
-IsQpkgEnabled;}
+StatusQpkgCustom(){ IsQpkgEnabled;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")
 service_library_pathfile=$library_path/service-library.source
 [[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
-if [[ ! -e $service_library_pathfile ]];then
-printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
-exit 1
-fi
-. $service_library_pathfile
+if [[ ! -e $service_library_pathfile ]];then printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
+exit 1;fi;. $service_library_pathfile
 ProcessArgs

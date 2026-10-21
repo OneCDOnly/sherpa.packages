@@ -36,9 +36,8 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=qBittorrent
-readonly r_service_script_version=260924
-InitService(){
-daemon_pidfile_is_managed_by_app=true
+readonly r_service_script_version=261021
+InitService(){ daemon_pidfile_is_managed_by_app=true
 ui_listening_address=0.0.0.0
 qpkg_config_path=$r_qpkg_path/config
 daemon_exec_pathfile=/opt/bin/qbittorrent-nox
@@ -58,9 +57,6 @@ library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 library_path=$(/usr/bin/dirname "$library_path")
 service_library_pathfile=$library_path/service-library.source
 [[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
-if [[ ! -e $service_library_pathfile ]];then
-printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
-exit 1
-fi
-. $service_library_pathfile
+if [[ ! -e $service_library_pathfile ]];then printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
+exit 1;fi;. $service_library_pathfile
 ProcessArgs

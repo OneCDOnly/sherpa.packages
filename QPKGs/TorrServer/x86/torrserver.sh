@@ -36,9 +36,8 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TorrServer
-readonly r_service_script_version=260924
-InitService(){
-can_restart_to_update=true
+readonly r_service_script_version=261021
+InitService(){ can_restart_to_update=true
 check_network_before_start=true
 package_is_exec=true
 resolve_source_url=true
@@ -58,7 +57,7 @@ qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 export HOME=$qpkg_config_path
 source_asset_url_match=${r_qpkg_name}-linux-${source_url_arch}$
 source_asset_url='https://api.github.com/repos/YouROK/TorrServer/releases/latest'
-daemon_launch_cmd="cd $qpkg_repo_path &&$daemon_exec_pathfile --path $qpkg_config_path"
+daemon_launch_cmd="cd $qpkg_repo_path&&$daemon_exec_pathfile --path $qpkg_config_path"
 get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="echo $ui_port"
 get_ui_port_secure_cmd='echo 0'
@@ -68,9 +67,6 @@ library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 library_path=$(/usr/bin/dirname "$library_path")
 service_library_pathfile=$library_path/service-library.source
 [[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
-if [[ ! -e $service_library_pathfile ]];then
-printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
-exit 1
-fi
-. $service_library_pathfile
+if [[ ! -e $service_library_pathfile ]];then printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
+exit 1;fi;. $service_library_pathfile
 ProcessArgs

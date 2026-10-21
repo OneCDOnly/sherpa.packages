@@ -36,9 +36,8 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrguiNG
-readonly r_service_script_version=260924
-InitService(){
-can_restart_to_update=true
+readonly r_service_script_version=261021
+InitService(){ can_restart_to_update=true
 resolve_source_url=true
 source_url_arch=web
 start_retries=3
@@ -47,19 +46,13 @@ qpkg_temp_path=$r_qpkg_path/tmp
 export HOME=$qpkg_config_path
 source_asset_url_match=-${source_url_arch}-
 source_asset_url=https://api.github.com/repos/openscopeproject/TrguiNG/releases/latest;}
-StatusQpkgCustom(){
-if IsNtError&&IsQpkgEnabled;then
-printf active
-exit 0
-fi
-printf inactive
+StatusQpkgCustom(){ if IsNtError&&IsQpkgEnabled;then printf active
+exit 0;fi;printf inactive
 exit 1;}
-PreStartQpkgCustom(){
-IsQpkgInstalled OTransmission &&AddToQpkgPostInstallDeps OTransmission $r_qpkg_name
-IsQpkgInstalled Transmission &&AddToQpkgPostInstallDeps Transmission $r_qpkg_name
+PreStartQpkgCustom(){ IsQpkgInstalled OTransmission&&AddToQpkgPostInstallDeps OTransmission $r_qpkg_name
+IsQpkgInstalled Transmission&&AddToQpkgPostInstallDeps Transmission $r_qpkg_name
 /sbin/setcfg $r_qpkg_name Use TRUE -f /etc/config/qpkg.conf;}
-PreStopQpkgCustom(){
-RemoveFromQpkgPostInstallDeps OTransmission $r_qpkg_name
+PreStopQpkgCustom(){ RemoveFromQpkgPostInstallDeps OTransmission $r_qpkg_name
 RemoveFromQpkgPostInstallDeps Transmission $r_qpkg_name
 /sbin/setcfg $r_qpkg_name Use FALSE -f /etc/config/qpkg.conf;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
@@ -67,9 +60,6 @@ library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 library_path=$(/usr/bin/dirname "$library_path")
 service_library_pathfile=$library_path/service-library.source
 [[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
-if [[ ! -e $service_library_pathfile ]];then
-printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
-exit 1
-fi
-. $service_library_pathfile
+if [[ ! -e $service_library_pathfile ]];then printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
+exit 1;fi;. $service_library_pathfile
 ProcessArgs

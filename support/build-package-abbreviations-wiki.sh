@@ -25,7 +25,7 @@ LoadObjects()
 
 	}
 
-LoadPackages()
+LoadDatabase()
 	{
 
 	local f=''
@@ -34,7 +34,7 @@ LoadPackages()
 		. "$f"
 	done
 
-	QPKGs-GRall:Add "$(SortNames "${r_qpkg_name[*]}")"
+ 	QPKGs-GRall:Add "$(SortNames "${r_qpkg_name[*]}")"
 
 	}
 
@@ -43,7 +43,7 @@ echo -n "build: 'Package abbreviations' wiki page ... "
 a=$wiki_path/Package-abbreviations.md
 
 LoadObjects
-LoadPackages 2> /dev/null	# packages.source files throw a lot of "syntax error near unexpected token `<'" errors until they're processed - ignore these.
+LoadDatabase 2> /dev/null	# packages.source files throw a lot of "syntax error near unexpected token `<'" errors until they're processed - ignore these.
 
 	{
 
