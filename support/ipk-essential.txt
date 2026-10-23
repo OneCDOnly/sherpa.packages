@@ -9,4 +9,5 @@ git
 git-http
 less
 nano
+procps-ng-free
 sed
