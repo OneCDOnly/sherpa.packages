@@ -1,5 +1,6 @@
 ca-certificates
 coreutils-dd
+coreutils-df
 coreutils-nice
 coreutils-stty
 coreutils-timeout
