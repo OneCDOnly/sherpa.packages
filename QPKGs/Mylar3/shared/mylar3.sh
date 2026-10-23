@@ -27,7 +27,7 @@
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
 #*
 #* Notes:
-#*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox), as this is the native QNAP NAS shell. Be-careful reusing code in other shells. These scripts contain syntax quirks often compatible only with bash.
+#*	  All sherpa scripts are optimised for compatibility with Bash 3.2 (via QTS BusyBox), as this is the native QNAP NAS shell. Be-careful reusing code in other shells. These scripts contain syntax quirks often compatible only with Bash.
 #*
 #* License:
 #*	  This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Mylar3
-readonly r_service_script_version=261021
+readonly r_service_script_version=261024
 InitService(){ allow_access_to_sys_packages=true
 can_restart_to_update=true
 install_pip_deps=true
@@ -66,8 +66,7 @@ get_ui_listening_address_cmd="/sbin/getcfg interface http_host -d undefined -f $
 get_ui_port_cmd="/sbin/getcfg interface http_port -d 0 -f $qpkg_config_pathfile"
 get_ui_port_secure_cmd="/sbin/getcfg interface http_port -d 0 -f $qpkg_config_pathfile"
 get_ui_port_secure_enabled_test_cmd='[[ $(/sbin/getcfg interface enable_https -d 0 -f '$qpkg_config_pathfile') = 1 ]]'
-if [[ -e $qpkg_config_default_pathfile ]];then /sbin/setcfg Metatagging ct_settingspath "$qpkg_config_path"/ComicTagger -f "$qpkg_config_default_pathfile";fi;if [[ -e $qpkg_config_pathfile ]];then /sbin/setcfg Metatagging ct_settingspath "$qpkg_config_path"/ComicTagger -f "$qpkg_config_pathfile"
-fi;}
+if [[ -e $qpkg_config_default_pathfile ]];then /sbin/setcfg Metatagging ct_settingspath "$qpkg_config_path"/ComicTagger -f "$qpkg_config_default_pathfile";fi;if [[ -e $qpkg_config_pathfile ]];then /sbin/setcfg Metatagging ct_settingspath "$qpkg_config_path"/ComicTagger -f "$qpkg_config_pathfile";fi;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")
