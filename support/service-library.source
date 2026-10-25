@@ -2700,7 +2700,7 @@ GetPythonVer()
 
 	local a=''
 
-	a=$(GetThisBinPath ${1:-python} &> /dev/null && ${1:-python} -V 2>&1 | /bin/sed 's|^Python ||;s|\.||g')
+	a=$(GetThisBinPath ${1:-python} &> /dev/null && ${1:-python} -V 2>&1 | /bin/sed 's|^Python[[:space:]]||;s|\.||g')
 
 	[[ -n $a ]] && echo "${a:0:3}"
 
@@ -5385,7 +5385,7 @@ GetPathGitBranch()
 
 	local a=''
 
-	a=$($r_git_cmd -C "$1" branch | /bin/grep '^\*' | /bin/sed 's|^\* ||')
+	a=$($r_git_cmd -C "$1" branch | /bin/grep '^\*' | /bin/sed 's|^\*[[:space:]]||')
 
 	[[ -n $a ]] || a=none
 
@@ -5465,7 +5465,7 @@ CalcAdaptiveSeconds()
 GetSysLoad1MinAverage()
 	{
 
-	/usr/bin/uptime | /bin/sed 's/.*load average: //' | /bin/awk -F', ' '{print $1}'
+	/usr/bin/uptime | /bin/sed 's/.*load average:[[:space:]]//' | /bin/awk -F',[[:space:]]' '{print $1}'
 
 	}
 
