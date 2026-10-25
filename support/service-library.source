@@ -3,7 +3,7 @@
 #* <?preamble?>
 #*
 #* Description:
-#*	  A library of common bash functions used by many sherpa QPKG service-scripts.
+#*	  A library of common Bash functions used by many sherpa QPKG service-scripts.
 #*	  Each QPKG has a copy for use only by that QPKG's service-script.
 #*
 #* <?postamble?>
@@ -12,7 +12,7 @@
 set -o nounset
 shopt -s extglob
 [[ $- != *m* ]] || set +m								# Disable job control if-enabled (only needed for QTS 4.2.6).
-[[ -L /dev/fd ]] || ln -fns /proc/self/fd /dev/fd		# KLUDGE: `/dev/fd` isn't always created by QTS.
+[[ -L /dev/fd ]] || /bin/ln -fns /proc/self/fd /dev/fd	# KLUDGE: `/dev/fd` isn't always created by QTS.
 readonly r_service_library_version='<?build_date?>'
 
 InitLibrary()
@@ -150,7 +150,7 @@ InitLibrary()
 	# KLUDGE: delete existing `screen.conf` so it's rewritten with an updated log location.
 	# see https://github.com/OneCDOnly/sherpa/discussions/301 for more information.
 
-	rm -f "$r_screen_conf_pathfile"
+	/bin/rm -f "$r_screen_conf_pathfile"
 
 	# KLUDGE: update <InstanceName> in config of *arr QPKGs, so process can be recognised by application.
 
@@ -575,7 +575,7 @@ StartQpkg()
 
 	# Clear previous `screen.log` on each startup.
 
-	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_screen_log_pathfile\"" log:failure-only
+	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f \"$r_screen_log_pathfile\"" log:failure-only
 
 	if IsFuncExist PreStartQpkgCustom; then
 		PreStartQpkgCustom
@@ -733,7 +733,7 @@ CreateUserlinkToExec()
 
 	if IsVarDefined userlink_pathfile; then
 		if [[ ! -L $userlink_pathfile && -s $launcher_pathfile ]]; then
-			ln -s "$launcher_pathfile" "$userlink_pathfile"
+			/bin/ln -s "$launcher_pathfile" "$userlink_pathfile"
 
 			if [[ -L $userlink_pathfile ]]; then
 				DisplayAndCommitInfoToServiceLog "symlink created: $userlink_pathfile"
@@ -759,7 +759,7 @@ RemoveUserlinkToExec()
 
 	if IsVarDefined userlink_pathfile; then
 		if [[ -L $userlink_pathfile ]]; then
-			rm -f "$userlink_pathfile"
+			/bin/rm -f "$userlink_pathfile"
 			DisplayAndCommitInfoToServiceLog "symlink removed: $userlink_pathfile"
 		fi
 	fi
@@ -863,7 +863,7 @@ StartDaemon()
 	fi
 
 	while true; do
-		IsDaemonInScreen && rm -f "$r_screen_log_pathfile"
+		IsDaemonInScreen && /bin/rm -f "$r_screen_log_pathfile"
 
 		if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; then
 			DisplayAndCommitWarnToServiceLog 'there has been a daemon launch failure'
@@ -936,7 +936,7 @@ StopDaemon()
 
 				kill -9 "$d" 2> /dev/null
 
-				[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
+				[[ -f $daemon_pid_pathfile ]] && /bin/rm -f "$daemon_pid_pathfile"
 
 				DisplayAndCommitOutcomeToServiceLog OK					# Assume `kill -9` actually worked.
 
@@ -944,7 +944,7 @@ StopDaemon()
 			fi
 		done
 
-		[[ -f $daemon_pid_pathfile ]] && rm -f "$daemon_pid_pathfile"
+		[[ -f $daemon_pid_pathfile ]] && /bin/rm -f "$daemon_pid_pathfile"
 
 		DisplayAndCommitOutcomeToServiceLog OK
 		CommitInfoToServiceLog "stopped in $c second$(Pluralise "$c")"
@@ -1045,7 +1045,7 @@ RefreshReleasePackageFiles()
 				else
 					DisplayAndCommitOutcomeToServiceLog false
 					refresh_release_package=true
-					rm -f "$release_package_pathfile"
+					/bin/rm -f "$release_package_pathfile"
 				fi
 			fi
 		fi
@@ -1293,7 +1293,7 @@ InstallVirtualPythonPackages()
 		if [[ -x $r_gnu_find_cmd && $new_env = false && -s $r_appl_version_store_pathfile && $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
 			# Remove existing .pyc files to prevent runtime errors
 
-			DisplayRunAndLog 'clean Python bytecode files' "$r_gnu_find_cmd \"$qpkg_repo_path\" -type d -name '__pycache__' -print0 | xargs -I {} -0 rm -rf '{}'
+			DisplayRunAndLog 'clean Python bytecode files' "$r_gnu_find_cmd \"$qpkg_repo_path\" -type d -name '__pycache__' -print0 | /usr/bin/xargs -I {} -0 /bin/rm -rf '{}'
 " log:failure-only
 		fi
 
@@ -1379,7 +1379,7 @@ ResetConfig()
 
 	ConfirmVarIsDefined qpkg_config_default_pathfile "${qpkg_config_default_pathfile:-}" "$e_nopfi" || return
 
-	if ! DisplayRunAndLog 'reset configuration' "mv \"$qpkg_config_default_pathfile\" \"$r_qpkg_path\"; rm -rf \"$r_qpkg_path\"/config/*; mkdir -p \"$(/usr/bin/dirname "$qpkg_config_default_pathfile")\"; mv \"$r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile")\" \"$qpkg_config_default_pathfile\"" log:failure-only; then
+	if ! DisplayRunAndLog 'reset configuration' "/bin/mv \"$qpkg_config_default_pathfile\" \"$r_qpkg_path\"; /bin/rm -rf \"$r_qpkg_path\"/config/*; /bin/mkdir -p \"$(/usr/bin/dirname "$qpkg_config_default_pathfile")\"; /bin/mv \"$r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile")\" \"$qpkg_config_default_pathfile\"" log:failure-only; then
 		SetError; return
 	fi
 
@@ -1423,11 +1423,11 @@ MakePaths()
 
 	if [[ -d $r_qpkg_path ]]; then
 		for a in "$qpkg_config_path" "$qpkg_pip_path" "$qpkg_repo_path" "$qpkg_temp_path" "$qpkg_venv_path" "$r_qpkg_log_path"; do
-			IsVarDefined a && [[ ! -d $a ]] && mkdir -p "$a"
+			IsVarDefined a && [[ ! -d $a ]] && /bin/mkdir -p "$a"
 		done
 	fi
 
-	IsVarDefined r_backup_path && [[ ! -d $r_backup_path ]] && mkdir -p "$r_backup_path"
+	IsVarDefined r_backup_path && [[ ! -d $r_backup_path ]] && /bin/mkdir -p "$r_backup_path"
 
 	}
 
@@ -1561,7 +1561,7 @@ DisableOpkgDaemonStart()
 
 	if IsVarDefined orig_daemon_service_script && [[ -x $orig_daemon_service_script ]]; then
 		$orig_daemon_service_script stop		# Stop default daemon,
-		chmod -x "$orig_daemon_service_script"	# ... and ensure Entware doesn't re-launch it on startup.
+		/bin/chmod -x "$orig_daemon_service_script"	# ... and ensure Entware doesn't re-launch it on startup.
 	fi
 
 	}
@@ -1609,8 +1609,8 @@ CloneGitRepo()
 
 	if [[ ! -d $qpkg_repo_path/.git ]]; then
 		if [[ -d $qpkg_repo_path ]]; then
-			rm -rf "$qpkg_repo_path"
-			mkdir "$qpkg_repo_path"
+			/bin/rm -rf "$qpkg_repo_path"
+			/bin/mkdir "$qpkg_repo_path"
 		fi
 
 		opts="clone $progress_opt $branch_opt $hide_advice_opt '$source_git_url' \"$qpkg_repo_path\""
@@ -1663,13 +1663,13 @@ CleanLocalRepo()
 		SetError; return
 	fi
 
-	(IsSourceGit || IsSourceReleasePackage) && DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
+	(IsSourceGit || IsSourceReleasePackage) && DisplayRunAndLog 'clean local repository' "/bin/rm -rf \"$qpkg_repo_path\"" log:failure-only
 
-	IsVarDefined qpkg_venv_path && [[ -d $qpkg_venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$qpkg_venv_path\"" log:failure-only
-	IsVarDefined qpkg_pip_path && [[ -d $qpkg_pip_path ]] && DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$qpkg_pip_path\"" log:failure-only
-	[[ -s $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
-	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_screen_log_pathfile\"" log:failure-only
-	IsVarDefined qpkg_temp_path && [[ -d $qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "rm -rf \"$qpkg_temp_path\"" log:failure-only
+	IsVarDefined qpkg_venv_path && [[ -d $qpkg_venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "/bin/rm -rf \"$qpkg_venv_path\"" log:failure-only
+	IsVarDefined qpkg_pip_path && [[ -d $qpkg_pip_path ]] && DisplayRunAndLog 'clean PyPI cache' "/bin/rm -rf \"$qpkg_pip_path\"" log:failure-only
+	[[ -s $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "/bin/rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
+	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f \"$r_screen_log_pathfile\"" log:failure-only
+	IsVarDefined qpkg_temp_path && [[ -d $qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "/bin/rm -rf \"$qpkg_temp_path\"" log:failure-only
 
 	MakePaths
 
@@ -1721,7 +1721,7 @@ RefreshDaemonPidFile()
 
 	local -i a=0
 
-	[[ -s $daemon_pid_pathfile && ! -d /proc/"$(< "$daemon_pid_pathfile")" ]] && rm -f "$daemon_pid_pathfile"
+	[[ -s $daemon_pid_pathfile && ! -d /proc/"$(< "$daemon_pid_pathfile")" ]] && /bin/rm -f "$daemon_pid_pathfile"
 
 	if IsVarDefined daemon_check_pathfile; then
 		a=$(FindPid "$daemon_check_pathfile")
@@ -1745,7 +1745,7 @@ RefreshScreenPidFile()
 
 	local -i a=0
 
-	[[ -s $r_screen_pid_pathfile && ! -d /proc/"$(< "$r_screen_pid_pathfile")" ]] && rm -f "$r_screen_pid_pathfile"
+	[[ -s $r_screen_pid_pathfile && ! -d /proc/"$(< "$r_screen_pid_pathfile")" ]] && /bin/rm -f "$r_screen_pid_pathfile"
 
 	a=$(FindPid "$daemon_exec_pathfile" /usr/bin/SCREEN)
 
@@ -2136,9 +2136,9 @@ CalcReportFirstColumnWidth()
 	a=$(/bin/sed '/^#[[:space:]].*/d;/#$/d;s/[[:space:]]#[[:space:]].*//' <<< "$a")		# Remove comment lines and line comments.
 	a=$(/bin/sed 's/[[:space:]]*$//' <<< "$a")											# Remove line trailing whitespace.
 	a=$(/bin/sed '/^$/d' <<< "$a")														# Remove empty lines.
-	a=$(head -n1 <<< "$a")																# Only use header row (column titles).
+	a=$(/usr/bin/head -n1 <<< "$a")																# Only use header row (column titles).
 
-	b=$(cut -f2 -d: <<< "$a"):															# Grab second field characters.
+	b=$(/usr/bin/cut -f2 -d: <<< "$a"):															# Grab second field characters.
 	b=$(/bin/sed 's/^[[:space:]]*//' <<< "$b")											# Remove leading whitespace.
 
 	# shellcheck disable=2295
@@ -2159,13 +2159,13 @@ EnsureConfigFileExists()
 	IsSupportReset || return 0
 
 	if UsesConfig valid && [[ ! -s $qpkg_config_pathfile && -s $qpkg_config_default_pathfile ]]; then
-		cp "$qpkg_config_default_pathfile" "$qpkg_config_pathfile"
+		/usr/bin/cp "$qpkg_config_default_pathfile" "$qpkg_config_pathfile"
 		DisplayAndCommitInfoToServiceLog 'no configuration file, using default as template'
 	fi
 
 	if UsesVirtualConfig && [[ -s $qpkg_config_pathfile ]]; then
 		if [[ -s $qpkg_config_virtual_pathfile && ! -L $qpkg_config_virtual_pathfile ]]; then
-			mv "$qpkg_config_virtual_pathfile" "$qpkg_config_pathfile"			# Use existing config as appl config.
+			/bin/mv "$qpkg_config_virtual_pathfile" "$qpkg_config_pathfile"			# Use existing config as appl config.
 			DisplayAndCommitInfoToServiceLog 'existing file is now configuration file'
 		fi
 	fi
@@ -2183,10 +2183,10 @@ EnsureVirtualConfigFileExists()
 
 	if UsesVirtualConfig && [[ -s $qpkg_config_pathfile ]]; then
 		if [[ ! -L $qpkg_config_virtual_pathfile ]]; then
-			ln -s "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
+			/bin/ln -s "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
 			DisplayAndCommitInfoToServiceLog 'created virtual link to configuration file'
 		elif [[ ! -s $qpkg_config_virtual_pathfile ]]; then
-			ln -sf "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
+			/bin/ln -sf "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
 			DisplayAndCommitInfoToServiceLog 'existing link broken, re-created link to configuration file'
 		fi
 	fi
@@ -2231,7 +2231,7 @@ DisplayRunAndLog()
 
 	local -r r_log_pathfile
 
-	a=$(tr -s ' ' <<< "$2")							# Squeeze multiple whitespace chars into singles.
+	a=$(/bin/tr -s ' ' <<< "$2")							# Squeeze multiple whitespace chars into singles.
 
 	DisplayAndCommitProcessWaitToServiceLog "$1"
 	Executer "$a" "$r_log_pathfile" "${4:-false}"
@@ -2255,7 +2255,7 @@ DisplayRunAndLog()
 		AddFileToDebug "$r_log_pathfile"
 	fi
 
-	[[ -e $r_log_pathfile ]] && rm -f "$r_log_pathfile"
+	[[ -e $r_log_pathfile ]] && /bin/rm -f "$r_log_pathfile"
 
 	return $z
 
@@ -2335,7 +2335,7 @@ Executer()
 		eval "$1" > "$r_executer_log_pipe" 2>&1
 		z=$?
 
-		rm "$r_executer_log_pipe"
+		/bin/rm "$r_executer_log_pipe"
 	else
 		(eval "$1" > "$r_log_pathfile" 2>&1)				# Run within a subshell to suppress "Terminated" message later.
 		z=$?
@@ -2357,7 +2357,7 @@ Executer()
 		fi
 	fi
 
-	[[ -e $r_log_pathfile ]] && rm -f "$r_log_pathfile"
+	[[ -e $r_log_pathfile ]] && /bin/rm -f "$r_log_pathfile"
 
 	return $z
 
@@ -2627,7 +2627,7 @@ ReWriteUIPorts()
 	#	$ui_port
 	#	$ui_port_secure
 
-	IsVarDefined get_daemon_port_cmd && return				# Don't need to rewrite QTS UI ports if this app has a daemon port, as UI ports are unused.
+	IsVarDefined get_daemon_port_cmd && return		# Don't need to rewrite QTS UI ports if this app has a daemon port, as UI ports are unused.
 
 	DisplayAndCommitProcessWaitToServiceLog 'update QPKG icon with UI ports'
 	/sbin/setcfg $r_qpkg_name Web_Port "$ui_port" -f /etc/config/qpkg.conf
@@ -2721,17 +2721,17 @@ RenameSharedObjectFile()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nofil" || return
 
 	if [[ -s $(GetModulePath)/$(GetOriginalModuleSOFilename "_$1") ]]; then
-		mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "_$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "_$1")"
+		/bin/mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "_$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "_$1")"
 		DisplayAndCommitToServiceLog "= renamed module: _$1"
 	fi
 
 	if [[ -s $(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1") ]]; then
-		mv "$(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$1/$(GetFixedModuleSOFilename "$1")"
+		/bin/mv "$(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$1/$(GetFixedModuleSOFilename "$1")"
 		DisplayAndCommitToServiceLog "= renamed module: $1/$1"
 	fi
 
 	if [[ -s $(GetModulePath)/$(GetOriginalModuleSOFilename "$1") ]]; then
-		mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "$1")"
+		/bin/mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "$1")"
 		DisplayAndCommitToServiceLog "= renamed module: $1"
 	fi
 
@@ -2932,7 +2932,7 @@ parse_yaml()
 	# Outputs: (local)
 	#	stdout = parsed YAML
 
-	local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+	local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|/bin/tr @ '\034')
 
 	/bin/sed -ne "s|^\($s\):|\1|" \
 		-e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
@@ -2966,7 +2966,7 @@ GetKeyFromYAML()						# unused-ignore
 
 	set -o pipefail
 
-	parse_yaml "$2" | grep "${1/:/_}" | cut -d '"' -f2
+	parse_yaml "$2" | grep "${1/:/_}" | /usr/bin/cut -d '"' -f2
 
 	}
 
@@ -2988,7 +2988,7 @@ GetKeyFromTOML()						# unused-ignore
 
 	set -o pipefail
 
-	/bin/grep "^$1 " "$2" | cut -d '=' -f2 | tr -d ' \"'
+	/bin/grep "^$1 " "$2" | /usr/bin/cut -d '=' -f2 | /bin/tr -d ' \"'
 
 	}
 
@@ -3975,7 +3975,7 @@ IsSiteUp()
 
 	local a=''
 
-	a=$(cut -d'/' -f3 <<< "$1" | cut -d':' -f1)
+	a=$(/usr/bin/cut -d'/' -f3 <<< "$1" | /usr/bin/cut -d':' -f1)
 
 	ConfirmVarIsDefined a "${a:-}" "$e_nourl" || return
 
@@ -4093,7 +4093,7 @@ IsAnyInterfaceUp()
 
 	interface_name=null
 
-	for a in $(/bin/grep ':' /proc/net/dev | cut -d':' -f1 | tr -d ' '); do
+	for a in $(/bin/grep ':' /proc/net/dev | /usr/bin/cut -d':' -f1 | /bin/tr -d ' '); do
 		[[ $a != 'lo' ]] || continue
 		[[ ! $a =~ 'docker' ]] || continue
 		[[ ! $a =~ 'bond' ]] || continue
@@ -4137,7 +4137,7 @@ GetGnuLessVersion()
 	{
 
 	if [[ -x $r_gnu_less_cmd ]]; then
-		$r_gnu_less_cmd -V | head -n1 | cut -d' ' -f2
+		$r_gnu_less_cmd -V | /usr/bin/head -n1 | /usr/bin/cut -d' ' -f2
 	else
 		printf 0
 	fi
@@ -4170,13 +4170,13 @@ RequestLatestReleaseFilename()
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
 	local b=''
 
-	b=$(/sbin/curl $a "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | cut -d';' -f2 | cut -d'=' -f2 | /bin/sed -e 's|\r||g')
+	b=$(/sbin/curl $a "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | /usr/bin/cut -d';' -f2 | /usr/bin/cut -d'=' -f2 | /bin/sed -e 's|\r||g')
 
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
 
 	# Trim whitespace from beginning-and-end of $b, then test length.
 
-	c=$(wc -l <<< "$b")
+	c=$(/usr/bin/wc -l <<< "$b")
 
 	case $c in
 		0)
@@ -4220,13 +4220,13 @@ RequestLatestReleaseURL()
 	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
 	local b=''
 
-	b=$(/sbin/curl $a "$1" | /bin/grep browser_download_url | cut -d\" -f4)
+	b=$(/sbin/curl $a "$1" | /bin/grep browser_download_url | /usr/bin/cut -d\" -f4)
 
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
 
 	# Need to trim whitespace from beginning-and-end of $b, then test length.
 
-	c=$(wc -l <<< "$b")
+	c=$(/usr/bin/wc -l <<< "$b")
 
 	case $c in
 		0)
@@ -4337,8 +4337,8 @@ MakeExecReleasePackage()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
 	if [[ -s $1 ]]; then
-		DisplayRunAndLog 'copy release package' "cp -f \"$1\" \"$daemon_exec_pathfile\"" log:failure-only
-		[[ ! -x $daemon_exec_pathfile ]] && DisplayRunAndLog 'make release package executable' "chmod +x \"$daemon_exec_pathfile\"" log:failure-only
+		DisplayRunAndLog 'copy release package' "/usr/bin/cp -f \"$1\" \"$daemon_exec_pathfile\"" log:failure-only
+		[[ ! -x $daemon_exec_pathfile ]] && DisplayRunAndLog 'make release package executable' "/bin/chmod +x \"$daemon_exec_pathfile\"" log:failure-only
 
 		if [[ $compare_release_filename = true && -n $2 ]]; then
 			if [[ ! -s $2 ]]; then
@@ -4411,7 +4411,7 @@ CommitServiceExplanation()
 		if [[ -n $service_explanation ]]; then
 			echo "$service_explanation" > "$r_service_explanation_pathfile"
 		else
-			rm -f "$r_service_explanation_pathfile"
+			/bin/rm -f "$r_service_explanation_pathfile"
 		fi
 	fi
 
@@ -4676,7 +4676,7 @@ IsPathEmpty()
 
 	[[ -n $a && -d $a ]] || return
 
-	rmdir "$a" &> /dev/null && mkdir "$a"
+	/bin/rmdir "$a" &> /dev/null && /bin/mkdir "$a"
 
 	}
 
