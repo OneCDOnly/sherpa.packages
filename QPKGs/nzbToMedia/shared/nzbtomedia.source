@@ -412,6 +412,8 @@ StatusQpkgCustom()
 
 	IsQpkgEnabled
 
+	exit
+
 	}
 
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
