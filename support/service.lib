@@ -9,7 +9,7 @@
 #*	  one.cd.only@gmail.com
 #*
 #* Description:
-#*	  A library of common bash functions used by many sherpa QPKG service-scripts.
+#*	  A library of common Bash functions used by many sherpa QPKG service-scripts.
 #*	  Each QPKG has a copy for use only by that QPKG's service-script.
 #*
 #* Project:
@@ -28,7 +28,7 @@
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
 #*
 #* Notes:
-#*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox), as this is the native QNAP NAS shell. Be-careful reusing code in other shells. These scripts contain syntax quirks often compatible only with bash.
+#*	  All sherpa scripts are optimised for compatibility with Bash 3.2 (via QTS BusyBox), as this is the native QNAP NAS shell. Be-careful reusing code in other shells. These scripts contain syntax quirks often compatible only with Bash.
 #*
 #* License:
 #*	  This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -38,8 +38,8 @@
 set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
-[[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=261021
+[[ -L /dev/fd ]]||/bin/ln -fns /proc/self/fd /dev/fd
+readonly r_service_library_version=261025
 InitLibrary(){ [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
 service_action=undefined
@@ -51,8 +51,7 @@ local re=''
 for re in \\bd\\b \\bD\\b \\bdebug\\b \\bdbug\\b \\bverbose\\b;do [[ $r_user_args_raw =~ $re ]]||continue
 useropt_debug=true
 useropt_verbose=true
-break
-done;UnsetError
+break;done;UnsetError
 readonly r_git_cmd=/opt/bin/git
 readonly r_gnu_find_cmd=/opt/bin/find
 readonly r_gnu_less_cmd=/opt/bin/less
@@ -131,9 +130,8 @@ EnsureVirtualConfigFileExists
 GetApplVersion
 DisableOpkgDaemonStart
 IsSupportAutoUpdate&&IsAutoUpdateMissing&&DisableAutoUpdate>/dev/null
-rm -f "$r_screen_conf_pathfile"
-if IsQpkgArr&&[[ -s $qpkg_config_pathfile ]]&&/bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &>/dev/null;then /bin/sed -i "s|O${r_qpkg_name}|$r_qpkg_name|g" "$qpkg_config_pathfile";fi;if IsDaemonInScreen&&[[ ! -s $r_screen_conf_pathfile ]];then echo -e "logfile $r_screen_log_pathfile\nlogfile flush 1\nlog on">"$r_screen_conf_pathfile"
-fi;}
+/bin/rm -f "$r_screen_conf_pathfile"
+if IsQpkgArr&&[[ -s $qpkg_config_pathfile ]]&&/bin/grep O${r_qpkg_name} "$qpkg_config_pathfile" &>/dev/null;then /bin/sed -i "s|O${r_qpkg_name}|$r_qpkg_name|g" "$qpkg_config_pathfile";fi;if IsDaemonInScreen&&[[ ! -s $r_screen_conf_pathfile ]];then echo -e "logfile $r_screen_log_pathfile\nlogfile flush 1\nlog on">"$r_screen_conf_pathfile";fi;}
 LoadUserVarDefaults(){ allow_access_to_sys_packages=false
 can_restart_to_update=false
 check_network_before_start=false
@@ -198,10 +196,9 @@ StartQpkg(){ IsNtError||return
 IsStart&&ShowQpkgStates
 if IsDaemon&&IsNtRestart;then IsNtStart&&DaemonWasNotActive&&return
 IsNtClean&&ShowDaemonState
-IsDaemonActive&&return;fi;[[ -s $r_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_screen_log_pathfile\"" log:failure-only
+IsDaemonActive&&return;fi;[[ -s $r_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f \"$r_screen_log_pathfile\"" log:failure-only
 if IsFuncExist PreStartQpkgCustom;then PreStartQpkgCustom
-IsNtError||return;fi;if IsFuncExist StartQpkgCustom;then StartQpkgCustom;else StartQpkgLibrary
-fi;}
+IsNtError||return;fi;if IsFuncExist StartQpkgCustom;then StartQpkgCustom;else StartQpkgLibrary;fi;}
 StartQpkgLibrary(){ if IsSourceGit;then CloneGitRepo||return;fi;if IsSourceReleasePackage;then RefreshReleasePackageFiles||return;fi;if IsVirtualPythonEnv;then if IsNtVirtualPythonEnvFound;then CreateVirtualPythonEnv||return;fi;InstallVirtualPythonPackages||return;fi;EnsureConfigFileExists
 EnsureVirtualConfigFileExists
 if IsNtDaemon;then CreateUserlinkToExec
@@ -211,8 +208,7 @@ return;}
 StopQpkg(){ IsNtError||return
 if IsStop||IsRestart||IsClean;then ShowQpkgStates;fi;if IsDaemon;then ShowDaemonState
 IsNtRestart&&IsNtDaemonActive&&return;fi;IsFuncExist PreStopQpkgCustom&&PreStopQpkgCustom
-if IsFuncExist StopQpkgCustom;then StopQpkgCustom;else StopQpkgLibrary
-fi;}
+if IsFuncExist StopQpkgCustom;then StopQpkgCustom;else StopQpkgLibrary;fi;}
 StopQpkgLibrary(){ if IsNtDaemon;then RemoveUserlinkToExec
 return;fi;RefreshDaemonPidFile
 if IsDaemon&&IsDaemonActive;then SetDaemonWasActive
@@ -222,19 +218,16 @@ StatusQpkg(){ IsNtError||return
 ShowQpkgStates
 IsDaemonInScreen&&ShowScreenState
 IsDaemon&&ShowDaemonState
-if IsFuncExist StatusQpkgCustom;then StatusQpkgCustom;else StatusQpkgLibrary
-fi;}
+if IsFuncExist StatusQpkgCustom;then StatusQpkgCustom;else StatusQpkgLibrary;fi;}
 StatusQpkgLibrary(){ RefreshScreenPidFile
 RefreshDaemonPidFile
 if IsDaemon&&IsDaemonActive;then if IsWebUi;then LoadPorts app
 if ! WatchForPortsActive;then Display '! no response from port(s)'
 exit 1;fi;fi;else exit 1;fi;exit 0;}
-CreateUserlinkToExec(){ if IsVarDefined userlink_pathfile;then if [[ ! -L $userlink_pathfile &&-s $launcher_pathfile ]];then ln -s "$launcher_pathfile" "$userlink_pathfile"
+CreateUserlinkToExec(){ if IsVarDefined userlink_pathfile;then if [[ ! -L $userlink_pathfile &&-s $launcher_pathfile ]];then /bin/ln -s "$launcher_pathfile" "$userlink_pathfile"
 if [[ -L $userlink_pathfile ]];then DisplayAndCommitInfoToServiceLog "symlink created: $userlink_pathfile";else DisplayAndCommitErrorToAllLogs "unable to create symlink to $r_qpkg_name launcher"
-SetError;return
-fi;else DisplayAndCommitInfoToServiceLog "symlink exists: $userlink_pathfile";fi;return
-fi;}
-RemoveUserlinkToExec(){ if IsVarDefined userlink_pathfile;then if [[ -L $userlink_pathfile ]];then rm -f "$userlink_pathfile"
+SetError;return;fi;else DisplayAndCommitInfoToServiceLog "symlink exists: $userlink_pathfile";fi;return;fi;}
+RemoveUserlinkToExec(){ if IsVarDefined userlink_pathfile;then if [[ -L $userlink_pathfile ]];then /bin/rm -f "$userlink_pathfile"
 DisplayAndCommitInfoToServiceLog "symlink removed: $userlink_pathfile";fi;fi;}
 CreateVirtualPythonEnv(){ ConfirmVarIsDefined qpkg_venv_path "${qpkg_venv_path:-}" "$e_nopth"||return
 ConfirmVarIsDefined qpkg_pip_path "${qpkg_pip_path:-}" "$e_nopth"||return
@@ -260,7 +253,7 @@ local b=$daemon_launch_cmd
 IsDaemonInScreen&&a+=" (in 'screen' session)"
 if((nice_daemon_to != 0))&&((nice_daemon_to>= -20))&&((nice_daemon_to<= 19))&&[[ -x $r_gnu_nice_cmd ]];then b="$r_gnu_nice_cmd -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 DisplayAndCommitInfoToServiceLog "nice daemon to: $nice_daemon_to";fi;if UsesConfig possible;then ConfirmVarIsDefined qpkg_config_path "${qpkg_config_path:-}" "$e_nopth"||return
-ConfirmVarIsDefined qpkg_config_pathfile "${qpkg_config_pathfile:-}" "$e_nopfi"||return;fi;while true;do IsDaemonInScreen&&rm -f "$r_screen_log_pathfile"
+ConfirmVarIsDefined qpkg_config_pathfile "${qpkg_config_pathfile:-}" "$e_nopfi"||return;fi;while true;do IsDaemonInScreen&&/bin/rm -f "$r_screen_log_pathfile"
 if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";then DisplayAndCommitWarnToServiceLog 'there has been a daemon launch failure'
 SetError;return;fi;IsDaemonActive &>/dev/null
 WatchForDaemon
@@ -272,8 +265,7 @@ StopDaemon
 ((c++))
 if [[ $((c-1)) -lt $start_retries ]];then DisplayAndCommitRetryToServiceLog "retry $c/$start_retries"
 continue;fi;DisplayAndCommitErrorToAllLogs "tried to launch $c time$(Pluralise "$c"), no further retries are possible"
-SetError;return;fi;break
-done;CommitInfoToSysLog "$a: OK";}
+SetError;return;fi;break;done;CommitInfoToSysLog "$a: OK";}
 StopDaemon(){ [[ -s $daemon_pid_pathfile ]]||return
 local -i b=0
 local -i c=0
@@ -290,16 +282,14 @@ DisplayWait "$c,"
 if [[ $c -ge $b ]];then DisplayAndCommitOutcomeToServiceLog failed
 DisplayAndCommitProcessWaitToServiceLog "$a PID $d with SIGKILL"
 kill -9 "$d" 2>/dev/null
-[[ -f $daemon_pid_pathfile ]]&&rm -f "$daemon_pid_pathfile"
+[[ -f $daemon_pid_pathfile ]]&&/bin/rm -f "$daemon_pid_pathfile"
 DisplayAndCommitOutcomeToServiceLog OK
-break 2;fi;done;[[ -f $daemon_pid_pathfile ]]&&rm -f "$daemon_pid_pathfile"
+break 2;fi;done;[[ -f $daemon_pid_pathfile ]]&&/bin/rm -f "$daemon_pid_pathfile"
 DisplayAndCommitOutcomeToServiceLog OK
 CommitInfoToServiceLog "stopped in $c second$(Pluralise "$c")"
 CommitInfoToSysLog "$a: OK"
-break
-done;PauseForKillPid
-if IsDaemonActive;then SetError;return
-fi;}
+break;done;PauseForKillPid
+if IsDaemonActive;then SetError;return;fi;}
 RefreshReleasePackageFiles(){ if UsesReleasePackage possible;then ConfirmVarIsDefined qpkg_repo_path "${qpkg_repo_path:-}" "$e_nopth"||return
 ConfirmVarIsDefined qpkg_temp_path "${qpkg_temp_path:-}" "$e_nopth"||return
 ConfirmVarIsDefined source_asset_url "${source_asset_url:-}" "$e_nourl"||return;fi;local extract_release_package=false
@@ -314,18 +304,15 @@ if IsSiteUp "$source_asset_url";then release_package_url=$(RequestLatestReleaseU
 if [[ $? -eq 0 ]]&&IsVarDefined release_package_url;then DisplayAndCommitOutcomeToServiceLog OK
 DisplayAndCommitDoneToServiceLog "release package URL: $release_package_url";else DisplayAndCommitOutcomeToServiceLog failed
 DisplayAndCommitErrorToAllLogs "$release_package_url"
-release_package_url=''
-fi;else DisplayAndCommitErrorToAllLogs 'unable to access remote site'
-fi;else release_package_url=$source_asset_url;fi;if [[ $compare_release_filename = true ]];then DisplayAndCommitProcessWaitToServiceLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
+release_package_url='';fi;else DisplayAndCommitErrorToAllLogs 'unable to access remote site';fi;else release_package_url=$source_asset_url;fi;if [[ $compare_release_filename = true ]];then DisplayAndCommitProcessWaitToServiceLog "get latest remote release package filename (no-more than $get_remote_filename_timeout_seconds seconds)"
 if IsSiteUp "$source_asset_url";then release_package_filename=$(RequestLatestReleaseFilename "$source_asset_url" "$source_url_arch")
 if [[ $? -eq 0 ]]&&IsVarDefined release_package_filename;then DisplayAndCommitOutcomeToServiceLog OK
 DisplayAndCommitDoneToServiceLog "release package filename: $release_package_filename";else DisplayAndCommitOutcomeToServiceLog failed
 DisplayAndCommitErrorToAllLogs "$release_package_filename"
-release_package_filename=''
-fi;else DisplayAndCommitErrorToAllLogs 'unable to access remote site';fi;if ! IsVarDefined release_package_filename&&IsVarDefined release_package_url;then release_package_filename=$(/usr/bin/basename "$release_package_url");fi;if ! IsVarDefined release_package_name_ref_pathfilename&&IsVarDefined release_package_filename&&IsVarDefined release_package_url;then release_package_name_ref_pathfilename=$(/usr/bin/dirname "$release_package_pathfile")/$release_package_filename;fi;if IsVarDefined release_package_name_ref_pathfilename&&IsVarDefined release_package_filename;then DisplayAndCommitProcessWaitToServiceLog 'release package name reference exists locally'
+release_package_filename='';fi;else DisplayAndCommitErrorToAllLogs 'unable to access remote site';fi;if ! IsVarDefined release_package_filename&&IsVarDefined release_package_url;then release_package_filename=$(/usr/bin/basename "$release_package_url");fi;if ! IsVarDefined release_package_name_ref_pathfilename&&IsVarDefined release_package_filename&&IsVarDefined release_package_url;then release_package_name_ref_pathfilename=$(/usr/bin/dirname "$release_package_pathfile")/$release_package_filename;fi;if IsVarDefined release_package_name_ref_pathfilename&&IsVarDefined release_package_filename;then DisplayAndCommitProcessWaitToServiceLog 'release package name reference exists locally'
 if [[ -s $release_package_name_ref_pathfilename ]];then DisplayAndCommitOutcomeToServiceLog true;else DisplayAndCommitOutcomeToServiceLog false
 refresh_release_package=true
-rm -f "$release_package_pathfile";fi;fi;fi;fi
+/bin/rm -f "$release_package_pathfile";fi;fi;fi;fi
 DisplayAndCommitProcessWaitToServiceLog 'release package exists locally'
 if [[ -s $release_package_pathfile ]];then DisplayAndCommitOutcomeToServiceLog true;else DisplayAndCommitOutcomeToServiceLog false
 refresh_release_package=true;fi;if [[ ! -s $release_package_pathfile &&-n $release_package_url ]]||[[ $refresh_release_package = true ]];then DownloadReleasePackage "$release_package_url" "$release_package_pathfile"
@@ -333,8 +320,7 @@ if [[ -s $release_package_pathfile ]]&&[[ ! -s $daemon_exec_pathfile ||$(($(Conv
 IsPathEmpty "$qpkg_repo_path"&&extract_release_package=true
 if [[ $extract_release_package = true &&-s $release_package_pathfile ]];then if IsReleaseAnArchive;then ExtractReleasePackage "$release_package_pathfile" "$release_package_name_ref_pathfilename";else MakeExecReleasePackage "$release_package_pathfile" "$release_package_name_ref_pathfilename";fi;fi
 if [[ -d $qpkg_repo_path ]];then if IsPathEmpty "$qpkg_repo_path";then DisplayAndCommitErrorToAllLogs 'local repository files do not exist'
-SetError;return
-fi;else DisplayAndCommitErrorToAllLogs 'local repository path does not exist'
+SetError;return;fi;else DisplayAndCommitErrorToAllLogs 'local repository path does not exist'
 SetError;return;fi;return 0;}
 CheckPortsAvailable(){ local a=''
 if [[ $daemon_port -le 0 &&$ui_port -le 0 &&$ui_port_secure -le 0 ]];then DisplayAndCommitErrorToAllLogs 'no port specified'
@@ -344,13 +330,8 @@ a=$(/usr/sbin/lsof -i :$ui_port -Fp)
 DisplayAndCommitInfoToAllLogs "process details for port $ui_port: $a: PID $([[ -n ${a:-} ]]&&/bin/tr '\000' ' '</proc/"${a/p/}"/cmdline)"
 a=$(/usr/sbin/lsof -i :$ui_port_secure -Fp)
 DisplayAndCommitInfoToAllLogs "process details for secure port $ui_port_secure: PID $a: $([[ -n ${a:-} ]]&&/bin/tr '\000' ' '</proc/"${a/p/}"/cmdline)"
-SetError;return
-fi;}
-ShowHelp(){ Display "$(TextBrightWhite "$(/usr/bin/basename "$0")") v$r_service_script_version • a service control script for the $(FormatAsPackageName $r_qpkg_name) QPKG"
-Display
-Display "Usage: $0 [ACTION] [OPTION]"
-Display
-Display '[ACTION] must be one of the following:'
+SetError;return;fi;}
+ShowHelp(){ Display "$(TextBrightWhite "$(/usr/bin/basename "$0")") v$r_service_script_version • a service control script for the $(FormatAsPackageName $r_qpkg_name) QPKG";Display;Display "Usage: $0 [ACTION] [OPTION]";Display;Display '[ACTION] must be one of the following:'
 DisplayAsHelp 'activate, start' "start $(FormatAsPackageName $r_qpkg_name) if inactive"
 IsSupportBackup&&DisplayAsHelp 'b, backup' "backup current $(FormatAsPackageName $r_qpkg_name) configuration to persistent storage"
 IsSourcedOnline&&DisplayAsHelp clean "delete & re-download $(FormatAsPackageName $r_qpkg_name) files from source$(IsSupportBackup&&printf '. Configuration will be retained')"
@@ -366,9 +347,7 @@ IsSupportReset&&DisplayAsHelp reset-config "revert $(FormatAsPackageName $r_qpkg
 IsSupportBackup&&DisplayAsHelp restore 'restore a previously saved configuration from persistent storage'
 DisplayAsHelp 's, status' "check if $(FormatAsPackageName $r_qpkg_name) application is active. Returns \$? = 0 if active, 1 if not"
 IsSourcedOnline&&DisplayAsHelp update "update existing $(FormatAsPackageName $r_qpkg_name) files from source"
-DisplayAsHelp 'v, V, version' 'display the package version numbers'
-Display
-Display '[OPTION] may be one of the following:'
+DisplayAsHelp 'v, V, version' 'display the package version numbers';Display;Display '[OPTION] may be one of the following:'
 DisplayAsHelp 'd, D, debug, verbose' "execute the specified [ACTION] in debug mode"
 Display;}
 InstallVirtualPythonPackages(){ IsVirtualPythonEnv||return 0
@@ -390,32 +369,25 @@ local required_modules_pathfile=''
 [[ $install_pip_deps = true ]]&&no_pip_deps=''
 for a in $r_qpkg_pypi_module_lists_path/excluded.txt;do [[ -n $a &&-s $a ]]||continue
 excluded_modules_pathfile=$a
-break
-done;for a in $r_qpkg_pypi_module_lists_path/base.txt;do [[ -n $a &&-s $a ]]||continue
+break;done;for a in $r_qpkg_pypi_module_lists_path/base.txt;do [[ -n $a &&-s $a ]]||continue
 base_modules_pathfile=$a
-break
-done;for a in $r_qpkg_pypi_module_lists_path/essential.txt;do [[ -n $a &&-s $a ]]||continue
+break;done;for a in $r_qpkg_pypi_module_lists_path/essential.txt;do [[ -n $a &&-s $a ]]||continue
 essential_modules_pathfile=$a
-break
-done;for a in $r_qpkg_pypi_module_lists_path/required.txt $qpkg_repo_path/requirements.txt;do [[ -n $a &&-s $a ]]||continue
+break;done;for a in $r_qpkg_pypi_module_lists_path/required.txt $qpkg_repo_path/requirements.txt;do [[ -n $a &&-s $a ]]||continue
 required_modules_pathfile=$a
-break
-done;for a in $r_qpkg_pypi_module_lists_path/recommended.txt $qpkg_repo_path/recommended.txt;do [[ -n $a &&-s $a ]]||continue
+break;done;for a in $r_qpkg_pypi_module_lists_path/recommended.txt $qpkg_repo_path/recommended.txt;do [[ -n $a &&-s $a ]]||continue
 recommended_modules_pathfile=$a
-break
-done;for a in $r_qpkg_pypi_module_lists_path/renamed.txt;do [[ -n $a &&-s $a ]]||continue
+break;done;for a in $r_qpkg_pypi_module_lists_path/renamed.txt;do [[ -n $a &&-s $a ]]||continue
 renamed_modules_pathfile=$a
-break
-done;if [[ -n $excluded_modules_pathfile &&-s $excluded_modules_pathfile ]];then module_exclusions=$(/bin/tr '\n' ' '<<<"$(StripComments "$(<"$excluded_modules_pathfile")")")
+break;done;if [[ -n $excluded_modules_pathfile &&-s $excluded_modules_pathfile ]];then module_exclusions=$(/bin/tr '\n' ' '<<<"$(StripComments "$(<"$excluded_modules_pathfile")")")
 module_exclusions=${module_exclusions%* }
 [[ -n $module_exclusions ]]&&[[ -x $r_gnu_sed_cmd ]]&&re="${module_exclusions// /|}"
 if [[ -n $re ]];then for a in $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile;do if [[ -n $a &&-s $a &&-x $r_gnu_sed_cmd ]];then cmd="$r_gnu_sed_cmd -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' \"$a\""
 DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only;fi;done;fi;fi;for a in $base_modules_pathfile $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile;do if [[ -n $a &&-s $a ]];then DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$a")'" "\"$venv_pip_pathfile\" install $no_pip_deps --no-input --upgrade pip --requirement \"$a\"" log:failure-only
-if [[ $? -gt 0 &&$silence_pypi_errors = false ]];then CommitWarnToServiceLog 'PyPI module installation failed';fi;no_pips_installed=false;fi;done;if [[ -n $renamed_modules_pathfile &&-s $renamed_modules_pathfile ]];then for a in $(StripComments "$(<"$renamed_modules_pathfile")");do RenameSharedObjectFile "$a"
-done;fi
+if [[ $? -gt 0 &&$silence_pypi_errors = false ]];then CommitWarnToServiceLog 'PyPI module installation failed';fi;no_pips_installed=false;fi;done;if [[ -n $renamed_modules_pathfile &&-s $renamed_modules_pathfile ]];then for a in $(StripComments "$(<"$renamed_modules_pathfile")");do RenameSharedObjectFile "$a";done;fi
 if IsSupportGetApplVersion;then ConfirmVarIsDefined venv_python_pathfile "${venv_python_pathfile:-}" "$e_nopfi"||return
 GetApplVersion
-if [[ -x $r_gnu_find_cmd &&$new_env = false &&-s $r_appl_version_store_pathfile &&$(<"$r_appl_version_store_pathfile") != "$appl_version" ]];then DisplayRunAndLog 'clean Python bytecode files' "$r_gnu_find_cmd \"$qpkg_repo_path\" -type d -name '__pycache__' -print0|xargs -I {} -0 rm -rf '{}'
+if [[ -x $r_gnu_find_cmd &&$new_env = false &&-s $r_appl_version_store_pathfile &&$(<"$r_appl_version_store_pathfile") != "$appl_version" ]];then DisplayRunAndLog 'clean Python bytecode files' "$r_gnu_find_cmd \"$qpkg_repo_path\" -type d -name '__pycache__' -print0|/usr/bin/xargs -I {} -0 /bin/rm -rf '{}'
 " log:failure-only;fi;if [[ ! -s $r_appl_version_store_pathfile ||$(<"$r_appl_version_store_pathfile") != "$appl_version" ]];then DisplayRunAndLog 'generate language translations' "cd \"$qpkg_repo_path\";\"$venv_python_pathfile\" \"$qpkg_repo_path\"/tools/make_mo.py" log:failure-only;fi;SaveApplVersion;fi;return 0;}
 StripComments(){ [[ -n $1 ]]||return
 local a=$1
@@ -425,14 +397,12 @@ a=$(/bin/sed 's/[[:space:]]*$//'<<<"$a")
 a=$(/bin/sed "/^$/d"<<<"$a")
 echo "$a";}
 BackupConfig(){ ConfirmVarIsDefined qpkg_backup_pathfile "${qpkg_backup_pathfile:-}" "$e_nopfi"||return
-if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=\"$qpkg_backup_pathfile\" --directory=\"$r_qpkg_path\"/config ." log:failure-only;then SetError;return
-fi;}
+if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=\"$qpkg_backup_pathfile\" --directory=\"$r_qpkg_path\"/config ." log:failure-only;then SetError;return;fi;}
 RestoreConfig(){ ConfirmVarIsDefined qpkg_backup_pathfile "${qpkg_backup_pathfile:-}" "$e_nopfi"||return
 if [[ ! -f $qpkg_backup_pathfile ]];then DisplayAndCommitErrorToAllLogs "unable to restore configuration: no backup file was found"
 SetError;return;fi;if ! DisplayRunAndLog 'restore configuration backup' "/bin/tar --extract --gzip --file=\"$qpkg_backup_pathfile\" --directory=\"$r_qpkg_path\"/config" log:failure-only;then SetError;return;fi;IsQpkgMigrated&&MigrateConfig;}
 ResetConfig(){ ConfirmVarIsDefined qpkg_config_default_pathfile "${qpkg_config_default_pathfile:-}" "$e_nopfi"||return
-if ! DisplayRunAndLog 'reset configuration' "mv \"$qpkg_config_default_pathfile\" \"$r_qpkg_path\";rm -rf \"$r_qpkg_path\"/config/*;mkdir -p \"$(/usr/bin/dirname "$qpkg_config_default_pathfile")\";mv \"$r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile")\" \"$qpkg_config_default_pathfile\"" log:failure-only;then SetError;return
-fi;}
+if ! DisplayRunAndLog 'reset configuration' "/bin/mv \"$qpkg_config_default_pathfile\" \"$r_qpkg_path\";/bin/rm -rf \"$r_qpkg_path\"/config/*;/bin/mkdir -p \"$(/usr/bin/dirname "$qpkg_config_default_pathfile")\";/bin/mv \"$r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile")\" \"$qpkg_config_default_pathfile\"" log:failure-only;then SetError;return;fi;}
 MigrateConfig(){ IsNtConfigMigrated||return
 ConfirmVarIsDefined qpkg_config_pathfile "${qpkg_config_pathfile:-}" "$e_nopfi"||return
 ConfirmVarIsDefined qpkg_config_default_pathfile "${qpkg_config_default_pathfile:-}" "$e_nopfi"||return
@@ -440,9 +410,8 @@ ConfirmVarIsDefined qpkg_config_default_pathfile "${qpkg_config_default_pathfile
 [[ -s $qpkg_config_default_pathfile ]]&&/bin/sed -i "s|O$r_qpkg_name|$r_qpkg_name|g" "$qpkg_config_default_pathfile"
 /sbin/setcfg $r_qpkg_name Migrated TRUE -f /etc/config/qpkg.conf;}
 MakePaths(){ local a=''
-if [[ -d $r_qpkg_path ]];then for a in "$qpkg_config_path" "$qpkg_pip_path" "$qpkg_repo_path" "$qpkg_temp_path" "$qpkg_venv_path" "$r_qpkg_log_path";do IsVarDefined a&&[[ ! -d $a ]]&&mkdir -p "$a"
-done;fi
-IsVarDefined r_backup_path&&[[ ! -d $r_backup_path ]]&&mkdir -p "$r_backup_path";}
+if [[ -d $r_qpkg_path ]];then for a in "$qpkg_config_path" "$qpkg_pip_path" "$qpkg_repo_path" "$qpkg_temp_path" "$qpkg_venv_path" "$r_qpkg_log_path";do IsVarDefined a&&[[ ! -d $a ]]&&/bin/mkdir -p "$a";done;fi
+IsVarDefined r_backup_path&&[[ ! -d $r_backup_path ]]&&/bin/mkdir -p "$r_backup_path";}
 LoadPorts(){ case $1 in app)
 DisplayAndCommitProcessWaitToServiceLog 'load ports from configuration file'
 IsVarDefined get_ui_port_cmd&&ui_port=$(eval "$get_ui_port_cmd")
@@ -465,16 +434,13 @@ daemon_port=${daemon_port//[!0-9]/}
 return 0;}
 GetApplVersion(){ if IsSupportGetApplVersion&&[[ -s $appl_version_pathfile ]];then appl_version=$(eval "$get_appl_version_cmd")
 return 0;else appl_version=unknown
-return 1
-fi;}
+return 1;fi;}
 ShowQpkgStates(){ DisplayAndCommitInfoWaitToServiceLog 'QPKG enabled'
 if IsQpkgEnabled;then DisplayAndCommitOutcomeToServiceLog true;else DisplayAndCommitOutcomeToServiceLog false;fi;if IsSupportAutoUpdate;then DisplayAndCommitInfoWaitToServiceLog 'application auto-update'
 if IsAutoUpdate;then DisplayAndCommitOutcomeToServiceLog true;else DisplayAndCommitOutcomeToServiceLog false;fi;fi
-if IsSourceGit;then DisplayAndCommitInfoToServiceLog "active git branch: $(GetPathGitBranch "$qpkg_repo_path")"
-fi;}
+if IsSourceGit;then DisplayAndCommitInfoToServiceLog "active git branch: $(GetPathGitBranch "$qpkg_repo_path")";fi;}
 DisableOpkgDaemonStart(){ if IsVarDefined orig_daemon_service_script&&[[ -x $orig_daemon_service_script ]];then $orig_daemon_service_script stop
-chmod -x "$orig_daemon_service_script"
-fi;}
+/bin/chmod -x "$orig_daemon_service_script";fi;}
 CloneGitRepo(){ IsSourceGit||return 0
 ConfirmVarIsDefined qpkg_repo_path "${qpkg_repo_path:-}" "$e_nopth"||return
 ConfirmVarIsDefined source_git_branch "${source_git_branch:-}" "$e_nostr"||return
@@ -493,8 +459,8 @@ WatchForGit||return
 if [[ -d $qpkg_repo_path/.git &&$active_branch != "$source_git_branch" ]];then DisplayAndCommitInfoToServiceLog "new git branch specified: $source_git_branch"
 branch_switch=true
 CleanLocalRepo;fi;local branch_opt="--branch $source_git_branch $branch_depth"
-if [[ ! -d $qpkg_repo_path/.git ]];then if [[ -d $qpkg_repo_path ]];then rm -rf "$qpkg_repo_path"
-mkdir "$qpkg_repo_path";fi;opts="clone $progress_opt $branch_opt $hide_advice_opt '$source_git_url' \"$qpkg_repo_path\""
+if [[ ! -d $qpkg_repo_path/.git ]];then if [[ -d $qpkg_repo_path ]];then /bin/rm -rf "$qpkg_repo_path"
+/bin/mkdir "$qpkg_repo_path";fi;opts="clone $progress_opt $branch_opt $hide_advice_opt '$source_git_url' \"$qpkg_repo_path\""
 DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;$r_git_cmd $opts" log:failure-only
 if [[ $? -ne 0 &&$useropt_verbose = true ]];then DisplayAndCommitErrorToAllLogs 'clone failed'
 SetError;return;fi;elif IsUpdate||IsAutoUpdate;then opts="-C \"$qpkg_repo_path\" clean -f;$r_git_cmd -C \"$qpkg_repo_path\" reset --hard origin/$source_git_branch;$r_git_cmd -C \"$qpkg_repo_path\" pull"
@@ -503,22 +469,22 @@ DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repos
 DisplayAndCommitInfoToServiceLog "active git branch: $active_branch"
 if [[ -z $active_branch ||$active_branch = none ]];then DisplayAndCommitErrorToAllLogs 'no active git branch found'
 SetError;return;fi;return 0;}
-CleanLocalRepo(){ if [[ -z $r_qpkg_path ||-z $r_qpkg_name ]]||IsNtSourcedOnline;then SetError;return;fi;(IsSourceGit||IsSourceReleasePackage)&&DisplayRunAndLog 'clean local repository' "rm -rf \"$qpkg_repo_path\"" log:failure-only
-IsVarDefined qpkg_venv_path&&[[ -d $qpkg_venv_path ]]&&DisplayRunAndLog 'clean virtual Python environment' "rm -rf \"$qpkg_venv_path\"" log:failure-only
-IsVarDefined qpkg_pip_path&&[[ -d $qpkg_pip_path ]]&&DisplayRunAndLog 'clean PyPI cache' "rm -rf \"$qpkg_pip_path\"" log:failure-only
-[[ -s $r_appl_version_store_pathfile ]]&&DisplayRunAndLog 'remove application version' "rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
-[[ -s $r_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "rm -f \"$r_screen_log_pathfile\"" log:failure-only
-IsVarDefined qpkg_temp_path&&[[ -d $qpkg_temp_path ]]&&DisplayRunAndLog 'clean temp path' "rm -rf \"$qpkg_temp_path\"" log:failure-only
+CleanLocalRepo(){ if [[ -z $r_qpkg_path ||-z $r_qpkg_name ]]||IsNtSourcedOnline;then SetError;return;fi;(IsSourceGit||IsSourceReleasePackage)&&DisplayRunAndLog 'clean local repository' "/bin/rm -rf \"$qpkg_repo_path\"" log:failure-only
+IsVarDefined qpkg_venv_path&&[[ -d $qpkg_venv_path ]]&&DisplayRunAndLog 'clean virtual Python environment' "/bin/rm -rf \"$qpkg_venv_path\"" log:failure-only
+IsVarDefined qpkg_pip_path&&[[ -d $qpkg_pip_path ]]&&DisplayRunAndLog 'clean PyPI cache' "/bin/rm -rf \"$qpkg_pip_path\"" log:failure-only
+[[ -s $r_appl_version_store_pathfile ]]&&DisplayRunAndLog 'remove application version' "/bin/rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
+[[ -s $r_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f \"$r_screen_log_pathfile\"" log:failure-only
+IsVarDefined qpkg_temp_path&&[[ -d $qpkg_temp_path ]]&&DisplayRunAndLog 'clean temp path' "/bin/rm -rf \"$qpkg_temp_path\"" log:failure-only
 MakePaths;}
 WatchForGit(){ if IsNtQpkgInstalled Entware;then DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not installed"
 SetError;return;fi;if IsNtQpkgEnabled Entware;then DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not enabled"
 SetError;return;fi;if WatchForFileToAppear "$r_git_cmd" 300;then export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||"<<<"$PATH")
 return 0;fi;SetError;return;}
 RefreshDaemonPidFile(){ local -i a=0
-[[ -s $daemon_pid_pathfile &&! -d /proc/"$(<"$daemon_pid_pathfile")" ]]&&rm -f "$daemon_pid_pathfile"
+[[ -s $daemon_pid_pathfile &&! -d /proc/"$(<"$daemon_pid_pathfile")" ]]&&/bin/rm -f "$daemon_pid_pathfile"
 if IsVarDefined daemon_check_pathfile;then a=$(FindPid "$daemon_check_pathfile");else a=$(FindPid "$daemon_exec_pathfile" "$daemon_script_pathfile");fi;[[ -n $a &&$a -gt 0 ]]&&echo "$a">"$daemon_pid_pathfile";}
 RefreshScreenPidFile(){ local -i a=0
-[[ -s $r_screen_pid_pathfile &&! -d /proc/"$(<"$r_screen_pid_pathfile")" ]]&&rm -f "$r_screen_pid_pathfile"
+[[ -s $r_screen_pid_pathfile &&! -d /proc/"$(<"$r_screen_pid_pathfile")" ]]&&/bin/rm -f "$r_screen_pid_pathfile"
 a=$(FindPid "$daemon_exec_pathfile" /usr/bin/SCREEN)
 [[ -n $a &&$a -gt 0 ]]&&echo "$a">"$r_screen_pid_pathfile";}
 FindPid(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi"||return
@@ -530,23 +496,20 @@ for a in $(/bin/pidof "$(/usr/bin/basename "$1")");do [[ $a -gt 1 ]]||continue
 [[ -e /proc/$a/cmdline &&-L /proc/$a/exe ]]||continue
 [[ $(</proc/$a/cmdline) =~ $1 ||$(/usr/bin/readlink /proc/$a/exe 2>/dev/null) = "$1" ]]||continue
 if [[ -n $b ]];then [[ $(</proc/$a/cmdline) =~ $b ]]||continue;fi;printf '%s' "$a"
-return
-done;return 1;}
+return;done;return 1;}
 PauseForStartPid(){ local -i a=0
 local -i i=0
 a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
 if [[ $daemon_pidfile_is_managed_by_app = true ]];then if WatchForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$watch_pidfile_start_seconds")";then /bin/sleep 1;fi;fi
 if [[ $recheck_daemon_pid_after_launch = true ]];then DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") to confirm PID is still alive"
 for((i=1;i<=a;i++));do /bin/sleep 1
-DisplayWait "$i,"
-done;DisplayAndCommitOutcomeToServiceLog 'done';fi;RefreshDaemonPidFile||return;}
+DisplayWait "$i,";done;DisplayAndCommitOutcomeToServiceLog 'done';fi;RefreshDaemonPidFile||return;}
 PauseForKillPid(){ local -i a=0
 local -i i=0
 a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
 if [[ $recheck_daemon_pid_after_kill = true ]];then DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") to confirm PID is still dead"
 for((i=1;i<=a;i++));do /bin/sleep 1
-DisplayWait "$i,"
-done;DisplayAndCommitOutcomeToServiceLog 'done';fi;! RefreshDaemonPidFile||return;}
+DisplayWait "$i,";done;DisplayAndCommitOutcomeToServiceLog 'done';fi;! RefreshDaemonPidFile||return;}
 WatchForAnyInterfaceUp(){ local -i a=0
 local -i i=0
 local interface_name=''
@@ -608,8 +571,7 @@ local scrolltoend=false
 for arg in "${b[@]}";do [[ $arg = headers:on ]]&&headers=true
 [[ $arg = linenumbers:on ]]&&linenumbers=true
 [[ $arg = linewrap:on ]]&&linewrap=true
-[[ $arg = scrollto:end ]]&&scrolltoend=true
-done;echo
+[[ $arg = scrollto:end ]]&&scrolltoend=true;done;echo
 if [[ $useropt_verbose = false &&-x $r_gnu_less_cmd ]];then options+=' --tilde'
 options+=' --mouse'
 options+=' --RAW-CONTROL-CHARS'
@@ -624,8 +586,7 @@ LESSSECURE=1 $r_gnu_less_cmd $options --prompt "$r_prompt" "$report_pathfile"
 elif [[ $useropt_verbose = false &&-x $r_gnu_more_cmd ]];then $r_gnu_more_cmd "$report_pathfile"
 elif [[ $useropt_verbose = false &&-x /bin/more ]];then /bin/more "$report_pathfile"
 elif [[ -x /bin/cat ]];then [[ $linenumbers = true ]]&&options=' --number'
-/bin/cat $options "$report_pathfile";else echo -e "$(<"$report_pathfile")"
-fi;}
+/bin/cat $options "$report_pathfile";else echo -e "$(<"$report_pathfile")";fi;}
 CalcReportFirstColumnWidth(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi"||return
 [[ -s $1 ]]||return
 local a=''
@@ -635,19 +596,19 @@ a=$(<"$1")
 a=$(/bin/sed '/^#[[:space:]].*/d;/#$/d;s/[[:space:]]#[[:space:]].*//'<<<"$a")
 a=$(/bin/sed 's/[[:space:]]*$//'<<<"$a")
 a=$(/bin/sed '/^$/d'<<<"$a")
-a=$(head -n1<<<"$a")
-b=$(cut -f2 -d:<<<"$a"):
+a=$(/usr/bin/head -n1<<<"$a")
+b=$(/usr/bin/cut -f2 -d:<<<"$a"):
 b=$(/bin/sed 's/^[[:space:]]*//'<<<"$b")
 c=${a%%$b*}
 printf '%s' "${#c}";}
 EnsureConfigFileExists(){ IsSupportReset||return 0
-if UsesConfig valid&&[[ ! -s $qpkg_config_pathfile &&-s $qpkg_config_default_pathfile ]];then cp "$qpkg_config_default_pathfile" "$qpkg_config_pathfile"
-DisplayAndCommitInfoToServiceLog 'no configuration file, using default as template';fi;if UsesVirtualConfig&&[[ -s $qpkg_config_pathfile ]];then if [[ -s $qpkg_config_virtual_pathfile &&! -L $qpkg_config_virtual_pathfile ]];then mv "$qpkg_config_virtual_pathfile" "$qpkg_config_pathfile"
+if UsesConfig valid&&[[ ! -s $qpkg_config_pathfile &&-s $qpkg_config_default_pathfile ]];then /usr/bin/cp "$qpkg_config_default_pathfile" "$qpkg_config_pathfile"
+DisplayAndCommitInfoToServiceLog 'no configuration file, using default as template';fi;if UsesVirtualConfig&&[[ -s $qpkg_config_pathfile ]];then if [[ -s $qpkg_config_virtual_pathfile &&! -L $qpkg_config_virtual_pathfile ]];then /bin/mv "$qpkg_config_virtual_pathfile" "$qpkg_config_pathfile"
 DisplayAndCommitInfoToServiceLog 'existing file is now configuration file';fi;fi;}
 EnsureVirtualConfigFileExists(){ IsSupportReset||return 0
-if UsesVirtualConfig&&[[ -s $qpkg_config_pathfile ]];then if [[ ! -L $qpkg_config_virtual_pathfile ]];then ln -s "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
+if UsesVirtualConfig&&[[ -s $qpkg_config_pathfile ]];then if [[ ! -L $qpkg_config_virtual_pathfile ]];then /bin/ln -s "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
 DisplayAndCommitInfoToServiceLog 'created virtual link to configuration file'
-elif [[ ! -s $qpkg_config_virtual_pathfile ]];then ln -sf "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
+elif [[ ! -s $qpkg_config_virtual_pathfile ]];then /bin/ln -sf "$qpkg_config_pathfile" "$qpkg_config_virtual_pathfile"
 DisplayAndCommitInfoToServiceLog 'existing link broken, re-created link to configuration file';fi;fi;}
 SaveApplVersion(){ IsVarDefined appl_version&&echo "$appl_version">"$r_appl_version_store_pathfile";}
 DisplayRunAndLog(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nostr"||return
@@ -657,12 +618,12 @@ local a=''
 local r_log_pathfile=''
 r_log_pathfile=$(/bin/mktemp $r_sys_log_path/"${FUNCNAME[0]}"_XXXXXX)
 local -r r_log_pathfile
-a=$(tr -s ' '<<<"$2")
+a=$(/bin/tr -s ' '<<<"$2")
 DisplayAndCommitProcessWaitToServiceLog "$1"
 Executer "$a" "$r_log_pathfile" "${4:-false}"
 z=$?
 if [[ $z -eq 0 ]];then if [[ $useropt_debug = true ]];then CommitToServiceLog OK;else DisplayAndCommitToServiceLog OK;fi;[[ ${3:-} != log:failure-only ]]&&AddFileToDebug "$r_log_pathfile";else
-if [[ $useropt_debug = true ]];then CommitToServiceLog failed;else DisplayAndCommitToServiceLog failed;fi;AddFileToDebug "$r_log_pathfile";fi;[[ -e $r_log_pathfile ]]&&rm -f "$r_log_pathfile"
+if [[ $useropt_debug = true ]];then CommitToServiceLog failed;else DisplayAndCommitToServiceLog failed;fi;AddFileToDebug "$r_log_pathfile";fi;[[ -e $r_log_pathfile ]]&&/bin/rm -f "$r_log_pathfile"
 return $z;}
 Executer(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nocmd"||return
 ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi"||return
@@ -686,10 +647,10 @@ local -r r_executer_log_pipe
 /usr/bin/tee "$r_log_pathfile"<"$r_executer_log_pipe" &
 eval "$1">"$r_executer_log_pipe" 2>&1
 z=$?
-rm "$r_executer_log_pipe";else (eval "$1">"$r_log_pathfile" 2>&1)
+/bin/rm "$r_executer_log_pipe";else (eval "$1">"$r_log_pathfile" 2>&1)
 z=$?;fi;if [[ -s $r_log_pathfile ]];then FormatAsResultAndStdout "$z" "$(<"$r_log_pathfile")">>"$2";else FormatAsResultAndStdout "$z" '<null>'>>"$2";fi;if [[ $useropt_debug = true ]];then exec_msg='} exec: completed'
 if [[ $z -eq 0 ]];then Display "$exec_msg OK ($z)";else Display "$exec_msg with errors ($z)";fi;fi
-[[ -e $r_log_pathfile ]]&&rm -f "$r_log_pathfile"
+[[ -e $r_log_pathfile ]]&&/bin/rm -f "$r_log_pathfile"
 return $z;}
 ShowEnabled(){ DisplayAndCommitInfoToServiceLog "$(FormatAsPackageName "$r_qpkg_name") QPKG is enabled.";}
 ShowDisabled(){ DisplayAndCommitToServiceLog "= $(FormatAsPackageName "$r_qpkg_name") QPKG is disabled.";}
@@ -707,8 +668,7 @@ DebugAsLog ''
 DebugAsLog 'adding external log to main log ...'
 DebugExtLogMinorSeparator
 DebugAsLog "$(FormatAsLogFilename "$1")"
-while read -r a;do DebugAsLog "$a"
-done<"$1"
+while read -r a;do DebugAsLog "$a";done<"$1"
 DebugExtLogMinorSeparator
 useropt_debug=$debug_was_set;}
 FormatAsLogFilename(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nofil"||return
@@ -740,8 +700,7 @@ WriteToServiceLog dbug "$1";}
 WriteToServiceLog(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nostr"||return
 ConfirmVarIsDefined 2 "${2:-}" "$e_nostr"||return
 printf "%-4s: %s\n" "$(StripANSICodes "$1")" "$(StripANSICodes "$2")">>"$r_service_log_pathfile";}
-StripANSICodes(){ if [[ -x $r_gnu_sed_cmd &&-L /opt/etc/passwd ]];then $r_gnu_sed_cmd -r 's/\x1b\[[0-9;]*m//g'<<<"${1:-}";else echo "${1:-}"
-fi;}
+StripANSICodes(){ if [[ -x $r_gnu_sed_cmd &&-L /opt/etc/passwd ]];then $r_gnu_sed_cmd -r 's/\x1b\[[0-9;]*m//g'<<<"${1:-}";else echo "${1:-}";fi;}
 Capitalise(){ echo "$(Uppercase ${1:0:1})${1:1}";}
 Uppercase(){ /bin/tr 'a-z' 'A-Z'<<<"$1";}
 ReWriteUIPorts(){ IsVarDefined get_daemon_port_cmd&&return
@@ -751,26 +710,23 @@ if IsSSLEnabled;then /sbin/setcfg $r_qpkg_name Web_SSL_Port "$ui_port_secure" -f
 WatchForPortsActive(){ local a=''
 DisplayAndCommitInfoToServiceLog "daemon listening address: $ui_listening_address"
 if [[ $daemon_port -ne 0 ]];then DisplayAndCommitInfoToServiceLog "daemon port: $daemon_port"
-if IsPortResponds $daemon_port;then a="daemon port $daemon_port"
-fi;else DisplayAndCommitInfoWaitToServiceLog 'HTTPS port enabled'
+if IsPortResponds $daemon_port;then a="daemon port $daemon_port";fi;else DisplayAndCommitInfoWaitToServiceLog 'HTTPS port enabled'
 if IsSSLEnabled;then DisplayAndCommitOutcomeToServiceLog true
 DisplayAndCommitInfoToServiceLog "HTTPS port: $ui_port_secure"
-if IsPortSecureResponds $ui_port_secure;then a="HTTPS port $ui_port_secure"
-fi;else DisplayAndCommitOutcomeToServiceLog false;fi;DisplayAndCommitInfoToServiceLog "HTTP port: $ui_port"
+if IsPortSecureResponds $ui_port_secure;then a="HTTPS port $ui_port_secure";fi;else DisplayAndCommitOutcomeToServiceLog false;fi;DisplayAndCommitInfoToServiceLog "HTTP port: $ui_port"
 if IsPortResponds $ui_port;then [[ -n $a ]]&&a+=' and '
 a+="HTTP port $ui_port";fi;fi
 if [[ -z $a ]];then DisplayAndCommitWarnToServiceLog 'no response on configured port(s)'
 return 1;else ReWriteUIPorts
-return 0
-fi;}
+return 0;fi;}
 GetPythonVer(){ local a=''
 a=$(GetThisBinPath ${1:-python} &>/dev/null&&${1:-python} -V 2>&1|/bin/sed 's|^Python||;s|\.||g')
 [[ -n $a ]]&&echo "${a:0:3}";}
 GetThisBinPath(){ [[ -n ${1:?null} ]]&&command -v "$1" 2>&1;}
 RenameSharedObjectFile(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nofil"||return
-if [[ -s $(GetModulePath)/$(GetOriginalModuleSOFilename "_$1") ]];then mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "_$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "_$1")"
-DisplayAndCommitToServiceLog "= renamed module: _$1";fi;if [[ -s $(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1") ]];then mv "$(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$1/$(GetFixedModuleSOFilename "$1")"
-DisplayAndCommitToServiceLog "= renamed module: $1/$1";fi;if [[ -s $(GetModulePath)/$(GetOriginalModuleSOFilename "$1") ]];then mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "$1")"
+if [[ -s $(GetModulePath)/$(GetOriginalModuleSOFilename "_$1") ]];then /bin/mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "_$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "_$1")"
+DisplayAndCommitToServiceLog "= renamed module: _$1";fi;if [[ -s $(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1") ]];then /bin/mv "$(GetModulePath)/$1/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$1/$(GetFixedModuleSOFilename "$1")"
+DisplayAndCommitToServiceLog "= renamed module: $1/$1";fi;if [[ -s $(GetModulePath)/$(GetOriginalModuleSOFilename "$1") ]];then /bin/mv "$(GetModulePath)/$(GetOriginalModuleSOFilename "$1")" "$(GetModulePath)/$(GetFixedModuleSOFilename "$1")"
 DisplayAndCommitToServiceLog "= renamed module: $1";fi;return 0;}
 GetOriginalModuleSOFilename(){ [[ -z $pyver ]]&&pyver=$(GetPythonVer)
 [[ -n ${1:-} ]]&&echo "$1.cpython-$pyver-$r_nas_arch-linux-gnu.so";}
@@ -798,7 +754,7 @@ GetOsFirmwareBuild(){ printf '%04d' "$((10#$(/sbin/getcfg System Number -d 0 -f 
 GetOsFirmwareVer(){ printf '%010d' "$((10#$(ConvertFirmwareVersionStringToNumber "$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)")))";}
 GetHardwarePlatform(){ /sbin/getcfg '' Platform -d undefined -f /etc/platform.conf;}
 GetUserDefVol(){ /sbin/getcfg SHARE_DEF defVolMP -d undefined -f /etc/config/def_share.info;}
-parse_yaml(){ local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+parse_yaml(){ local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|/bin/tr @ '\034')
 /bin/sed -ne "s|^\($s\):|\1|" \
 -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
 -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
@@ -808,18 +764,17 @@ vname[indent] = $2;
 for (i in vname) {if (i>indent) {delete vname[i]}}
 if (length($3)>0) {
 vn="";for (i=0;i<indent;i++) {vn=(vn)(vname[i])("_")}
-printf("%s%s%s=\"%s\"\n", "'${2:-}'",vn, $2, $3);;}
-}';}
+printf("%s%s%s=\"%s\"\n", "'${2:-}'",vn, $2, $3);;};}';}
 GetKeyFromYAML(){ ConfirmVarIsDefined 1 "${1:-}" "$e_noval"||return
 ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi"||return
 [[ -s $2 ]]||return
 set -o pipefail
-parse_yaml "$2"|grep "${1/:/_}"|cut -d '"' -f2;}
+parse_yaml "$2"|grep "${1/:/_}"|/usr/bin/cut -d '"' -f2;}
 GetKeyFromTOML(){ ConfirmVarIsDefined 1 "${1:-}" "$e_noval"||return
 ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi"||return
 [[ -s $2 ]]||return
 set -o pipefail
-/bin/grep "^$1 " "$2"|cut -d '=' -f2|tr -d ' \"';}
+/bin/grep "^$1 " "$2"|/usr/bin/cut -d '=' -f2|/bin/tr -d ' \"';}
 GetKeyFromPyload(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nonam"||return
 ConfirmVarIsDefined 2 "${2:-}" "$e_novar"||return
 ConfirmVarIsDefined 3 "${3:-}" "$e_nopfi"||return
@@ -845,8 +800,7 @@ while read -r result_line;do IFS=':' read -r line_num section_raw<<<"$result_lin
 IFS=' ' read -r section_name blank section_description<<<"$section_raw"
 if [[ $section_name = "$1" ]];then [[ $start_line_num -eq 0 ]]&&start_line_num=$((line_num+1));else
 if [[ $start_line_num -ne 0 ]];then end_line_num=$((line_num-2))
-break;fi;fi
-done<<<"$(/bin/grep '.*:$' -n "$3")"
+break;fi;fi;done<<<"$(/bin/grep '.*:$' -n "$3")"
 if [[ $start_line_num -eq 0 ]];then echo 'section match not found'
 return 1;fi;target_section=$(/bin/sed -n "${start_line_num},${end_line_num}p" "$3")
 while read -r section_line;do IFS=':' read -r raw_var_type raw_var_description<<<"$section_line"
@@ -856,22 +810,17 @@ var_found=true
 IFS='"' read -r blank var_description value_raw<<<"$raw_var_description"
 IFS='=' read -r blank value<<<"$value_raw"
 value=${value% };value=${value# }
-break
-done<<<"$target_section"
+break;done<<<"$target_section"
 if [[ $var_found = false ]];then echo 'variable match not found'
 return 1;fi;echo "$value";}
 SetNasArch(){ if [[ ${r_nas_arch:-unset} = unset ]];then r_nas_arch=$(GetNasArch)
-readonly r_nas_arch
-fi;}
+readonly r_nas_arch;fi;}
 SetQpkgArch(){ if [[ ${r_nas_qpkg_arch:-unset} = unset ]];then r_nas_qpkg_arch=$(GetQpkgArch)
-readonly r_nas_qpkg_arch
-fi;}
+readonly r_nas_qpkg_arch;fi;}
 SetOsFirmwareVersion(){ if [[ ${r_nas_firmware_version:-unset} = unset ]];then r_nas_firmware_version=$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)
-readonly r_nas_firmware_version
-fi;}
+readonly r_nas_firmware_version;fi;}
 SetOsFirmwareVer(){ if [[ ${r_nas_firmware_ver:-unset} = unset ]];then r_nas_firmware_ver=$(GetOsFirmwareVer)
-readonly r_nas_firmware_ver
-fi;}
+readonly r_nas_firmware_ver;fi;}
 SetHardwarePlatform(){ [[ ${r_nas_platform:-unset} = unset ]]&&readonly r_nas_platform=$(GetHardwarePlatform);}
 IsQNAP(){ if [[ ! -s /etc/init.d/functions ]];then Display 'QTS functions missing (is this a QNAP NAS?)'
 SetError;return;fi;return 0;}
@@ -907,13 +856,9 @@ IsSSLEnabled(){ IsVarDefined get_ui_port_secure_enabled_test_cmd&&eval "$get_ui_
 IsDaemon(){ IsVarDefined daemon_exec_pathfile&&IsVarDefined daemon_launch_cmd;}
 IsNtDaemon(){ ! IsDaemon;}
 IsDaemonCheck(){ IsVarDefined daemon_check_pathfile;}
-ShowDaemonState(){ if IsVarDefined daemon_pid_pathfile&&[[ -s $daemon_pid_pathfile ]];then DisplayAndCommitInfoToServiceLog "daemon PID: $(<"$daemon_pid_pathfile")";else DisplayAndCommitInfoToServiceLog 'daemon PID: none'
-fi;}
-ShowScreenState(){ if IsVarDefined r_screen_pid_pathfile&&[[ -s $r_screen_pid_pathfile ]];then DisplayAndCommitInfoToServiceLog "screen PID: $(<"$r_screen_pid_pathfile")";else DisplayAndCommitInfoToServiceLog 'screen PID: none'
-fi;}
-IsDaemonActive(){ if IsVarDefined daemon_pid_pathfile&&[[ -s $daemon_pid_pathfile &&-d /proc/"$(<"$daemon_pid_pathfile")" ]];then if IsDaemonCheck;then [[ $(/usr/bin/readlink /proc/"$(<"$daemon_pid_pathfile")"/exe 2>/dev/null) = "$daemon_check_pathfile" ]];else [[ $(</proc/"$(<"$daemon_pid_pathfile")"/cmdline) =~ $daemon_exec_pathfile ]]
-fi;else false
-fi;}
+ShowDaemonState(){ if IsVarDefined daemon_pid_pathfile&&[[ -s $daemon_pid_pathfile ]];then DisplayAndCommitInfoToServiceLog "daemon PID: $(<"$daemon_pid_pathfile")";else DisplayAndCommitInfoToServiceLog 'daemon PID: none';fi;}
+ShowScreenState(){ if IsVarDefined r_screen_pid_pathfile&&[[ -s $r_screen_pid_pathfile ]];then DisplayAndCommitInfoToServiceLog "screen PID: $(<"$r_screen_pid_pathfile")";else DisplayAndCommitInfoToServiceLog 'screen PID: none';fi;}
+IsDaemonActive(){ if IsVarDefined daemon_pid_pathfile&&[[ -s $daemon_pid_pathfile &&-d /proc/"$(<"$daemon_pid_pathfile")" ]];then if IsDaemonCheck;then [[ $(/usr/bin/readlink /proc/"$(<"$daemon_pid_pathfile")"/exe 2>/dev/null) = "$daemon_check_pathfile" ]];else [[ $(</proc/"$(<"$daemon_pid_pathfile")"/cmdline) =~ $daemon_exec_pathfile ]];fi;else false;fi;}
 IsNtDaemonActive(){ ! IsDaemonActive;}
 IsPortAvailable(){ local port=${1//[!0-9]/}
 [[ -n $port &&$port -gt 0 ]]||return 0
@@ -980,15 +925,12 @@ IsOsCanSecureDownload(){ SetOsFirmwareVer
 [[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.5.5))) ]];}
 IsSiteUp(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nourl"||return
 local a=''
-a=$(cut -d'/' -f3<<<"$1"|cut -d':' -f1)
+a=$(/usr/bin/cut -d'/' -f3<<<"$1"|/usr/bin/cut -d':' -f1)
 ConfirmVarIsDefined a "${a:-}" "$e_nourl"||return
 local -i n=0
 for((n=0;n<20;n++));do /bin/ping -c 1 -w 1 "$a"&&return 0
-/bin/sleep 5
-done;return 1
-} &>/dev/null
-IsHaveSingleQuote(){ /bin/grep "'"<<<"${1:-}"
-} &>/dev/null
+/bin/sleep 5;done;return 1;} &>/dev/null
+IsHaveSingleQuote(){ /bin/grep "'"<<<"${1:-}";} &>/dev/null
 IsGnuLessSupportHeaders(){ local a=''
 a=$(GetGnuLessVersion)
 IsNumber $a&&[[ $a -ge 685 ]];}
@@ -1004,11 +946,10 @@ local a=${1//[!0-9]/}
 [[ ${#a} -gt 0 ]];}
 IsCheckNetworkBeforeStart(){ [[ $check_network_before_start = true ]];}
 IsInterfaceUp(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nostr"||return
-[[ -n $(/bin/ip a|/bin/sed -rn '/: '"$1"':.*state UP/{N;N;s/.*inet (\S*).*/\1/p}') ]]
-} &>/dev/null
+[[ -n $(/bin/ip a|/bin/sed -rn '/: '"$1"':.*state UP/{N;N;s/.*inet (\S*).*/\1/p}') ]];} &>/dev/null
 IsAnyInterfaceUp(){ local a=''
 interface_name=null
-for a in $(/bin/grep ':' /proc/net/dev|cut -d':' -f1|tr -d ' ');do [[ $a != 'lo' ]]||continue
+for a in $(/bin/grep ':' /proc/net/dev|/usr/bin/cut -d':' -f1|/bin/tr -d ' ');do [[ $a != 'lo' ]]||continue
 [[ ! $a =~ 'docker' ]]||continue
 [[ ! $a =~ 'bond' ]]||continue
 [[ ! $a =~ 'dummy' ]]||continue
@@ -1016,20 +957,17 @@ for a in $(/bin/grep ':' /proc/net/dev|cut -d':' -f1|tr -d ' ');do [[ $a != 'lo'
 [[ ! $a =~ 'lxd' ]]||continue
 if IsInterfaceUp "$a";then echo "interface $a is operational"
 interface_name=$a
-return;fi;done;return 1
-} &>/dev/null
-IsVarDefined(){ [[ -n ${!1:-} &&${!1:-undefined} != undefined ]]
-} &>/dev/null
+return;fi;done;return 1;} &>/dev/null
+IsVarDefined(){ [[ -n ${!1:-} &&${!1:-undefined} != undefined ]];} &>/dev/null
 IsInTerminal(){ [[ -t 0 ]];}
-GetGnuLessVersion(){ if [[ -x $r_gnu_less_cmd ]];then $r_gnu_less_cmd -V|head -n1|cut -d' ' -f2;else printf 0
-fi;}
+GetGnuLessVersion(){ if [[ -x $r_gnu_less_cmd ]];then $r_gnu_less_cmd -V|/usr/bin/head -n1|/usr/bin/cut -d' ' -f2;else printf 0;fi;}
 RequestLatestReleaseFilename(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nourl"||return
 local -i c=0
 local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"
 local b=''
-b=$(/sbin/curl $a "${1/https/http}"|/bin/grep -v 'Location:'|/bin/grep filename|cut -d';' -f2|cut -d'=' -f2|/bin/sed -e 's|\r||g')
+b=$(/sbin/curl $a "${1/https/http}"|/bin/grep -v 'Location:'|/bin/grep filename|/usr/bin/cut -d';' -f2|/usr/bin/cut -d'=' -f2|/bin/sed -e 's|\r||g')
 [[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep -e "$2"<<<"$b")
-c=$(wc -l<<<"$b")
+c=$(/usr/bin/wc -l<<<"$b")
 case $c in 0)
 printf '%s' "${FUNCNAME[0]}(): zero filenames matched"
 return 1;;1)
@@ -1041,9 +979,9 @@ RequestLatestReleaseURL(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nourl"||return
 local -i c=0
 local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"
 local b=''
-b=$(/sbin/curl $a "$1"|/bin/grep browser_download_url|cut -d\" -f4)
+b=$(/sbin/curl $a "$1"|/bin/grep browser_download_url|/usr/bin/cut -d\" -f4)
 [[ -n ${2:-} &&${2:-} != undefined ]]&&b=$(/bin/grep -e "$2"<<<"$b")
-c=$(wc -l<<<"$b")
+c=$(/usr/bin/wc -l<<<"$b")
 case $c in 0)
 printf '%s' "${FUNCNAME[0]}(): zero URLs matched"
 return 1;;1)
@@ -1067,13 +1005,11 @@ local unzip_verbose=''
 if [[ $useropt_debug = true ]];then tar_verbose+='--verbose';fi;if [[ -s $1 ]];then tar_opts="$tar_verbose --extract --gzip --file=\"$1\" --directory=\"$qpkg_repo_path\""
 unzip_opts="$unzip_verbose -o \"$1\" -d \"$qpkg_repo_path\""
 DisplayRunAndLog 'extract from release package' "/usr/bin/unzip $unzip_opts 2>/dev/null||/bin/tar $tar_opts" log:failure-only
-if [[ $compare_release_filename = true &&-n $2 ]];then if [[ ! -s $2 ]];then DisplayRunAndLog 'create release package name reference' "/bin/touch \"$2\"" log:failure-only;fi;fi
-fi;}
+if [[ $compare_release_filename = true &&-n $2 ]];then if [[ ! -s $2 ]];then DisplayRunAndLog 'create release package name reference' "/bin/touch \"$2\"" log:failure-only;fi;fi;fi;}
 MakeExecReleasePackage(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi"||return
-if [[ -s $1 ]];then DisplayRunAndLog 'copy release package' "cp -f \"$1\" \"$daemon_exec_pathfile\"" log:failure-only
-[[ ! -x $daemon_exec_pathfile ]]&&DisplayRunAndLog 'make release package executable' "chmod +x \"$daemon_exec_pathfile\"" log:failure-only
-if [[ $compare_release_filename = true &&-n $2 ]];then if [[ ! -s $2 ]];then DisplayRunAndLog 'create release package name reference' "/bin/touch \"$2\"" log:failure-only;fi;fi
-fi;}
+if [[ -s $1 ]];then DisplayRunAndLog 'copy release package' "/usr/bin/cp -f \"$1\" \"$daemon_exec_pathfile\"" log:failure-only
+[[ ! -x $daemon_exec_pathfile ]]&&DisplayRunAndLog 'make release package executable' "/bin/chmod +x \"$daemon_exec_pathfile\"" log:failure-only
+if [[ $compare_release_filename = true &&-n $2 ]];then if [[ ! -s $2 ]];then DisplayRunAndLog 'create release package name reference' "/bin/touch \"$2\"" log:failure-only;fi;fi;fi;}
 SetServiceAction(){ service_action=${1:-none}
 service_explanation=''
 service_result=in-progress
@@ -1090,11 +1026,9 @@ DisplayAndCommitResultToServiceLog;}
 SetServiceResultAsAborted(){ service_result=aborted
 CommitServiceResult
 DisplayAndCommitResultToServiceLog;}
-CommitServiceAction(){ if IsNtStatus&&IsNtLog&&IsNtNone&&IsVarDefined r_service_action_pathfile;then echo "$service_action">"$r_service_action_pathfile"
-fi;}
-CommitServiceExplanation(){ if IsNtStatus&&IsNtLog&&IsNtNone&&IsVarDefined r_service_explanation_pathfile;then if [[ -n $service_explanation ]];then echo "$service_explanation">"$r_service_explanation_pathfile";else rm -f "$r_service_explanation_pathfile";fi;fi;}
-CommitServiceResult(){ if IsNtStatus&&IsNtLog&&IsNtNone&&IsVarDefined r_service_result_pathfile;then echo "$service_result">"$r_service_result_pathfile"
-fi;}
+CommitServiceAction(){ if IsNtStatus&&IsNtLog&&IsNtNone&&IsVarDefined r_service_action_pathfile;then echo "$service_action">"$r_service_action_pathfile";fi;}
+CommitServiceExplanation(){ if IsNtStatus&&IsNtLog&&IsNtNone&&IsVarDefined r_service_explanation_pathfile;then if [[ -n $service_explanation ]];then echo "$service_explanation">"$r_service_explanation_pathfile";else /bin/rm -f "$r_service_explanation_pathfile";fi;fi;}
+CommitServiceResult(){ if IsNtStatus&&IsNtLog&&IsNtNone&&IsVarDefined r_service_result_pathfile;then echo "$service_result">"$r_service_result_pathfile";fi;}
 SetDaemonWasActive(){ _daemon_was_active=true;}
 DaemonWasNotActive(){ [[ ${_daemon_was_active:=false} = false ]];}
 SetStatusGet(){ _get_status_flag=true;}
@@ -1133,13 +1067,10 @@ IsUnsupported(){ [[ $service_action = unsupported ]];}
 IsInProgress(){ [[ $service_result = in-progress ]];}
 IsPathEmpty(){ local a=${1:-}
 [[ -n $a &&-d $a ]]||return
-rmdir "$a" &>/dev/null&&mkdir "$a";}
-ShowAsNote(){ Display "$(TextBrightYellow note): ${1:-}"
-}>&2
-ShowAsImportant(){ Display "$(TextBrightYellowBlink note): ${1:-}"
-}>&2
-ShowAsError(){ Display "$(TextBrightRed derp): ${1:-}"
-}>&2
+/bin/rmdir "$a" &>/dev/null&&/bin/mkdir "$a";}
+ShowAsNote(){ Display "$(TextBrightYellow note): ${1:-}";}>&2
+ShowAsImportant(){ Display "$(TextBrightYellowBlink note): ${1:-}";}>&2
+ShowAsError(){ Display "$(TextBrightRed derp): ${1:-}";}>&2
 ShowAsBug(){ [[ -n ${1:-} ]]||return
 [[ -n ${2:-} ]]||return
 local -i i=0
@@ -1148,8 +1079,7 @@ local b=' '
 for((i=${#FUNCNAME[@]}-1;i>=0;i--));do [[ $i -ne $((${#FUNCNAME[@]}-1)) ]]&&a+="${b}>${b}"
 if [[ ${FUNCNAME[i]} = "$1" ]];then a+=$(TextBrightWhite "${FUNCNAME[i]}($(TextBrightRed "$2")$(TextBrightWhite ')')");else a+=$(TextBrightWhite "${FUNCNAME[i]}()");fi;done;CommitErrorToServiceLog "bugr: $a"
 Display "$(TextBrightRed bugr): $a"
-SetError
-}>&2
+SetError;}>&2
 ShowAsURL(){ TextUnderlinedCyan "${1:?${FUNCNAME[0]}(): $e_nourl}";}
 DisplayAndCommitInfoToAllLogs(){ DisplayAndCommitInfoToServiceLog "${1:-}"
 CommitInfoToSysLog "${1:-}";}
@@ -1173,8 +1103,7 @@ msg="$(/bin/tr -s ' '<<<"$msg") "
 if IsNtStatus&&IsNtLog&&IsNtNone;then IsUnsupported&&a=CommitToServiceLog
 CommitToServiceLog '•'
 $a "$(TextInverse "$msg")"
-$a "- package: $r_qpkg_version, service: $r_service_script_version, library: $r_service_library_version"
-fi;}
+$a "- package: $r_qpkg_version, service: $r_service_script_version, library: $r_service_library_version";fi;}
 DisplayAndCommitResultToServiceLog(){ [[ $service_action = undefined ]]&&return
 local a=DisplayAndCommitToServiceLog
 local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMillisecondsDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
@@ -1198,34 +1127,22 @@ CommitInfoToSysLog(){ CommitToSysLog "${1:-}." 4;}
 CommitWarnToSysLog(){ CommitToSysLog "${1:-}. Please check the service log for more information." 2;}
 CommitErrorToSysLog(){ CommitToSysLog "${1:-}. Please check the service log for more information." 1;}
 CommitToServiceLog(){ if IsNtStatus&&IsNtLog&&IsNtNone;then [[ -n ${r_service_log_pathfile:-} ]]||return
-[[ ${1:-} = '•' &&! -s "$r_service_log_pathfile" ]]||echo -e "${1:-}">>"$r_service_log_pathfile"
-fi;}
+[[ ${1:-} = '•' &&! -s "$r_service_log_pathfile" ]]||echo -e "${1:-}">>"$r_service_log_pathfile";fi;}
 CommitWaitToServiceLog(){ if IsNtStatus&&IsNtLog&&IsNtNone;then [[ -n ${r_service_log_pathfile:-} ]]||return
-printf '%s' "${1:-} ">>"$r_service_log_pathfile"
-fi;}
-CommitToSysLog(){ if IsNtStatus&&IsNtLog&&IsNtNone;then if [[ -z ${1:-} ||-z ${2:-} ]];then SetError;return;fi;/sbin/write_log "[$r_qpkg_name] $1" "$2"
-fi;}
+printf '%s' "${1:-} ">>"$r_service_log_pathfile";fi;}
+CommitToSysLog(){ if IsNtStatus&&IsNtLog&&IsNtNone;then if [[ -z ${1:-} ||-z ${2:-} ]];then SetError;return;fi;/sbin/write_log "[$r_qpkg_name] $1" "$2";fi;}
 DisplayAsHelp(){ printf '  %-22s  - %s\n' "${1:-}" "${2:-}.";}
 Display(){ echo "${1:-}";}
 DisplayWait(){ echo -n "${1:-} ";}
-TextBrightWhite(){ printf '\033[1;97m%s\033[0m' "${1:-}"
-} 2>/dev/null
-TextBrightRed(){ printf '\033[1;31m%s\033[0m' "${1:-}"
-} 2>/dev/null
-TextBrightYellow(){ printf '\033[1;33m%s\033[0m' "${1:-}"
-} 2>/dev/null
-TextBrightYellowBlink(){ printf '\033[1;5;33m%s\033[0m' "${1:-}"
-} 2>/dev/null
-TextBlackOnGreen(){ printf '\033[30;42m%s\033[0m' "${1:-}"
-} 2>/dev/null
-TextBlackOnRed(){ printf '\033[30;41m%s\033[0m' "${1:-}"
-} 2>/dev/null
-TextBlackOnYellow(){ printf '\033[30;43m%s\033[0m' "${1:-}"
-} 2>/dev/null
-TextUnderlinedCyan(){ printf '\033[4;36m%s\033[0m' "${1:-}"
-} 2>/dev/null
-TextInverse(){ printf '\033[7m%s\033[0m' "${1:-}"
-} 2>/dev/null
+TextBrightWhite(){ printf '\033[1;97m%s\033[0m' "${1:-}";} 2>/dev/null
+TextBrightRed(){ printf '\033[1;31m%s\033[0m' "${1:-}";} 2>/dev/null
+TextBrightYellow(){ printf '\033[1;33m%s\033[0m' "${1:-}";} 2>/dev/null
+TextBrightYellowBlink(){ printf '\033[1;5;33m%s\033[0m' "${1:-}";} 2>/dev/null
+TextBlackOnGreen(){ printf '\033[30;42m%s\033[0m' "${1:-}";} 2>/dev/null
+TextBlackOnRed(){ printf '\033[30;41m%s\033[0m' "${1:-}";} 2>/dev/null
+TextBlackOnYellow(){ printf '\033[30;43m%s\033[0m' "${1:-}";} 2>/dev/null
+TextUnderlinedCyan(){ printf '\033[4;36m%s\033[0m' "${1:-}";} 2>/dev/null
+TextInverse(){ printf '\033[7m%s\033[0m' "${1:-}";} 2>/dev/null
 Pluralise(){ [[ ${1:-0} -ne 1 ]]&&printf s;}
 CalcMillisecondsDifference(){ echo "$(((${2:-1}-${1:-0})/(10**6)))";}
 ConvertAsSmartDate(){ [[ -n ${1:-} ]]||return
@@ -1236,14 +1153,10 @@ case ${#a} in 6)
 b=$(/bin/date -d "${a::2}-${a:2:2}-${a:4:2}" "$r_extended_datetime_format");;8)
 b=$(/bin/date -d ${a::4}-${a:4:2}-${a:6:2} "$r_extended_datetime_format");;10)
 b=$(/bin/date -d @"$a" "$r_full_datetime_format")
-esac;if [[ -n $b ]];then printf '%s (%s)' "$1" "$b";else printf '%s' "$1";fi;return
-} 2>/dev/null
-ConvertNowToFullDate(){ /bin/date "$r_full_datetime_format"
-} 2>/dev/null
-ConvertNowToSeconds(){ /bin/date +%s
-} 2>/dev/null
-ConvertNowToNanoseconds(){ /bin/date +%s%N
-} 2>/dev/null
+esac;if [[ -n $b ]];then printf '%s (%s)' "$1" "$b";else printf '%s' "$1";fi;return;} 2>/dev/null
+ConvertNowToFullDate(){ /bin/date "$r_full_datetime_format";} 2>/dev/null
+ConvertNowToSeconds(){ /bin/date +%s;} 2>/dev/null
+ConvertNowToNanoseconds(){ /bin/date +%s%N;} 2>/dev/null
 ConvertFirmwareVersionStringToNumber(){ local -ir r_build_trim=4
 local -ir r_intermediate_trim=2
 local -ir r_major_trim=2
@@ -1252,8 +1165,7 @@ local -i intermediate=0
 local -i major=0
 local -i minor=0
 local build=0
-while IFS=. read -r major intermediate minor build;do printf "%0${r_major_trim}d%0${r_intermediate_trim}d%0${r_minor_trim}d%0${r_build_trim}d" "$((10#${major:0:r_major_trim}))" "$((10#${intermediate:0:r_intermediate_trim}))" "$((10#${minor:0:r_minor_trim}))" "$((10#${build:0:r_build_trim}))"
-done<<<"$1";}
+while IFS=. read -r major intermediate minor build;do printf "%0${r_major_trim}d%0${r_intermediate_trim}d%0${r_minor_trim}d%0${r_build_trim}d" "$((10#${major:0:r_major_trim}))" "$((10#${intermediate:0:r_intermediate_trim}))" "$((10#${minor:0:r_minor_trim}))" "$((10#${build:0:r_build_trim}))";done<<<"$1";}
 FormatAsThous(){ local foutput=''
 local remainder=''
 local rightside_group=''
@@ -1261,8 +1173,7 @@ remainder=$(/bin/sed 's/[^0-9]*//g'<<<"${1:-}")
 while [[ ${#remainder} -gt 0 ]];do rightside_group=${remainder:${#remainder}<3?0:-3}
 if [[ -z $foutput ]];then foutput=$rightside_group;else foutput=$rightside_group,$foutput;fi;if [[ ${#rightside_group} -eq 3 ]];then remainder=${remainder%???};else break;fi;done;printf '%s' "$foutput"
 return 0;}
-FormatAsDuration(){ if [[ ${1:-0} -lt 10000 ]];then printf '%s' "$(FormatAsThous "${1:-0}")ms";else ConvertSecondsToDuration "$(((${1:-0}+500)/1000))"
-fi;}
+FormatAsDuration(){ if [[ ${1:-0} -lt 10000 ]];then printf '%s' "$(FormatAsThous "${1:-0}")ms";else ConvertSecondsToDuration "$(((${1:-0}+500)/1000))";fi;}
 ConvertSecondsToDuration(){ local -i d=0
 local -i h=0
 local -i m=0
@@ -1291,16 +1202,13 @@ GetPathGitBranch(){ [[ -n $1 ]]||return
 local a=''
 a=$($r_git_cmd -C "$1" branch|/bin/grep '^\*'|/bin/sed 's|^\*||')
 [[ -n $a ]]||a=none
-printf '%s' "$a"
-} 2>/dev/null
+printf '%s' "$a";} 2>/dev/null
 IsSU(){ if [[ $EUID -ne 0 ]];then if [[ -x /usr/bin/sudo ]];then ShowAsError 'this utility must be run with superuser privileges. Try again as:'
 Display "${r_chars_sudo_prompt}$0 $r_user_args_raw">&2;else ShowAsError "this utility must be run as the 'admin' user. Please login via SSH as 'admin' and try again";fi;return 1;fi;return 0;}
 IsFuncExist(){ [[ -n ${1:-} &&$(type -t "$1") = function ]];}
 ShowUnsupportedAction(){ ShowAsError "specified action '$1' is unsupported by this service-script."
 SetError
-CommitInfoToServiceLog "specified action '$1' is unsupported."
-Display
-ShowHelp;}
+CommitInfoToServiceLog "specified action '$1' is unsupported.";Display;ShowHelp;}
 CalcAdaptiveSeconds(){ local a=''
 local b=''
 local c=''
@@ -1328,8 +1236,7 @@ SetQpkgPostInstallDeps "$1" "$(/bin/sed "s|${re}||g"<<<"$(GetQpkgPostInstallDeps
 SetQpkgPostInstallDeps(){ [[ -n ${1:-} ]]||return
 local a=''
 a=$(CleanDependencyField "${2:-}")
-if [[ -n $a ]];then /sbin/setcfg "$1" Dependency "$a" -f /etc/config/qpkg.conf;else /sbin/setcfg -e "$1" Dependency -f /etc/config/qpkg.conf
-fi;}
+if [[ -n $a ]];then /sbin/setcfg "$1" Dependency "$a" -f /etc/config/qpkg.conf;else /sbin/setcfg -e "$1" Dependency -f /etc/config/qpkg.conf;fi;}
 CleanDependencyField(){ [[ -n ${1:-} ]]||return
 local a=''
 a=$(/bin/tr -s ':'<<<"$1")
@@ -1350,8 +1257,7 @@ SetServiceResultAsAborted;fi;exit;}
 CaughtEXIT(){ trap - EXIT
 if IsInProgress;then Display
 DisplayAndCommitWarnToServiceLog 'caught EXIT: abort'
-SetServiceResultAsAborted
-fi;}
+SetServiceResultAsAborted;fi;}
 ProcessArgs(){ if IsReinstall;then echo "Detected 'reinstall' in-progress, so not processing internal QPKG actions further."
 exit;fi;if IsUpgrade;then echo "Detected 'upgrade' in-progress, so not processing internal QPKG actions further."
 exit;fi;if IsSourceGit;then local test_branch=''
@@ -1362,22 +1268,19 @@ case $user_arg in ?(--)activate|?(--)start)
 SetServiceAction start
 if IsQpkgEnabled;then SetTraps
 StartQpkg;else ShowDisabledPrompt
-SetError
-fi;;?(-)b|?(--)backup?(-config))
+SetError;fi;;?(-)b|?(--)backup?(-config))
 if IsSupportBackup;then SetServiceAction backup
 SetTraps
 StopQpkg
 BackupConfig
 IsQpkgEnabled&&StartQpkg;else SetServiceAction unsupported
-ShowUnsupportedAction "$user_arg"
-fi;;?(--)clean)
+ShowUnsupportedAction "$user_arg";fi;;?(--)clean)
 if IsSourcedOnline;then SetServiceAction clean
 SetTraps
 StopQpkg
 CleanLocalRepo
 IsQpkgEnabled&&StartQpkg;else SetServiceAction unsupported
-ShowUnsupportedAction "$user_arg"
-fi;;?(--)deactivate|?(--)stop)
+ShowUnsupportedAction "$user_arg";fi;;?(--)deactivate|?(--)stop)
 IsUninstall&&exit
 SetServiceAction stop
 SetTraps
@@ -1387,52 +1290,44 @@ SetTraps
 IsFuncExist PreDisableQpkgCustom&&PreDisableQpkgCustom
 /sbin/qpkg_service disable "$r_qpkg_name"
 if IsNtQpkgEnabled;then ShowDisabled;else ShowDisableFailed
-SetError
-fi;;?(--)disable-auto-update)
+SetError;fi;;?(--)disable-auto-update)
 if IsSupportAutoUpdate;then SetServiceAction disable-auto-update
 SetTraps
 DisableAutoUpdate;else SetServiceAction unsupported
-ShowUnsupportedAction "$user_arg"
-fi;;?(--)enable)
+ShowUnsupportedAction "$user_arg";fi;;?(--)enable)
 SetServiceAction enable
 SetTraps
 IsFuncExist PreEnableQpkgCustom&&PreEnableQpkgCustom
 /sbin/qpkg_service enable "$r_qpkg_name"
 if IsQpkgEnabled;then ShowEnabled;else ShowEnableFailed
-SetError
-fi;;?(--)enable-auto-update)
+SetError;fi;;?(--)enable-auto-update)
 if IsSupportAutoUpdate;then SetServiceAction enable-auto-update
 SetTraps
 EnableAutoUpdate;else SetServiceAction unsupported
-ShowUnsupportedAction "$user_arg"
-fi;;?(--)help)
+ShowUnsupportedAction "$user_arg";fi;;?(--)help)
 ShowHelp;;?(-)+(l|L)|?(--)log)
 SetServiceAction log
 ViewLog;;?(-)r|?(--)reactivate|?(--)restart)
 SetServiceAction restart
 if IsQpkgEnabled;then SetTraps
 StopQpkg&&StartQpkg;else ShowDisabledPrompt
-SetError
-fi;;remove)
+SetError;fi;;remove)
 SetServiceAction uninstall;;?(--)reset-action)
 if IsSupportActions;then service_explanation=''
 SetServiceAction reset-action;else SetServiceAction unsupported
-ShowUnsupportedAction "$user_arg"
-fi;;?(--)reset-config)
+ShowUnsupportedAction "$user_arg";fi;;?(--)reset-config)
 if IsSupportReset;then SetServiceAction reset
 SetTraps
 StopQpkg
 ResetConfig
 IsQpkgEnabled&&StartQpkg;else SetServiceAction unsupported
-ShowUnsupportedAction "$user_arg"
-fi;;?(--)restore?(-config))
+ShowUnsupportedAction "$user_arg";fi;;?(--)restore?(-config))
 if IsSupportBackup;then SetServiceAction restore
 SetTraps
 StopQpkg
 RestoreConfig
 IsQpkgEnabled&&StartQpkg;else SetServiceAction unsupported
-ShowUnsupportedAction "$user_arg"
-fi;;?(-)s|?(--)status)
+ShowUnsupportedAction "$user_arg";fi;;?(-)s|?(--)status)
 SetStatusGet
 StatusQpkg;;?(--)uninstall)
 :;;?(--)update)
@@ -1440,8 +1335,7 @@ if IsSourcedOnline;then SetServiceAction update
 SetTraps
 StopQpkg
 IsQpkgEnabled&&StartQpkg;else SetServiceAction unsupported
-ShowUnsupportedAction "$user_arg"
-fi;;?(-)+(v|V)|?(--)version?(s))
+ShowUnsupportedAction "$user_arg";fi;;?(-)+(v|V)|?(--)version?(s))
 Display "QPKG: $(ConvertAsSmartDate ${r_qpkg_version:-undefined})"
 Display "service: $(ConvertAsSmartDate "${r_service_script_version:-undefined}")"
 Display "library: $(ConvertAsSmartDate "${r_service_library_version:-undefined}")";;*)if [[ -z $user_arg ]];then ShowHelp;else SetServiceAction unsupported

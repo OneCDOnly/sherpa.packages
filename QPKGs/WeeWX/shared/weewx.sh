@@ -27,7 +27,7 @@
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
 #*
 #* Notes:
-#*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox), as this is the native QNAP NAS shell. Be-careful reusing code in other shells. These scripts contain syntax quirks often compatible only with bash.
+#*	  All sherpa scripts are optimised for compatibility with Bash 3.2 (via QTS BusyBox), as this is the native QNAP NAS shell. Be-careful reusing code in other shells. These scripts contain syntax quirks often compatible only with Bash.
 #*
 #* License:
 #*	  This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WeeWX
-readonly r_service_script_version=261021
+readonly r_service_script_version=261025
 InitService(){ allow_access_to_sys_packages=true
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true
@@ -66,9 +66,7 @@ exit 1;fi;exit 0
 EOF
 chmod +x "$launcher_pathfile";fi;[[ ! -L $userlink_pathfile &&-e $launcher_pathfile ]]&&ln -s "$launcher_pathfile" "$userlink_pathfile"
 if [[ ! -d $qpkg_config_path/weewx-data ]];then if IsInstall;then SetSkipDaemonStart;else DisplayAndCommitErrorToAllLogs "unable to launch weather recording daemon: a weather station hasn't been defined. Do this with 'weectl station create' then restart this QPKG."
-SetError
-fi;else [[ ! -L $gui_log_path ]]&&ln -s "$real_log_path" "$gui_log_path"
-fi;}
+SetError;fi;else [[ ! -L $gui_log_path ]]&&ln -s "$real_log_path" "$gui_log_path";fi;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

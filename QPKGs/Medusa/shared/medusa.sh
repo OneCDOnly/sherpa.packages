@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Medusa
-readonly r_service_script_version=261024
+readonly r_service_script_version=261025
 InitService(){ allow_access_to_sys_packages=true
 can_restart_to_update=true
 install_pip_deps=true
