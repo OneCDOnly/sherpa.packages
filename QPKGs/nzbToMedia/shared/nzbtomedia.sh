@@ -1,6 +1,6 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'nzbtomedia.source')
+#* Please don't edit this file directly, it was built and/or modified programmatically with the 'build-qpkgs.sh' script. (source: 'nzbtomedia.source')
 #*
 #* nzbtomedia.sh
 #*	  Copyright (C) 2017-2026 OneCD.
@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=nzbToMedia
-readonly r_service_script_version=261025
+readonly r_service_script_version=261026
 InitService(){ can_restart_to_update=true
 silence_pypi_errors=true
 source_git_branch=master
@@ -54,7 +54,8 @@ venv_pip_pathfile=$qpkg_venv_path/bin/pip
 venv_python_pathfile=$qpkg_venv_path/bin/python3
 interpreter=/opt/bin/python3
 source_git_url=https://github.com/clinton-hall/nzbToMedia.git;}
-StatusQpkgCustom(){ IsQpkgEnabled;}
+StatusQpkgCustom(){ IsQpkgEnabled
+exit;}
 library_path=$(/usr/bin/readlink "$0" 2>/dev/null)
 [[ -z $library_path ]]&&library_path=$0
 library_path=$(/usr/bin/dirname "$library_path")

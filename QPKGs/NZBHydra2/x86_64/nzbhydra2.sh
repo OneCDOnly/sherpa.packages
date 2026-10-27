@@ -1,6 +1,6 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'nzbhydra2.source')
+#* Please don't edit this file directly, it was built and/or modified programmatically with the 'build-qpkgs.sh' script. (source: 'nzbhydra2.source')
 #*
 #* nzbhydra2.sh
 #*	  Copyright (C) 2017-2026 OneCD.
@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=NZBHydra2
-readonly r_service_script_version=261025
+readonly r_service_script_version=261026
 InitService(){ allow_access_to_sys_packages=true
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true

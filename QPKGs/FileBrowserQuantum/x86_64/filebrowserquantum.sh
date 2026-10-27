@@ -1,6 +1,6 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'filebrowserquantum.source')
+#* Please don't edit this file directly, it was built and/or modified programmatically with the 'build-qpkgs.sh' script. (source: 'filebrowserquantum.source')
 #*
 #* filebrowserquantum.sh
 #*	  Copyright (C) 2017-2026 OneCD.
@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=FileBrowserQuantum
-readonly r_service_script_version=261025
+readonly r_service_script_version=261026
 InitService(){ can_restart_to_update=true
 package_is_exec=true
 resolve_source_url=true

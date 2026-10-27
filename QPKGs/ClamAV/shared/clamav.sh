@@ -1,6 +1,6 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'clamav.source')
+#* Please don't edit this file directly, it was built and/or modified programmatically with the 'build-qpkgs.sh' script. (source: 'clamav.source')
 #*
 #* clamav.sh
 #*	  Copyright (C) 2017-2026 OneCD.
@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=ClamAV
-readonly r_service_script_version=261025
+readonly r_service_script_version=261026
 InitService(){ daemon_pid_pathfile=$r_sys_run_path/$r_qpkg_name.pid
 export HOME=$qpkg_config_path
 readonly r_target_service_pathfile=/etc/init.d/antivirus.sh

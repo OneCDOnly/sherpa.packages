@@ -1,6 +1,6 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'service-library.source')
+#* Please don't edit this file directly, it was built and/or modified programmatically with the 'build-qpkgs.sh' script. (source: 'service-library.source')
 #*
 #* service.lib
 #*	  Copyright (C) 2017-2026 OneCD.
@@ -39,7 +39,7 @@ set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||/bin/ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=261025
+readonly r_service_library_version=261026
 InitLibrary(){ [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
 service_action=undefined
@@ -720,7 +720,7 @@ if [[ -z $a ]];then DisplayAndCommitWarnToServiceLog 'no response on configured 
 return 1;else ReWriteUIPorts
 return 0;fi;}
 GetPythonVer(){ local a=''
-a=$(GetThisBinPath ${1:-python} &>/dev/null&&${1:-python} -V 2>&1|/bin/sed 's|^Python||;s|\.||g')
+a=$(GetThisBinPath ${1:-python} &>/dev/null &&${1:-python} -V 2>&1|/bin/sed 's|^Python[[:space:]]||;s|\.||g')
 [[ -n $a ]]&&echo "${a:0:3}";}
 GetThisBinPath(){ [[ -n ${1:?null} ]]&&command -v "$1" 2>&1;}
 RenameSharedObjectFile(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nofil"||return
@@ -1200,7 +1200,7 @@ StoreAutoUpdateSelection(){ /sbin/setcfg $r_qpkg_name Auto_Update "$(Uppercase "
 DisplayAndCommitInfoToServiceLog "application auto-update: $1";}
 GetPathGitBranch(){ [[ -n $1 ]]||return
 local a=''
-a=$($r_git_cmd -C "$1" branch|/bin/grep '^\*'|/bin/sed 's|^\*||')
+a=$($r_git_cmd -C "$1" branch|/bin/grep '^\*'|/bin/sed 's|^\*[[:space:]]||')
 [[ -n $a ]]||a=none
 printf '%s' "$a";} 2>/dev/null
 IsSU(){ if [[ $EUID -ne 0 ]];then if [[ -x /usr/bin/sudo ]];then ShowAsError 'this utility must be run with superuser privileges. Try again as:'
@@ -1220,7 +1220,7 @@ d=$((10#${1:-1}))
 [[ $((10#$c)) -gt 10 ]]&&d=$(((c*d)/10))
 [[ $((10#$d)) -gt 1800 ]]&&d=1800
 printf '%s' "$d";}
-GetSysLoad1MinAverage(){ /usr/bin/uptime|/bin/sed 's/.*load average: //'|/bin/awk -F', ' '{print $1}';}
+GetSysLoad1MinAverage(){ /usr/bin/uptime|/bin/sed 's/.*load average:[[:space:]]//'|/bin/awk -F',[[:space:]]' '{print $1}';}
 GetCPUCores(){ local a=''
 a=$(/bin/grep -c '^processor' /proc/cpuinfo)
 [[ $a -eq 0 ]]&&a=$(/bin/grep -c '^Processor' /proc/cpuinfo)

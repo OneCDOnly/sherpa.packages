@@ -1,6 +1,6 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'torrserver.source')
+#* Please don't edit this file directly, it was built and/or modified programmatically with the 'build-qpkgs.sh' script. (source: 'torrserver.source')
 #*
 #* torrserver.sh
 #*	  Copyright (C) 2017-2026 OneCD.
@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TorrServer
-readonly r_service_script_version=261025
+readonly r_service_script_version=261026
 InitService(){ can_restart_to_update=true
 check_network_before_start=true
 package_is_exec=true

@@ -1,6 +1,6 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'qbittorrent.source')
+#* Please don't edit this file directly, it was built and/or modified programmatically with the 'build-qpkgs.sh' script. (source: 'qbittorrent.source')
 #*
 #* qbittorrent.sh
 #*	  Copyright (C) 2017-2026 OneCD.
@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=qBittorrent
-readonly r_service_script_version=261025
+readonly r_service_script_version=261026
 InitService(){ daemon_pidfile_is_managed_by_app=true
 ui_listening_address=0.0.0.0
 qpkg_config_path=$r_qpkg_path/config
