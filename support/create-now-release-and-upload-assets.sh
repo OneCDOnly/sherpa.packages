@@ -7,3 +7,4 @@ set -o nounset
 ./create-now-release.sh || exit
 ./move-assets-to-now-release.sh || exit
 ./purge-old-qpkgs.sh || exit
+./remove-old-releases.sh || exit
