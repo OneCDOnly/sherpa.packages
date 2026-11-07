@@ -46,7 +46,7 @@
     "rpc-host-whitelist": "",
     "rpc-host-whitelist-enabled": false,
     "rpc-password": "{ab0a9bdb48791a3069961f16fab11ea51d017c0224g4LnJc",
-    "rpc-port": 9991,
+    "rpc-port": 9989,
     "rpc-url": "/transmission/",
     "rpc-username": "root",
     "rpc-whitelist": "127.0.0.1",
