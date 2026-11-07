@@ -155,15 +155,19 @@ InitLibrary()
 
 		# Values.
 
-			ar_qpkgs_name_arrs=(Readarr Sonarr Whisparr)
-			ar_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
-			r_chars_regular_prompt='$ '
-			r_chars_super_prompt='# '
-			r_debug_log_datawidth=100
-			r_extended_datetime_format='+%a %-d %b %Y'
-			r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d undefined -f /etc/config/qpkg.conf)
+			# Simple.
 
-			r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
+				ar_qpkgs_name_arrs=(Readarr Sonarr Whisparr)
+				ar_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
+				r_chars_regular_prompt='$ '
+				r_chars_super_prompt='# '
+				r_debug_log_datawidth=100
+				r_extended_datetime_format='+%a %-d %b %Y'
+				r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d undefined -f /etc/config/qpkg.conf)
+
+			# Compound.
+
+				r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
 
 			readonly ar_qpkgs_name_arrs
 			readonly ar_qpkgs_name_migrated
@@ -897,8 +901,6 @@ StartDaemon()
 		CheckPortsAvailable || return
 	fi
 
-	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f \"$r_screen_log_pathfile\"" log:failure-only
-
 	local -i c
 	local a
 	local b
@@ -906,6 +908,8 @@ StartDaemon()
 	a='start daemon'
 	b=$daemon_launch_cmd
 	c=0
+
+	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f \"$r_screen_log_pathfile\"" log:failure-only
 
 	IsDaemonInScreen && a+=" (in 'screen' session)"
 
@@ -970,11 +974,6 @@ StopDaemon()
 	#	$daemon_pid_pathfile
 	#	$watch_pid_kill_seconds
 
-	local -i b
-	local -i c
-	local -i d
-	local a
-
 	if IsDaemonInScreen; then
 		RefreshScreenPidFile
 		ShowScreenState
@@ -988,6 +987,11 @@ StopDaemon()
 	SetDaemonWasActive
 
 	[[ -s $daemon_pid_pathfile ]] || return
+
+	local -i b
+	local -i c
+	local -i d
+	local a
 
 	a='stop daemon'
 	b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
