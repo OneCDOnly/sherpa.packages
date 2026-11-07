@@ -981,10 +981,14 @@ StopDaemon()
 
 	RefreshDaemonPidFile
 	ShowDaemonState
-	IsNtRestart && IsNtDaemonActive && return
 
-	IsDaemonActive
-	SetDaemonWasActive
+	if IsDaemonActive; then
+		SetDaemonWasActive
+	elif IsNtRestart; then
+		SetSkipDaemonStart
+	else
+		return 0
+	fi
 
 	[[ -s $daemon_pid_pathfile ]] || return
 
@@ -1654,7 +1658,7 @@ ShowQpkgStates()
 		fi
 	fi
 
-	if IsSourceGit; then
+	if IsSourceGit && IsNtStart && IsNtRestart; then
 		DisplayAndCommitInfoToServiceLog "active git branch: $(GetPathGitBranch "$qpkg_repo_path")"
 	fi
 
@@ -4593,6 +4597,13 @@ SetDaemonWasActive()
 
 	}
 
+DaemonWasActive()
+	{
+
+	[[ ${_daemon_was_active:=false} = true ]]
+
+	}
+
 DaemonWasNotActive()
 	{
 
@@ -4656,7 +4667,6 @@ SetSkipDaemonStart()
 	{
 
 	_skipd_flag=true
-	false
 
 	}
 
