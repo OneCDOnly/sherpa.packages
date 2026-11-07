@@ -939,7 +939,6 @@ StartDaemon()
 
 		IsDaemonActive &> /dev/null
 		WatchForDaemon
-		ShowDaemonState
 		PauseForStartPid
 		ShowDaemonState
 
