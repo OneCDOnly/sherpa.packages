@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Transmission
-readonly r_service_script_version=261026
+readonly r_service_script_version=261108
 InitService(){ daemon_pidfile_is_managed_by_app=true
 qpkg_config_path=$r_qpkg_path/config
 daemon_exec_pathfile=/opt/bin/transmission-daemon

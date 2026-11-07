@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=pxehost
-readonly r_service_script_version=261026
+readonly r_service_script_version=261108
 InitService(){ check_network_before_start=true
 run_daemon_in_screen_session=true
 daemon_port=67

@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=FileBrowserQuantum
-readonly r_service_script_version=261026
+readonly r_service_script_version=261108
 InitService(){ can_restart_to_update=true
 package_is_exec=true
 resolve_source_url=true

@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TorrServer
-readonly r_service_script_version=261026
+readonly r_service_script_version=261108
 InitService(){ can_restart_to_update=true
 check_network_before_start=true
 package_is_exec=true
