@@ -28,7 +28,7 @@ InitLibrary()
 	useropt_debug=${DEBUG_QPKG:=false}
 	useropt_verbose=false
 
-	local re=''
+	local re
 
 	for re in \\bd\\b \\bD\\b \\bdebug\\b \\bdbug\\b \\bverbose\\b; do
 		[[ $r_user_args_raw =~ $re ]] || continue
@@ -42,89 +42,143 @@ InitLibrary()
 
 	# Cherry-pick Entware binaries.
 
-		readonly r_git_cmd=/opt/bin/git
+		r_git_cmd=/opt/bin/git
+		r_gnu_find_cmd=/opt/bin/find
+		r_gnu_less_cmd=/opt/bin/less
+		r_gnu_nice_cmd=/opt/bin/nice
+		r_gnu_sed_cmd=/opt/bin/sed
+		r_gnu_stty_cmd=/opt/bin/stty
 
-		readonly r_gnu_find_cmd=/opt/bin/find
-		readonly r_gnu_less_cmd=/opt/bin/less
-		readonly r_gnu_nice_cmd=/opt/bin/nice
-		readonly r_gnu_sed_cmd=/opt/bin/sed
-		readonly r_gnu_stty_cmd=/opt/bin/stty
+		readonly r_git_cmd
+		readonly r_gnu_find_cmd
+		readonly r_gnu_less_cmd
+		readonly r_gnu_nice_cmd
+		readonly r_gnu_sed_cmd
+		readonly r_gnu_stty_cmd
 
 	# Internal session constants.
 
 		# Error messages.
 
-			readonly e_noact='undefined action'
-			readonly e_nochk='undefined checksum'
-			readonly e_nocmd='undefined command'
-			readonly e_noext='undefined exitcode'
-			readonly e_nofil='undefined filename'
-			readonly e_nofun='undefined function'
-			readonly e_nonam='undefined name'
-			readonly e_noopr='undefined operation'
-			readonly e_nopfi='undefined pathfile'
-			readonly e_nopnm='undefined package name'
-			readonly e_noprm='undefined prompt'
-			readonly e_nopth='undefined path'
-			readonly e_nopty='undefined package type'
-			readonly e_norea='undefined reason'
-			readonly e_nores='undefined result'
-			readonly e_nostr='undefined string'
-			readonly e_notir='undefined tier'
-			readonly e_nourl='undefined URL'
-			readonly e_noval='undefined value'
-			readonly e_novar='undefined variable'
+			e_noact='undefined action'
+			e_nochk='undefined checksum'
+			e_nocmd='undefined command'
+			e_noext='undefined exitcode'
+			e_nofil='undefined filename'
+			e_nofun='undefined function'
+			e_nonam='undefined name'
+			e_noopr='undefined operation'
+			e_nopfi='undefined pathfile'
+			e_nopnm='undefined package name'
+			e_noprm='undefined prompt'
+			e_nopth='undefined path'
+			e_nopty='undefined package type'
+			e_norea='undefined reason'
+			e_nores='undefined result'
+			e_nostr='undefined string'
+			e_notir='undefined tier'
+			e_nourl='undefined URL'
+			e_noval='undefined value'
+			e_novar='undefined variable'
+
+			readonly e_noact
+			readonly e_nochk
+			readonly e_nocmd
+			readonly e_noext
+			readonly e_nofil
+			readonly e_nofun
+			readonly e_nonam
+			readonly e_noopr
+			readonly e_nopfi
+			readonly e_nopnm
+			readonly e_noprm
+			readonly e_nopth
+			readonly e_nopty
+			readonly e_norea
+			readonly e_nores
+			readonly e_nostr
+			readonly e_notir
+			readonly e_nourl
+			readonly e_noval
+			readonly e_novar
 
 		# Paths.
 
-			readonly r_sys_log_path=/var/log
-				readonly r_service_result_path=$r_sys_log_path
-			readonly r_sys_run_path=/var/run
-			local r_default_vol_mount_point=''
+			local r_default_vol_mount_point
 
-			r_default_vol_mount_point=$(GetUserDefVol)
+			# Simple.
 
-			ConfirmVarIsDefined r_default_vol_mount_point "${r_default_vol_mount_point:-}" "$e_nopth" || return
+				r_default_vol_mount_point=$(GetUserDefVol)
+				r_opkg_path=/opt/bin:/opt/sbin
+				r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
+				r_screen_socket_path=/var/run/.screen
+				r_sys_log_path=/var/log
+				r_sys_run_path=/var/run
+
+			# Compound.
+
+				r_backup_path=$r_default_vol_mount_point/.qpkg_config_backup
+				r_qpkg_log_path=$r_qpkg_path/log
+				r_qpkg_pypi_module_lists_path=$r_qpkg_path/pypi-lists
+				r_service_result_path=$r_sys_log_path
 
 			local -r r_default_vol_mount_point
-			readonly r_backup_path=$r_default_vol_mount_point/.qpkg_config_backup
-			readonly r_opkg_path=/opt/bin:/opt/sbin
-				export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
-			readonly r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
-
-			ConfirmVarIsDefined r_qpkg_path "${r_qpkg_path:-}" "$e_nopth" || return
-
-			readonly r_qpkg_log_path=$r_qpkg_path/log
-			readonly r_qpkg_pypi_module_lists_path=$r_qpkg_path/pypi-lists
+			readonly r_backup_path
+			readonly r_opkg_path
+			readonly r_qpkg_log_path
+			readonly r_qpkg_path
+			readonly r_qpkg_pypi_module_lists_path
+			readonly r_screen_socket_path
+			readonly r_service_result_path
+			readonly r_sys_log_path
+			readonly r_sys_run_path
 
 		# Pathfilenames.
 
-			readonly r_appl_version_store_pathfile=$r_qpkg_path/version.stored
-			readonly r_screen_conf_pathfile=$r_qpkg_log_path/screen.conf
-			readonly r_screen_log_pathfile=$r_qpkg_log_path/screen.log
-			readonly r_screen_pid_pathfile=$r_qpkg_log_path/screen.pid
-			readonly r_service_action_pathfile=$r_service_result_path/$r_qpkg_name.action
-			readonly r_service_explanation_pathfile=$r_service_result_path/$r_qpkg_name.explanation
-			readonly r_service_log_pathfile=$r_service_result_path/$r_qpkg_name.log
-			readonly r_service_result_pathfile=$r_service_result_path/$r_qpkg_name.result
+			r_appl_version_store_pathfile=$r_qpkg_path/version.stored
+			r_screen_conf_pathfile=$r_qpkg_log_path/screen.conf
+			r_screen_log_pathfile=$r_qpkg_log_path/screen.log
+			r_screen_pid_pathfile=$r_qpkg_log_path/screen.pid
+			r_service_action_pathfile=$r_service_result_path/$r_qpkg_name.action
+			r_service_explanation_pathfile=$r_service_result_path/$r_qpkg_name.explanation
+			r_service_log_pathfile=$r_service_result_path/$r_qpkg_name.log
+			r_service_result_pathfile=$r_service_result_path/$r_qpkg_name.result
+
+			readonly r_appl_version_store_pathfile
+			readonly r_screen_conf_pathfile
+			readonly r_screen_log_pathfile
+			readonly r_screen_pid_pathfile
+			readonly r_service_action_pathfile
+			readonly r_service_explanation_pathfile
+			readonly r_service_log_pathfile
+			readonly r_service_result_pathfile
 
 		# Values.
 
-			readonly r_chars_regular_prompt='$ '
-				readonly r_chars_sudo_prompt="${r_chars_regular_prompt}sudo "
-			readonly r_chars_super_prompt='# '
-			readonly r_debug_log_datawidth=100
-			readonly r_extended_datetime_format='+%a %-d %b %Y'
-			readonly r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
-			readonly r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d undefined -f /etc/config/qpkg.conf)
-
-			ConfirmVarIsDefined r_qpkg_version "${r_qpkg_version:-}" "$e_noval" || return
-
 			ar_qpkgs_name_arrs=(Readarr Sonarr Whisparr)
 			ar_qpkgs_name_migrated=(Lidarr Medusa qBittorrent Readarr SickGear Sonarr Tautulli Transmission Watcher3 Whisparr)
+			r_chars_regular_prompt='$ '
+			r_chars_super_prompt='# '
+			r_debug_log_datawidth=100
+			r_extended_datetime_format='+%a %-d %b %Y'
+			r_qpkg_version=$(/sbin/getcfg $r_qpkg_name Version -d undefined -f /etc/config/qpkg.conf)
+
+			r_full_datetime_format=$r_extended_datetime_format' %-I:%M:%S %p %Z'
 
 			readonly ar_qpkgs_name_arrs
 			readonly ar_qpkgs_name_migrated
+			readonly r_chars_sudo_prompt
+			readonly r_chars_super_prompt
+			readonly r_debug_log_datawidth
+			readonly r_extended_datetime_format
+			readonly r_full_datetime_format
+			readonly r_qpkg_version
+
+		ConfirmVarIsDefined r_default_vol_mount_point "${r_default_vol_mount_point:-}" "$e_nopth" || return
+		ConfirmVarIsDefined r_qpkg_path "${r_qpkg_path:-}" "$e_nopth" || return
+		ConfirmVarIsDefined r_qpkg_version "${r_qpkg_version:-}" "$e_noval" || return
+
+	export PATH=$r_opkg_path:$(/bin/sed "s|$r_opkg_path||" <<< "$PATH")
 
 	IsSU || exit
 
@@ -567,16 +621,6 @@ StartQpkg()
 	IsNtError || return
 	IsStart && ShowQpkgStates
 
-	if IsDaemon && IsNtRestart; then
-		IsNtStart && DaemonWasNotActive && return		# Don't start (after running actions like 'backup') if daemon wasn't active before.
-		IsNtClean && ShowDaemonState
-		IsDaemonActive && return						# No-need to check for an active daemon during 'restart' as it has already been killed.
-	fi
-
-	# Clear previous `screen.log` on each startup.
-
-	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f \"$r_screen_log_pathfile\"" log:failure-only
-
 	if IsFuncExist PreStartQpkgCustom; then
 		PreStartQpkgCustom
 		IsNtError || return
@@ -586,6 +630,42 @@ StartQpkg()
 		StartQpkgCustom
 	else
 		StartQpkgLibrary
+	fi
+
+	}
+
+StopQpkg()
+	{
+
+	IsNtError || return
+
+	if IsStop || IsRestart || IsClean; then
+		ShowQpkgStates
+	fi
+
+	if IsFuncExist PreStopQpkgCustom; then
+		PreStopQpkgCustom
+		IsNtError || return
+	fi
+
+	if IsFuncExist StopQpkgCustom; then
+		StopQpkgCustom
+	else
+		StopQpkgLibrary
+	fi
+
+	}
+
+StatusQpkg()
+	{
+
+	IsNtError || return
+	ShowQpkgStates
+
+	if IsFuncExist StatusQpkgCustom; then
+		StatusQpkgCustom				# <-- NOTE: Processing will terminate inside this function (no-return).
+	else
+		StatusQpkgLibrary				# <-- NOTE: Processing will terminate inside this function (no-return).
 	fi
 
 	}
@@ -618,11 +698,6 @@ StartQpkgLibrary()
 		return
 	fi
 
-	if IsWebUi; then
-		LoadPorts app || return
-		CheckPortsAvailable || return
-	fi
-
 	if IsCheckNetworkBeforeStart; then
 		WatchForAnyInterfaceUp || return
 	fi
@@ -630,30 +705,6 @@ StartQpkgLibrary()
 	StartDaemon
 
 	return
-
-	}
-
-StopQpkg()
-	{
-
-	IsNtError || return
-
-	if IsStop || IsRestart || IsClean; then
-		ShowQpkgStates
-	fi
-
-	if IsDaemon; then
-		ShowDaemonState
-		IsNtRestart && IsNtDaemonActive && return
-	fi
-
-	IsFuncExist PreStopQpkgCustom && PreStopQpkgCustom
-
-	if IsFuncExist StopQpkgCustom; then
-		StopQpkgCustom
-	else
-		StopQpkgLibrary
-	fi
 
 	}
 
@@ -666,31 +717,9 @@ StopQpkgLibrary()
 		return
 	fi
 
-	RefreshDaemonPidFile
-
-	if IsDaemon && IsDaemonActive; then
-		SetDaemonWasActive
-		StopDaemon
-		ShowDaemonState
-	fi
+	StopDaemon
 
 	return
-
-	}
-
-StatusQpkg()
-	{
-
-	IsNtError || return
-	ShowQpkgStates
-	IsDaemonInScreen && ShowScreenState
-	IsDaemon && ShowDaemonState
-
-	if IsFuncExist StatusQpkgCustom; then
-		StatusQpkgCustom				# <-- NOTE: Processing will terminate in this function (no-return).
-	else
-		StatusQpkgLibrary				# <-- NOTE: Processing will terminate in this function (no-return).
-	fi
 
 	}
 
@@ -702,11 +731,16 @@ StatusQpkgLibrary()
 
 	# NOTE: Processing will terminate in this function (no-return).
 
-	RefreshScreenPidFile
-	RefreshDaemonPidFile
+	if IsDaemonInScreen; then
+		RefreshScreenPidFile
+		ShowScreenState
+	fi
 
-	if IsDaemon && IsDaemonActive; then
-		if IsWebUi; then
+	if IsDaemon; then
+		RefreshDaemonPidFile
+		ShowDaemonState
+
+		if IsDaemonActive && IsWebUi; then
 			LoadPorts app
 
 			if ! WatchForPortsActive; then
@@ -784,9 +818,11 @@ CreateVirtualPythonEnv()
 	ConfirmVarIsDefined qpkg_venv_path "${qpkg_venv_path:-}" "$e_nopth" || return
 	ConfirmVarIsDefined qpkg_pip_path "${qpkg_pip_path:-}" "$e_nopth" || return
 
-	local a=''
-	local b=$qpkg_venv_path/pip.conf
+	local a
+	local b
 
+	a=''
+	b=$qpkg_venv_path/pip.conf
 	new_env=false
 
 	[[ $allow_access_to_sys_packages = true ]] && a='--system-site-packages'
@@ -817,7 +853,9 @@ ConfirmVarIsDefined()
 	#	$2 = test variable value.
 	#	$3 = error message reason shown if empty or undefined.
 
-	local -i backdepth=1			# 0 = this function, 1 = calling function, etc...
+	local -i backdepth
+
+	backdepth=1			# 0 = this function, 1 = calling function, etc...
 
 	[[ ${2:-undefined} != undefined ]] || { ShowAsBug "${FUNCNAME[backdepth]}" "\$${1:-undefined}: '${3:-undefined}'"; return ;}
 
@@ -835,20 +873,39 @@ StartDaemon()
 	#	$run_daemon_in_screen_session
 	#	$start_retries
 
-	IsNtSkipDaemonStart || return
 	IsDaemon || return
+	IsNtSkipDaemonStart || return
+
+	if IsNtRestart && IsNtClean; then
+		if IsDaemonInScreen; then
+			RefreshScreenPidFile
+			ShowScreenState
+		fi
+
+		RefreshDaemonPidFile
+		ShowDaemonState
+	fi
 
 	if IsDaemonActive; then
 		DisplayAndCommitInfoToServiceLog 'daemon is already active'
-		ShowDaemonState
 
 		return
 	fi
 
-	local -i c=0
+	if IsWebUi; then
+		LoadPorts app || return
+		CheckPortsAvailable || return
+	fi
 
-	local a='start daemon'
-	local b=$daemon_launch_cmd
+	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f \"$r_screen_log_pathfile\"" log:failure-only
+
+	local -i c
+	local a
+	local b
+
+	a='start daemon'
+	b=$daemon_launch_cmd
+	c=0
 
 	IsDaemonInScreen && a+=" (in 'screen' session)"
 
@@ -871,8 +928,14 @@ StartDaemon()
 			SetError; return
 		fi
 
+		if IsDaemonInScreen; then
+			RefreshScreenPidFile
+			ShowScreenState
+		fi
+
 		IsDaemonActive &> /dev/null
 		WatchForDaemon
+		ShowDaemonState
 		PauseForStartPid
 		ShowDaemonState
 
@@ -907,15 +970,28 @@ StopDaemon()
 	#	$daemon_pid_pathfile
 	#	$watch_pid_kill_seconds
 
+	local -i b
+	local -i c
+	local -i d
+	local a
+
+	if IsDaemonInScreen; then
+		RefreshScreenPidFile
+		ShowScreenState
+	fi
+
+	RefreshDaemonPidFile
+	ShowDaemonState
+	IsNtRestart && IsNtDaemonActive && return
+
+	IsDaemonActive
+	SetDaemonWasActive
+
 	[[ -s $daemon_pid_pathfile ]] || return
 
-	local -i b=0
-	local -i c=0
-	local -i d=0
-
-	local a='stop daemon'
-
+	a='stop daemon'
 	b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
+	c=0
 	d=$(< "$daemon_pid_pathfile")
 
 	[[ $d -gt 1 ]] || return
@@ -955,6 +1031,13 @@ StopDaemon()
 
 	PauseForKillPid
 
+	ShowDaemonState
+
+	if IsDaemonInScreen; then
+		RefreshScreenPidFile
+		ShowScreenState
+	fi
+
 	if IsDaemonActive; then
 		SetError; return
 	fi
@@ -980,14 +1063,21 @@ RefreshReleasePackageFiles()
 		ConfirmVarIsDefined source_asset_url "${source_asset_url:-}" "$e_nourl" || return
 	fi
 
-	local extract_release_package=false
-	local refresh_release_package=false
-	local release_package_filename=''
-	local release_package_name_ref_pathfilename=''
-	local release_package_pathfile=$qpkg_temp_path/source.package			# Local filename of the remote application package.
-	local release_package_url=''
+	local extract_release_package
+	local refresh_release_package
+	local release_package_filename
+	local release_package_name_ref_pathfilename
+	local release_package_pathfile
+	local release_package_url
 
-	if IsAutoUpdate || [[ ! -s $release_package_pathfile ]]; then			# Get remote package - even when auto-update is disabled - if one doesn't exist locally.
+	extract_release_package=false
+	refresh_release_package=false
+	release_package_filename=''
+	release_package_name_ref_pathfilename=''
+	release_package_pathfile=$qpkg_temp_path/source.package			# Local filename of the remote application package.
+	release_package_url=''
+
+	if IsAutoUpdate || [[ ! -s $release_package_pathfile ]]; then	# Get remote package - even when auto-update is disabled - if one doesn't exist locally.
 		if [[ $resolve_source_url = true ]]; then
 			refresh_release_package=true
 
@@ -1102,7 +1192,7 @@ CheckPortsAvailable()
 	#	$ui_port
 	#	$ui_port_secure
 
-	local a=''
+	local a
 
 	if [[ $daemon_port -le 0 && $ui_port -le 0 && $ui_port_secure -le 0 ]]; then
 		DisplayAndCommitErrorToAllLogs 'no port specified'
@@ -1183,18 +1273,30 @@ InstallVirtualPythonPackages()
 		SetError; return
 	fi
 
-	local a=''
-	local base_modules_pathfile=''
-	local cmd=''
-	local essential_modules_pathfile=''
-	local excluded_modules_pathfile=''
-	local module_exclusions=''
-	local no_pip_deps='--no-deps'
-	local no_pips_installed=true
-	local re=''
-	local recommended_modules_pathfile=''
-	local renamed_modules_pathfile=''
-	local required_modules_pathfile=''
+	local a
+	local base_modules_pathfile
+	local cmd
+	local essential_modules_pathfile
+	local excluded_modules_pathfile
+	local module_exclusions
+	local no_pip_deps
+	local no_pips_installed
+	local re
+	local recommended_modules_pathfile
+	local renamed_modules_pathfile
+	local required_modules_pathfile
+
+	base_modules_pathfile=''
+	cmd=''
+	essential_modules_pathfile=''
+	excluded_modules_pathfile=''
+	module_exclusions=''
+	no_pip_deps='--no-deps'
+	no_pips_installed=true
+	re=''
+	recommended_modules_pathfile=''
+	renamed_modules_pathfile=''
+	required_modules_pathfile=''
 
 	[[ $install_pip_deps = true ]] && no_pip_deps=''
 
@@ -1321,8 +1423,9 @@ StripComments()
 
 	[[ -n $1 ]] || return
 
-	local a=$1
+	local a
 
+	a=$1
 	a=$(/bin/sed -e '/^#[[:space:]].*/d;/#$/d;s/[[:space:]]#[[:space:]].*//' <<< "$a")		# Remove comment lines and line comments.
 	a=$(/bin/sed -e 's/^[[:space:]]*//' <<< "$a")											# Remove leading whitespace.
 	a=$(/bin/sed 's/[[:space:]]*$//' <<< "$a")												# Remove trailing whitespace.
@@ -1419,7 +1522,7 @@ MakePaths()
 	#	$r_qpkg_log_path
 	#	$r_qpkg_path
 
-	local a=''
+	local a
 
 	if [[ -d $r_qpkg_path ]]; then
 		for a in "$qpkg_config_path" "$qpkg_pip_path" "$qpkg_repo_path" "$qpkg_temp_path" "$qpkg_venv_path" "$r_qpkg_log_path"; do
@@ -1585,14 +1688,20 @@ CloneGitRepo()
 	ConfirmVarIsDefined source_git_branch_depth "${source_git_branch_depth:-}" "$e_nostr" || return
 	ConfirmVarIsDefined source_git_url "${source_git_url:-}" "$e_nourl" || return
 
-	local active_branch=''
-	local branch_depth='--depth 1'
-	local branch_switch=false
-	local hide_advice_opt='-c advice.detachedHead=false'
-	local opts=''
-	local progress_opt=''
+	local active_branch
+	local branch_depth
+	local branch_opt
+	local branch_switch
+	local hide_advice_opt
+	local opts
+	local progress_opt
 
 	active_branch=$(GetPathGitBranch "$qpkg_repo_path")
+	branch_depth='--depth 1'
+	branch_switch=false
+	hide_advice_opt='-c advice.detachedHead=false'
+	opts=''
+	progress_opt=''
 
 	[[ $source_git_branch_depth = single-branch ]] && branch_depth='--single-branch'
 	[[ $useropt_debug = true ]] && progress_opt='--progress'
@@ -1605,7 +1714,7 @@ CloneGitRepo()
 		CleanLocalRepo
 	fi
 
-	local branch_opt="--branch $source_git_branch $branch_depth"
+	branch_opt="--branch $source_git_branch $branch_depth"
 
 	if [[ ! -d $qpkg_repo_path/.git ]]; then
 		if [[ -d $qpkg_repo_path ]]; then
@@ -1719,7 +1828,7 @@ RefreshDaemonPidFile()
 	# Outputs:
 	#	stdout > $daemon_pid_pathfile
 
-	local -i a=0
+	local -i a
 
 	[[ -s $daemon_pid_pathfile && ! -d /proc/"$(< "$daemon_pid_pathfile")" ]] && /bin/rm -f "$daemon_pid_pathfile"
 
@@ -1743,11 +1852,11 @@ RefreshScreenPidFile()
 	# Outputs:
 	#	stdout > $r_screen_pid_pathfile
 
-	local -i a=0
+	local a
 
 	[[ -s $r_screen_pid_pathfile && ! -d /proc/"$(< "$r_screen_pid_pathfile")" ]] && /bin/rm -f "$r_screen_pid_pathfile"
 
-	a=$(FindPid "$daemon_exec_pathfile" /usr/bin/SCREEN)
+	a=$(FindPid /usr/sbin/screen "$daemon_exec_pathfile")
 
 	[[ -n $a && $a -gt 0 ]] && echo "$a" > "$r_screen_pid_pathfile"
 
@@ -1766,9 +1875,10 @@ FindPid()
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
-	local -i a=0
+	local -i a
+	local b
 
-	local b=''
+	b=''
 
 	[[ -n ${2:-} && $2 != undefined ]] && b=$2
 
@@ -1776,14 +1886,13 @@ FindPid()
 		[[ $a -gt 1 ]] || continue
 		[[ -d /proc/$a ]] || continue
 		[[ -e /proc/$a/cmdline && -L /proc/$a/exe ]] || continue
-		[[ $(</proc/$a/cmdline) =~ $1 || $(/usr/bin/readlink /proc/$a/exe 2> /dev/null) = "$1" ]] || continue
+		[[ $(Lowercase "$(</proc/$a/cmdline)") =~ $(Lowercase "$1") || $(/usr/bin/readlink /proc/$a/exe 2> /dev/null) = "$1" ]] || continue
 
 		if [[ -n $b ]]; then
 			[[ $(</proc/$a/cmdline) =~ $b ]] || continue	# Check for additional string (if-specified).
 		fi
 
 		printf '%s' "$a"
-
 		return
 	done
 
@@ -1801,8 +1910,8 @@ PauseForStartPid()
 	#	$wait_pid_start_seconds
 	#	$watch_pidfile_start_seconds
 
-	local -i a=0
-	local -i i=0
+	local -i a
+	local -i i
 
 	a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
 
@@ -1834,8 +1943,8 @@ PauseForKillPid()
 	#	$recheck_daemon_pid_after_kill
 	#	$wait_pid_kill_seconds
 
-	local -i a=0
-	local -i i=0
+	local -i a
+	local -i i
 
 	a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
 
@@ -1863,10 +1972,11 @@ WatchForAnyInterfaceUp()
 	# Outputs: (local)
 	#	$? = 0 (network was found) or 1 (network not found: timeout)
 
-	local -i a=0
-	local -i i=0
+	local -i a
+	local -i i
+	local interface_name
 
-	local interface_name=''
+	interface_name=''
 
 	a=$(CalcAdaptiveSeconds "$watch_interface_up_seconds")
 
@@ -1913,8 +2023,8 @@ WatchForDaemon()
 	# Outputs: (local)
 	#	$? = 0 (file was found) or 1 (file not found: timeout)
 
-	local -i a=0
-	local -i i=0
+	local -i a
+	local -i i
 
 	a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
 
@@ -1964,8 +2074,8 @@ WatchForFileToAppear()
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
-	local -i a=0
-	local -i i=0
+	local -i a
+	local -i i
 
 	if [[ -n $2 ]]; then
 		a=$2
@@ -2000,7 +2110,7 @@ WatchForFileToAppear()
 		fi
 	fi
 
-	DisplayAndCommitInfoToServiceLog "file exists: $1"
+	CommitInfoToServiceLog "file exists: $1"
 
 	return 0
 
@@ -2046,20 +2156,30 @@ DisplayFileInViewport()
 	/bin/sed -i '1{/^[[:space:]]*$/d};${/^[[:space:]]*$/d}' "$1"	# Remove first and last lines if empty: https://stackoverflow.com/a/11230764
 	[[ -s $1 ]] || return
 
-	local report_pathfile=$1
+	local -a b
+	local arg
+	local headers
+	local linenumbers
+	local linewrap
+	local options
+	local r_prompt
+	local report_pathfile
+	local scrolltoend
+
+	arg=''
+	headers=false
+	linenumbers=false
+	linewrap=false
+	options=''
+	r_prompt=' use arrow-keys to scroll up-down & left-right, press Q to quit '
+	report_pathfile=$1
+	scrolltoend=false
 
 	shift															# Shift all arguments one position to the left.
 
-	local -a b=("${@:-}")
+	b=("${@:-}")
 
-	local -r r_prompt=' use arrow-keys to scroll up-down & left-right, press Q to quit '
-
-	local arg=''
-	local headers=false
-	local linenumbers=false
-	local linewrap=false
-	local options=''
-	local scrolltoend=false
+	local -r r_prompt
 
 	for arg in "${b[@]}"; do
 		[[ $arg = headers:on ]] && headers=true
@@ -2128,17 +2248,17 @@ CalcReportFirstColumnWidth()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 	[[ -s $1 ]] || return
 
-	local a=''
-	local b=''
-	local c=''
+	local a
+	local b
+	local c
 
 	a=$(< "$1")
 	a=$(/bin/sed '/^#[[:space:]].*/d;/#$/d;s/[[:space:]]#[[:space:]].*//' <<< "$a")		# Remove comment lines and line comments.
 	a=$(/bin/sed 's/[[:space:]]*$//' <<< "$a")											# Remove line trailing whitespace.
 	a=$(/bin/sed '/^$/d' <<< "$a")														# Remove empty lines.
-	a=$(/usr/bin/head -n1 <<< "$a")																# Only use header row (column titles).
+	a=$(/usr/bin/head -n1 <<< "$a")														# Only use header row (column titles).
 
-	b=$(/usr/bin/cut -f2 -d: <<< "$a"):															# Grab second field characters.
+	b=$(/usr/bin/cut -f2 -d: <<< "$a"):													# Grab second field characters.
 	b=$(/bin/sed 's/^[[:space:]]*//' <<< "$b")											# Remove leading whitespace.
 
 	# shellcheck disable=2295
@@ -2222,16 +2342,15 @@ DisplayRunAndLog()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nocmd" || return
 
-	local -i z=0
-
-	local a=''
-	local r_log_pathfile=''
-
-	r_log_pathfile=$(/bin/mktemp $r_sys_log_path/"${FUNCNAME[0]}"_XXXXXX)
-
-	local -r r_log_pathfile
+	local -i z
+	local a
+	local r_log_pathfile
 
 	a=$(/bin/tr -s ' ' <<< "$2")							# Squeeze multiple whitespace chars into singles.
+	r_log_pathfile=$(/bin/mktemp $r_sys_log_path/"${FUNCNAME[0]}"_XXXXXX)
+	z=0
+
+	local -r r_log_pathfile
 
 	DisplayAndCommitProcessWaitToServiceLog "$1"
 	Executer "$a" "$r_log_pathfile" "${4:-false}"
@@ -2277,6 +2396,7 @@ Executer()
 	#	$r_qpkg_name
 	#	$r_screen_conf_pathfile
 	#	$r_screen_log_pathfile
+	#	$r_screen_socket_path
 	#	$r_sys_log_path
 	#	$r_sys_run_path
 	#	$useropt_debug
@@ -2289,19 +2409,22 @@ Executer()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nocmd" || return
 	ConfirmVarIsDefined 2 "${2:-}" "$e_nopfi" || return
 
-	local -i z=0
-
-	local r_log_pathfile=''
-	local run_in_screen=${3:-false}
+	local -i z
+	local exec_msg
+	local r_executer_log_pipe
+	local r_log_pathfile
+	local run_in_screen
 
 	r_log_pathfile=$(/bin/mktemp $r_sys_log_path/${FUNCNAME[0]}_XXXXXX)
+	run_in_screen=${3:-false}
+	z=0
 
 	local -r r_log_pathfile
 
 	FormatAsCommand "$1" > "$2"
 
 	if [[ $useropt_debug = true ]]; then
-		local exec_msg='{ exec'
+		exec_msg='{ exec'
 
 		[[ $run_in_screen = true ]] && exec_msg+=" (in 'screen' session)"
 		exec_msg+=':'
@@ -2318,12 +2441,10 @@ Executer()
 
 	if [[ $run_in_screen = true ]]; then
 		FormatAsCommand "$1" >> "$r_screen_log_pathfile"
-		/usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
+		SCREENDIR=$r_screen_socket_path /usr/sbin/screen -c "$r_screen_conf_pathfile" -dmLS "$r_qpkg_name" sh -c "$1"
 		z=$?
 	elif [[ $useropt_debug = true ]]; then
 		# https://stackoverflow.com/a/1221844
-
-		local r_executer_log_pipe=''
 
 		r_executer_log_pipe=$r_sys_run_path/pipe-$(/bin/date +%s%N)
 
@@ -2419,8 +2540,10 @@ AddFileToDebug()
 
 	[[ -s $1 ]] || return
 
-	local a=''
-	local debug_was_set=$useropt_debug
+	local a
+	local debug_was_set
+
+	debug_was_set=$useropt_debug
 
 	# Prevent external log contents appearing on-screen again, as they have already been seen "live".
 
@@ -2507,9 +2630,11 @@ DebugBulletSeparatorWithText()
 	# Inputs: (global)
 	#	$r_debug_log_datawidth
 
-	local a=''
-	local b=''
-	local c=''
+	local -i b
+	local -i c
+	local a
+
+	a=''
 
 	[[ -n ${1:-} ]] && a=" ${1:-} "
 
@@ -2651,7 +2776,9 @@ WatchForPortsActive()
 	#	$ui_port
 	#	$ui_port_secure
 
-	local a=''
+	local a
+
+	a=''
 
 	DisplayAndCommitInfoToServiceLog "daemon listening address: $ui_listening_address"
 
@@ -2698,7 +2825,7 @@ WatchForPortsActive()
 GetPythonVer()
 	{
 
-	local a=''
+	local a
 
 	a=$(GetThisBinPath ${1:-python} &> /dev/null && ${1:-python} -V 2>&1 | /bin/sed 's|^Python[[:space:]]||;s|\.||g')
 
@@ -2930,9 +3057,15 @@ parse_yaml()
 	#	$2 (optional) = key prefix.
 
 	# Outputs: (local)
-	#	stdout = parsed YAML
+	#	stdout = parsed YAML.
 
-	local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|/bin/tr @ '\034')
+	local fs
+	local s
+	local w
+
+	fs=$(echo @|/bin/tr @ '\034')
+	s='[[:space:]]*'
+	w='[a-zA-Z0-9_]*'
 
 	/bin/sed -ne "s|^\($s\):|\1|" \
 		-e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
@@ -3015,37 +3148,38 @@ GetKeyFromPyload()
 		return
 	fi
 
-	local -i line_num=0
-	local -i start_line_num=0
+	local -i line_num
+	local -i start_line_num
+	local blank
+	local end_line_num
+	local raw_var_description
+	local raw_var_type
+	local result_line
+	local section_description
+	local section_line
+	local section_name
+	local section_raw
+	local target_section
+	local value
+	local value_raw
+	local var_found
+	local var_name
+	local var_type
 
-	local blank=''
-	local end_line_num='$'
-	local raw_var_type=''
-	local raw_var_description=''
-	local result_line=''
-	local section_description=''
-	local section_line=''
-	local section_name=''
-	local section_raw=''
-	local target_section=''
-	local value=''
-	local value_raw=''
-	local var_found=false
-	local var_name=''
-	local var_type=''
+	end_line_num='$'
+	start_line_num=0
+	var_found=false
 
 	while read -r result_line; do
 		IFS=':' read -r line_num section_raw <<< "$result_line"
 		IFS=' ' read -r section_name blank section_description <<< "$section_raw"
 
 		if [[ $section_name = "$1" ]]; then
-			[[ $start_line_num -eq 0 ]] && start_line_num=$((line_num+1))
-		else
-			if [[ $start_line_num -ne 0 ]]; then
-				end_line_num=$((line_num-2))
+			[[ $start_line_num -eq 0 ]] && start_line_num=line_num+1
+		elif [[ $start_line_num -ne 0 ]]; then
+			end_line_num=$((line_num-2))
 
-				break
-			fi
+			break
 		fi
 	done <<< "$(/bin/grep '.*:$' -n "$3")"
 
@@ -3176,7 +3310,9 @@ IsQpkgInstalled()
 	# Outputs: (local)
 	#	$? = true/false
 
-	local a=${1:-$r_qpkg_name}
+	local a
+
+	a=${1:-$r_qpkg_name}
 
 	[[ $(/sbin/getcfg $a Name -d undefined -f /etc/config/qpkg.conf) = "$a" ]]
 
@@ -3244,7 +3380,9 @@ IsQpkgArr()
 	# Outputs: (local)
 	#	$? = true/false
 
-	local re=\\b${1:-${r_qpkg_name:?${FUNCNAME[0]}(): $e_nopnm}}\\b			# bash 3.2 regex with word boundaries: https://stackoverflow.com/a/9793094
+	local re
+
+	re=\\b${1:-${r_qpkg_name:?${FUNCNAME[0]}(): $e_nopnm}}\\b			# bash 3.2 regex with word boundaries: https://stackoverflow.com/a/9793094
 
 	[[ ${ar_qpkgs_name_arrs[*]} =~ $re ]]
 
@@ -3298,7 +3436,9 @@ IsQpkgMigrated()
 	# Outputs: (local)
 	#	$? = true/false
 
-	local re=\\b${1:-$r_qpkg_name}\\b			# bash 3.2 regex with word boundaries: https://stackoverflow.com/a/9793094
+	local re
+
+	re=\\b${1:-$r_qpkg_name}\\b			# bash 3.2 regex with word boundaries: https://stackoverflow.com/a/9793094
 
 	[[ ${ar_qpkgs_name_migrated[*]} =~ $re ]]
 
@@ -3628,7 +3768,10 @@ IsPortAvailable()
 	#	$? = true  : available.
 	#	$? = false : already used.
 
-	local port=${1//[!0-9]/}			# Strip all non-numerals.
+	local port
+
+	port=${1//[!0-9]/}			# Strip all non-numerals.
+
 	[[ -n $port && $port -gt 0 ]] || return 0
 
 	/usr/sbin/lsof -i :"$port" -sTCP:LISTEN > /dev/null 2>&1 && return 1
@@ -3664,11 +3807,13 @@ IsPortResponds()
 	#	$? = 0 : response received.
 	#	$? = 1 : not OK.
 
-	local -i a=${1//[!0-9]/}			# Strip all non-numerals.
-	local -i b=0
-	local -i c=0
+	local -i a
+	local -i b
+	local -i c
 
+	a=${1//[!0-9]/}			# Strip all non-numerals.
 	b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
+	c=0
 
 	if [[ -z $a ]]; then
 		Display 'empty port: not testing for response'
@@ -3736,11 +3881,14 @@ IsPortSecureResponds()
 	#	$? = 0 : response received.
 	#	$? = 1 : not OK or secure port unspecified.
 
-	local -i a=${1//[!0-9]/}			# Strip all non-numerals.
-	local -i b=0
-	local -i c=0
+	local -i a
+	local -i b
+	local -i c
 
+	a=${1//[!0-9]/}			# Strip all non-numerals.
 	b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
+	c=0
+
 
 	if [[ -z $a ]]; then
 		Display 'empty port: not testing for response'
@@ -3973,13 +4121,12 @@ IsSiteUp()
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nourl" || return
 
-	local a=''
+	local -i n
+	local a
 
 	a=$(/usr/bin/cut -d'/' -f3 <<< "$1" | /usr/bin/cut -d':' -f1)
 
 	ConfirmVarIsDefined a "${a:-}" "$e_nourl" || return
-
-	local -i n=0
 
 	for ((n=0; n<20; n++)); do
 		/bin/ping -c 1 -w 1 "$a" && return 0
@@ -4007,7 +4154,7 @@ IsHaveSingleQuote()
 IsGnuLessSupportHeaders()
 	{
 
-	local a=''
+	local a
 
 	a=$(GetGnuLessVersion)
 
@@ -4023,21 +4170,21 @@ IsReportLargerThanViewport()
 
 	[[ -n ${1:-} && -e $1 ]] || return
 
+	local -i sess_columns
+	local -i sess_rows
+	local terminal_dimensions
+
 	if [[ -x $r_gnu_stty_cmd ]] && IsInTerminal; then
-		local r_terminal_dimensions=''
+		terminal_dimensions=$($r_gnu_stty_cmd size)
 
-		r_terminal_dimensions=$($r_gnu_stty_cmd size)
-
-		local -r r_terminal_dimensions
-
-		local -ir r_sess_rows=${r_terminal_dimensions% *}
-		local -ir r_sess_columns=${r_terminal_dimensions#* }
+		sess_rows=${terminal_dimensions% *}
+		sess_columns=${terminal_dimensions#* }
 	else
-		local -ir r_sess_rows=40
-		local -ir r_sess_columns=156
+		sess_rows=40
+		sess_columns=156
 	fi
 
-	[[ $(/usr/bin/wc -l < "$1") -ge $r_sess_rows || $(StripANSICodes "$(< "$1")" | /usr/bin/wc -L) -gt $r_sess_columns ]]
+	[[ $(/usr/bin/wc -l < "$1") -ge $sess_rows || $(StripANSICodes "$(< "$1")" | /usr/bin/wc -L) -gt $sess_columns ]]
 
 	}
 
@@ -4052,7 +4199,9 @@ IsNumber()
 
 	[[ -n ${1:-} ]] || return
 
-	local a=${1//[!0-9]/}	# Strip non-digits.
+	local -i a
+
+	a=${1//[!0-9]/}		# Strip non-digits.
 
 	[[ ${#a} -gt 0 ]]
 
@@ -4089,7 +4238,7 @@ IsAnyInterfaceUp()
 	# Outputs: (global)
 	#	$interface_name
 
-	local a=''
+	local a
 
 	interface_name=null
 
@@ -4165,11 +4314,11 @@ RequestLatestReleaseFilename()
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nourl" || return
 
-	local -i c=0
+	local -i c
+	local a
+	local b
 
-	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
-	local b=''
-
+	a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --limit-rate 1K --location --dump-header -"	# https://stackoverflow.com/a/26644485
 	b=$(/sbin/curl $a "${1/https/http}" | /bin/grep -v 'Location:' | /bin/grep filename | /usr/bin/cut -d';' -f2 | /usr/bin/cut -d'=' -f2 | /bin/sed -e 's|\r||g')
 
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
@@ -4215,11 +4364,11 @@ RequestLatestReleaseURL()
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nourl" || return
 
-	local -i c=0
+	local -i c
+	local a
+	local b
 
-	local a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
-	local b=''
-
+	a="$curl_insecure_opt --silent --max-time $get_remote_filename_timeout_seconds --location"	# https://gist.github.com/steinwaywhw/a4cd19cda655b8249d908261a62687f8
 	b=$(/sbin/curl $a "$1" | /bin/grep browser_download_url | /usr/bin/cut -d\" -f4)
 
 	[[ -n ${2:-} && ${2:-} != undefined ]] && b=$(/bin/grep -e "$2" <<< "$b")
@@ -4263,8 +4412,10 @@ DownloadReleasePackage()
 	[[ -n ${1:-} ]] || return
 	[[ -n ${2:-} ]] || return
 
-	local a=$curl_insecure_opt
-	local b=''
+	local a
+	local b
+
+	a=$curl_insecure_opt
 
 	[[ $useropt_debug = false ]] && a+=' --silent'
 
@@ -4295,10 +4446,15 @@ ExtractReleasePackage()
 
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
-	local tar_opts=''
-	local tar_verbose=''
-	local unzip_opts=''
-	local unzip_verbose=''
+	local tar_opts
+	local tar_verbose
+	local unzip_opts
+	local unzip_verbose
+
+	tar_opts=''
+	tar_verbose=''
+	unzip_opts=''
+	unzip_verbose=''
 
 	if [[ $useropt_debug = true ]]; then
 		tar_verbose+='--verbose'
@@ -4672,7 +4828,9 @@ IsPathEmpty()
 	#	$? = 0 : true
 	#	$? = 1 : false or $1 does not exist.
 
-	local a=${1:-}
+	local a
+
+	a=${1:-}
 
 	[[ -n $a && -d $a ]] || return
 
@@ -4719,10 +4877,12 @@ ShowAsBug()
 	[[ -n ${1:-} ]] || return
 	[[ -n ${2:-} ]] || return
 
-	local -i i=0
+	local -i i
+	local a
+	local b
 
-	local a='fstack: '
-	local b=' '
+	a='fstack: '
+	b=' '
 
 	# Re-order FUNCNAME[] elements in-reverse.
 
@@ -4837,9 +4997,11 @@ DisplayAndCommitActionToServiceLog()
 
 	starttime=$(ConvertNowToNanoseconds)
 
-	local a=DisplayAndCommitToServiceLog
-	local msg="- source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
+	local a
+	local msg
 
+	a=DisplayAndCommitToServiceLog
+	msg="- source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), load: $(GetSysLoad1MinAverage)"
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
 
 	if IsNtStatus && IsNtLog && IsNtNone; then
@@ -4862,9 +5024,11 @@ DisplayAndCommitResultToServiceLog()
 
 	[[ $service_action = undefined ]] && return
 
-	local a=DisplayAndCommitToServiceLog
-	local msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMillisecondsDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
+	local a
+	local msg
 
+	a=DisplayAndCommitToServiceLog
+	msg="= source: $(/usr/bin/basename "$0"), action: $service_action, time: $(ConvertNowToFullDate), result: $(Uppercase "$service_result"), elapsed: $(FormatAsDuration "$(CalcMillisecondsDifference "$starttime" "$(ConvertNowToNanoseconds)")"), load: $(GetSysLoad1MinAverage)"
 	msg="$(/bin/tr -s ' ' <<< "$msg") "
 
 	if IsNtStatus && IsNtLog && IsNtNone; then
@@ -5124,10 +5288,11 @@ ConvertAsSmartDate()
 
 	[[ -n ${1:-} ]] || return
 
-	local a=''
-	local b=''
+	local a
+	local b
 
 	a=$(/bin/sed 's/[^0-9]*//g' <<< "$1")		# Strip non-digits.
+	b=''
 
 	case ${#a} in
 		6)		# Assume input is datecode, so convert to extended date format.
@@ -5195,16 +5360,24 @@ ConvertFirmwareVersionStringToNumber()
 	# Outputs: (local)
 	#	stdout = 10 char string.
 
-	local -ir r_build_trim=4
-	local -ir r_intermediate_trim=2
-	local -ir r_major_trim=2
-	local -ir r_minor_trim=2
+	local -i intermediate
+	local -i major
+	local -i minor
+	local -i r_build_trim
+	local -i r_intermediate_trim
+	local -i r_major_trim
+	local -i r_minor_trim
+	local build
 
-	local -i intermediate=0
-	local -i major=0
-	local -i minor=0
+	r_build_trim=4
+	r_intermediate_trim=2
+	r_major_trim=2
+	r_minor_trim=2
 
-	local build=0
+	local -r r_build_trim
+	local -r r_intermediate_trim
+	local -r r_major_trim
+	local -r r_minor_trim
 
 	while IFS=. read -r major intermediate minor build; do
 		printf "%0${r_major_trim}d%0${r_intermediate_trim}d%0${r_minor_trim}d%0${r_build_trim}d" "$((10#${major:0:r_major_trim}))" "$((10#${intermediate:0:r_intermediate_trim}))" "$((10#${minor:0:r_minor_trim}))" "$((10#${build:0:r_build_trim}))"
@@ -5226,11 +5399,13 @@ FormatAsThous()
 	# Outputs: (local)
 	#	stdout = formatted number string
 
-	local foutput=''
-	local remainder=''
-	local rightside_group=''
+	local foutput
+	local remainder
+	local rightside_group
 
+	foutput=''
 	remainder=$(/bin/sed 's/[^0-9]*//g' <<< "${1:-}")	# Strip all non-numerals.
+	rightside_group=''
 
 	while [[ ${#remainder} -gt 0 ]]; do
 		rightside_group=${remainder:${#remainder}<3?0:-3}	# A nifty trick found here: https://stackoverflow.com/a/19858692
@@ -5280,18 +5455,14 @@ ConvertSecondsToDuration()
 	#		or, if less than 1 minute, to 'S seconds'
 	#		or, if less than 1 second, to '< 1 second'
 
-	local -i d=0
-	local -i h=0
-	local -i m=0
-	local -i s=0
+	local -i d
+	local -i h
+	local -i m
+	local -i s
 
-#	((d=${1:-0}/86400))
 	d=${1:-0}/86400
-#	((h=(${1:-0}%86400)/3600))
 	h=${1:-0}%86400/3600
-#	((m=(${1:-0}%3600)/60))
 	m=${1:-0}%3600/60
-#	((s=${1:-0}%60))
 	s=${1:-0}%60
 
 	if [[ $d -ge 1 ]]; then
@@ -5383,7 +5554,7 @@ GetPathGitBranch()
 
 	[[ -n $1 ]] || return
 
-	local a=''
+	local a
 
 	a=$($r_git_cmd -C "$1" branch | /bin/grep '^\*' | /bin/sed 's|^\*[[:space:]]||')
 
@@ -5445,12 +5616,12 @@ CalcAdaptiveSeconds()
 	# Outputs: (local)
 	#	stdout = Integer of adapted seconds based-on present 1 minute load average. Maximum of 1800.
 
-	local a=''
-	local b=''
-	local c=''
-	local d=''
+	local a
+	local b
+	local c
+	local d
 
-	a=$(GetSysLoad1MinAverage); a=${a/./}0		# Convert to thousands. Increase this to workaround decimal rounding.
+	a=$(GetSysLoad1MinAverage); a=${a/./}0		# Convert to thousands (to workaround decimal rounding).
 	b=$(($(GetCPUCores)*100))					# Convert to hundreds.
 	c=$((10#$a/10#$b))							# Multiplier.
 	d=$((10#${1:-1}))
@@ -5472,7 +5643,7 @@ GetSysLoad1MinAverage()
 GetCPUCores()
 	{
 
-	local a=''
+	local a
 
 	a=$(/bin/grep -c '^processor' /proc/cpuinfo)
 
@@ -5530,7 +5701,9 @@ RemoveFromQpkgPostInstallDeps()
 
 	[[ -n ${1:-} && -n ${2:-} ]] || return
 
-	local re=\\b${2}\\b
+	local re
+
+	re=\\b${2}\\b
 
 	SetQpkgPostInstallDeps "$1" "$(/bin/sed "s|${re}||g" <<< "$(GetQpkgPostInstallDeps "$1")")"
 
@@ -5548,7 +5721,7 @@ SetQpkgPostInstallDeps()
 
 	[[ -n ${1:-} ]] || return
 
-	local a=''
+	local a
 
 	a=$(CleanDependencyField "${2:-}")
 
@@ -5574,7 +5747,7 @@ CleanDependencyField()
 
 	[[ -n ${1:-} ]] || return
 
-	local a=''
+	local a
 
 	a=$(/bin/tr -s ':' <<< "$1")
 
@@ -5582,6 +5755,15 @@ CleanDependencyField()
 	[[ -n $a && ${a: -1:1} = ':' ]] && a=${a%?}
 
 	printf '%s' "$a"
+
+	}
+
+Lowercase()
+	{
+
+	[[ -n ${1:-} ]] || return
+
+	/bin/tr 'A-Z' 'a-z' <<< "$1"
 
 	}
 
@@ -5648,6 +5830,9 @@ ProcessArgs()						# unused-ignore.
 
 	# NOTE: Processing will terminate in this function (no-return).
 
+	local test_branch
+	local user_arg
+
 	if IsReinstall; then			# Ignore 'start' and 'stop' requests issued by QTS during QPKG reinstallation. If QPKG is disabled, then reinstalled, the service result will be 'failed' (which is technically correct as the last action after reinstall is 'start', but probably better to see the reinstall result instead).
 		echo "Detected 'reinstall' in-progress, so not processing internal QPKG actions further."
 
@@ -5661,8 +5846,6 @@ ProcessArgs()						# unused-ignore.
 	fi
 
 	if IsSourceGit; then
-		local test_branch=''
-
 		test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
 
 		if [[ $test_branch = unknown ]]; then
@@ -5673,7 +5856,7 @@ ProcessArgs()						# unused-ignore.
 	fi
 
 	if IsNtError; then
-		local user_arg=${r_user_args_raw%% *}		# Only process first argument.
+		user_arg=${r_user_args_raw%% *}		# Only process first argument.
 
 		case $user_arg in
 			?(--)activate|?(--)start)
