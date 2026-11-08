@@ -1088,7 +1088,7 @@ RefreshReleasePackageFiles()
 	release_package_pathfile=$qpkg_temp_path/source.package			# Local filename of the remote application package.
 	release_package_url=''
 
-	if IsAutoUpdate || [[ ! -s $release_package_pathfile ]]; then	# Get remote package - even when auto-update is disabled - if one doesn't exist locally.
+	if IsUpdate || IsAutoUpdate || [[ ! -s $release_package_pathfile ]]; then	# Get remote package - even when auto-update is disabled - if one doesn't exist locally.
 		if [[ $resolve_source_url = true ]]; then
 			refresh_release_package=true
 
@@ -3899,7 +3899,6 @@ IsPortSecureResponds()
 	a=${1//[!0-9]/}			# Strip all non-numerals.
 	b=$(CalcAdaptiveSeconds "$watch_port_check_seconds")
 	c=0
-
 
 	if [[ -z $a ]]; then
 		Display 'empty port: not testing for response'
