@@ -6,5 +6,6 @@ set -o nounset
 ./copy-qpkgs-to-staging.sh || exit
 ./create-now-release.sh || exit
 ./move-assets-to-now-release.sh || exit
+./update_built.sh || exit
 ./purge-old-qpkgs.sh || exit
 ./remove-old-releases.sh || exit
