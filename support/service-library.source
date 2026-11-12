@@ -993,7 +993,7 @@ StopDaemon()
 		return 0
 	fi
 
-	[[ -s $daemon_pid_pathfile ]] || return
+	[[ -s "$daemon_pid_pathfile" ]] || return 0
 
 	local -i b
 	local -i c
@@ -1827,6 +1827,24 @@ WatchForGit()
 
 	}
 
+RefreshScreenPidFile()
+	{
+
+	# Inputs: (global)
+	#	$daemon_check_pathfile
+	#	$daemon_exec_pathfile
+	#	$r_screen_pid_pathfile
+
+	[[ $r_screen_pid_pathfile != undefined ]] || return
+
+	if IsDaemonCheck; then
+		UpdatePidPathFile "$r_screen_pid_pathfile" /usr/sbin/screen "$daemon_check_pathfile"
+	else
+		UpdatePidPathFile "$r_screen_pid_pathfile" /usr/sbin/screen "$daemon_exec_pathfile"
+	fi
+
+	}
+
 RefreshDaemonPidFile()
 	{
 
@@ -1836,40 +1854,38 @@ RefreshDaemonPidFile()
 	#	$daemon_pid_pathfile
 	#	$daemon_script_pathfile
 
-	# Outputs:
-	#	stdout > $daemon_pid_pathfile
+	[[ $daemon_pid_pathfile != undefined ]] || return
 
-	local -i a
-
-	[[ -s $daemon_pid_pathfile && ! -d /proc/"$(< "$daemon_pid_pathfile")" ]] && /bin/rm -f "$daemon_pid_pathfile"
-
-	if IsVarDefined daemon_check_pathfile; then
-		a=$(FindPid "$daemon_check_pathfile")
+	if IsDaemonCheck; then
+		UpdatePidPathFile "$daemon_pid_pathfile" "$daemon_check_pathfile"
 	else
-		a=$(FindPid "$daemon_exec_pathfile" "$daemon_script_pathfile")
+		UpdatePidPathFile "$daemon_pid_pathfile" "$daemon_exec_pathfile" "$daemon_script_pathfile"
 	fi
-
-	[[ -n $a && $a -gt 0 ]] && echo "$a" > "$daemon_pid_pathfile"
 
 	}
 
-RefreshScreenPidFile()
+UpdatePidPathFile()
 	{
 
-	# Inputs: (global)
-	#	$daemon_exec_pathfile
-	#	$r_screen_pid_pathfile
+	# Inputs: (local)
+	#	$1 = PID pathfile to rewrite.
+	#	$2 = primary process name to match.
+	#	$3 (optional) = secondary process name to match.
+	#	$4 (optional) = tertiary string to match.
 
-	# Outputs:
-	#	stdout > $r_screen_pid_pathfile
+	# Outputs: (local)
+	#	stdout > $1
 
-	local a
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
+	ConfirmVarIsDefined 2 "${2:-}" "$e_nostr" || return
 
-	[[ -s $r_screen_pid_pathfile && ! -d /proc/"$(< "$r_screen_pid_pathfile")" ]] && /bin/rm -f "$r_screen_pid_pathfile"
+	local -i a
 
-	a=$(FindPid /usr/sbin/screen "$daemon_exec_pathfile")
+	/bin/rm -f "$1"
 
-	[[ -n $a && $a -gt 0 ]] && echo "$a" > "$r_screen_pid_pathfile"
+	a=$(FindPid "$2" "${3:-}" "${4:-}")
+
+	((a>0)) && echo "$a" > "$1"
 
 	}
 
@@ -1877,33 +1893,53 @@ FindPid()
 	{
 
 	# Inputs: (local)
-	#	$1 = Process pathfilename to find.
-	#	$2 (optional) = additional string to match if there are multiple processes with identical pathfilenames.
+	#	$1 = primary process name to match.
+	#	$2 (optional) = secondary process name to match.
+	#	$3 (optional) = tertiary string to match.
 
 	# Outputs: (local)
 	#	$? = 0 (found) or 1 (not found)
 	#	stdout = PID
 
-	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
+	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
 
-	local -i a
-	local b
+	local -a args
+	local -i pid
+	local arg
+	local pid_path
+	local remainder
+	local temp
 
-	b=''
+	trap "$(shopt -p)" RETURN				# Restore original `shopt` settings on return.
 
-	[[ -n ${2:-} && $2 != undefined ]] && b=$2
+	shopt -s nullglob nocasematch			# 'nullglob': for /proc search, 'nocasematch': `screen` is shown as `SCREEN` in process list.
 
-	for a in $(/bin/pidof "$(/usr/bin/basename "$1")"); do
-		[[ $a -gt 1 ]] || continue
-		[[ -d /proc/$a ]] || continue
-		[[ -e /proc/$a/cmdline && -L /proc/$a/exe ]] || continue
-		[[ $(Lowercase "$(</proc/$a/cmdline)") =~ $(Lowercase "$1") || $(/usr/bin/readlink /proc/$a/exe 2> /dev/null) = "$1" ]] || continue
+	for pid_path in /proc/[0-9]*/; do		# BusyBox `pidof` doesn't always return every instance of $1, so must look-for $1 the hard-way.
+		temp=${pid_path#/proc/}
+		pid=${temp%/}
 
-		if [[ -n $b ]]; then
-			[[ $(</proc/$a/cmdline) =~ $b ]] || continue	# Check for additional string (if-specified).
+		[[ $pid -gt 1 ]] || continue
+		[[ -e /proc/$pid/cmdline && -r /proc/$pid/cmdline && -L /proc/$pid/exe ]] || continue
+
+		args=()
+		remainder=''
+
+		while IFS= read -r -d '' arg || [[ -n "$arg" ]]; do
+			args+=("$arg")
+		done < "/proc/$pid/cmdline"
+
+		[[ ${#args[@]} -gt 0 ]] || continue
+		[[ ${args[0]} =~ $1 ]] || continue
+
+		if [[ -n ${2:-} && $2 != undefined ]] || [[ -n ${3:-} && $3 != undefined ]]; then
+			remainder=$(IFS=' '; echo "${args[*]:1}")			# First arg has been checked, so only check the remainder of string.
+
+			[[ "$remainder" == *"$2"* ]] || continue
+			[[ "$remainder" == *"$3"* ]] || continue
 		fi
 
-		printf '%s' "$a"
+		printf '%s' "$pid"
+
 		return
 	done
 
@@ -3746,11 +3782,12 @@ IsDaemonActive()
 	#	$? = true  : $daemon_exec_pathfile is in memory.
 	#	$? = false : $daemon_exec_pathfile is not in memory.
 
-	if IsVarDefined daemon_pid_pathfile && [[ -s $daemon_pid_pathfile && -d /proc/"$(< "$daemon_pid_pathfile")" ]]; then
+	if IsVarDefined daemon_pid_pathfile && [[ -s $daemon_pid_pathfile && -d /proc/$(< "$daemon_pid_pathfile") ]]; then
 		if IsDaemonCheck; then
-			[[ $(/usr/bin/readlink /proc/"$(< "$daemon_pid_pathfile")"/exe 2> /dev/null) = "$daemon_check_pathfile" ]]
+# 			[[ $(/usr/bin/readlink /proc/$(< "$daemon_pid_pathfile")/exe 2> /dev/null) = "$daemon_check_pathfile" ]]
+			[[ $(< /proc/$(< "$daemon_pid_pathfile")/cmdline) =~ $daemon_check_pathfile ]]
 		else
-			[[ $(</proc/"$(< "$daemon_pid_pathfile")"/cmdline) =~ $daemon_exec_pathfile ]]
+			[[ $(< /proc/$(< "$daemon_pid_pathfile")/cmdline) =~ $daemon_exec_pathfile ]]
 		fi
 	else
 		false
