@@ -4,10 +4,8 @@ anyio
 batinfo
 bernhard
 bottle
-cassandra-driver
 chevron
 click
-defusedxml
 dnspython
 elasticsearch
 email-validator
@@ -30,8 +28,6 @@ mdurl
 netifaces2
 nvidia-ml-py
 opentelemetry-api
-orjson
-packaging
 paho-mqtt
 pika
 podman
@@ -40,8 +36,8 @@ prometheus-client
 psutil>=5.6.7
 pySMART.smartx
 pycouchdb
-pydantic-core==2.33.2		# sherpa: to suit pydantic downgrade
-pydantic==2.11.4			# sherpa: to prevent webserver daemon start error
+pydantic
+pydantic-core
 pygal
 pygments
 pymdstat
@@ -49,19 +45,15 @@ pymongo
 pynvml
 pysmart
 pysnmp-lextudio<6.2.0 		# Pinned witing implementation of #2874
-python-dateutil
 python-dotenv
 python-multipart
 pyyaml
-pyzmq
-requests
 rich
 shellingham
 shtab
-six
 sniffio
 sparklines
-starlette<0.47.0			# sherpa: to suit fastapi downgrade
+starlette
 statsd
 typer
 typing-extensions

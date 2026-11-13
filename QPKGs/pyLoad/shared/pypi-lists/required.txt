@@ -1,7 +1,7 @@
 aia-chaser
 annotated-types
 babel
-backports.zstd
+#backports.zstd
 bitmath
 blinker
 brotli
@@ -24,8 +24,8 @@ jinja2
 js2py
 mini-racer
 more_itertools
-pydantic_core==2.27.2	# "pydantic 2.10.6 requires pydantic-core==2.27.2"
-pydantic~=2.10.6		# "pyload-ng 0.5.0b3.dev94 requires pydantic~=2.10.6"
+pydantic_core #==2.27.2	# "pydantic 2.10.6 requires pydantic-core==2.27.2"
+pydantic #~=2.10.6		# "pyload-ng 0.5.0b3.dev94 requires pydantic~=2.10.6"
 pyjsparser
 pyload-ng
 pyzstd
