@@ -968,13 +968,13 @@ StopDaemon()
 	if IsDaemonActive; then
 		SetDaemonWasActive
 
-		if IsBackup || IsClean || IsResetConfig || IsRestore; then
+		if IsBackup || IsClean || IsResetConfig || IsRestore || IsUpdate; then
 			UnsetSkipDaemonStart
 		fi
 	else			# daemon is inactive.
 		SetDaemonWasNtActive
 
-		if IsBackup || IsClean || IsResetConfig || IsRestore; then
+		if IsBackup || IsClean || IsResetConfig || IsRestore || IsUpdate; then
 			SetSkipDaemonStart
 
 			return
