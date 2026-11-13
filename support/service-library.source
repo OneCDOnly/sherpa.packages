@@ -708,8 +708,6 @@ StartQpkgLibrary()
 
 	StartDaemon
 
-	return
-
 	}
 
 StopQpkgLibrary()
@@ -723,8 +721,6 @@ StopQpkgLibrary()
 
 	StopDaemon
 
-	return
-
 	}
 
 StatusQpkgLibrary()
@@ -736,12 +732,7 @@ StatusQpkgLibrary()
 	# NOTE: Processing will terminate in this function (no-return).
 
 	if IsDaemon; then
-		if IsDaemonInScreen; then
-			RefreshScreenPidFile
-			ShowScreenState
-		fi
-
-		RefreshDaemonPidFile
+		IsDaemonInScreen && ShowScreenState
 		ShowDaemonState
 
 		if IsDaemonActive; then
@@ -885,17 +876,12 @@ StartDaemon()
 	IsNtSkipDaemonStart || return
 
 	if IsNtRestart && IsNtClean; then
-		if IsDaemonInScreen; then
-			RefreshScreenPidFile
-			ShowScreenState
-		fi
-
-		RefreshDaemonPidFile
+		IsDaemonInScreen && ShowScreenState
 		ShowDaemonState
 	fi
 
 	if IsDaemonActive; then
-		DisplayAndCommitInfoToServiceLog 'daemon is already active'
+		IsStart && DisplayAndCommitInfoToServiceLog 'daemon is already active'
 
 		return
 	fi
@@ -936,17 +922,14 @@ StartDaemon()
 			SetError; return
 		fi
 
-		if IsDaemonInScreen; then
-			RefreshScreenPidFile
-			ShowScreenState
-		fi
+		IsDaemonInScreen && ShowScreenState
 
-		IsDaemonActive &> /dev/null
+		IsDaemonActive
 		WatchForDaemon
 		PauseForStartPid
 		ShowDaemonState
 
-		if ! IsDaemonActive &> /dev/null || (IsWebUi && ! WatchForPortsActive); then
+		if ! IsDaemonActive || (IsWebUi && ! WatchForPortsActive); then
 			DisplayAndCommitWarnToServiceLog 'daemon PID check failed: there appears to have been a post-launch failure'
 			IsDaemonInScreen && AddFileToDebug "$r_screen_log_pathfile"
 			StopDaemon
@@ -977,23 +960,32 @@ StopDaemon()
 	#	$daemon_pid_pathfile
 	#	$watch_pid_kill_seconds
 
-	if IsDaemonInScreen; then
-		RefreshScreenPidFile
-		ShowScreenState
-	fi
+	IsDaemon || return
 
-	RefreshDaemonPidFile
+	IsDaemonInScreen && ShowScreenState
 	ShowDaemonState
 
 	if IsDaemonActive; then
 		SetDaemonWasActive
-	elif IsNtRestart; then
-		SetSkipDaemonStart
-	else
-		return 0
-	fi
 
-	[[ -s "$daemon_pid_pathfile" ]] || return 0
+		if IsBackup || IsClean || IsResetConfig || IsRestore; then
+			UnsetSkipDaemonStart
+		fi
+	else			# daemon is inactive.
+		SetDaemonWasNtActive
+
+		if IsBackup || IsClean || IsResetConfig || IsRestore; then
+			SetSkipDaemonStart
+
+			return
+		elif IsStop; then
+			DisplayAndCommitInfoToServiceLog 'daemon is already inactive'
+
+			return
+		elif IsRestart; then
+			return
+		fi
+	fi
 
 	local -i b
 	local -i c
@@ -1005,7 +997,7 @@ StopDaemon()
 	c=0
 	d=$(< "$daemon_pid_pathfile")
 
-	[[ $d -gt 1 ]] || return
+	((d>1)) || return
 
 	DisplayAndCommitProcessWaitToServiceLog "$a PID $d with SIGTERM (no-more than $b second$(Pluralise "$b"))"
 
@@ -1042,12 +1034,8 @@ StopDaemon()
 
 	PauseForKillPid
 
+	IsDaemonInScreen && ShowScreenState
 	ShowDaemonState
-
-	if IsDaemonInScreen; then
-		RefreshScreenPidFile
-		ShowScreenState
-	fi
 
 	if IsDaemonActive; then
 		SetError; return
@@ -1246,7 +1234,7 @@ ShowHelp()
 	DisplayAsHelp 'l, L, log' 'display the service-script log'
 	DisplayAsHelp 'r, reactivate, restart' "stop, then start $(FormatAsPackageName $r_qpkg_name)"
 	IsSupportActions && DisplayAsHelp reset-action 'clear the current service-script action and action result'
-	IsSupportReset && DisplayAsHelp reset-config "revert $(FormatAsPackageName $r_qpkg_name) configuration, databases and history to defaults"
+	IsSupportResetConfig && DisplayAsHelp reset-config "revert $(FormatAsPackageName $r_qpkg_name) configuration, databases and history to defaults"
 	IsSupportBackup && DisplayAsHelp restore 'restore a previously saved configuration from persistent storage'
 	DisplayAsHelp 's, status' "check if $(FormatAsPackageName $r_qpkg_name) application is active. Returns \$? = 0 if active, 1 if not"
 	IsSourcedOnline && DisplayAsHelp update "update existing $(FormatAsPackageName $r_qpkg_name) files from source"
@@ -2323,7 +2311,7 @@ EnsureConfigFileExists()
 	#	$qpkg_config_pathfile
 	#	$qpkg_config_virtual_pathfile
 
-	IsSupportReset || return 0
+	IsSupportResetConfig || return 0
 
 	if UsesConfig valid && [[ ! -s $qpkg_config_pathfile && -s $qpkg_config_default_pathfile ]]; then
 		/usr/bin/cp "$qpkg_config_default_pathfile" "$qpkg_config_pathfile"
@@ -2346,7 +2334,7 @@ EnsureVirtualConfigFileExists()
 	#	$qpkg_config_pathfile
 	#	$qpkg_config_virtual_pathfile
 
-	IsSupportReset || return 0
+	IsSupportResetConfig || return 0
 
 	if UsesVirtualConfig && [[ -s $qpkg_config_pathfile ]]; then
 		if [[ ! -L $qpkg_config_virtual_pathfile ]]; then
@@ -3504,7 +3492,7 @@ IsSupportBackup()
 
 	}
 
-IsSupportReset()
+IsSupportResetConfig()
 	{
 
 	# Inputs: (global)
@@ -3513,14 +3501,14 @@ IsSupportReset()
 	# Outputs: (local)
 	#	$? = true/false
 
-	IsVarDefined qpkg_config_pathfile
+	IsVarDefined qpkg_config_path
 
 	}
 
-IsNtSupportReset()
+IsNtSupportResetConfig()
 	{
 
-	! IsSupportReset
+	! IsSupportResetConfig
 
 	}
 
@@ -3751,7 +3739,9 @@ IsDaemonCheck()
 ShowDaemonState()
 	{
 
-	if IsVarDefined daemon_pid_pathfile && [[ -s $daemon_pid_pathfile ]]; then
+	IsVarDefined daemon_pid_pathfile || return
+
+	if IsDaemonActive; then
 		DisplayAndCommitInfoToServiceLog "daemon PID: $(< "$daemon_pid_pathfile")"
 	else
 		DisplayAndCommitInfoToServiceLog 'daemon PID: none'
@@ -3762,7 +3752,9 @@ ShowDaemonState()
 ShowScreenState()
 	{
 
-	if IsVarDefined r_screen_pid_pathfile && [[ -s $r_screen_pid_pathfile ]]; then
+	IsVarDefined r_screen_pid_pathfile || return
+
+	if IsScreenActive; then
 		DisplayAndCommitInfoToServiceLog "screen PID: $(< "$r_screen_pid_pathfile")"
 	else
 		DisplayAndCommitInfoToServiceLog 'screen PID: none'
@@ -3770,28 +3762,39 @@ ShowScreenState()
 
 	}
 
+IsScreenActive()
+	{
+
+	# Inputs: (global)
+	#	$r_screen_pid_pathfile
+
+	# Outputs: (local)
+	#	$? = true
+	#	$? = false
+
+	IsVarDefined r_screen_pid_pathfile || return
+
+	RefreshScreenPidFile
+
+	[[ -s $r_screen_pid_pathfile ]]
+
+	}
+
 IsDaemonActive()
 	{
 
 	# Inputs: (global)
-	#	$daemon_check_pathfile
-	#	$daemon_exec_pathfile
 	#	$daemon_pid_pathfile
 
 	# Outputs: (local)
-	#	$? = true  : $daemon_exec_pathfile is in memory.
-	#	$? = false : $daemon_exec_pathfile is not in memory.
+	#	$? = true
+	#	$? = false
 
-	if IsVarDefined daemon_pid_pathfile && [[ -s $daemon_pid_pathfile && -d /proc/$(< "$daemon_pid_pathfile") ]]; then
-		if IsDaemonCheck; then
-# 			[[ $(/usr/bin/readlink /proc/$(< "$daemon_pid_pathfile")/exe 2> /dev/null) = "$daemon_check_pathfile" ]]
-			[[ $(< /proc/$(< "$daemon_pid_pathfile")/cmdline) =~ $daemon_check_pathfile ]]
-		else
-			[[ $(< /proc/$(< "$daemon_pid_pathfile")/cmdline) =~ $daemon_exec_pathfile ]]
-		fi
-	else
-		false
-	fi
+	IsVarDefined daemon_pid_pathfile || return
+
+	RefreshDaemonPidFile
+
+	[[ -s $daemon_pid_pathfile ]]
 
 	}
 
@@ -4643,6 +4646,13 @@ SetDaemonWasActive()
 
 	}
 
+SetDaemonWasNtActive()
+	{
+
+	_daemon_was_active=false
+
+	}
+
 DaemonWasActive()
 	{
 
@@ -4794,6 +4804,13 @@ IsStop()
 
 	}
 
+IsNtStop()
+	{
+
+	! IsStop
+
+	}
+
 IsRestart()
 	{
 
@@ -4861,6 +4878,48 @@ IsNtUpdate()
 	{
 
 	! IsUpdate
+
+	}
+
+IsBackup()
+	{
+
+	[[ $service_action = backup ]]
+
+	}
+
+IsNtBackup()
+	{
+
+	! IsBackup
+
+	}
+
+IsRestore()
+	{
+
+	[[ $service_action = restore ]]
+
+	}
+
+IsNtRestore()
+	{
+
+	! IsRestore
+
+	}
+
+IsResetConfig()
+	{
+
+	[[ $service_action = reset-config ]]
+
+	}
+
+IsNtResetConfig()
+	{
+
+	! IsResetConfig
 
 	}
 
@@ -5919,17 +5978,6 @@ ProcessArgs()						# unused-ignore.
 		user_arg=${r_user_args_raw%% *}		# Only process first argument.
 
 		case $user_arg in
-			?(--)activate|?(--)start)
-				SetServiceAction start
-
-				if IsQpkgEnabled; then
-					SetTraps
-					StartQpkg
-				else
-					ShowDisabledPrompt
-					SetError
-				fi
-				;;
 			?(-)b|?(--)backup?(-config))
 				if IsSupportBackup; then
 					SetServiceAction backup
@@ -5953,13 +6001,6 @@ ProcessArgs()						# unused-ignore.
 					SetServiceAction unsupported
 					ShowUnsupportedAction "$user_arg"
 				fi
-				;;
-			?(--)deactivate|?(--)stop)
-				IsUninstall && exit					# No-need to 'stop' during 'uninstall' from sherpa, as 'stop' has already been performed by sherpa.
-
-				SetServiceAction stop
-				SetTraps
-				StopQpkg
 				;;
 			?(--)disable)
 				SetServiceAction disable
@@ -6018,17 +6059,6 @@ ProcessArgs()						# unused-ignore.
 				SetServiceAction log
 				ViewLog
 				;;
-			?(-)r|?(--)reactivate|?(--)restart)
-				SetServiceAction restart
-
-				if IsQpkgEnabled; then
-					SetTraps
-					StopQpkg && StartQpkg
-				else
-					ShowDisabledPrompt
-					SetError
-				fi
-				;;
 			remove)			# Only called by the QDK '.uninstall.sh' script.
 				SetServiceAction uninstall
 				;;
@@ -6043,8 +6073,8 @@ ProcessArgs()						# unused-ignore.
 				fi
 				;;
 			?(--)reset-config)
-				if IsSupportReset; then
-					SetServiceAction reset
+				if IsSupportResetConfig; then
+					SetServiceAction reset-config
 					SetTraps
 					StopQpkg
 					ResetConfig
@@ -6052,6 +6082,17 @@ ProcessArgs()						# unused-ignore.
 				else
 					SetServiceAction unsupported
 					ShowUnsupportedAction "$user_arg"
+				fi
+				;;
+			?(--)restart|?(-)r|?(--)reactivate)
+				SetServiceAction restart
+
+				if IsQpkgEnabled; then
+					SetTraps
+					StopQpkg && StartQpkg
+				else
+					ShowDisabledPrompt
+					SetError
 				fi
 				;;
 			?(--)restore?(-config))
@@ -6066,9 +6107,27 @@ ProcessArgs()						# unused-ignore.
 					ShowUnsupportedAction "$user_arg"
 				fi
 				;;
+			?(--)start|?(--)activate)
+				SetServiceAction start
+
+				if IsQpkgEnabled; then
+					SetTraps
+					StartQpkg
+				else
+					ShowDisabledPrompt
+					SetError
+				fi
+				;;
 			?(-)s|?(--)status)
 				SetStatusGet
 				StatusQpkg			# <-- NOTE: Processing will terminate inside this function (no-return).
+				;;
+			?(--)stop|?(--)deactivate)
+				IsUninstall && exit		# No-need to 'stop' during 'uninstall' from sherpa, as 'stop' has already been performed by sherpa.
+
+				SetServiceAction stop
+				SetTraps
+				StopQpkg
 				;;
 			?(--)uninstall)
 				: # Ignore.
