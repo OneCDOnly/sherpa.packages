@@ -917,33 +917,44 @@ StartDaemon()
 		IsDaemonInScreen && /bin/rm -f "$r_screen_log_pathfile"
 
 		if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session"; then
-			DisplayAndCommitWarnToServiceLog 'there has been a daemon launch failure'
+			DisplayAndCommitWarnToServiceLog 'there has been a launch failure'
 
 			SetError; return
 		fi
 
-		IsDaemonInScreen && ShowScreenState
+		if IsDaemonInScreen; then
+			ShowScreenState
+
+			if IsNtScreenActive; then
+				DisplayAndCommitErrorToServiceLog 'screen session inactive: there has been a launch failure'
+				AddFileToDebug "$r_screen_log_pathfile"
+
+				SetError
+			fi
+		fi
 
 		IsDaemonActive
 		WatchForDaemon
 		PauseForStartPid
 		ShowDaemonState
 
-		if ! IsDaemonActive || (IsWebUi && ! WatchForPortsActive); then
-			DisplayAndCommitWarnToServiceLog 'daemon PID check failed: there appears to have been a post-launch failure'
-			IsDaemonInScreen && AddFileToDebug "$r_screen_log_pathfile"
-			StopDaemon
-			(( c++ ))
+		if IsNtError; then
+			if ! IsDaemonActive || (IsWebUi && ! WatchForPortsActive); then
+				DisplayAndCommitWarnToServiceLog 'daemon PID check failed: there has been a post-launch failure'
+				IsDaemonInScreen && AddFileToDebug "$r_screen_log_pathfile"
+				StopDaemon
+				(( c++ ))
 
-			if (( ( c - 1 ) < start_retries )); then
-				DisplayAndCommitRetryToServiceLog "retry $c/$start_retries"
+				if (( ( c - 1 ) < start_retries )); then
+					DisplayAndCommitRetryToServiceLog "retry $c/$start_retries"
 
-				continue
+					continue
+				fi
+
+				DisplayAndCommitErrorToAllLogs "tried to launch $c time$(Pluralise "$c"), no further retries are possible"
+
+				SetError; return
 			fi
-
-			DisplayAndCommitErrorToAllLogs "tried to launch $c time$(Pluralise "$c"), no further retries are possible"
-
-			SetError; return
 		fi
 
 		break
@@ -1945,6 +1956,8 @@ PauseForStartPid()
 	#	$wait_pid_start_seconds
 	#	$watch_pidfile_start_seconds
 
+	IsNtError || return
+
 	local -i a
 	local -i i
 
@@ -2058,6 +2071,8 @@ WatchForDaemon()
 	# Outputs: (local)
 	#	$? = 0 (file was found) or 1 (file not found: timeout)
 
+	IsNtError || return
+
 	local -i a
 	local -i i
 
@@ -2071,7 +2086,13 @@ WatchForDaemon()
 				/bin/sleep 1
 				DisplayWait "$i,"
 
-				RefreshDaemonPidFile
+				if IsDaemonInScreen && IsNtScreenActive; then
+					DisplayAndCommitOutcomeToServiceLog abort
+					DisplayAndCommitErrorToServiceLog 'screen session inactive: there has been a launch failure'
+					false
+
+					exit 	# Only this sub-shell.
+				fi
 
 				if IsDaemonActive; then
 					DisplayAndCommitOutcomeToServiceLog OK
@@ -2086,6 +2107,12 @@ WatchForDaemon()
 		)
 
 		if (( $? != 0 )); then
+			SetError
+
+			if IsDaemonInScreen && IsNtScreenActive; then
+				return 1
+			fi
+
 			DisplayAndCommitWarnToServiceLog "process name not found (exceeded timeout: $a second$(Pluralise "$a"))"
 
 			return 1
@@ -3777,6 +3804,13 @@ IsScreenActive()
 	RefreshScreenPidFile
 
 	[[ -s $r_screen_pid_pathfile ]]
+
+	}
+
+IsNtScreenActive()
+	{
+
+	! IsScreenActive
 
 	}
 
