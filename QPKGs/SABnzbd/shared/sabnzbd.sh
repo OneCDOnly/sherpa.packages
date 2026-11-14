@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=SABnzbd
-readonly r_service_script_version=261108
+readonly r_service_script_version=261114
 InitService(){ allow_access_to_sys_packages=true
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true

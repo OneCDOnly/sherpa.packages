@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrguiNG
-readonly r_service_script_version=261108
+readonly r_service_script_version=261114
 InitService(){ can_restart_to_update=true
 resolve_source_url=true
 source_url_arch=web

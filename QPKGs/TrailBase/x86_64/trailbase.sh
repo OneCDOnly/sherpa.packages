@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TrailBase
-readonly r_service_script_version=261108
+readonly r_service_script_version=261114
 InitService(){ can_restart_to_update=true
 resolve_source_url=true
 run_daemon_in_screen_session=true
