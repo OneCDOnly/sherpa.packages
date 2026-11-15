@@ -832,10 +832,10 @@ CreateVirtualPythonEnv()
 
 		if [[ ! -s $b ]]; then
 			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > \"$b\"" log:failure-only
-			DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\" >> \"$b\"" log:failure-only
+			DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\" >> \"$b\"" log:failure-only	# directive:dont-squeeze
 
 			if IsVarDefined qpkg_wheels_path && [[ -d $qpkg_wheels_path ]]; then
-				DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> \"$b\"" log:failure-only
+				DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> \"$b\"" log:failure-only	# directive:dont-squeeze
 			fi
 		fi
 	fi
@@ -1313,7 +1313,7 @@ InstallVirtualPythonPackages()
 	# Always prefer QPKG-provided ('pypi-lists') module lists over developer-provided ('repo-cache').
 	# Only use first module list-file found.
 
-	for a in $r_qpkg_pypi_module_lists_path/excluded.txt; do
+	for a in $r_qpkg_pypi_module_lists_path/exclude.txt; do
 		[[ -n $a && -s $a ]] || continue
 		excluded_modules_pathfile=$a
 
@@ -1334,7 +1334,7 @@ InstallVirtualPythonPackages()
 		break
 	done
 
-	for a in $r_qpkg_pypi_module_lists_path/required.txt $qpkg_repo_path/requirements.txt; do
+	for a in $r_qpkg_pypi_module_lists_path/requirements.txt $qpkg_repo_path/requirements.txt; do
 		[[ -n $a && -s $a ]] || continue
 		required_modules_pathfile=$a
 
@@ -1348,7 +1348,7 @@ InstallVirtualPythonPackages()
 		break
 	done
 
-	for a in $r_qpkg_pypi_module_lists_path/renamed.txt; do
+	for a in $r_qpkg_pypi_module_lists_path/rename.txt; do
 		[[ -n $a && -s $a ]] || continue
 		renamed_modules_pathfile=$a
 
@@ -1369,7 +1369,7 @@ InstallVirtualPythonPackages()
 				if [[ -n $a && -s $a && -x $r_gnu_sed_cmd ]]; then
 					cmd="$r_gnu_sed_cmd -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' \"$a\""		# Perform extended and case-insensitive matching. First match = first word (or hyphenated-words) on each line. Second match = whole line. Delete line if matched.
 
-					DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only
+					DisplayRunAndLog "exclude problematic PyPI modules from '$a'" "$cmd" log:failure-only
 				fi
 			done
 		fi
@@ -1379,7 +1379,7 @@ InstallVirtualPythonPackages()
 
 	for a in $base_modules_pathfile $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile; do
 		if [[ -n $a && -s $a ]]; then
-			DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$a")'" "\"$venv_pip_pathfile\" install $no_pip_deps --no-input --upgrade pip --requirement \"$a\"" log:failure-only
+			DisplayRunAndLog "install PyPI modules from '$a'" "\"$venv_pip_pathfile\" install $no_pip_deps --no-input --upgrade pip --requirement \"$a\"" log:failure-only
 
 			if (( $? > 0 )) && [[ $silence_pypi_errors = false ]]; then
 				CommitWarnToServiceLog 'PyPI module installation failed'
