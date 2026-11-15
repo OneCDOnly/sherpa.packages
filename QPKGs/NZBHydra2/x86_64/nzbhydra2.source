@@ -246,8 +246,8 @@ InitService()
 
 		# daemon_check_pathfile=undefined
 			# Default
-		daemon_check_pathfile=$qpkg_repo_path/core
-			# Custom
+		daemon_check_pathfile=./core
+			# Customs
 		# > If set, look for this process name in RAM instead of $daemon_exec_pathfile.
 
 		# daemon_exec_pathfile=undefined
