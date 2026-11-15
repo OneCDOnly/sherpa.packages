@@ -39,7 +39,7 @@ set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||/bin/ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=261114
+readonly r_service_library_version=261115
 InitLibrary(){ [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
 service_action=undefined
@@ -278,8 +278,8 @@ new_env=false
 if IsNtVirtualPythonEnvFound;then DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=\"$qpkg_pip_path\" VIRTUALENV_OVERRIDE_APP_DATA=\"$qpkg_pip_path\";\"$interpreter\" -m virtualenv \"$qpkg_venv_path\" $a" log:failure-only
 new_env=true
 if [[ ! -s $b ]];then DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\">\"$b\"" log:failure-only
-DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\">>\"$b\"" log:failure-only
-if IsVarDefined qpkg_wheels_path&&[[ -d $qpkg_wheels_path ]];then DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\">>\"$b\"" log:failure-only;fi;fi;fi;return 0;}
+DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\">> \"$b\"" log:failure-only
+if IsVarDefined qpkg_wheels_path&&[[ -d $qpkg_wheels_path ]];then DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\">> \"$b\"" log:failure-only;fi;fi;fi;return 0;}
 ConfirmVarIsDefined(){ local -i backdepth
 backdepth=1
 [[ ${2:-undefined} != undefined ]]||{ ShowAsBug "${FUNCNAME[backdepth]}" "\$${1:-undefined}: '${3:-undefined}'";return;}
@@ -300,19 +300,23 @@ IsDaemonInScreen&&a+=" (in 'screen' session)"
 if(( nice_daemon_to != 0 ))&&(( nice_daemon_to>= -20 ))&&(( nice_daemon_to<= 19 ))&&[[ -x $r_gnu_nice_cmd ]];then b="$r_gnu_nice_cmd -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
 DisplayAndCommitInfoToServiceLog "nice daemon to: $nice_daemon_to";fi;if UsesConfig possible;then ConfirmVarIsDefined qpkg_config_path "${qpkg_config_path:-}" "$e_nopth"||return
 ConfirmVarIsDefined qpkg_config_pathfile "${qpkg_config_pathfile:-}" "$e_nopfi"||return;fi;while true;do IsDaemonInScreen&&/bin/rm -f "$r_screen_log_pathfile"
-if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";then DisplayAndCommitWarnToServiceLog 'there has been a daemon launch failure'
-SetError;return;fi;IsDaemonInScreen&&ShowScreenState
+if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";then DisplayAndCommitWarnToServiceLog 'there has been a launch failure'
+SetError;return;fi;if IsDaemonInScreen;then ShowScreenState
+if IsNtScreenActive;then DisplayAndCommitErrorToServiceLog 'screen session inactive: there has been a launch failure'
+AddFileToDebug "$r_screen_log_pathfile"
+SetError;fi;fi
 IsDaemonActive
 WatchForDaemon
 PauseForStartPid
 ShowDaemonState
-if ! IsDaemonActive||(IsWebUi&&! WatchForPortsActive);then DisplayAndCommitWarnToServiceLog 'daemon PID check failed: there appears to have been a post-launch failure'
+if IsNtError;then if ! IsDaemonActive||(IsWebUi&&! WatchForPortsActive);then DisplayAndCommitWarnToServiceLog 'daemon PID check failed: there has been a post-launch failure'
 IsDaemonInScreen&&AddFileToDebug "$r_screen_log_pathfile"
 StopDaemon
 (( c++ ))
 if(( ( c - 1 )<start_retries ));then DisplayAndCommitRetryToServiceLog "retry $c/$start_retries"
 continue;fi;DisplayAndCommitErrorToAllLogs "tried to launch $c time$(Pluralise "$c"), no further retries are possible"
-SetError;return;fi;break;done;CommitInfoToSysLog "$a: OK";}
+SetError;return;fi;fi
+break;done;CommitInfoToSysLog "$a: OK";}
 StopDaemon(){ IsDaemon||return
 IsDaemonInScreen&&ShowScreenState
 ShowDaemonState
@@ -444,23 +448,23 @@ recommended_modules_pathfile=''
 renamed_modules_pathfile=''
 required_modules_pathfile=''
 [[ $install_pip_deps = true ]]&&no_pip_deps=''
-for a in $r_qpkg_pypi_module_lists_path/excluded.txt;do [[ -n $a &&-s $a ]]||continue
+for a in $r_qpkg_pypi_module_lists_path/exclude.txt;do [[ -n $a &&-s $a ]]||continue
 excluded_modules_pathfile=$a
 break;done;for a in $r_qpkg_pypi_module_lists_path/base.txt;do [[ -n $a &&-s $a ]]||continue
 base_modules_pathfile=$a
 break;done;for a in $r_qpkg_pypi_module_lists_path/essential.txt;do [[ -n $a &&-s $a ]]||continue
 essential_modules_pathfile=$a
-break;done;for a in $r_qpkg_pypi_module_lists_path/required.txt $qpkg_repo_path/requirements.txt;do [[ -n $a &&-s $a ]]||continue
+break;done;for a in $r_qpkg_pypi_module_lists_path/requirements.txt $qpkg_repo_path/requirements.txt;do [[ -n $a &&-s $a ]]||continue
 required_modules_pathfile=$a
 break;done;for a in $r_qpkg_pypi_module_lists_path/recommended.txt $qpkg_repo_path/recommended.txt;do [[ -n $a &&-s $a ]]||continue
 recommended_modules_pathfile=$a
-break;done;for a in $r_qpkg_pypi_module_lists_path/renamed.txt;do [[ -n $a &&-s $a ]]||continue
+break;done;for a in $r_qpkg_pypi_module_lists_path/rename.txt;do [[ -n $a &&-s $a ]]||continue
 renamed_modules_pathfile=$a
 break;done;if [[ -n $excluded_modules_pathfile &&-s $excluded_modules_pathfile ]];then module_exclusions=$(/bin/tr '\n' ' '<<<"$(StripComments "$(<"$excluded_modules_pathfile")")")
 module_exclusions=${module_exclusions%* }
 [[ -n $module_exclusions ]]&&[[ -x $r_gnu_sed_cmd ]]&&re="${module_exclusions// /|}"
 if [[ -n $re ]];then for a in $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile;do if [[ -n $a &&-s $a &&-x $r_gnu_sed_cmd ]];then cmd="$r_gnu_sed_cmd -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' \"$a\""
-DisplayRunAndLog "exclude problematic PyPI modules from '$(/usr/bin/basename "$a")'" "$cmd" log:failure-only;fi;done;fi;fi;for a in $base_modules_pathfile $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile;do if [[ -n $a &&-s $a ]];then DisplayRunAndLog "install PyPI modules from '$(/usr/bin/basename "$a")'" "\"$venv_pip_pathfile\" install $no_pip_deps --no-input --upgrade pip --requirement \"$a\"" log:failure-only
+DisplayRunAndLog "exclude problematic PyPI modules from '$a'" "$cmd" log:failure-only;fi;done;fi;fi;for a in $base_modules_pathfile $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile;do if [[ -n $a &&-s $a ]];then DisplayRunAndLog "install PyPI modules from '$a'" "\"$venv_pip_pathfile\" install $no_pip_deps --no-input --upgrade pip --requirement \"$a\"" log:failure-only
 if(( $?>0 ))&&[[ $silence_pypi_errors = false ]];then CommitWarnToServiceLog 'PyPI module installation failed';fi;no_pips_installed=false;fi;done;if [[ -n $renamed_modules_pathfile &&-s $renamed_modules_pathfile ]];then for a in $(StripComments "$(<"$renamed_modules_pathfile")");do RenameSharedObjectFile "$a";done;fi
 if IsSupportGetApplVersion;then ConfirmVarIsDefined venv_python_pathfile "${venv_python_pathfile:-}" "$e_nopfi"||return
 GetApplVersion
@@ -596,7 +600,8 @@ if [[ -n ${2:-} &&$2 != undefined ]]||[[ -n ${3:-} &&$3 != undefined ]];then rem
 [[ "$remainder" == *"$2"* ]]||continue
 [[ "$remainder" == *"$3"* ]]||continue;fi;printf '%s' "$pid"
 return;done;return 1;}
-PauseForStartPid(){ local -i a
+PauseForStartPid(){ IsNtError||return
+local -i a
 local -i i
 a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
 if [[ $daemon_pidfile_is_managed_by_app = true ]];then if WatchForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$watch_pidfile_start_seconds")";then /bin/sleep 1;fi;fi
@@ -625,18 +630,22 @@ if(( $? != 0 ));then DisplayAndCommitErrorToAllLogs "operational network interfa
 return 1;fi;fi
 DisplayAndCommitInfoToServiceLog "operational network interface found: $interface_name"
 return 0;}
-WatchForDaemon(){ local -i a
+WatchForDaemon(){ IsNtError||return
+local -i a
 local -i i
 a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
 if [[ ! -s $daemon_pid_pathfile ]];then DisplayAndCommitProcessWaitToServiceLog "watch for daemon process name to appear (no-more than $a second$(Pluralise "$a"))"
 (for(( i=1;i<=a;i++ ));do /bin/sleep 1
 DisplayWait "$i,"
-RefreshDaemonPidFile
-if IsDaemonActive;then DisplayAndCommitOutcomeToServiceLog OK
+if IsDaemonInScreen&&IsNtScreenActive;then DisplayAndCommitOutcomeToServiceLog abort
+DisplayAndCommitErrorToServiceLog 'screen session inactive: there has been a launch failure'
+false
+exit;fi;if IsDaemonActive;then DisplayAndCommitOutcomeToServiceLog OK
 CommitDoneToServiceLog "process name appeared in $i second$(Pluralise "$i")"
 true
 exit;fi;done;false)
-if(( $? != 0 ));then DisplayAndCommitWarnToServiceLog "process name not found (exceeded timeout: $a second$(Pluralise "$a"))"
+if(( $? != 0 ));then SetError
+if IsDaemonInScreen&&IsNtScreenActive;then return 1;fi;DisplayAndCommitWarnToServiceLog "process name not found (exceeded timeout: $a second$(Pluralise "$a"))"
 return 1;fi;fi
 return 0;}
 WatchForFileToAppear(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi"||return
@@ -991,6 +1000,7 @@ if IsScreenActive;then DisplayAndCommitInfoToServiceLog "screen PID: $(<"$r_scre
 IsScreenActive(){ IsVarDefined r_screen_pid_pathfile||return
 RefreshScreenPidFile
 [[ -s $r_screen_pid_pathfile ]];}
+IsNtScreenActive(){ ! IsScreenActive;}
 IsDaemonActive(){ IsVarDefined daemon_pid_pathfile||return
 RefreshDaemonPidFile
 [[ -s $daemon_pid_pathfile ]];}

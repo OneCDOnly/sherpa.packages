@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=TorrServer
-readonly r_service_script_version=261114
+readonly r_service_script_version=261115
 InitService(){ can_restart_to_update=true
 check_network_before_start=true
 package_is_exec=true
@@ -57,7 +57,7 @@ qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 export HOME=$qpkg_config_path
 source_asset_url_match=${r_qpkg_name}-linux-${source_url_arch}$
 source_asset_url='https://api.github.com/repos/YouROK/TorrServer/releases/latest'
-daemon_launch_cmd="cd $qpkg_repo_path&&$daemon_exec_pathfile --path $qpkg_config_path"
+daemon_launch_cmd="cd $qpkg_repo_path&&$daemon_exec_pathfile -c $qpkg_config_pathfile"
 get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="echo $ui_port"
 get_ui_port_secure_cmd='echo 0'
