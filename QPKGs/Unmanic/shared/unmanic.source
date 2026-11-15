@@ -61,7 +61,7 @@ InitService()
 
 		# recheck_daemon_pid_after_kill=false
 			# Default
-		# recheck_daemon_pid_after_kill=true
+		recheck_daemon_pid_after_kill=true
 			# Custom
 		# > If 'true', application PID is reconfirmed shortly after kill. Some applications switch to another PID during shutdown, then kill their main PID.
 
