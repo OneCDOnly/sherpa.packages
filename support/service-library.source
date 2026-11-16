@@ -1006,7 +1006,9 @@ StopDaemon()
 	a='stop daemon'
 	b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
 	c=0
-	d=$(< "$daemon_pid_pathfile")
+	d=0
+
+	[[ -s $daemon_pid_pathfile ]] && d=$(< "$daemon_pid_pathfile")
 
 	(( d > 1 )) || return
 
@@ -1908,6 +1910,7 @@ FindPid()
 	local remainder
 	local temp
 
+	# shellcheck disable=2064
 	trap "$(shopt -p)" RETURN				# Restore original `shopt` settings on return.
 
 	shopt -s nullglob nocasematch			# 'nullglob': for /proc search, 'nocasematch': `screen` is shown as `SCREEN` in process list.
@@ -1922,9 +1925,9 @@ FindPid()
 		args=()
 		remainder=''
 
-		while IFS= read -r -d '' arg || [[ -n "$arg" ]]; do
+		while IFS= read -r -u 3 -d '' arg || [[ -n "$arg" ]]; do	# Use another file descriptor so the loss of FD0 when backgrounded in management script won't cause loop to neverend.
 			args+=("$arg")
-		done < /proc/$pid/cmdline
+		done 3< /proc/$pid/cmdline
 
 		(( ${#args[@]} > 0 )) || continue
 		[[ ${args[0]} =~ $1 ]] || continue
@@ -3771,7 +3774,7 @@ ShowDaemonState()
 	IsVarDefined daemon_pid_pathfile || return
 
 	if IsDaemonActive; then
-		DisplayAndCommitInfoToServiceLog "daemon PID: $(< "$daemon_pid_pathfile")"
+		[[ -s $daemon_pid_pathfile ]] && DisplayAndCommitInfoToServiceLog "daemon PID: $(< "$daemon_pid_pathfile")"
 	else
 		DisplayAndCommitInfoToServiceLog 'daemon PID: none'
 	fi
@@ -3784,7 +3787,7 @@ ShowScreenState()
 	IsVarDefined r_screen_pid_pathfile || return
 
 	if IsScreenActive; then
-		DisplayAndCommitInfoToServiceLog "screen PID: $(< "$r_screen_pid_pathfile")"
+		[[ -s $r_screen_pid_pathfile ]] && DisplayAndCommitInfoToServiceLog "screen PID: $(< "$r_screen_pid_pathfile")"
 	else
 		DisplayAndCommitInfoToServiceLog 'screen PID: none'
 	fi
