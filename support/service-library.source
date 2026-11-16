@@ -936,6 +936,7 @@ StartDaemon()
 
 		IsDaemonActive
 		WatchForDaemonProcStart
+		IsRecheckDaemonAfterLaunch && ShowDaemonState
 		PauseForStartPid
 		ShowDaemonState
 
@@ -1905,6 +1906,8 @@ FindPid()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
 
 	local -a args
+	local -i loop_count
+	local -i loop_limit
 	local -i pid
 	local arg
 	local cmdline_pathfile
@@ -1913,8 +1916,7 @@ FindPid()
 	local remainder
 	local temp
 
-	cmdline_pathfile=/proc/$pid/cmdline
-	exe_pathfile=/proc/$pid/exe
+	loop_limit=16							# Limit the number of arg `read` attempts. Avoid getting stuck in a `read` loop.
 
 	# shellcheck disable=2064
 	trap "$(shopt -p)" RETURN				# Restore original `shopt` settings on return.
@@ -1923,17 +1925,29 @@ FindPid()
 
 	for pid_path in /proc/[0-9]*/; do		# BusyBox `pidof` doesn't always return every instance of $1, so must look-for $1 the hard-way.
 		temp=${pid_path#/proc/}
+
 		pid=${temp%/}
+
+		cmdline_pathfile=/proc/$pid/cmdline
+		exe_pathfile=/proc/$pid/exe
 
 		(( pid > 1 )) || continue
 		[[ -e $cmdline_pathfile && -r $cmdline_pathfile && -L $exe_pathfile ]] || continue
 
 		args=()
+		loop_count=0
 		remainder=''
 
-		while IFS= read -r -u 3 -d '' arg || [[ -n "$arg" ]]; do	# Use another file descriptor so the loss of FD0 when backgrounded in management script won't cause loop to neverend.
-			args+=("$arg")
-		done 3< $cmdline_pathfile
+		# Reading from /proc here, so must avoid TOCTOU.
+
+		if exec 3< "$cmdline_pathfile" 2> /dev/null; then
+			while IFS= read -r -u 3 -d '' arg; do
+				args+=("$arg")
+				(( loop_count++ )); (( loop_count >= loop_limit )) && break
+			done
+
+			exec 3<&-
+		fi
 
 		(( ${#args[@]} > 0 )) || continue
 		[[ ${args[0]} =~ $1 ]] || continue
@@ -1963,7 +1977,6 @@ PauseForStartPid()
 	# Inputs: (global)
 	#	$daemon_pid_pathfile
 	#	$daemon_pidfile_is_managed_by_app
-	#	$recheck_daemon_pid_after_launch
 	#	$wait_pid_start_seconds
 	#	$watch_pidfile_start_seconds
 
@@ -1980,7 +1993,7 @@ PauseForStartPid()
 		fi
 	fi
 
-	if [[ $recheck_daemon_pid_after_launch = true ]]; then
+	if IsRecheckDaemonAfterLaunch; then
 		DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") to confirm PID is still alive"
 
 		for (( i=1; i<=a; i++ )); do
@@ -3738,6 +3751,19 @@ IsNtDaemonInScreen()
 	{
 
 	! IsDaemonInScreen
+
+	}
+
+IsRecheckDaemonAfterLaunch()
+	{
+
+	# Inputs: (global)
+	#	$recheck_daemon_pid_after_launch
+
+	# Outputs: (local)
+	#	$? = true/false
+
+	[[ $recheck_daemon_pid_after_launch = true ]]
 
 	}
 
