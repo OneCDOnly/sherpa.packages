@@ -926,7 +926,8 @@ StartDaemon()
 			ShowScreenState
 
 			if IsNtScreenActive; then
-				DisplayAndCommitErrorToServiceLog 'screen session inactive: there has been a launch failure'
+				DisplayAndCommitErrorToServiceLog "'screen' session inactive: there has been a launch failure"
+				PauseForScreenLogFailedLaunch
 				AddFileToDebug "$r_screen_log_pathfile"
 
 				SetError
@@ -934,7 +935,7 @@ StartDaemon()
 		fi
 
 		IsDaemonActive
-		WatchForDaemon
+		WatchForDaemonProcStart
 		PauseForStartPid
 		ShowDaemonState
 
@@ -1906,9 +1907,14 @@ FindPid()
 	local -a args
 	local -i pid
 	local arg
+	local cmdline_pathfile
+	local exe_pathfile
 	local pid_path
 	local remainder
 	local temp
+
+	cmdline_pathfile=/proc/$pid/cmdline
+	exe_pathfile=/proc/$pid/exe
 
 	# shellcheck disable=2064
 	trap "$(shopt -p)" RETURN				# Restore original `shopt` settings on return.
@@ -1920,14 +1926,14 @@ FindPid()
 		pid=${temp%/}
 
 		(( pid > 1 )) || continue
-		[[ -e /proc/$pid/cmdline && -r /proc/$pid/cmdline && -L /proc/$pid/exe ]] || continue
+		[[ -e $cmdline_pathfile && -r $cmdline_pathfile && -L $exe_pathfile ]] || continue
 
 		args=()
 		remainder=''
 
 		while IFS= read -r -u 3 -d '' arg || [[ -n "$arg" ]]; do	# Use another file descriptor so the loss of FD0 when backgrounded in management script won't cause loop to neverend.
 			args+=("$arg")
-		done 3< /proc/$pid/cmdline
+		done 3< $cmdline_pathfile
 
 		(( ${#args[@]} > 0 )) || continue
 		[[ ${args[0]} =~ $1 ]] || continue
@@ -2016,6 +2022,32 @@ PauseForKillPid()
 
 	}
 
+PauseForScreenLogFailedLaunch()
+	{
+
+	# Inputs: (global)
+#	#	$recheck_daemon_pid_after_kill
+#	#	$wait_pid_kill_seconds
+
+	local -i a
+	local -i i
+	local -i wait_screen_update_seconds
+
+	wait_screen_update_seconds=5
+
+	a=$(CalcAdaptiveSeconds "$wait_screen_update_seconds")
+
+	DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") for 'screen' log to be updated"
+
+	for (( i=1; i<=a; i++ )); do
+		/bin/sleep 1
+		DisplayWait "$i,"
+	done
+
+	DisplayAndCommitOutcomeToServiceLog 'done'
+
+	}
+
 WatchForAnyInterfaceUp()
 	{
 
@@ -2066,7 +2098,7 @@ WatchForAnyInterfaceUp()
 
 	}
 
-WatchForDaemon()
+WatchForDaemonProcStart()
 	{
 
 	# Inputs: (global)
@@ -2093,10 +2125,10 @@ WatchForDaemon()
 
 				if IsDaemonInScreen && IsNtScreenActive; then
 					DisplayAndCommitOutcomeToServiceLog abort
-					DisplayAndCommitErrorToServiceLog 'screen session inactive: there has been a launch failure'
+					DisplayAndCommitErrorToServiceLog "'screen' session inactive: there has been a launch failure"
 					false
 
-					exit 	# Only this sub-shell.
+					exit	# Only this sub-shell.
 				fi
 
 				if IsDaemonActive; then
@@ -2608,13 +2640,12 @@ AddFileToDebug()
 	[[ -s $1 ]] || return
 
 	local a
-	local debug_was_set
-
-	debug_was_set=$useropt_debug
+	local prev_useropt_debug
 
 	# Prevent external log contents appearing on-screen again, as they have already been seen "live".
 
-	useropt_debug=false
+	IsNtDaemonInScreen && prev_useropt_debug=$useropt_debug
+	IsNtDaemonInScreen && useropt_debug=false
 
 	DebugAsLog ''
 	DebugAsLog 'adding external log to main log ...'
@@ -2626,7 +2657,7 @@ AddFileToDebug()
 	done < "$1"
 
 	DebugExtLogMinorSeparator
-	useropt_debug=$debug_was_set
+	IsNtDaemonInScreen && useropt_debug=$prev_useropt_debug
 
 	}
 
@@ -3703,6 +3734,13 @@ IsDaemonInScreen()
 
 	}
 
+IsNtDaemonInScreen()
+	{
+
+	! IsDaemonInScreen
+
+	}
+
 UsesTemp()
 	{
 
@@ -3773,10 +3811,14 @@ ShowDaemonState()
 
 	IsVarDefined daemon_pid_pathfile || return
 
+	local msg
+
+	msg='daemon PID:'
+
 	if IsDaemonActive; then
-		[[ -s $daemon_pid_pathfile ]] && DisplayAndCommitInfoToServiceLog "daemon PID: $(< "$daemon_pid_pathfile")"
+		[[ -s $daemon_pid_pathfile ]] && DisplayAndCommitInfoToServiceLog "$msg $(< "$daemon_pid_pathfile")"
 	else
-		DisplayAndCommitInfoToServiceLog 'daemon PID: none'
+		DisplayAndCommitInfoToServiceLog "$msg none"
 	fi
 
 	}
@@ -3786,10 +3828,14 @@ ShowScreenState()
 
 	IsVarDefined r_screen_pid_pathfile || return
 
+	local msg
+
+	msg="'screen' PID:"
+
 	if IsScreenActive; then
-		[[ -s $r_screen_pid_pathfile ]] && DisplayAndCommitInfoToServiceLog "screen PID: $(< "$r_screen_pid_pathfile")"
+		[[ -s $r_screen_pid_pathfile ]] && DisplayAndCommitInfoToServiceLog "$msg $(< "$r_screen_pid_pathfile")"
 	else
-		DisplayAndCommitInfoToServiceLog 'screen PID: none'
+		DisplayAndCommitInfoToServiceLog "$msg none"
 	fi
 
 	}
