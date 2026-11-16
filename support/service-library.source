@@ -1368,7 +1368,7 @@ InstallVirtualPythonPackages()
 		if [[ -n $re ]]; then
 			for a in $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile; do
 				if [[ -n $a && -s $a && -x $r_gnu_sed_cmd ]]; then
-					cmd="$r_gnu_sed_cmd -i -E '/^(${re})[[:space:]-]/Id;/^(${re})[^[:alpha:]-].*$/Id' \"$a\""		# Perform extended and case-insensitive matching. Match = first word (or hyphenated-words) on each line. Delete line if matched.
+					cmd="$r_gnu_sed_cmd -i -E '/^(${re})([^[:alnum:]-].*$|$)/Id' \"$a\""	# Perform extended and case-insensitive matching. Match = first word (or hyphenated-words) on each line. Delete line if matched.
 
 					DisplayRunAndLog "exclude problematic PyPI modules from '$a'" "$cmd" log:failure-only
 				fi
