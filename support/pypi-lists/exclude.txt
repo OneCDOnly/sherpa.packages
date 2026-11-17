@@ -1,5 +1,5 @@
 # Don't install these modules via 'pip', use the Python3 modules from Entware instead.
-# Compiling these via 'pip' causes problems, particularly on older ARMv5 and ARMv7 NAS.
+# Compiling these via 'pip' causes problems on older ARMv5 (a19) and ARMv7 (a31) NAS.
 appdirs
 asgiref
 asyncio
