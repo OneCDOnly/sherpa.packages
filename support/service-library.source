@@ -814,8 +814,9 @@ CreateVirtualPythonEnv()
 	#	$new_env = true: new virtual environment was created.
 	#			 = false: a virtual environment already exists.
 
-	ConfirmVarIsDefined qpkg_venv_path "${qpkg_venv_path:-}" "$e_nopth" || return
 	ConfirmVarIsDefined qpkg_pip_path "${qpkg_pip_path:-}" "$e_nopth" || return
+	ConfirmVarIsDefined qpkg_temp_path "${qpkg_temp_path:-}" "$e_nopth" || return
+	ConfirmVarIsDefined qpkg_venv_path "${qpkg_venv_path:-}" "$e_nopth" || return
 
 	local a
 	local b
@@ -827,7 +828,7 @@ CreateVirtualPythonEnv()
 	[[ $allow_access_to_sys_packages = true ]] && a='--system-site-packages'
 
 	if IsNtVirtualPythonEnvFound; then
-		DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=\"$qpkg_pip_path\" VIRTUALENV_OVERRIDE_APP_DATA=\"$qpkg_pip_path\"; \"$interpreter\" -m virtualenv \"$qpkg_venv_path\" $a" log:failure-only
+		DisplayRunAndLog 'create new virtual Python environment' "export TMPDIR=\"$qpkg_temp_path\" PIP_CACHE_DIR=\"$qpkg_pip_path\" VIRTUALENV_OVERRIDE_APP_DATA=\"$qpkg_pip_path\"; \"$interpreter\" -m virtualenv \"$qpkg_venv_path\" $a" log:failure-only
 		new_env=true
 
 		if [[ ! -s $b ]]; then
@@ -1278,6 +1279,7 @@ InstallVirtualPythonPackages()
 
 	IsVirtualPythonEnv || return 0
 	IsNtUpdate && IsNtAutoUpdate && [[ $new_env = false ]] && return 0
+	ConfirmVarIsDefined qpkg_temp_path "${qpkg_temp_path:-}" "$e_nopth" || return
 	ConfirmVarIsDefined venv_pip_pathfile "${venv_pip_pathfile:-}" "$e_nopfi" || return
 
 	if IsNtVirtualPythonEnvFound; then
@@ -1382,7 +1384,7 @@ InstallVirtualPythonPackages()
 
 	for a in $base_modules_pathfile $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile; do
 		if [[ -n $a && -s $a ]]; then
-			DisplayRunAndLog "install PyPI modules from '$a'" "TMPDIR=/share/Public \"$venv_pip_pathfile\" install $no_pip_deps --no-input --upgrade pip --requirement \"$a\"" log:failure-only
+			DisplayRunAndLog "install PyPI modules from '$a'" "export TMPDIR=\"$qpkg_temp_path\"; \"$venv_pip_pathfile\" install $no_pip_deps --no-input --upgrade pip --requirement \"$a\"" log:failure-only
 
 			if (( $? > 0 )) && [[ $silence_pypi_errors = false ]]; then
 				CommitWarnToServiceLog 'PyPI module installation failed'
