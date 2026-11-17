@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=FileBrowser
-readonly r_service_script_version=261115
+readonly r_service_script_version=261118
 InitService(){ resolve_source_url=true
 run_daemon_in_screen_session=true
 source_url_arch=386

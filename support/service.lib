@@ -39,7 +39,7 @@ set -o nounset
 shopt -s extglob
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||/bin/ln -fns /proc/self/fd /dev/fd
-readonly r_service_library_version=261115
+readonly r_service_library_version=261118
 InitLibrary(){ [[ $(/usr/bin/basename "${BASH_SOURCE[0]}") = 'service-library.source' ]]&&ShowAsNote 'using source library'
 IsQNAP||exit
 service_action=undefined
@@ -267,19 +267,20 @@ if [[ -L $userlink_pathfile ]];then DisplayAndCommitInfoToServiceLog "symlink cr
 SetError;return;fi;else DisplayAndCommitInfoToServiceLog "symlink exists: $userlink_pathfile";fi;return;fi;}
 RemoveUserlinkToExec(){ if IsVarDefined userlink_pathfile;then if [[ -L $userlink_pathfile ]];then /bin/rm -f "$userlink_pathfile"
 DisplayAndCommitInfoToServiceLog "symlink removed: $userlink_pathfile";fi;fi;}
-CreateVirtualPythonEnv(){ ConfirmVarIsDefined qpkg_venv_path "${qpkg_venv_path:-}" "$e_nopth"||return
-ConfirmVarIsDefined qpkg_pip_path "${qpkg_pip_path:-}" "$e_nopth"||return
+CreateVirtualPythonEnv(){ ConfirmVarIsDefined qpkg_pip_path "${qpkg_pip_path:-}" "$e_nopth"||return
+ConfirmVarIsDefined qpkg_temp_path "${qpkg_temp_path:-}" "$e_nopth"||return
+ConfirmVarIsDefined qpkg_venv_path "${qpkg_venv_path:-}" "$e_nopth"||return
 local a
 local b
 a=''
 b=$qpkg_venv_path/pip.conf
 new_env=false
 [[ $allow_access_to_sys_packages = true ]]&&a='--system-site-packages'
-if IsNtVirtualPythonEnvFound;then DisplayRunAndLog 'create new virtual Python environment' "export PIP_CACHE_DIR=\"$qpkg_pip_path\" VIRTUALENV_OVERRIDE_APP_DATA=\"$qpkg_pip_path\";\"$interpreter\" -m virtualenv \"$qpkg_venv_path\" $a" log:failure-only
+if IsNtVirtualPythonEnvFound;then DisplayRunAndLog 'create new virtual Python environment' "export TMPDIR='$qpkg_temp_path' PIP_CACHE_DIR='$qpkg_pip_path' VIRTUALENV_OVERRIDE_APP_DATA='$qpkg_pip_path';$interpreter -m virtualenv '$qpkg_venv_path' $a" log:failure-only
 new_env=true
-if [[ ! -s $b ]];then DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\">\"$b\"" log:failure-only
-DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\">> \"$b\"" log:failure-only
-if IsVarDefined qpkg_wheels_path&&[[ -d $qpkg_wheels_path ]];then DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\">> \"$b\"" log:failure-only;fi;fi;fi;return 0;}
+if [[ ! -s $b ]];then DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\">'$b'" log:failure-only
+DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\">> '$b'" log:failure-only
+if IsVarDefined qpkg_wheels_path&&[[ -d $qpkg_wheels_path ]];then DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\">> '$b'" log:failure-only;fi;fi;fi;return 0;}
 ConfirmVarIsDefined(){ local -i backdepth
 backdepth=1
 [[ ${2:-undefined} != undefined ]]||{ ShowAsBug "${FUNCNAME[backdepth]}" "\$${1:-undefined}: '${3:-undefined}'";return;}
@@ -302,11 +303,13 @@ DisplayAndCommitInfoToServiceLog "nice daemon to: $nice_daemon_to";fi;if UsesCon
 ConfirmVarIsDefined qpkg_config_pathfile "${qpkg_config_pathfile:-}" "$e_nopfi"||return;fi;while true;do IsDaemonInScreen&&/bin/rm -f "$r_screen_log_pathfile"
 if ! DisplayRunAndLog "$a" "$b" log:failure-only "$run_daemon_in_screen_session";then DisplayAndCommitWarnToServiceLog 'there has been a launch failure'
 SetError;return;fi;if IsDaemonInScreen;then ShowScreenState
-if IsNtScreenActive;then DisplayAndCommitErrorToServiceLog 'screen session inactive: there has been a launch failure'
+if IsNtScreenActive;then DisplayAndCommitErrorToServiceLog "'screen' session inactive: there has been a launch failure"
+PauseForScreenLogFailedLaunch
 AddFileToDebug "$r_screen_log_pathfile"
 SetError;fi;fi
 IsDaemonActive
-WatchForDaemon
+WatchForDaemonProcStart
+IsRecheckDaemonAfterLaunch&&ShowDaemonState
 PauseForStartPid
 ShowDaemonState
 if IsNtError;then if ! IsDaemonActive||(IsWebUi&&! WatchForPortsActive);then DisplayAndCommitWarnToServiceLog 'daemon PID check failed: there has been a post-launch failure'
@@ -334,7 +337,8 @@ local a
 a='stop daemon'
 b=$(CalcAdaptiveSeconds "$watch_pid_kill_seconds")
 c=0
-d=$(<"$daemon_pid_pathfile")
+d=0
+[[ -s $daemon_pid_pathfile ]]&&d=$(<"$daemon_pid_pathfile")
 (( d>1 ))||return
 DisplayAndCommitProcessWaitToServiceLog "$a PID $d with SIGTERM (no-more than $b second$(Pluralise "$b"))"
 kill "$d"
@@ -422,6 +426,7 @@ DisplayAsHelp 'd, D, debug, verbose' "execute the specified [ACTION] in debug mo
 Display;}
 InstallVirtualPythonPackages(){ IsVirtualPythonEnv||return 0
 IsNtUpdate&&IsNtAutoUpdate&&[[ $new_env = false ]]&&return 0
+ConfirmVarIsDefined qpkg_temp_path "${qpkg_temp_path:-}" "$e_nopth"||return
 ConfirmVarIsDefined venv_pip_pathfile "${venv_pip_pathfile:-}" "$e_nopfi"||return
 if IsNtVirtualPythonEnvFound;then DisplayAndCommitErrorToServiceLog 'unable to install addons: virtual Python environment does not exist'
 SetError;return;fi;local a
@@ -463,13 +468,13 @@ renamed_modules_pathfile=$a
 break;done;if [[ -n $excluded_modules_pathfile &&-s $excluded_modules_pathfile ]];then module_exclusions=$(/bin/tr '\n' ' '<<<"$(StripComments "$(<"$excluded_modules_pathfile")")")
 module_exclusions=${module_exclusions%* }
 [[ -n $module_exclusions ]]&&[[ -x $r_gnu_sed_cmd ]]&&re="${module_exclusions// /|}"
-if [[ -n $re ]];then for a in $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile;do if [[ -n $a &&-s $a &&-x $r_gnu_sed_cmd ]];then cmd="$r_gnu_sed_cmd -i -E '/^(${re})[[:space:]]/Id;/^(${re})$/Id' \"$a\""
-DisplayRunAndLog "exclude problematic PyPI modules from '$a'" "$cmd" log:failure-only;fi;done;fi;fi;for a in $base_modules_pathfile $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile;do if [[ -n $a &&-s $a ]];then DisplayRunAndLog "install PyPI modules from '$a'" "\"$venv_pip_pathfile\" install $no_pip_deps --no-input --upgrade pip --requirement \"$a\"" log:failure-only
+if [[ -n $re ]];then for a in $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile;do if [[ -n $a &&-s $a &&-x $r_gnu_sed_cmd ]];then cmd="$r_gnu_sed_cmd -i -E '/^(${re})([^[:alnum:]-].*$|$)/Id' '$a'"
+DisplayRunAndLog "exclude problematic PyPI modules from '$a'" "$cmd" log:failure-only;fi;done;fi;fi;for a in $base_modules_pathfile $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile;do if [[ -n $a &&-s $a ]];then DisplayRunAndLog "install PyPI modules from '$a'" "export TMPDIR='$qpkg_temp_path';$venv_pip_pathfile install $no_pip_deps --no-input --upgrade pip --requirement '$a'" log:failure-only
 if(( $?>0 ))&&[[ $silence_pypi_errors = false ]];then CommitWarnToServiceLog 'PyPI module installation failed';fi;no_pips_installed=false;fi;done;if [[ -n $renamed_modules_pathfile &&-s $renamed_modules_pathfile ]];then for a in $(StripComments "$(<"$renamed_modules_pathfile")");do RenameSharedObjectFile "$a";done;fi
 if IsSupportGetApplVersion;then ConfirmVarIsDefined venv_python_pathfile "${venv_python_pathfile:-}" "$e_nopfi"||return
 GetApplVersion
-if [[ -x $r_gnu_find_cmd &&$new_env = false &&-s $r_appl_version_store_pathfile &&$(<"$r_appl_version_store_pathfile") != "$appl_version" ]];then DisplayRunAndLog 'clean Python bytecode files' "$r_gnu_find_cmd \"$qpkg_repo_path\" -type d -name '__pycache__' -print0|/usr/bin/xargs -I {} -0 /bin/rm -rf '{}'
-" log:failure-only;fi;if [[ ! -s $r_appl_version_store_pathfile ||$(<"$r_appl_version_store_pathfile") != "$appl_version" ]];then DisplayRunAndLog 'generate language translations' "cd \"$qpkg_repo_path\";\"$venv_python_pathfile\" \"$qpkg_repo_path\"/tools/make_mo.py" log:failure-only;fi;SaveApplVersion;fi;return 0;}
+if [[ -x $r_gnu_find_cmd &&$new_env = false &&-s $r_appl_version_store_pathfile &&$(<"$r_appl_version_store_pathfile") != "$appl_version" ]];then DisplayRunAndLog 'clean Python bytecode files' "$r_gnu_find_cmd '$qpkg_repo_path' -type d -name '__pycache__' -print0|/usr/bin/xargs -I {} -0 /bin/rm -rf '{}'
+" log:failure-only;fi;if [[ ! -s $r_appl_version_store_pathfile ||$(<"$r_appl_version_store_pathfile") != "$appl_version" ]];then DisplayRunAndLog 'generate language translations' "cd '$qpkg_repo_path';$venv_python_pathfile '$qpkg_repo_path'/tools/make_mo.py" log:failure-only;fi;SaveApplVersion;fi;return 0;}
 StripComments(){ [[ -n $1 ]]||return
 local a
 a=$1
@@ -548,21 +553,21 @@ if [[ -d $qpkg_repo_path/.git &&$active_branch != "$source_git_branch" ]];then D
 branch_switch=true
 CleanLocalRepo;fi;branch_opt="--branch $source_git_branch $branch_depth"
 if [[ ! -d $qpkg_repo_path/.git ]];then if [[ -d $qpkg_repo_path ]];then /bin/rm -rf "$qpkg_repo_path"
-/bin/mkdir "$qpkg_repo_path";fi;opts="clone $progress_opt $branch_opt $hide_advice_opt '$source_git_url' \"$qpkg_repo_path\""
+/bin/mkdir "$qpkg_repo_path";fi;opts="clone $progress_opt $branch_opt $hide_advice_opt '$source_git_url' '$qpkg_repo_path'"
 DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;$r_git_cmd $opts" log:failure-only
 if(( $? != 0 ))&&[[ $useropt_verbose = true ]];then DisplayAndCommitErrorToAllLogs 'clone failed'
-SetError;return;fi;elif IsUpdate||IsAutoUpdate;then opts="-C \"$qpkg_repo_path\" clean -f;$r_git_cmd -C \"$qpkg_repo_path\" reset --hard origin/$source_git_branch;$r_git_cmd -C \"$qpkg_repo_path\" pull"
+SetError;return;fi;elif IsUpdate||IsAutoUpdate;then opts="-C '$qpkg_repo_path' clean -f;$r_git_cmd -C '$qpkg_repo_path' reset --hard origin/$source_git_branch;$r_git_cmd -C '$qpkg_repo_path' pull"
 DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp;$r_git_cmd $opts" log:failure-only
 (( $? != 0 ))&&[[ $useropt_verbose = true ]]&&DisplayAndCommitErrorToAllLogs 'update failed';fi;active_branch=$(GetPathGitBranch "$qpkg_repo_path")
 DisplayAndCommitInfoToServiceLog "active git branch: $active_branch"
 if [[ -z $active_branch ||$active_branch = none ]];then DisplayAndCommitErrorToAllLogs 'no active git branch found'
 SetError;return;fi;return 0;}
-CleanLocalRepo(){ if [[ -z $r_qpkg_path ||-z $r_qpkg_name ]]||IsNtSourcedOnline;then SetError;return;fi;(IsSourceGit||IsSourceReleasePackage)&&DisplayRunAndLog 'clean local repository' "/bin/rm -rf \"$qpkg_repo_path\"" log:failure-only
-IsVarDefined qpkg_venv_path&&[[ -d $qpkg_venv_path ]]&&DisplayRunAndLog 'clean virtual Python environment' "/bin/rm -rf \"$qpkg_venv_path\"" log:failure-only
-IsVarDefined qpkg_pip_path&&[[ -d $qpkg_pip_path ]]&&DisplayRunAndLog 'clean PyPI cache' "/bin/rm -rf \"$qpkg_pip_path\"" log:failure-only
-[[ -s $r_appl_version_store_pathfile ]]&&DisplayRunAndLog 'remove application version' "/bin/rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
-[[ -s $r_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f \"$r_screen_log_pathfile\"" log:failure-only
-IsVarDefined qpkg_temp_path&&[[ -d $qpkg_temp_path ]]&&DisplayRunAndLog 'clean temp path' "/bin/rm -rf \"$qpkg_temp_path\"" log:failure-only
+CleanLocalRepo(){ if [[ -z $r_qpkg_path ||-z $r_qpkg_name ]]||IsNtSourcedOnline;then SetError;return;fi;(IsSourceGit||IsSourceReleasePackage)&&DisplayRunAndLog 'clean local repository' "/bin/rm -rf '$qpkg_repo_path'" log:failure-only
+IsVarDefined qpkg_venv_path&&[[ -d $qpkg_venv_path ]]&&DisplayRunAndLog 'clean virtual Python environment' "/bin/rm -rf '$qpkg_venv_path'" log:failure-only
+IsVarDefined qpkg_pip_path&&[[ -d $qpkg_pip_path ]]&&DisplayRunAndLog 'clean PyPI cache' "/bin/rm -rf '$qpkg_pip_path'" log:failure-only
+[[ -s $r_appl_version_store_pathfile ]]&&DisplayRunAndLog 'remove application version' "/bin/rm -f '$r_appl_version_store_pathfile'" log:failure-only
+[[ -s $r_screen_log_pathfile ]]&&DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f '$r_screen_log_pathfile'" log:failure-only
+IsVarDefined qpkg_temp_path&&[[ -d $qpkg_temp_path ]]&&DisplayRunAndLog 'clean temp path' "/bin/rm -rf '$qpkg_temp_path'" log:failure-only
 MakePaths;}
 WatchForGit(){ if IsNtQpkgInstalled Entware;then DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not installed"
 SetError;return;fi;if IsNtQpkgEnabled Entware;then DisplayAndCommitErrorToAllLogs "'git' unavailable: Entware is not enabled"
@@ -580,32 +585,39 @@ a=$(FindPid "$2" "${3:-}" "${4:-}")
 (( a>0 ))&&echo "$a">"$1";}
 FindPid(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nostr"||return
 local -a args
+local -i loop_count
+local -i loop_limit
 local -i pid
 local arg
+local cmdline_pathfile
+local exe_pathfile
 local pid_path
 local remainder
 local temp
+loop_limit=16
 trap "$(shopt -p)" RETURN
 shopt -s nullglob nocasematch
 for pid_path in /proc/[0-9]*/;do temp=${pid_path#/proc/}
 pid=${temp%/}
+cmdline_pathfile=/proc/$pid/cmdline
+exe_pathfile=/proc/$pid/exe
 (( pid>1 ))||continue
-[[ -e /proc/$pid/cmdline &&-r /proc/$pid/cmdline &&-L /proc/$pid/exe ]]||continue
+[[ -e $cmdline_pathfile &&-r $cmdline_pathfile &&-L $exe_pathfile ]]||continue
 args=()
+loop_count=0
 remainder=''
-while IFS= read -r -d '' arg||[[ -n "$arg" ]];do args+=("$arg");done<"/proc/$pid/cmdline"
-(( ${#args[@]}>0 ))||continue
+if exec 3<"$cmdline_pathfile" 2>/dev/null;then while IFS= read -r -u 3 -d '' arg;do args+=("$arg")
+(( loop_count++ ));(( loop_count>= loop_limit ))&&break;done;exec 3<&-;fi;(( ${#args[@]}>0 ))||continue
 [[ ${args[0]} =~ $1 ]]||continue
-if [[ -n ${2:-} &&$2 != undefined ]]||[[ -n ${3:-} &&$3 != undefined ]];then remainder=$(IFS=' ';echo "${args[*]:1}")
-[[ "$remainder" == *"$2"* ]]||continue
-[[ "$remainder" == *"$3"* ]]||continue;fi;printf '%s' "$pid"
+remainder=$(IFS=' ';echo "${args[*]:1}")
+if [[ -n ${2:-} &&$2 != undefined ]];then [[ "$remainder" == *"$2"* ]]||continue;fi;if [[ -n ${3:-} &&$3 != undefined ]];then [[ "$remainder" == *"$3"* ]]||continue;fi;printf '%s' "$pid"
 return;done;return 1;}
 PauseForStartPid(){ IsNtError||return
 local -i a
 local -i i
 a=$(CalcAdaptiveSeconds "$wait_pid_start_seconds")
 if [[ $daemon_pidfile_is_managed_by_app = true ]];then if WatchForFileToAppear "$daemon_pid_pathfile" "$(CalcAdaptiveSeconds "$watch_pidfile_start_seconds")";then /bin/sleep 1;fi;fi
-if [[ $recheck_daemon_pid_after_launch = true ]];then DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") to confirm PID is still alive"
+if IsRecheckDaemonAfterLaunch;then DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") to confirm PID is still alive"
 for(( i=1;i<=a;i++ ));do /bin/sleep 1
 DisplayWait "$i,";done;DisplayAndCommitOutcomeToServiceLog 'done';fi;RefreshDaemonPidFile||return;}
 PauseForKillPid(){ local -i a
@@ -614,6 +626,14 @@ a=$(CalcAdaptiveSeconds "$wait_pid_kill_seconds")
 if [[ $recheck_daemon_pid_after_kill = true ]];then DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") to confirm PID is still dead"
 for(( i=1;i<=a;i++ ));do /bin/sleep 1
 DisplayWait "$i,";done;DisplayAndCommitOutcomeToServiceLog 'done';fi;! RefreshDaemonPidFile||return;}
+PauseForScreenLogFailedLaunch(){ local -i a
+local -i i
+local -i wait_screen_update_seconds
+wait_screen_update_seconds=5
+a=$(CalcAdaptiveSeconds "$wait_screen_update_seconds")
+DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") for 'screen' log to be updated"
+for(( i=1;i<=a;i++ ));do /bin/sleep 1
+DisplayWait "$i,";done;DisplayAndCommitOutcomeToServiceLog 'done';}
 WatchForAnyInterfaceUp(){ local -i a
 local -i i
 local interface_name
@@ -630,7 +650,7 @@ if(( $? != 0 ));then DisplayAndCommitErrorToAllLogs "operational network interfa
 return 1;fi;fi
 DisplayAndCommitInfoToServiceLog "operational network interface found: $interface_name"
 return 0;}
-WatchForDaemon(){ IsNtError||return
+WatchForDaemonProcStart(){ IsNtError||return
 local -i a
 local -i i
 a=$(CalcAdaptiveSeconds "$watch_pid_start_seconds")
@@ -638,7 +658,7 @@ if [[ ! -s $daemon_pid_pathfile ]];then DisplayAndCommitProcessWaitToServiceLog 
 (for(( i=1;i<=a;i++ ));do /bin/sleep 1
 DisplayWait "$i,"
 if IsDaemonInScreen&&IsNtScreenActive;then DisplayAndCommitOutcomeToServiceLog abort
-DisplayAndCommitErrorToServiceLog 'screen session inactive: there has been a launch failure'
+DisplayAndCommitErrorToServiceLog "'screen' session inactive: there has been a launch failure"
 false
 exit;fi;if IsDaemonActive;then DisplayAndCommitOutcomeToServiceLog OK
 CommitDoneToServiceLog "process name appeared in $i second$(Pluralise "$i")"
@@ -785,18 +805,13 @@ ShowDisableFailed(){ DisplayAndCommitToServiceLog "= $(FormatAsPackageName "$r_q
 AddFileToDebug(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nofil"||return
 [[ -s $1 ]]||return
 local a
-local debug_was_set
-debug_was_set=$useropt_debug
-useropt_debug=false
-DebugAsLog ''
-DebugAsLog 'adding external log to main log ...'
+local prev_useropt_debug
+if IsNtDaemonInScreen;then prev_useropt_debug=$useropt_debug
+useropt_debug=false;fi;DisplayAndCommitLoglineToServiceLog "adding '$1' to main log ..."
 DebugExtLogMinorSeparator
-DebugAsLog "$(FormatAsLogFilename "$1")"
-while read -r a;do DebugAsLog "$a";done<"$1"
+while IFS= read -r a;do DisplayAndCommitLoglineToServiceLog "$a";done<"$1"
 DebugExtLogMinorSeparator
-useropt_debug=$debug_was_set;}
-FormatAsLogFilename(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nofil"||return
-Display "log file: '$1'";}
+IsNtDaemonInScreen&&useropt_debug=$prev_useropt_debug;}
 FormatAsCommand(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nocmd"||return
 Display "command: '$1'";}
 FormatAsResultAndStdout(){ if(( ${1:-0} == 0 ));then echo "= result_code: $(FormatAsExitcode "$1")";else echo "= result_code: $(FormatAsExitcode "$1")";fi;DebugBulletSeparatorWithText 'stdout & stderr begins below'
@@ -806,7 +821,7 @@ FormatAsExitcode(){ ConfirmVarIsDefined 1 "${1:-}" "$e_noval"||return
 echo "[${1:-}]";}
 FormatAsPackageName(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nopnm"||return
 echo "'${1:-}'";}
-DebugExtLogMinorSeparator(){ DebugAsLog "$(DebugMinorSeparator)";}
+DebugExtLogMinorSeparator(){ DisplayAndCommitLoglineToServiceLog	"$(DebugMinorSeparator)";}
 DebugBulletSeparatorWithText(){ local -i b
 local -i c
 local a
@@ -816,15 +831,6 @@ b=$(( ( r_debug_log_datawidth - ${#a} ) / 2 ))
 c=$(( r_debug_log_datawidth - ${#a} - b ))
 eval printf '%0.s•' "{1..$b}";printf '%s' "$a";eval printf '%0.s•' "{1..$c}";echo;}
 DebugMinorSeparator(){ eval printf '%0.s-' "{1..$r_debug_log_datawidth}";}
-DebugAsLog(){ DebugThis "(LL) ${1:-}";}
-DebugThis(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nostr"||return
-[[ $useropt_debug = true ]]&&Display "$1"
-WriteAsDebug "$1";}
-WriteAsDebug(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nostr"||return
-WriteToServiceLog dbug "$1";}
-WriteToServiceLog(){ ConfirmVarIsDefined 1 "${1:-}" "$e_nostr"||return
-ConfirmVarIsDefined 2 "${2:-}" "$e_nostr"||return
-printf "%-4s: %s\n" "$(StripANSICodes "$1")" "$(StripANSICodes "$2")">>"$r_service_log_pathfile";}
 StripANSICodes(){ if [[ -x $r_gnu_sed_cmd &&-L /opt/etc/passwd ]];then $r_gnu_sed_cmd -r 's/\x1b\[[0-9;]*m//g'<<<"${1:-}";else echo "${1:-}";fi;}
 Capitalise(){ echo "$(Uppercase ${1:0:1})${1:1}";}
 Uppercase(){ /bin/tr 'a-z' 'A-Z'<<<"$1";}
@@ -988,15 +994,21 @@ IsSupportAutoUpdate(){ [[ $can_restart_to_update = true ]];}
 IsSourcedOnline(){ IsSourceGit||UsesPipCache||UsesReleasePackage valid;}
 IsNtSourcedOnline(){ ! IsSourcedOnline;}
 IsDaemonInScreen(){ [[ $run_daemon_in_screen_session = true ]];}
+IsNtDaemonInScreen(){ ! IsDaemonInScreen;}
+IsRecheckDaemonAfterLaunch(){ [[ $recheck_daemon_pid_after_launch = true ]];}
 UsesTemp(){ IsVarDefined qpkg_temp_path;}
 IsSSLEnabled(){ IsVarDefined get_ui_port_secure_enabled_test_cmd&&eval "$get_ui_port_secure_enabled_test_cmd";}
 IsDaemon(){ IsVarDefined daemon_exec_pathfile&&IsVarDefined daemon_launch_cmd;}
 IsNtDaemon(){ ! IsDaemon;}
 IsDaemonCheck(){ IsVarDefined daemon_check_pathfile;}
 ShowDaemonState(){ IsVarDefined daemon_pid_pathfile||return
-if IsDaemonActive;then DisplayAndCommitInfoToServiceLog "daemon PID: $(<"$daemon_pid_pathfile")";else DisplayAndCommitInfoToServiceLog 'daemon PID: none';fi;}
+local msg
+msg='daemon PID:'
+if IsDaemonActive;then [[ -s $daemon_pid_pathfile ]]&&DisplayAndCommitInfoToServiceLog "$msg $(<"$daemon_pid_pathfile")";else DisplayAndCommitInfoToServiceLog "$msg none";fi;}
 ShowScreenState(){ IsVarDefined r_screen_pid_pathfile||return
-if IsScreenActive;then DisplayAndCommitInfoToServiceLog "screen PID: $(<"$r_screen_pid_pathfile")";else DisplayAndCommitInfoToServiceLog 'screen PID: none';fi;}
+local msg
+msg="'screen' PID:"
+if IsScreenActive;then [[ -s $r_screen_pid_pathfile ]]&&DisplayAndCommitInfoToServiceLog "$msg $(<"$r_screen_pid_pathfile")";else DisplayAndCommitInfoToServiceLog "$msg none";fi;}
 IsScreenActive(){ IsVarDefined r_screen_pid_pathfile||return
 RefreshScreenPidFile
 [[ -s $r_screen_pid_pathfile ]];}
@@ -1264,6 +1276,7 @@ DisplayAndCommitInfoToServiceLog(){ DisplayAndCommitToServiceLog "- ${1:-}";}
 DisplayAndCommitWarnToServiceLog(){ DisplayAndCommitToServiceLog "w ${1:-}";}
 DisplayAndCommitErrorToServiceLog(){ DisplayAndCommitToServiceLog "! ${1:-}";}
 DisplayAndCommitDoneToServiceLog(){ DisplayAndCommitToServiceLog "= ${1:-}";}
+DisplayAndCommitLoglineToServiceLog(){ DisplayAndCommitToServiceLog "L ${1:-}";}
 DisplayAndCommitOutcomeToServiceLog(){ DisplayAndCommitToServiceLog "${1:-}";}
 DisplayAndCommitRetryToServiceLog(){ DisplayAndCommitToServiceLog "~ ${1:-}";}
 DisplayAndCommitActionToServiceLog(){ [[ $service_action = undefined ]]&&return

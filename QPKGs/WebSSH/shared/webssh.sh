@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WebSSH
-readonly r_service_script_version=261115
+readonly r_service_script_version=261118
 InitService(){ allow_access_to_sys_packages=true
 can_restart_to_update=true
 run_daemon_in_screen_session=true
@@ -45,6 +45,7 @@ start_retries=3
 ui_listening_address=0.0.0.0
 ui_port=8010
 qpkg_pip_path=$r_qpkg_path/pip-cache
+qpkg_temp_path=$r_qpkg_path/tmp
 qpkg_venv_path=$r_qpkg_path/venv
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
 daemon_exec_pathfile=$qpkg_venv_path/bin/python

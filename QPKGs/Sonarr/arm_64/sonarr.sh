@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Sonarr
-readonly r_service_script_version=261115
+readonly r_service_script_version=261118
 InitService(){ can_restart_to_update=true
 compare_release_filename=true
 run_daemon_in_screen_session=true
