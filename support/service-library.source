@@ -828,15 +828,15 @@ CreateVirtualPythonEnv()
 	[[ $allow_access_to_sys_packages = true ]] && a='--system-site-packages'
 
 	if IsNtVirtualPythonEnvFound; then
-		DisplayRunAndLog 'create new virtual Python environment' "export TMPDIR=\"$qpkg_temp_path\" PIP_CACHE_DIR=\"$qpkg_pip_path\" VIRTUALENV_OVERRIDE_APP_DATA=\"$qpkg_pip_path\"; \"$interpreter\" -m virtualenv \"$qpkg_venv_path\" $a" log:failure-only
+		DisplayRunAndLog 'create new virtual Python environment' "export TMPDIR='$qpkg_temp_path' PIP_CACHE_DIR='$qpkg_pip_path' VIRTUALENV_OVERRIDE_APP_DATA='$qpkg_pip_path'; $interpreter -m virtualenv '$qpkg_venv_path' $a" log:failure-only
 		new_env=true
 
 		if [[ ! -s $b ]]; then
-			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > \"$b\"" log:failure-only
-			DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\" >> \"$b\"" log:failure-only	# directive:dont-squeeze
+			DisplayRunAndLog "create QPKG 'pip' config" "echo \"[global]\" > '$b'" log:failure-only
+			DisplayRunAndLog "add location '$qpkg_pip_path' as 'pip' cache" "echo \"cache-dir = $qpkg_pip_path\" >> '$b'" log:failure-only	# directive:dont-squeeze
 
 			if IsVarDefined qpkg_wheels_path && [[ -d $qpkg_wheels_path ]]; then
-				DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> \"$b\"" log:failure-only	# directive:dont-squeeze
+				DisplayRunAndLog "add location '$qpkg_wheels_path' to 'pip' search path" "echo \"find-links = $qpkg_wheels_path\" >> '$b'" log:failure-only	# directive:dont-squeeze
 			fi
 		fi
 	fi
@@ -1372,7 +1372,7 @@ InstallVirtualPythonPackages()
 		if [[ -n $re ]]; then
 			for a in $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile; do
 				if [[ -n $a && -s $a && -x $r_gnu_sed_cmd ]]; then
-					cmd="$r_gnu_sed_cmd -i -E '/^(${re})([^[:alnum:]-].*$|$)/Id' \"$a\""	# Perform extended and case-insensitive matching. Match = first word (or hyphenated-words) on each line. Delete line if matched.
+					cmd="$r_gnu_sed_cmd -i -E '/^(${re})([^[:alnum:]-].*$|$)/Id' '$a'"	# Perform extended and case-insensitive matching. Match = first word (or hyphenated-words) on each line. Delete line if matched.
 
 					DisplayRunAndLog "exclude problematic PyPI modules from '$a'" "$cmd" log:failure-only
 				fi
@@ -1384,7 +1384,7 @@ InstallVirtualPythonPackages()
 
 	for a in $base_modules_pathfile $essential_modules_pathfile $required_modules_pathfile $recommended_modules_pathfile; do
 		if [[ -n $a && -s $a ]]; then
-			DisplayRunAndLog "install PyPI modules from '$a'" "export TMPDIR=\"$qpkg_temp_path\"; \"$venv_pip_pathfile\" install $no_pip_deps --no-input --upgrade pip --requirement \"$a\"" log:failure-only
+			DisplayRunAndLog "install PyPI modules from '$a'" "export TMPDIR='$qpkg_temp_path'; $venv_pip_pathfile install $no_pip_deps --no-input --upgrade pip --requirement '$a'" log:failure-only
 
 			if (( $? > 0 )) && [[ $silence_pypi_errors = false ]]; then
 				CommitWarnToServiceLog 'PyPI module installation failed'
@@ -1410,14 +1410,14 @@ InstallVirtualPythonPackages()
 		if [[ -x $r_gnu_find_cmd && $new_env = false && -s $r_appl_version_store_pathfile && $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
 			# Remove existing .pyc files to prevent runtime errors
 
-			DisplayRunAndLog 'clean Python bytecode files' "$r_gnu_find_cmd \"$qpkg_repo_path\" -type d -name '__pycache__' -print0 | /usr/bin/xargs -I {} -0 /bin/rm -rf '{}'
+			DisplayRunAndLog 'clean Python bytecode files' "$r_gnu_find_cmd '$qpkg_repo_path' -type d -name '__pycache__' -print0 | /usr/bin/xargs -I {} -0 /bin/rm -rf '{}'
 " log:failure-only
 		fi
 
 		if [[ ! -s $r_appl_version_store_pathfile || $(< "$r_appl_version_store_pathfile") != "$appl_version" ]]; then
 			# Generate language translations.
 
-			DisplayRunAndLog 'generate language translations' "cd \"$qpkg_repo_path\"; \"$venv_python_pathfile\" \"$qpkg_repo_path\"/tools/make_mo.py" log:failure-only
+			DisplayRunAndLog 'generate language translations' "cd '$qpkg_repo_path'; $venv_python_pathfile '$qpkg_repo_path'/tools/make_mo.py" log:failure-only
 		fi
 
 		SaveApplVersion
@@ -1737,7 +1737,7 @@ CloneGitRepo()
 			/bin/mkdir "$qpkg_repo_path"
 		fi
 
-		opts="clone $progress_opt $branch_opt $hide_advice_opt '$source_git_url' \"$qpkg_repo_path\""
+		opts="clone $progress_opt $branch_opt $hide_advice_opt '$source_git_url' '$qpkg_repo_path'"
 
 		DisplayRunAndLog "create $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; $r_git_cmd $opts" log:failure-only
 
@@ -1749,7 +1749,7 @@ CloneGitRepo()
 	elif IsUpdate || IsAutoUpdate; then
 		# Latest effort at resolving local clone corruption: https://stackoverflow.com/a/10170195
 
-		opts="-C \"$qpkg_repo_path\" clean -f; $r_git_cmd -C \"$qpkg_repo_path\" reset --hard origin/$source_git_branch; $r_git_cmd -C \"$qpkg_repo_path\" pull"
+		opts="-C '$qpkg_repo_path' clean -f; $r_git_cmd -C '$qpkg_repo_path' reset --hard origin/$source_git_branch; $r_git_cmd -C '$qpkg_repo_path' pull"
 
 		DisplayRunAndLog "update $(FormatAsPackageName "$r_qpkg_name") from remote repository" "cd /tmp; $r_git_cmd $opts" log:failure-only
 
@@ -1787,13 +1787,13 @@ CleanLocalRepo()
 		SetError; return
 	fi
 
-	(IsSourceGit || IsSourceReleasePackage) && DisplayRunAndLog 'clean local repository' "/bin/rm -rf \"$qpkg_repo_path\"" log:failure-only
+	(IsSourceGit || IsSourceReleasePackage) && DisplayRunAndLog 'clean local repository' "/bin/rm -rf '$qpkg_repo_path'" log:failure-only
 
-	IsVarDefined qpkg_venv_path && [[ -d $qpkg_venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "/bin/rm -rf \"$qpkg_venv_path\"" log:failure-only
-	IsVarDefined qpkg_pip_path && [[ -d $qpkg_pip_path ]] && DisplayRunAndLog 'clean PyPI cache' "/bin/rm -rf \"$qpkg_pip_path\"" log:failure-only
-	[[ -s $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "/bin/rm -f \"$r_appl_version_store_pathfile\"" log:failure-only
-	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f \"$r_screen_log_pathfile\"" log:failure-only
-	IsVarDefined qpkg_temp_path && [[ -d $qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "/bin/rm -rf \"$qpkg_temp_path\"" log:failure-only
+	IsVarDefined qpkg_venv_path && [[ -d $qpkg_venv_path ]] && DisplayRunAndLog 'clean virtual Python environment' "/bin/rm -rf '$qpkg_venv_path'" log:failure-only
+	IsVarDefined qpkg_pip_path && [[ -d $qpkg_pip_path ]] && DisplayRunAndLog 'clean PyPI cache' "/bin/rm -rf '$qpkg_pip_path'" log:failure-only
+	[[ -s $r_appl_version_store_pathfile ]] && DisplayRunAndLog 'remove application version' "/bin/rm -f '$r_appl_version_store_pathfile'" log:failure-only
+	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f '$r_screen_log_pathfile'" log:failure-only
+	IsVarDefined qpkg_temp_path && [[ -d $qpkg_temp_path ]] && DisplayRunAndLog 'clean temp path' "/bin/rm -rf '$qpkg_temp_path'" log:failure-only
 
 	MakePaths
 
