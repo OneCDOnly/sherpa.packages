@@ -1,1 +1,1 @@
-- New fork, no compatibility issues found yet.
+* a19: incompatible. Can't compile 'pydantic-core' because no 'rustc' or 'maturin' available in static Entware and Python 3.11.4

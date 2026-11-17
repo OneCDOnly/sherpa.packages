@@ -218,7 +218,7 @@ InitService()
 
 		# qpkg_temp_path=undefined
 			# Default
-		# qpkg_temp_path=$r_qpkg_path/tmp
+		qpkg_temp_path=$r_qpkg_path/tmp
 			# Typical
 		# qpkg_temp_path=
 			# Custom
