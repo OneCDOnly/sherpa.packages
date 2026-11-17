@@ -900,12 +900,12 @@ StartDaemon()
 	b=$daemon_launch_cmd
 	c=0
 
-	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f \"$r_screen_log_pathfile\"" log:failure-only
+	[[ -s $r_screen_log_pathfile ]] && DisplayRunAndLog "remove previous 'screen' session log" "/bin/rm -f '$r_screen_log_pathfile'" log:failure-only
 
 	IsDaemonInScreen && a+=" (in 'screen' session)"
 
 	if (( nice_daemon_to != 0 )) && (( nice_daemon_to >= -20 )) && (( nice_daemon_to <= 19 )) && [[ -x $r_gnu_nice_cmd ]]; then
-		b="$r_gnu_nice_cmd -n $nice_daemon_to sh -c \"$daemon_launch_cmd\""
+		b="$r_gnu_nice_cmd -n $nice_daemon_to sh -c '$daemon_launch_cmd'"
 		DisplayAndCommitInfoToServiceLog "nice daemon to: $nice_daemon_to"
 	fi
 
@@ -1459,7 +1459,7 @@ BackupConfig()
 
 	ConfirmVarIsDefined qpkg_backup_pathfile "${qpkg_backup_pathfile:-}" "$e_nopfi" || return
 
-	if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file=\"$qpkg_backup_pathfile\" --directory=\"$r_qpkg_path\"/config ." log:failure-only; then
+	if ! DisplayRunAndLog 'update configuration backup' "/bin/tar --create --gzip --file='$qpkg_backup_pathfile' --directory='$r_qpkg_path'/config ." log:failure-only; then
 		SetError; return
 	fi
 
@@ -1480,7 +1480,7 @@ RestoreConfig()
 		SetError; return
 	fi
 
-	if ! DisplayRunAndLog 'restore configuration backup' "/bin/tar --extract --gzip --file=\"$qpkg_backup_pathfile\" --directory=\"$r_qpkg_path\"/config" log:failure-only; then
+	if ! DisplayRunAndLog 'restore configuration backup' "/bin/tar --extract --gzip --file='$qpkg_backup_pathfile' --directory='$r_qpkg_path'/config" log:failure-only; then
 		SetError; return
 	fi
 
@@ -1497,7 +1497,7 @@ ResetConfig()
 
 	ConfirmVarIsDefined qpkg_config_default_pathfile "${qpkg_config_default_pathfile:-}" "$e_nopfi" || return
 
-	if ! DisplayRunAndLog 'reset configuration' "/bin/mv \"$qpkg_config_default_pathfile\" \"$r_qpkg_path\"; /bin/rm -rf \"$r_qpkg_path\"/config/*; /bin/mkdir -p \"$(/usr/bin/dirname "$qpkg_config_default_pathfile")\"; /bin/mv \"$r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile")\" \"$qpkg_config_default_pathfile\"" log:failure-only; then
+	if ! DisplayRunAndLog 'reset configuration' "/bin/mv '$qpkg_config_default_pathfile' '$r_qpkg_path'; /bin/rm -rf '$r_qpkg_path'/config/*; /bin/mkdir -p '$(/usr/bin/dirname "$qpkg_config_default_pathfile")'; /bin/mv '$r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile")' '$qpkg_config_default_pathfile'" log:failure-only; then
 		SetError; return
 	fi
 
@@ -4537,12 +4537,12 @@ DownloadReleasePackage()
 
 	if [[ -s $2 ]]; then
 		b='refresh existing release package (only-if-newer)'
-		a+=" --time-cond \"$2\""
+		a+=" --time-cond '$2'"
 	else
 		b='download latest release package'
 	fi
 
-	a+=" --show-error --max-time 300 --location --output \"$2\""
+	a+=" --show-error --max-time 300 --location --output '$2'"
 
 	DisplayRunAndLog "$b" "/sbin/curl $a '$1'" log:failure-only
 
@@ -4578,8 +4578,8 @@ ExtractReleasePackage()
 	fi
 
 	if [[ -s $1 ]]; then
-		tar_opts="$tar_verbose --extract --gzip --file=\"$1\" --directory=\"$qpkg_repo_path\""
-		unzip_opts="$unzip_verbose -o \"$1\" -d \"$qpkg_repo_path\""
+		tar_opts="$tar_verbose --extract --gzip --file='$1' --directory='$qpkg_repo_path'"
+		unzip_opts="$unzip_verbose -o '$1' -d '$qpkg_repo_path'"
 
 		# Try as '.zip' first, then '.tar.gz'
 
@@ -4587,7 +4587,7 @@ ExtractReleasePackage()
 
 		if [[ $compare_release_filename = true && -n $2 ]]; then
 			if [[ ! -s $2 ]]; then
-				DisplayRunAndLog 'create release package name reference' "/bin/touch \"$2\"" log:failure-only
+				DisplayRunAndLog 'create release package name reference' "/bin/touch '$2'" log:failure-only
 			fi
 		fi
 	fi
@@ -4609,12 +4609,12 @@ MakeExecReleasePackage()
 	ConfirmVarIsDefined 1 "${1:-}" "$e_nopfi" || return
 
 	if [[ -s $1 ]]; then
-		DisplayRunAndLog 'copy release package' "/usr/bin/cp -f \"$1\" \"$daemon_exec_pathfile\"" log:failure-only
-		[[ ! -x $daemon_exec_pathfile ]] && DisplayRunAndLog 'make release package executable' "/bin/chmod +x \"$daemon_exec_pathfile\"" log:failure-only
+		DisplayRunAndLog 'copy release package' "/usr/bin/cp -f '$1' '$daemon_exec_pathfile'" log:failure-only
+		[[ ! -x $daemon_exec_pathfile ]] && DisplayRunAndLog 'make release package executable' "/bin/chmod +x '$daemon_exec_pathfile'" log:failure-only
 
 		if [[ $compare_release_filename = true && -n $2 ]]; then
 			if [[ ! -s $2 ]]; then
-				DisplayRunAndLog 'create release package name reference' "/bin/touch \"$2\"" log:failure-only
+				DisplayRunAndLog 'create release package name reference' "/bin/touch '$2'" log:failure-only
 			fi
 		fi
 	fi
