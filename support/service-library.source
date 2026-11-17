@@ -2657,29 +2657,20 @@ AddFileToDebug()
 
 	# Prevent external log contents appearing on-screen again, as they have already been seen "live".
 
-	IsNtDaemonInScreen && prev_useropt_debug=$useropt_debug
-	IsNtDaemonInScreen && useropt_debug=false
+	if IsNtDaemonInScreen; then
+		prev_useropt_debug=$useropt_debug
+		useropt_debug=false
+	fi
 
-	DebugAsLog ''
-	DebugAsLog 'adding external log to main log ...'
+	DisplayAndCommitLoglineToServiceLog "adding '$1' to main log ..."
 	DebugExtLogMinorSeparator
-	DebugAsLog "$(FormatAsLogFilename "$1")"
 
-	while read -r a; do
-		DebugAsLog "$a"
+	while IFS= read -r a; do
+		DisplayAndCommitLoglineToServiceLog "$a"
 	done < "$1"
 
 	DebugExtLogMinorSeparator
 	IsNtDaemonInScreen && useropt_debug=$prev_useropt_debug
-
-	}
-
-FormatAsLogFilename()
-	{
-
-	ConfirmVarIsDefined 1 "${1:-}" "$e_nofil" || return
-
-	Display "log file: '$1'"
 
 	}
 
@@ -2728,7 +2719,7 @@ FormatAsPackageName()
 DebugExtLogMinorSeparator()
 	{
 
-	DebugAsLog "$(DebugMinorSeparator)"
+	DisplayAndCommitLoglineToServiceLog	"$(DebugMinorSeparator)"
 
 	}
 
@@ -2763,52 +2754,6 @@ DebugMinorSeparator()
 	#	$r_debug_log_datawidth
 
 	eval printf '%0.s-' "{1..$r_debug_log_datawidth}"		# `seq` is unavailable in QTS, so must resort to `eval` trickery instead.
-
-	}
-
-DebugAsLog()
-	{
-
-	DebugThis "(LL) ${1:-}"
-
-	}
-
-DebugThis()
-	{
-
-	# Inputs: (global)
-	#	$useropt_debug
-
-	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
-
-	[[ $useropt_debug = true ]] && Display "$1"
-	WriteAsDebug "$1"
-
-	}
-
-WriteAsDebug()
-	{
-
-	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
-
-	WriteToServiceLog dbug "$1"
-
-	}
-
-WriteToServiceLog()
-	{
-
-	# Inputs: (local)
-	#	$1 = pass/fail
-	#	$2 = message
-
-	# Inputs: (global)
-	#	$r_service_log_pathfile
-
-	ConfirmVarIsDefined 1 "${1:-}" "$e_nostr" || return
-	ConfirmVarIsDefined 2 "${2:-}" "$e_nostr" || return
-
-	printf "%-4s: %s\n" "$(StripANSICodes "$1")" "$(StripANSICodes "$2")" >> "$r_service_log_pathfile"
 
 	}
 
@@ -5192,6 +5137,13 @@ DisplayAndCommitDoneToServiceLog()
 	{
 
 	DisplayAndCommitToServiceLog "= ${1:-}"
+
+	}
+
+DisplayAndCommitLoglineToServiceLog()
+	{
+
+	DisplayAndCommitToServiceLog "L ${1:-}"
 
 	}
 
