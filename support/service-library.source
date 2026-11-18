@@ -1998,7 +1998,7 @@ PauseForStartPid()
 	if IsRecheckDaemonAfterLaunch; then
 		DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") to confirm PID is still alive"
 
-		for (( i=1; i<=a; i++ )); do
+		for (( i = 1; i <= a; i++ )); do
 			/bin/sleep 1
 			DisplayWait "$i,"
 		done
@@ -2025,7 +2025,7 @@ PauseForKillPid()
 	if [[ $recheck_daemon_pid_after_kill = true ]]; then
 		DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") to confirm PID is still dead"
 
-		for (( i=1; i<=a; i++ )); do
+		for (( i = 1; i <= a; i++ )); do
 			/bin/sleep 1
 			DisplayWait "$i,"
 		done
@@ -2054,7 +2054,7 @@ PauseForScreenLogFailedLaunch()
 
 	DisplayAndCommitProcessWaitToServiceLog "wait $a second$(Pluralise "$a") for 'screen' log to be updated"
 
-	for (( i=1; i<=a; i++ )); do
+	for (( i = 1; i <= a; i++ )); do
 		/bin/sleep 1
 		DisplayWait "$i,"
 	done
@@ -2084,7 +2084,7 @@ WatchForAnyInterfaceUp()
 		DisplayAndCommitProcessWaitToServiceLog "watch for a network interface to become operational (no-more than $a second$(Pluralise "$a"))"
 
 		(
-			for (( i=1; i<=a; i++ )); do
+			for (( i = 1; i <= a; i++ )); do
 				/bin/sleep 1
 				DisplayWait "$i,"
 
@@ -2134,7 +2134,7 @@ WatchForDaemonProcStart()
 		DisplayAndCommitProcessWaitToServiceLog "watch for daemon process name to appear (no-more than $a second$(Pluralise "$a"))"
 
 		(
-			for (( i=1; i<=a; i++ )); do
+			for (( i = 1; i <= a; i++ )); do
 				/bin/sleep 1
 				DisplayWait "$i,"
 
@@ -2201,7 +2201,7 @@ WatchForFileToAppear()
 		DisplayAndCommitProcessWaitToServiceLog "watch for $1 to appear in filesystem (no-more than $a second$(Pluralise "$a"))"
 
 		(
-			for (( i=1; i<=a; i++ )); do
+			for (( i = 1; i <= a; i++ )); do
 				/bin/sleep 1
 				DisplayWait "$i,"
 
@@ -4244,7 +4244,7 @@ IsSiteUp()
 
 	ConfirmVarIsDefined a "${a:-}" "$e_nourl" || return
 
-	for (( n=0; n<20; n++ )); do
+	for (( n = 0; n < 20; n++ )); do
 		/bin/ping -c 1 -w 1 "$a" && return 0
 		/bin/sleep 5
 	done
