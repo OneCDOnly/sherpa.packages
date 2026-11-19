@@ -231,22 +231,22 @@ LoadUserVarDefaults()
 
 	# >>> Switches <<<
 
-		allow_access_to_sys_packages=false
-			# Default
-		# allow_access_to_sys_packages=true
-			# Typical
+		# Default
+			allow_access_to_sys_packages=false
+		# Typical
+			# allow_access_to_sys_packages=true
 
-		can_restart_to_update=false
-			# Default
-		# can_restart_to_update=true
-			# Custom
 		# > If 'true', application files can be updated by restarting service-script.
+		# Default
+			can_restart_to_update=false
+		# Custom
+			# can_restart_to_update=true
 
-		check_network_before_start=false
-			# Default
-		# check_network_before_start=true
-			# Custom
 		# > If 'true', at-least one network interface must be operational before starting application daemon.
+		# Default
+			check_network_before_start=false
+		# Custom
+			# check_network_before_start=true
 
 		compare_release_filename=false
 			# Default
@@ -258,6 +258,12 @@ LoadUserVarDefaults()
 			# Default
 		# daemon_pidfile_is_managed_by_app=true
 			# Custom
+
+		generate_new_username_and_password=false
+			# Default
+		# generate_new_username_and_password=true
+			# Custom
+		# > If 'true', when new config is cloned from default, a unique username and password will be written to the new config file. Used by slskd for connection to the Soulseek network.
 
 		install_pip_deps=false
 			# Default
@@ -405,6 +411,13 @@ LoadUserVarDefaults()
 		# > This value is adaptive (increases with system load average).
 
 	# >>> Paths <<<
+
+		qpkg_bin_path=undefined
+			# Default
+		# qpkg_bin_path=$r_qpkg_path/bin
+			# Typical
+		# qpkg_bin_path=
+			# Custom
 
 		qpkg_config_path=undefined
 			# Default
@@ -2395,6 +2408,18 @@ EnsureConfigFileExists()
 	if UsesConfig valid && [[ ! -s $qpkg_config_pathfile && -s $qpkg_config_default_pathfile ]]; then
 		/usr/bin/cp "$qpkg_config_default_pathfile" "$qpkg_config_pathfile"
 		DisplayAndCommitInfoToServiceLog 'no configuration file, using default as template'
+
+		if [[ $generate_new_username_and_password = true ]]; then
+			DisplayAndCommitProcessWaitToServiceLog 'generate new random username and password for configuration file'
+
+			if IsFuncExist GenerateUserPassCustom; then
+				GenerateUserPassCustom
+			else
+				GenerateUserPassLibrary
+			fi
+
+			DisplayAndCommitOutcomeToServiceLog OK
+		fi
 	fi
 
 	if UsesVirtualConfig && [[ -s $qpkg_config_pathfile ]]; then
@@ -2424,6 +2449,13 @@ EnsureVirtualConfigFileExists()
 			DisplayAndCommitInfoToServiceLog 'existing link broken, re-created link to configuration file'
 		fi
 	fi
+
+	}
+
+GenerateUserPassLibrary()
+	{
+
+	:			# Placeholder function.
 
 	}
 
@@ -2838,7 +2870,7 @@ WatchForPortsActive()
 
 	a=''
 
-	DisplayAndCommitInfoToServiceLog "daemon listening address: $ui_listening_address"
+	DisplayAndCommitInfoToServiceLog "UI listening address: $ui_listening_address"
 
 	if (( daemon_port != 0 )); then
 		DisplayAndCommitInfoToServiceLog "daemon port: $daemon_port"
@@ -3960,7 +3992,7 @@ IsPortResponds()
 				/bin/sleep 1	# ... so let's wait here a bit.
 				;;
 			*)
-				:			# do nothing
+				:				# do nothing
 		esac
 
 		(( c++ ))
