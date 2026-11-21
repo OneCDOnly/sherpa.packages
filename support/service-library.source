@@ -219,7 +219,7 @@ InitLibrary()
 	# Create a `screen.conf` for this QPKG.
 
 	if IsDaemonInScreen && [[ ! -s $r_screen_conf_pathfile ]]; then
-		echo -e "logfile $r_screen_log_pathfile\nlogfile flush 1\nlog on" > "$r_screen_conf_pathfile"
+		echo -e "logfile $r_screen_log_pathfile\nlogfile flush 1\ndeflog on" > "$r_screen_conf_pathfile"	# Use 'deflog on' instead of 'log on': https://stackoverflow.com/a/10061674
 	fi
 
 	}
