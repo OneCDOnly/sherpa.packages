@@ -4526,7 +4526,7 @@ IsGnuLessSupportHeaders()
 
 	a=$(GetGnuLessVersion)
 
-	IsNumber $a && (( a >= 685 ))
+	IsInteger $a && (( a >= 685 ))
 
 	}
 
@@ -4556,22 +4556,18 @@ IsReportLargerThanViewport()
 
 	}
 
-IsNumber()
+IsInteger()
 	{
 
 	# Input: (local)
 	#	$1 = string
 
 	# Output: (local)
-	#	$? = 0 if $1 has any numerals.
+	#	$? = 0 if $1 is a number. Nothing non-numeric.
 
 	[[ -n ${1:-} ]] || return
 
-	local -i a
-
-	a=${1//[!0-9]/}		# Strip non-digits.
-
-	(( ${#a} > 0 ))
+	! [[ "$1" =~ [^0-9] ]]
 
 	}
 
