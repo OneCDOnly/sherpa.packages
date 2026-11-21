@@ -727,13 +727,13 @@ LoadUserVarDefaults()
 		# > The location of an interpreter used to execute the application script.
 
 			# Default
-				interpreter=undefined
+				interpreter_pathfile=undefined
 
 			# Typical
-				# interpreter=/opt/bin/python3
+				# interpreter_pathfile=/opt/bin/python3
 
 			# Custom
-				# interpreter=
+				# interpreter_pathfile=
 
 		# > Specific to Entware binaries only.
 
@@ -1033,7 +1033,7 @@ CreateVirtualPythonEnv()
 	# Inputs: (global)
 	#	$allow_access_to_sys_packages
 	#	$e_nopth
-	#	$interpreter
+	#	$interpreter_pathfile
 	#	$qpkg_pip_path
 	#	$qpkg_venv_path
 	#	$qpkg_wheels_path
@@ -1056,7 +1056,7 @@ CreateVirtualPythonEnv()
 	[[ $allow_access_to_sys_packages = true ]] && a='--system-site-packages'
 
 	if IsNtVirtualPythonEnvFound; then
-		DisplayRunAndLog 'create new virtual Python environment' "export TMPDIR='$qpkg_temp_path' PIP_CACHE_DIR='$qpkg_pip_path' VIRTUALENV_OVERRIDE_APP_DATA='$qpkg_pip_path'; $interpreter -m virtualenv '$qpkg_venv_path' $a" log:failure-only
+		DisplayRunAndLog 'create new virtual Python environment' "export TMPDIR='$qpkg_temp_path' PIP_CACHE_DIR='$qpkg_pip_path' VIRTUALENV_OVERRIDE_APP_DATA='$qpkg_pip_path'; $interpreter_pathfile -m virtualenv '$qpkg_venv_path' $a" log:failure-only
 		new_env=true
 
 		if [[ ! -s $b ]]; then
