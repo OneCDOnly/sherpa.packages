@@ -1139,7 +1139,6 @@ StartDaemon()
 
 	if UsesConfig possible; then
 		ConfirmVarIsDefined qpkg_config_path "${qpkg_config_path:-}" "$e_nopth" || return
-		ConfirmVarIsDefined qpkg_config_pathfile "${qpkg_config_pathfile:-}" "$e_nopfi" || return
 	fi
 
 	while true; do
@@ -1723,10 +1722,16 @@ ResetConfig()
 	#	$qpkg_config_default_pathfile
 	#	$r_qpkg_path
 
-	ConfirmVarIsDefined qpkg_config_default_pathfile "${qpkg_config_default_pathfile:-}" "$e_nopfi" || return
+	ConfirmVarIsDefined r_qpkg_path "${r_qpkg_path:-}" "$e_nopth" || return
 
-	if ! DisplayRunAndLog 'reset configuration' "/bin/mv '$qpkg_config_default_pathfile' '$r_qpkg_path'; /bin/rm -rf '$r_qpkg_path'/config/*; /bin/mkdir -p '$(/usr/bin/dirname "$qpkg_config_default_pathfile")'; /bin/mv '$r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile")' '$qpkg_config_default_pathfile'" log:failure-only; then
+	if IsVarDefined qpkg_config_default_pathfile; then
+		if ! DisplayRunAndLog 'reset configuration' "/bin/mv '$qpkg_config_default_pathfile' '$r_qpkg_path'; /bin/rm -rf '$r_qpkg_path'/config/*; /bin/mkdir -p '$(/usr/bin/dirname "$qpkg_config_default_pathfile")'; /bin/mv '$r_qpkg_path/$(/usr/bin/basename "$qpkg_config_default_pathfile")' '$qpkg_config_default_pathfile'" log:failure-only; then
 		SetError; return
+		fi
+	else
+		if ! DisplayRunAndLog 'reset configuration' "/bin/rm -rf '$r_qpkg_path'/config/*" log:failure-only; then
+		SetError; return
+		fi
 	fi
 
 	}
