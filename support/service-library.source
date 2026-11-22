@@ -2940,24 +2940,13 @@ FormatAsCommand()
 FormatAsResultAndStdout()
 	{
 
-	if (( ${1:-0} == 0 )); then
-		echo "= result_code: $(FormatAsExitcode "$1")"
-	else
-		echo "= result_code: $(FormatAsExitcode "$1")"
-	fi
+	ConfirmVarIsDefined 1 "${1:-}" "$e_noval" || return
+
+	echo "return code: '$1'"
 
 	DebugBulletSeparatorWithText 'stdout & stderr begins below'
 	echo "${2:-}"
 	DebugBulletSeparatorWithText 'stdout & stderr is complete'
-
-	}
-
-FormatAsExitcode()
-	{
-
-	ConfirmVarIsDefined 1 "${1:-}" "$e_noval" || return
-
-	echo "[${1:-}]"
 
 	}
 
