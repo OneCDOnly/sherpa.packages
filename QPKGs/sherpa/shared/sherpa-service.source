@@ -19,13 +19,22 @@ Init()
 
 	# Constants.
 
-		readonly r_qpkg_name=sherpa
+		r_qpkg_name=sherpa
+
+		readonly r_qpkg_name
 
 	# Paths.
 
-		local -r r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
-			readonly r_qpkg_log_path=$r_qpkg_path/log
-		readonly r_sys_log_path=/var/log
+		local r_qpkg_path
+
+		r_qpkg_path=$(/sbin/getcfg $r_qpkg_name Install_Path -f /etc/config/qpkg.conf)
+
+		r_qpkg_log_path=$r_qpkg_path/log
+		r_sys_log_path=/var/log
+
+		local -r r_qpkg_path
+		readonly r_qpkg_log_path
+		readonly r_sys_log_path
 
 	# Pathfilenames.
 
@@ -89,11 +98,50 @@ ShowHelp()
 	Display "Usage: $0 [ACTION]"
 	Display
 	Display '[ACTION] must be one of the following:'
-	DisplayAsHelp 'activate, start' "start $(FormatAsPackageName $r_qpkg_name) if inactive"
-	DisplayAsHelp 'deactivate, stop' "stop $(FormatAsPackageName $r_qpkg_name) if active"
-	DisplayAsHelp 'r, reactivate, restart' "stop, then start $(FormatAsPackageName $r_qpkg_name)"
+	DisplayAsHelp disable "disable $(FormatAsPackageName $r_qpkg_name) to prevent it starting (on NAS bootup)"
+	DisplayAsHelp enable "enable $(FormatAsPackageName $r_qpkg_name) so it can be started"
+	DisplayAsHelp 'start, activate' "start $(FormatAsPackageName $r_qpkg_name) if inactive"
+	DisplayAsHelp 'stop, deactivate' "stop $(FormatAsPackageName $r_qpkg_name) if active"
+	DisplayAsHelp 'r, restart, reactivate' "stop, then start $(FormatAsPackageName $r_qpkg_name)"
 	DisplayAsHelp 's, status' "check if $(FormatAsPackageName $r_qpkg_name) application is active. Returns \$? = 0 if active, 1 if not"
 	Display
+
+	}
+
+ShowEnabled()
+	{
+
+	Display "$(FormatAsPackageName "$r_qpkg_name") QPKG is enabled."
+
+	}
+
+ShowDisabled()
+	{
+
+	Display "= $(FormatAsPackageName "$r_qpkg_name") QPKG is disabled."
+
+	}
+
+ShowDisabledPrompt()
+	{
+
+	service_explanation="QPKG is disabled. Please enable it first with: $0 enable"
+
+	Display "= $service_explanation"
+
+	}
+
+ShowEnableFailed()
+	{
+
+	Display "= $(FormatAsPackageName "$r_qpkg_name") QPKG enable failed."
+
+	}
+
+ShowDisableFailed()
+	{
+
+	Display "= $(FormatAsPackageName "$r_qpkg_name") QPKG disable failed."
 
 	}
 
@@ -146,6 +194,69 @@ CommitServiceResult()
 
 	}
 
+SetError()
+	{
+
+	IsError && return
+	_error_flag=true
+	false
+
+	}
+
+UnsetError()
+	{
+
+	IsNtError && return
+	_error_flag=false
+
+	}
+
+IsError()
+	{
+
+	[[ ${_error_flag:=false} = true ]]
+
+	}
+
+IsNtError()
+	{
+
+	! IsError
+
+	}
+
+IsQpkgEnabled()
+	{
+
+	# Inputs: (local)
+	#	$1 (optional) (string) = QPKG name.
+
+	# Inputs: (global)
+	#	$r_qpkg_name (default for $1)
+
+	# Outputs: (local)
+	#	$? = true/false
+
+	[[ $(/sbin/getcfg ${1:-$r_qpkg_name} Enable -u -d FALSE -f /etc/config/qpkg.conf) = TRUE ]]
+
+	}
+
+IsNtQpkgEnabled()
+	{
+
+	# Inputs: (local)
+	#	$1 (optional) (string) = QPKG name.
+
+	# Inputs: (global)
+	#	$r_qpkg_name (default for $1)
+
+	# Outputs: (local)
+	#	$? = true/false
+
+	! IsQpkgEnabled "${1:-$r_qpkg_name}"
+
+	}
+
 FormatAsPackageName()
 	{
 
@@ -180,38 +291,68 @@ Init
 user_arg=${r_user_args_raw%% *}		# Only process first argument.
 
 case $user_arg in
-    ?(--)activate|?(--)start)
+	?(--)disable)
+		SetServiceAction disable
+
+		/sbin/qpkg_service disable "$r_qpkg_name"
+
+		if IsNtQpkgEnabled; then
+			ShowDisabled
+		else
+			ShowDisableFailed
+			SetError
+		fi
+		;;
+	?(--)enable)
+		SetServiceAction enable
+
+		/sbin/qpkg_service enable "$r_qpkg_name"
+
+		if IsQpkgEnabled; then
+			ShowEnabled
+		else
+			ShowEnableFailed
+			SetError
+		fi
+		;;
+    ?(--)restart|?(-)r|?(--)reactivate)
+        SetServiceAction restart
+
+		if IsQpkgEnabled; then
+			StopQPKG && StartQPKG
+		else
+			ShowDisabledPrompt
+			SetError
+		fi
+        ;;
+    ?(--)start|?(--)activate)
         SetServiceAction start
 
-        if StartQPKG; then
-            SetServiceResultAsOK
-        else
-            SetServiceResultAsFailed
-        fi
+		if IsQpkgEnabled; then
+			StartQPKG
+		else
+			ShowDisabledPrompt
+			SetError
+		fi
         ;;
     ?(-)s|?(--)status)
         StatusQPKG
         ;;
-    ?(--)deactivate|?(--)stop)
+    ?(--)stop|?(--)deactivate)
         SetServiceAction stop
 
-        if StopQPKG; then
-            SetServiceResultAsOK
-        else
-            SetServiceResultAsFailed
-        fi
-        ;;
-    ?(-)r|?(--)reactivate|?(--)restart)
-        SetServiceAction restart
-
-        if StopQPKG && StartQPKG; then
-            SetServiceResultAsOK
-        else
-            SetServiceResultAsFailed
-        fi
+        StopQPKG
         ;;
 	*)
 		ShowHelp
 esac
+
+if IsError; then
+	SetServiceResultAsFailed
+
+	exit 1
+else
+	SetServiceResultAsOK
+fi
 
 exit 0

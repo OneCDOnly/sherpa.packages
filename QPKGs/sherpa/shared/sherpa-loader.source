@@ -86,7 +86,7 @@ IsThisFileRecent()
 	#   $? = true/false
 
 	# https://stackoverflow.com/a/55622661
-	[[ -e ${1:-} && $((($(/bin/date +%s)-$(/usr/bin/stat "$1" -c %Y))/60)) -le ${2:-1440} ]]
+	[[ -e ${1:-} ]] && (( ($(/bin/date +%s) - $(/usr/bin/stat "$1" -c %Y) ) / 60 <= ${2:-1440} ))
 
 	}
 
@@ -110,7 +110,7 @@ IsSU()
 
 	# Running as superuser?
 
-	if [[ $EUID -ne 0 ]]; then
+	if (( EUID != 0 )); then
 		if [[ -e /usr/bin/sudo ]]; then
 			ShowAsError 'this utility must be run with superuser privileges. Try again as:'
 
@@ -198,7 +198,7 @@ IsOsCanSecureDownload()
 
 	SetOsFirmwareVer
 
-	[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.5.5))) ]]
+	(( 10#$r_nas_firmware_ver >= 10#$(ConvertFirmwareVersionStringToNumber 4.5.5) ))
 
 	}
 
@@ -244,7 +244,7 @@ ConvertFirmwareVersionStringToNumber()
 	#	Example: '4.6.99.1234' becomes '0406991234'
 
 	# Output should be compared using forced base-10 syntax (to handle leading zero):
-	#	Example: [[ $((10#$a)) -gt $((10#$b)) ]]
+	#	Example: (( 10#$a > 10#$b ))
 
 	local major=0
 	local intermediate=0
@@ -259,7 +259,7 @@ ConvertFirmwareVersionStringToNumber()
 	local -i build_trim=4
 
 	while IFS=. read -r major intermediate minor build; do
-		printf "%0${major_trim}d%0${intermediate_trim}d%0${minor_trim}d%0${build_trim}d" "$((10#${major:0:major_trim}))" "$((10#${intermediate:0:intermediate_trim}))" "$((10#${minor:0:minor_trim}))" "$((10#${build:0:build_trim}))"
+		printf "%0${major_trim}d%0${intermediate_trim}d%0${minor_trim}d%0${build_trim}d" "$(( 10#${major:0:major_trim} ))" "$(( 10#${intermediate:0:intermediate_trim} ))" "$(( 10#${minor:0:minor_trim} ))" "$(( 10#${build:0:build_trim} ))"
 	done <<< "$1"
 
 	}
@@ -299,7 +299,7 @@ GetQpkgArch()
 
 	case $r_nas_arch in
 		x86_64)
-			[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.3.0))) ]] && printf i64 || printf i86
+			(( 10#$r_nas_firmware_ver >= 10#$(ConvertFirmwareVersionStringToNumber 4.3.0) )) && printf i64 || printf i86
 			;;
 		i686|x86)
 			printf i86
@@ -464,15 +464,15 @@ WriteToDisplay.New()
 	new_message=$(printf '%-10s: %s' "$1" "$2")
 
 	if [[ $new_message != "$previous_msg" ]]; then
-		previous_length=$((${#previous_msg}+1))
-		new_length=$((${#new_message}+1))
+		previous_length=$(( ${#previous_msg} + 1 ))
+		new_length=$(( ${#new_message} + 1 ))
 
 		# Jump to start of line, print new msg.
 		strbuffer=$(echo -en "\r$new_message ")
 
 		# If new msg is shorter then add spaces to end to cover previous msg.
-		if [[ $new_length -lt $previous_length ]]; then
-			appended_length=$((new_length-previous_length))
+		if (( new_length < previous_length )); then
+			appended_length=$(( new_length - previous_length ))
 			strbuffer+=$(printf "%${appended_length}s")
 		fi
 

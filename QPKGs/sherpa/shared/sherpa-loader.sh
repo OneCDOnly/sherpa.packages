@@ -1,6 +1,6 @@
 #!/bin/bash
 #*
-#* Please don't edit this file directly, it was built or modified programmatically with the 'build-qpkgs.sh' script. (source: 'sherpa-loader.source')
+#* Please don't edit this file directly, it was built and/or modified programmatically with the 'build-qpkgs.sh' script. (source: 'sherpa-loader.source')
 #*
 #* sherpa-loader.sh
 #*	  Copyright (C) 2017-2026 OneCD.
@@ -27,7 +27,7 @@
 #*		 Copyright (C) 2007 Free Software Foundation, Inc.
 #*
 #* Notes:
-#*	  All sherpa scripts are optimised for compatibility with bash 3.2 (via QTS BusyBox), as this is the native QNAP NAS shell. Be-careful reusing code in other shells. These scripts contain syntax quirks often compatible only with bash.
+#*	  All sherpa scripts are optimised for compatibility with Bash 3.2 (via QTS BusyBox), as this is the native QNAP NAS shell. Be-careful reusing code in other shells. These scripts contain syntax quirks often compatible only with Bash.
 #*
 #* License:
 #*	  This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -38,8 +38,7 @@ set -o nounset -o pipefail
 [[ $- != *m* ]]||set +m
 [[ -L /dev/fd ]]||ln -fns /proc/self/fd /dev/fd
 readonly r_user_args_raw=$*
-Init(){
-export LOADER_SCRIPT_PPID=$PPID
+Init(){ export LOADER_SCRIPT_PPID=$PPID
 readonly r_qpkg_name=sherpa
 readonly r_chars_regular_prompt='$ '
 readonly r_chars_sudo_prompt="${r_chars_regular_prompt}sudo "
@@ -48,12 +47,7 @@ IsQNAP||return
 IsSU||return
 local source_git_branch=stable
 local test_branch=$(/sbin/getcfg $r_qpkg_name Git_Branch -d unknown -f /etc/config/qpkg.conf)
-if [[ $test_branch = unknown ]];then
-/sbin/setcfg $r_qpkg_name Git_Branch $source_git_branch -f /etc/config/qpkg.conf
-else
-source_git_branch=$test_branch
-fi
-local -r r_work_path=$(/sbin/getcfg sherpa Install_Path -f /etc/config/qpkg.conf)/cache
+if [[ $test_branch = unknown ]];then /sbin/setcfg $r_qpkg_name Git_Branch $source_git_branch -f /etc/config/qpkg.conf;else source_git_branch=$test_branch;fi;local -r r_work_path=$(/sbin/getcfg sherpa Install_Path -f /etc/config/qpkg.conf)/cache
 [[ ! -d $r_work_path ]]&&mkdir -p "$r_work_path"
 local -r r_manager_file='sherpa-manager.sh'
 local -r r_manager_archive_file=${r_manager_file%.*}.tar.gz
@@ -61,47 +55,21 @@ readonly r_manager_archive_url='https://raw.githubusercontent.com/OneCDOnly/sher
 readonly r_manager_archive_pathfile=$r_work_path/$r_manager_archive_file
 readonly r_manager_pathfile=$r_work_path/$r_manager_file
 curl_insecure_opt=''
-IsOsCanSecureDownload ||curl_insecure_opt='--insecure'
+IsOsCanSecureDownload||curl_insecure_opt='--insecure'
 previous_msg=''
 return 0;}
-EnsureFileIsCurrent(){
-if [[ ! -e $1 ]]||! IsThisFileRecent "$1" 60;then
-if ! (/sbin/curl $curl_insecure_opt --silent --fail "$2">"$3");then
-ShowAsWarn 'Remote file download failed'
-else
-/bin/tar --extract --gzip --no-same-owner --file="$3" --directory="$(/usr/bin/dirname "$3")" 2>/dev/null
-fi
-fi;}
-IsThisFileRecent(){
-[[ -e ${1:-} &&$((($(/bin/date +%s)-$(/usr/bin/stat "$1" -c %Y))/60)) -le ${2:-1440} ]];}
-IsQNAP(){
-if [[ ! -e /etc/init.d/functions ]];then
-ShowAsAbort 'QNAP functions not found ... is this a QNAP NAS?'
-return 1
-fi
-return 0;}
-IsSU(){
-if [[ $EUID -ne 0 ]];then
-if [[ -e /usr/bin/sudo ]];then
-ShowAsError 'this utility must be run with superuser privileges. Try again as:'
-echo "${r_chars_sudo_prompt}sherpa $r_user_args_raw">&2
-else
-ShowAsError "this utility must be run as the 'admin' user. Please login via SSH as 'admin' and try again"
-fi
-return 1
-fi
-return 0;}
-IsOsCanSecureDownload(){
-SetOsFirmwareVer
-[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.5.5))) ]];}
-GetOsFirmwareVersion(){
-/sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf;}
-GetOsFirmwareBuild(){
-/sbin/getcfg System Number -d undefined -f /etc/config/uLinux.conf;}
-GetOsFirmwareVer(){
-ConvertFirmwareVersionStringToNumber "$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)";}
-ConvertFirmwareVersionStringToNumber(){
-local major=0
+EnsureFileIsCurrent(){ if [[ ! -e $1 ]]||! IsThisFileRecent "$1" 60;then if ! (/sbin/curl $curl_insecure_opt --silent --fail "$2">"$3");then ShowAsWarn 'Remote file download failed';else /bin/tar --extract --gzip --no-same-owner --file="$3" --directory="$(/usr/bin/dirname "$3")" 2>/dev/null;fi;fi;}
+IsThisFileRecent(){ [[ -e ${1:-} ]]&&(( ($(/bin/date +%s) - $(/usr/bin/stat "$1" -c %Y) ) / 60<= ${2:-1440} ));}
+IsQNAP(){ if [[ ! -e /etc/init.d/functions ]];then ShowAsAbort 'QNAP functions not found ... is this a QNAP NAS?'
+return 1;fi;return 0;}
+IsSU(){ if(( EUID != 0 ));then if [[ -e /usr/bin/sudo ]];then ShowAsError 'this utility must be run with superuser privileges. Try again as:'
+echo "${r_chars_sudo_prompt}sherpa $r_user_args_raw">&2;else ShowAsError "this utility must be run as the 'admin' user. Please login via SSH as 'admin' and try again";fi;return 1;fi;return 0;}
+IsOsCanSecureDownload(){ SetOsFirmwareVer
+(( 10#$r_nas_firmware_ver>= 10#$(ConvertFirmwareVersionStringToNumber 4.5.5) ));}
+GetOsFirmwareVersion(){ /sbin/getcfg System Version -d undefined -f /etc/config/uLinux.conf;}
+GetOsFirmwareBuild(){ /sbin/getcfg System Number -d undefined -f /etc/config/uLinux.conf;}
+GetOsFirmwareVer(){ ConvertFirmwareVersionStringToNumber "$(GetOsFirmwareVersion).$(GetOsFirmwareBuild)";}
+ConvertFirmwareVersionStringToNumber(){ local major=0
 local intermediate=0
 local minor=0
 local build=0
@@ -109,84 +77,48 @@ local -i major_trim=2
 local -i intermediate_trim=2
 local -i minor_trim=2
 local -i build_trim=4
-while IFS=. read -r major intermediate minor build;do
-printf "%0${major_trim}d%0${intermediate_trim}d%0${minor_trim}d%0${build_trim}d" "$((10#${major:0:major_trim}))" "$((10#${intermediate:0:intermediate_trim}))" "$((10#${minor:0:minor_trim}))" "$((10#${build:0:build_trim}))"
-done<<<"$1";}
-GetNasArch(){
-/bin/uname -m;}
-GetQpkgArch(){
-if [[ $(get_display_name) = 'TS-269H' ]];then
-printf i53
-return
-fi
-SetNasArch
+while IFS=. read -r major intermediate minor build;do printf "%0${major_trim}d%0${intermediate_trim}d%0${minor_trim}d%0${build_trim}d" "$(( 10#${major:0:major_trim} ))" "$(( 10#${intermediate:0:intermediate_trim} ))" "$(( 10#${minor:0:minor_trim} ))" "$(( 10#${build:0:build_trim} ))";done<<<"$1";}
+GetNasArch(){ /bin/uname -m;}
+GetQpkgArch(){ if [[ $(get_display_name) = 'TS-269H' ]];then printf i53
+return;fi;SetNasArch
 SetOsFirmwareVer
 SetHardwarePlatform
-case $r_nas_arch in
-x86_64)
-[[ $((10#$r_nas_firmware_ver)) -ge $((10#$(ConvertFirmwareVersionStringToNumber 4.3.0))) ]]&&printf i64||printf i86;;
-i686|x86)
-printf i86;;
-armv5tel)
-printf a19;;
-armv7l)
-case $r_nas_platform in
-ARM_MS)
-printf a31;;
-ARM_AL)
-printf a41;;
-*)printf unknown
-esac;;
-aarch64)
-printf a64;;
-*)printf unknown
+case $r_nas_arch in x86_64)
+(( 10#$r_nas_firmware_ver>= 10#$(ConvertFirmwareVersionStringToNumber 4.3.0) ))&&printf i64||printf i86;;i686|x86)
+printf i86;;armv5tel)
+printf a19;;armv7l)
+case $r_nas_platform in ARM_MS)
+printf a31;;ARM_AL)
+printf a41;;*)printf unknown
+esac;;aarch64)
+printf a64;;*)printf unknown
 esac;}
-GetHardwarePlatform(){
-/sbin/getcfg '' Platform -d undefined -f /etc/platform.conf;}
-SetNasArch(){
-[[ ${r_nas_arch:-unset} = unset ]]&&readonly r_nas_arch=$(GetNasArch);}
-SetQpkgArch(){
-[[ ${r_nas_qpkg_arch:-unset} = unset ]]&&readonly r_nas_qpkg_arch=$(GetQpkgArch);}
-SetOsFirmwareVersion(){
-[[ ${r_nas_firmware_version:-unset} = unset ]]&&readonly r_nas_firmware_version=$(GetOsFirmwareVersion).$(GetOsFirmwareBuild);}
-SetOsFirmwareVer(){
-[[ ${r_nas_firmware_ver:-unset} = unset ]]&&readonly r_nas_firmware_ver=$(GetOsFirmwareVer);}
-SetHardwarePlatform(){
-[[ ${r_nas_platform:-unset} = unset ]]&&readonly r_nas_platform=$(GetHardwarePlatform);}
-ShowAsWarn(){
-WriteToDisplay.New "$(TextBrightOrange warn)" "${1:-}"
+GetHardwarePlatform(){ /sbin/getcfg '' Platform -d undefined -f /etc/platform.conf;}
+SetNasArch(){ [[ ${r_nas_arch:-unset} = unset ]]&&readonly r_nas_arch=$(GetNasArch);}
+SetQpkgArch(){ [[ ${r_nas_qpkg_arch:-unset} = unset ]]&&readonly r_nas_qpkg_arch=$(GetQpkgArch);}
+SetOsFirmwareVersion(){ [[ ${r_nas_firmware_version:-unset} = unset ]]&&readonly r_nas_firmware_version=$(GetOsFirmwareVersion).$(GetOsFirmwareBuild);}
+SetOsFirmwareVer(){ [[ ${r_nas_firmware_ver:-unset} = unset ]]&&readonly r_nas_firmware_ver=$(GetOsFirmwareVer);}
+SetHardwarePlatform(){ [[ ${r_nas_platform:-unset} = unset ]]&&readonly r_nas_platform=$(GetHardwarePlatform);}
+ShowAsWarn(){ WriteToDisplay.New "$(TextBrightOrange warn)" "${1:-}"
 return 0;}
-ShowAsAbort(){
-WriteToDisplay.New "$(TextBrightRed bort)" "${1:-}"
+ShowAsAbort(){ WriteToDisplay.New "$(TextBrightRed bort)" "${1:-}"
 return 0;}
-ShowAsError(){
-local capitalised=$(Capitalise "${1:-}")
+ShowAsError(){ local capitalised=$(Capitalise "${1:-}")
 WriteToDisplay.New "$(TextBrightRed derp)" "$capitalised"
 return 0;}
-Capitalise(){
-echo "$(Uppercase ${1:0:1})${1:1}";}
-Uppercase(){
-tr 'a-z' 'A-Z'<<<"$1";}
-WriteToDisplay.New(){
-local new_message=''
+Capitalise(){ echo "$(Uppercase ${1:0:1})${1:1}";}
+Uppercase(){ tr 'a-z' 'A-Z'<<<"$1";}
+WriteToDisplay.New(){ local new_message=''
 local strbuffer=''
 local new_length=0
 new_message=$(printf '%-10s: %s' "$1" "$2")
-if [[ $new_message != "$previous_msg" ]];then
-previous_length=$((${#previous_msg}+1))
-new_length=$((${#new_message}+1))
+if [[ $new_message != "$previous_msg" ]];then previous_length=$(( ${#previous_msg} + 1 ))
+new_length=$(( ${#new_message} + 1 ))
 strbuffer=$(echo -en "\r$new_message ")
-if [[ $new_length -lt $previous_length ]];then
-appended_length=$((new_length-previous_length))
-strbuffer+=$(printf "%${appended_length}s")
-fi
-echo "$strbuffer"
-fi
-return 0;}
-TextBrightOrange(){
-printf '\033[1;38;5;214m%s\033[0m' "${1:-}";}
-TextBrightRed(){
-printf '\033[1;31m%s\033[0m' "${1:-}";}
+if(( new_length<previous_length ));then appended_length=$(( new_length - previous_length ))
+strbuffer+=$(printf "%${appended_length}s");fi;echo "$strbuffer";fi;return 0;}
+TextBrightOrange(){ printf '\033[1;38;5;214m%s\033[0m' "${1:-}";}
+TextBrightRed(){ printf '\033[1;31m%s\033[0m' "${1:-}";}
 Init||exit
 EnsureFileIsCurrent "$r_manager_pathfile" "$r_manager_archive_url" "$r_manager_archive_pathfile"
 eval '/usr/bin/env bash' "$r_manager_pathfile" "$r_user_args_raw"
