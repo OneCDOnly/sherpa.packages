@@ -36,13 +36,14 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=WeeWX
-readonly r_service_script_version=261118
+readonly r_service_script_version=261122
 InitService(){ allow_access_to_sys_packages=true
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true
 install_pip_deps=true
 qpkg_config_path=$r_qpkg_path/config
 qpkg_pip_path=$r_qpkg_path/pip-cache
+qpkg_temp_path=$r_qpkg_path/tmp
 qpkg_venv_path=$r_qpkg_path/venv
 qpkg_wheels_path=$r_qpkg_path/qpkg-wheels
 daemon_exec_pathfile=$qpkg_venv_path/bin/python3
@@ -51,7 +52,7 @@ daemon_script_pathfile=$qpkg_venv_path/bin/weewxd
 venv_pip_pathfile=$qpkg_venv_path/bin/pip
 venv_python_pathfile=$qpkg_venv_path/bin/python3
 export HOME=$qpkg_config_path
-interpreter=/opt/bin/python3
+interpreter_pathfile=/opt/bin/python3
 daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile --daemon --pidfile $daemon_pid_pathfile --exit";}
 PreStartQpkgCustom(){ local control_pathfile=$qpkg_venv_path/bin/weectl
 local launcher_pathfile=$r_qpkg_path/weectl-launch.sh

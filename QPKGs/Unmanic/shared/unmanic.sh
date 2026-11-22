@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Unmanic
-readonly r_service_script_version=261118
+readonly r_service_script_version=261122
 InitService(){ allow_access_to_sys_packages=true
 can_restart_to_update=true
 recheck_daemon_pid_after_kill=true
@@ -60,7 +60,7 @@ qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 venv_pip_pathfile=$qpkg_venv_path/bin/pip
 venv_python_pathfile=$qpkg_venv_path/bin/python3
 export HOME=$qpkg_config_path
-interpreter=/opt/bin/python3
+interpreter_pathfile=/opt/bin/python3
 daemon_launch_cmd="export HOME_DIR=$qpkg_config_path;$daemon_exec_pathfile $daemon_script_pathfile"
 get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd="/opt/bin/jq -r '.\"ui_port\"'<"$qpkg_config_pathfile""

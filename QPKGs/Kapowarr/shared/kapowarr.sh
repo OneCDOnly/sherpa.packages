@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Kapowarr
-readonly r_service_script_version=261118
+readonly r_service_script_version=261122
 InitService(){ allow_access_to_sys_packages=true
 can_restart_to_update=true
 daemon_pidfile_is_managed_by_app=true
@@ -64,7 +64,7 @@ qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 venv_pip_pathfile=$qpkg_venv_path/bin/pip
 venv_python_pathfile=$qpkg_venv_path/bin/python3
 export HOME=$qpkg_config_path
-interpreter=/opt/bin/python3
+interpreter_pathfile=/opt/bin/python3
 source_git_url=https://github.com/Casvt/Kapowarr.git
 daemon_launch_cmd="$daemon_exec_pathfile $daemon_script_pathfile -d $(/usr/bin/dirname "$qpkg_config_pathfile")"
 get_ui_listening_address_cmd="/sbin/getcfg misc host -d $ui_listening_address -f $qpkg_config_pathfile"

@@ -36,7 +36,7 @@
 #*
 readonly r_user_args_raw=$*
 readonly r_qpkg_name=Readarr
-readonly r_service_script_version=261118
+readonly r_service_script_version=261122
 InitService(){ can_restart_to_update=true
 check_network_before_start=true
 compare_release_filename=true
@@ -53,9 +53,11 @@ qpkg_backup_pathfile=$r_backup_path/$r_qpkg_name.config.tar.gz
 qpkg_config_pathfile=$qpkg_config_path/config.xml
 qpkg_config_default_pathfile=$qpkg_config_pathfile.def
 export HOME=$qpkg_config_path
+export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+export TMPDIR=$qpkg_temp_path
 source_asset_url_match=.linux-core-${source_url_arch}.tar.gz
 source_asset_url='https://readarr.servarr.com/v1/update/develop/updatefile?os=linux&runtime=netcore&arch='$source_url_arch
-daemon_launch_cmd="export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 TMPDIR=$qpkg_temp_path;$daemon_exec_pathfile --nobrowser --data=$qpkg_config_path"
+daemon_launch_cmd="$daemon_exec_pathfile --nobrowser --data=$qpkg_config_path"
 get_ui_listening_address_cmd="echo $ui_listening_address"
 get_ui_port_cmd='grep "<Port>" $qpkg_config_pathfile|sed "s/.*<Port>\(.*\)<\/Port>.*/\1/"'
 get_ui_port_secure_cmd='grep "<SslPort>" $qpkg_config_pathfile|sed "s/.*<SslPort>\(.*\)<\/SslPort>.*/\1/"'
@@ -66,5 +68,5 @@ library_path=$(/usr/bin/dirname "$library_path")
 service_library_pathfile=$library_path/service-library.source
 [[ ! -e $service_library_pathfile ]]&&service_library_pathfile=$library_path/service.lib
 if [[ ! -e $service_library_pathfile ]];then printf '\033[1;31m%s\033[0m: %s\n' derp "QPKG service function library not found, can't continue."
-exit 1;fi;. $service_library_pathfile
+exit 1;fi;source $service_library_pathfile
 ProcessArgs
