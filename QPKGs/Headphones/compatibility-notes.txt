@@ -1,0 +1,1 @@
+* HeadPhones can't run in Python 3.14.7, so this application will only run on older Python3 version available for a19.

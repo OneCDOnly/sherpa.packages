@@ -331,11 +331,11 @@ InitService()
 		# export HOME=
 			# Custom
 
-		# interpreter=undefined
+		# interpreter_pathfile=undefined
 			# Default
-		# interpreter=/opt/bin/python3
+		# interpreter_pathfile=/opt/bin/python3
 			# Typical
-		# interpreter=
+		# interpreter_pathfile=
 			# Custom
 
 		# orig_daemon_service_script=undefined
